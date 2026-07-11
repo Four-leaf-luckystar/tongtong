@@ -678,6 +678,136 @@
             font-weight: bold;
         }
 
+        /* --- 字体 UI 样式 --- */
+        .font-app-container {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            padding-bottom: 20px;
+        }
+        .font-section-title {
+            font-size: 13px;
+            color: #8e8e93;
+            text-transform: uppercase;
+            margin: 20px 16px 8px 32px;
+            letter-spacing: 0.5px;
+        }
+        .font-ios-card {
+            background-color: #fff;
+            border-radius: 12px;
+            margin: 0 16px;
+            overflow: hidden;
+        }
+        .font-preview-box {
+            padding: 30px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 120px;
+            transition: font-family 0.3s ease;
+        }
+        .font-preview-text {
+            font-size: 18px;
+            color: #333;
+            line-height: 1.5;
+            outline: none;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 10px;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        .font-preview-text.editable {
+            border-color: rgba(0, 122, 255, 0.3);
+            background-color: rgba(0, 122, 255, 0.05);
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        .font-slider-container {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            gap: 15px;
+        }
+        .font-slider-icon-small { font-size: 14px; color: #8e8e93; font-weight: bold; }
+        .font-slider-icon-large { font-size: 22px; color: #8e8e93; font-weight: bold; }
+        .font-ios-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 4px;
+            background: #e5e5ea;
+            border-radius: 2px;
+            outline: none;
+        }
+        .font-ios-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        .font-list-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: #fff;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .font-list-item:active { background-color: #e5e5ea; }
+        .font-item-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .font-icon-blue { background-color: #007aff; }
+        .font-icon-green { background-color: #34c759; }
+        .font-item-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: #fff;
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .font-item-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .font-item-title { font-size: 16px; color: #000; }
+        .font-item-subtitle { font-size: 13px; color: #8e8e93; margin-top: 2px; }
+        .font-item-padding { padding: 14px 16px; }
+        .font-name-text { font-size: 16px; color: #000; margin-bottom: 4px; }
+        .font-preview-subtext { font-size: 14px; color: #8e8e93; }
+        .font-checkmark { display: none; color: #007aff; margin-left: 10px; }
+        .font-list-item.active .font-checkmark { display: block; }
+        .font-list-item.active .font-name-text { color: #007aff; }
+        .delete-font-btn {
+            display: none;
+            width: 28px;
+            height: 28px;
+            background-color: #ff3b30;
+            border-radius: 50%;
+            justify-content: center;
+            align-items: center;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .delete-font-btn svg { width: 14px; height: 14px; stroke: #fff; stroke-width: 3; }
+        .font-edit-mode .delete-font-btn { display: flex; }
+        .font-edit-mode .font-checkmark { display: none !important; }
+
         /* --- 拍立得弹窗 UI 样式 --- */
         .polaroid-modal-overlay {
             position: fixed;
@@ -1008,8 +1138,16 @@
             display: flex; justify-content: center; align-items: center;
             cursor: pointer; margin-right: 4px;
         }
+        .detail-export-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; margin-left: 4px;
+        }
         .detail-title {
-            flex: 1; text-align: center; font-size: 17px; font-weight: 600; margin-right: 40px;
+            flex: 1; text-align: center; font-size: 17px; font-weight: 600;
         }
         .detail-content {
             flex: 1; overflow-y: auto; scrollbar-width: none; padding-bottom: 100px;
@@ -1136,7 +1274,7 @@
                     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                     <span class="theme-tab-text">Wallpapers</span>
                 </div>
-                <div class="theme-tab-item">
+                <div class="theme-tab-item" onclick="switchThemeTab('font', this)">
                     <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
                     <span class="theme-tab-text">Fonts</span>
                 </div>
@@ -1164,7 +1302,7 @@
                     <div class="preset-grid" id="presetGridContent"></div>
                 </div>
                 <div class="preset-bottom-fixed">
-                    <div class="save-preset-btn" id="presetActionBtn" onclick="handlePresetAction()">+ 保存当前状态为预设</div>
+                    <div class="save-preset-btn" id="presetActionBtn" onclick="handlePresetAction()">+ 保存主题为预设</div>
                 </div>
             </div>
 
@@ -1183,6 +1321,64 @@
                 </div>
                 <input type="file" id="wallpaperFileInput" accept="image/*" style="display:none;" onchange="handleWallpaperUpload(event)">
             </div>
+
+            <!-- 字体区域 -->
+            <div class="font-app-container" id="fontAppGrid">
+                <div class="font-section-title">PREVIEW</div>
+                <div class="font-ios-card">
+                    <div class="font-preview-box" id="globalFontPreview">
+                        <div class="font-preview-text" id="fontPreviewText">
+                            The quick brown fox jumps over the lazy dog.<br>
+                            探索宇宙的奥秘，感受科技的魅力。
+                        </div>
+                    </div>
+                </div>
+
+                <div class="font-section-title">FONT SIZE</div>
+                <div class="font-ios-card">
+                    <div class="font-slider-container">
+                        <div class="font-slider-icon-small">A</div>
+                        <input type="range" class="font-ios-slider" id="fontSizeSlider" min="12" max="36" value="18" oninput="updateFontSize()">
+                        <div class="font-slider-icon-large">A</div>
+                    </div>
+                </div>
+
+                <div class="font-section-title">IMPORT FONTS</div>
+                <div class="font-ios-card">
+                    <div class="font-list-item" onclick="document.getElementById('fontFileInput').click()">
+                        <div class="font-item-icon font-icon-blue">
+                            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        </div>
+                        <div class="font-item-content">
+                            <div class="font-item-title">从本地文件导入</div>
+                            <div class="font-item-subtitle">支持 .ttf, .otf 格式</div>
+                        </div>
+                        <input type="file" id="fontFileInput" accept=".ttf,.otf,.woff,.woff2" style="display: none;" onchange="handleLocalFont(event)">
+                    </div>
+                    <div class="font-list-item" onclick="openUrlFontModal()">
+                        <div class="font-item-icon font-icon-green">
+                            <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                        </div>
+                        <div class="font-item-content">
+                            <div class="font-item-title">通过 URL 安装</div>
+                            <div class="font-item-subtitle">输入直链下载并应用字体</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="font-section-title">MY FONTS</div>
+                <div class="font-ios-card" id="fontListContainer">
+                    <div class="font-list-item font-item-padding active" data-font="default" onclick="selectFont('default', this)">
+                        <div class="font-item-content">
+                            <div class="font-name-text">系统默认 (Microsoft YaHei)</div>
+                            <div class="font-preview-subtext">The quick brown fox / 探索宇宙</div>
+                        </div>
+                        <div class="font-checkmark">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 预设详情页 -->
@@ -1192,6 +1388,9 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </div>
                 <div class="detail-title">主题详情</div>
+                <div class="detail-export-btn" onclick="openExportModal()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </div>
             </div>
             <div class="detail-content">
                 <div class="preview-carousel">
@@ -1249,17 +1448,61 @@
                 </div>
             </div>
             <div class="preset-m1-body">
-                <input type="text" class="preset-m1-input" placeholder="你怎么称呼这个预设..." id="presetNameInput">
+                <input type="text" class="preset-m1-input" placeholder="输入预设名称..." id="presetNameInput">
             </div>
             <div class="preset-m1-footer">
                 <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closePresetModal()">取消</button>
                 <button class="preset-m1-btn preset-m1-btn-save" onclick="saveCurrentAsPreset()">保存</button>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- URL 导入字体弹窗 -->
+    <div class="preset-modal-overlay" id="urlFontModal">
+        <div class="preset-modal-style-1">
+            <div class="preset-m-header">
+                <div class="preset-m-header-text">导入字体</div>
+                <div class="preset-m-stars">
+                    <svg class="preset-star-1" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg class="preset-star-2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg class="preset-star-3" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+            </div>
+            <div class="preset-m1-body">
+                <input type="text" class="preset-m1-input" placeholder="https://..." id="fontUrlInput">
+            </div>
+            <div class="preset-m1-footer">
+                <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closeUrlFontModal()">取消</button>
+                <button class="preset-m1-btn preset-m1-btn-save" onclick="confirmUrlFont()">安装</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导出预设名称弹窗 -->
+    <div class="preset-modal-overlay" id="exportPresetModal">
+        <div class="preset-modal-style-1">
+            <div class="preset-m-header">
+                <div class="preset-m-header-text">导出主题</div>
+                <div class="preset-m-stars">
+                    <svg class="preset-star-1" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg class="preset-star-2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg class="preset-star-3" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+            </div>
+            <div class="preset-m1-body">
+                <input type="text" class="preset-m1-input" placeholder="输入导出文件名称..." id="exportPresetInput">
+            </div>
+            <div class="preset-m1-footer">
+                <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closeExportModal()">取消</button>
+                <button class="preset-m1-btn preset-m1-btn-save" onclick="exportCurrentPreset()">导出</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+
     // --- 真实时间与电量逻辑 ---
     function updateTime() {
         const now = new Date();
@@ -1381,6 +1624,17 @@
             const pData = e.target.result;
             if (pData && pData.presets) {
                 presets = pData.presets;
+            }
+        };
+
+        // 加载字体数据
+        const fontRequest = store.get("fontData");
+        fontRequest.onsuccess = (e) => {
+            const fData = e.target.result;
+            if (fData && fData.fonts) {
+                customFonts = fData.fonts;
+                currentSelectedFont = fData.current || 'default';
+                restoreFonts();
             }
         };
     }
@@ -1860,11 +2114,14 @@
         const themeGrid = document.getElementById('themeAppGrid');
         const wallpaperGrid = document.getElementById('wallpaperAppGrid');
         const presetGrid = document.getElementById('presetAppGrid');
+        const fontGrid = document.getElementById('fontAppGrid');
         const topBarTitle = document.getElementById('topBarTitle');
         const topRightBtn = document.getElementById('topRightBtn');
 
         // 退出预设编辑模式
         if (isPresetEditMode) togglePresetEditMode();
+        // 退出字体编辑模式
+        if (isFontEditMode) toggleFontEditMode();
 
         if (tabName === 'theme') {
             topBarTitle.innerText = 'Icons';
@@ -1873,12 +2130,14 @@
             themeGrid.style.display = 'grid';
             wallpaperGrid.style.display = 'none';
             presetGrid.style.display = 'none';
+            if(fontGrid) fontGrid.style.display = 'none';
         } else if (tabName === 'wallpaper') {
             topBarTitle.innerText = 'Wallpapers';
             topRightBtn.style.display = 'none'; // 壁纸页不需要右上角按钮
             themeGrid.style.display = 'none';
             wallpaperGrid.style.display = 'flex';
             presetGrid.style.display = 'none';
+            if(fontGrid) fontGrid.style.display = 'none';
             renderWallpapers();
             
             const now = new Date();
@@ -1890,7 +2149,16 @@
             themeGrid.style.display = 'none';
             wallpaperGrid.style.display = 'none';
             presetGrid.style.display = 'flex';
+            if(fontGrid) fontGrid.style.display = 'none';
             renderPresets();
+        } else if (tabName === 'font') {
+            topBarTitle.innerText = 'Fonts';
+            topRightBtn.innerText = 'Edit';
+            topRightBtn.style.display = 'block';
+            themeGrid.style.display = 'none';
+            wallpaperGrid.style.display = 'none';
+            presetGrid.style.display = 'none';
+            if(fontGrid) fontGrid.style.display = 'flex';
         }
     }
 
@@ -2029,6 +2297,8 @@
             saveThemeChanges(); // 在 Icons 页面，执行保存
         } else if (currentActiveTab === 'preset') {
             togglePresetEditMode(); // 在 Themes 页面，切换编辑模式
+        } else if (currentActiveTab === 'font') {
+            toggleFontEditMode(); // 在 Fonts 页面，切换编辑模式
         }
     }
 
@@ -2046,7 +2316,7 @@
             actionBtn.classList.add('delete-mode');
         } else {
             topRightBtn.innerText = 'Edit';
-            actionBtn.innerText = '+ 保存当前状态为预设';
+            actionBtn.innerText = '+ 保存主题为预设';
             actionBtn.classList.remove('delete-mode');
         }
         renderPresets();
@@ -2246,6 +2516,52 @@
         }, 300);
     }
 
+    function openExportModal() {
+        if (!currentDetailPresetId) return;
+        const preset = presets.find(p => p.id === currentDetailPresetId);
+        if (!preset) return;
+        
+        const input = document.getElementById('exportPresetInput');
+        input.value = preset.name; // 默认显示该主题的预设名称
+        
+        document.getElementById('exportPresetModal').classList.add('show');
+        setTimeout(() => {
+            input.focus();
+        }, 100);
+    }
+
+    function closeExportModal() {
+        document.getElementById('exportPresetModal').classList.remove('show');
+    }
+
+    function exportCurrentPreset() {
+        if (!currentDetailPresetId) return;
+        const preset = presets.find(p => p.id === currentDetailPresetId);
+        if (!preset) return;
+        
+        const inputVal = document.getElementById('exportPresetInput').value.trim();
+        const fileName = inputVal ? inputVal : preset.name;
+        
+        // 将预设数据转换为格式化的 JSON 字符串
+        const jsonString = JSON.stringify(preset, null, 2);
+        
+        // 使用 Blob 对象处理大文件下载，避免 URL 长度限制导致的文件名错乱问题
+        const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", url);
+        downloadAnchorNode.setAttribute("download", fileName + ".json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        document.body.removeChild(downloadAnchorNode);
+        
+        // 释放内存
+        URL.revokeObjectURL(url);
+        
+        closeExportModal();
+    }
+
     function extractBase64FromUrl(cssUrl) {
         if (!cssUrl) return null;
         const match = cssUrl.match(/url\(['"]?(data:image\/[^'"]+)['"]?\)/);
@@ -2352,7 +2668,7 @@
             
             compressBtn.innerText = '轻量压缩';
             compressBtn.disabled = false;
-            alert('真实压缩完成！');
+            alert('压缩完成！');
         });
     }
 
@@ -2383,6 +2699,216 @@
         }
         
         alert("已应用预设主题！");
+    }
+
+    // --- 字体页面逻辑 ---
+    let customFontCount = 0;
+    let isFontEditMode = false;
+    let customFonts = []; // 存储字体数据
+    let currentSelectedFont = 'default'; // 当前选中的字体
+
+    // 保存字体数据到 IndexedDB
+    function saveFontData() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "fontData", fonts: customFonts, current: currentSelectedFont });
+    }
+
+    // 从 IndexedDB 恢复字体
+    async function restoreFonts() {
+        for (const font of customFonts) {
+            try {
+                // 更新计数器，防止 ID 冲突
+                const num = parseInt(font.id.split('_')[1]);
+                if (num > customFontCount) customFontCount = num;
+
+                let source = font.type === 'local' ? font.data : `url(${font.url})`;
+                const newFont = new FontFace(font.id, source);
+                const loadedFont = await newFont.load();
+                document.fonts.add(loadedFont);
+                
+                // 仅添加到 UI，不触发保存
+                addFontToList(font.name, font.id, true);
+            } catch (err) {
+                console.error("恢复字体失败:", font.name, err);
+            }
+        }
+        
+        // 恢复选中状态
+        const targetItem = document.querySelector(`.font-list-item[data-font="${currentSelectedFont}"]`);
+        if (targetItem) {
+            selectFont(currentSelectedFont, targetItem, true);
+        } else {
+            const defaultItem = document.querySelector('.font-list-item[data-font="default"]');
+            if (defaultItem) selectFont('default', defaultItem, true);
+        }
+    }
+
+    function toggleFontEditMode() {
+        isFontEditMode = !isFontEditMode;
+        const topRightBtn = document.getElementById('topRightBtn');
+        const previewText = document.getElementById('fontPreviewText');
+        const fontList = document.getElementById('fontListContainer');
+
+        if (isFontEditMode) {
+            topRightBtn.innerText = 'Done';
+            topRightBtn.style.color = '#ff3b30';
+            previewText.contentEditable = "true";
+            previewText.classList.add('editable');
+            fontList.classList.add('font-edit-mode');
+        } else {
+            topRightBtn.innerText = 'Edit';
+            topRightBtn.style.color = '#000';
+            previewText.contentEditable = "false";
+            previewText.classList.remove('editable');
+            fontList.classList.remove('font-edit-mode');
+        }
+    }
+
+    function updateFontSize() {
+        const size = document.getElementById('fontSizeSlider').value;
+        document.getElementById('fontPreviewText').style.fontSize = size + 'px';
+    }
+
+    function selectFont(fontFamily, element, isRestore = false) {
+        if (isFontEditMode) return;
+
+        document.querySelectorAll('#fontListContainer .font-list-item').forEach(el => el.classList.remove('active'));
+        if (element) element.classList.add('active');
+
+        currentSelectedFont = fontFamily;
+        if (!isRestore) saveFontData(); // 如果不是恢复阶段，则保存状态
+
+        const previewBox = document.getElementById('globalFontPreview');
+        
+        let styleTag = document.getElementById('dynamic-global-font');
+        if (!styleTag) {
+            styleTag = document.createElement('style');
+            styleTag.id = 'dynamic-global-font';
+            document.head.appendChild(styleTag);
+        }
+
+        if (fontFamily === 'default') {
+            previewBox.style.fontFamily = '"Microsoft YaHei", sans-serif';
+            styleTag.innerHTML = `* { font-family: "Microsoft YaHei", sans-serif !important; }`;
+        } else {
+            previewBox.style.fontFamily = `"${fontFamily}", "Microsoft YaHei", sans-serif`;
+            styleTag.innerHTML = `* { font-family: "${fontFamily}", "Microsoft YaHei", sans-serif !important; }`;
+        }
+    }
+
+    function addFontToList(fontName, fontFamily, isRestore = false) {
+        const fontList = document.getElementById('fontListContainer');
+        const newItem = document.createElement('div');
+        newItem.className = 'font-list-item font-item-padding';
+        newItem.setAttribute('data-font', fontFamily);
+        newItem.onclick = function(e) { 
+            if(e.target.closest('.delete-font-btn')) return;
+            selectFont(fontFamily, this); 
+        };
+        
+        newItem.innerHTML = `
+            <div class="font-item-content">
+                <div class="font-name-text" style="font-family: '${fontFamily}', 'Microsoft YaHei', sans-serif">${fontName}</div>
+                <div class="font-preview-subtext" style="font-family: '${fontFamily}', 'Microsoft YaHei', sans-serif">The quick brown fox / 探索宇宙</div>
+            </div>
+            <div class="font-checkmark">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <div class="delete-font-btn" onclick="deleteFont(this, '${fontFamily}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </div>
+        `;
+        fontList.appendChild(newItem);
+        
+        if (!isRestore) {
+            selectFont(fontFamily, newItem);
+        }
+    }
+
+    function deleteFont(btnElement, fontFamily) {
+        const listItem = btnElement.closest('.font-list-item');
+        const isActive = listItem.classList.contains('active');
+        listItem.remove();
+
+        // 从数据中移除并保存
+        customFonts = customFonts.filter(f => f.id !== fontFamily);
+        saveFontData();
+
+        if (isActive) {
+            const defaultItem = document.querySelector('#fontListContainer .font-list-item[data-font="default"]');
+            if (defaultItem) selectFont('default', defaultItem);
+        }
+    }
+
+    function handleLocalFont(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const fontData = e.target.result;
+            customFontCount++;
+            const fontFamily = `CustomFont_${customFontCount}`;
+            const fontName = file.name.split('.')[0];
+
+            const newFont = new FontFace(fontFamily, fontData);
+            newFont.load().then(function(loadedFont) {
+                document.fonts.add(loadedFont);
+                
+                // 保存到数组并写入 IndexedDB
+                customFonts.push({ id: fontFamily, name: fontName, type: 'local', data: fontData });
+                saveFontData();
+                
+                addFontToList(fontName, fontFamily);
+            }).catch(function(error) {
+                alert('字体加载失败，请检查文件格式！');
+                console.error(error);
+            });
+        };
+        reader.readAsArrayBuffer(file);
+        event.target.value = ''; 
+    }
+
+    function openUrlFontModal() {
+        document.getElementById('urlFontModal').classList.add('show');
+        setTimeout(() => {
+            document.getElementById('fontUrlInput').focus();
+        }, 100);
+    }
+
+    function closeUrlFontModal() {
+        document.getElementById('urlFontModal').classList.remove('show');
+        document.getElementById('fontUrlInput').value = '';
+    }
+
+    function confirmUrlFont() {
+        const urlInput = document.getElementById('fontUrlInput');
+        const url = urlInput.value.trim();
+        if (!url) {
+            alert('请输入字体 URL！');
+            return;
+        }
+
+        customFontCount++;
+        const fontFamily = `UrlFont_${customFontCount}`;
+        const fontName = `网络字体 ${customFontCount}`;
+
+        const newFont = new FontFace(fontFamily, `url(${url})`);
+        newFont.load().then(function(loadedFont) {
+            document.fonts.add(loadedFont);
+            
+            // 保存到数组并写入 IndexedDB
+            customFonts.push({ id: fontFamily, name: fontName, type: 'url', url: url });
+            saveFontData();
+            
+            addFontToList(fontName, fontFamily);
+            closeUrlFontModal();
+        }).catch(function(error) {
+            alert('字体加载失败，请确保 URL 直接指向字体文件且允许跨域访问！');
+            console.error(error);
+        });
     }
 </script>
 
