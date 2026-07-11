@@ -1,0 +1,2390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>iOS Desktop Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            /* 全局使用苹方 */
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #e0e0e0;
+            overflow: hidden;
+        }
+
+        /* 手机外壳模拟 */
+        .iphone {
+            width: 375px;
+            height: 812px;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            border-radius: 45px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            border: 8px solid #f0f0f0;
+        }
+
+        /* 状态栏 */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 28px 0 28px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #000;
+            z-index: 10;
+            position: relative;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 电池UI */
+        .battery-wrapper {
+            display: flex;
+            align-items: center;
+            margin-left: 2px;
+        }
+        
+        .battery-body {
+            width: 26px;
+            height: 13px;
+            background-color: #a0a0a0;
+            border-radius: 3.5px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .battery-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background-color: #000;
+            width: 85%;
+            transition: width 0.3s ease;
+        }
+
+        .battery-text {
+            position: relative;
+            z-index: 2;
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+            line-height: 1;
+            /* 强制使用苹方 */
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            transform: scale(0.9);
+        }
+        
+        .battery-nub {
+            width: 2px;
+            height: 4px;
+            background-color: #a0a0a0;
+            border-radius: 0 2px 2px 0;
+            margin-left: 1px;
+        }
+
+        /* 编辑模式 UI */
+        .edit-ui {
+            position: absolute;
+            top: 18px;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+            cursor: pointer;
+        }
+
+        .edit-plus {
+            left: 20px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .edit-done {
+            right: 20px;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 桌面 4x7 网格 */
+        .desktop-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(7, 80px);
+            gap: 15px 10px;
+            padding: 25px 20px;
+            height: calc(100% - 180px);
+            position: relative;
+            z-index: 5;
+        }
+
+        /* 桌面格子占位符 */
+        .desktop-slot {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            border-radius: 16px;
+            transition: background-color 0.2s, border 0.2s;
+            border: 1px solid transparent;
+        }
+
+        /* 编辑模式下显示格子 */
+        .desktop-slot.show-grid {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px dashed rgba(0, 0, 0, 0.15);
+        }
+
+        /* APP 图标容器 */
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            touch-action: none;
+            cursor: default;
+            position: relative;
+            width: 100%;
+        }
+
+        .app-icon {
+            width: 60px;
+            height: 60px;
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(0,0,0,0.02);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            pointer-events: none;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .app-icon::before {
+            content: '';
+            width: 30px;
+            height: 30px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .app-name {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #555;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+            font-weight: 500;
+            pointer-events: none;
+        }
+
+        /* 搜索按钮 */
+        .search-bar {
+            position: absolute;
+            bottom: 115px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #555;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 5;
+        }
+
+        /* 底部程序坞 (Dock) */
+        .dock {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            height: 85px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 30px;
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            z-index: 5;
+            padding: 0 10px;
+        }
+
+        .dock .app-item {
+            margin-top: 10px;
+            width: auto;
+        }
+
+        .dock .app-item .app-name {
+            display: none;
+        }
+        
+        .dock .app-icon {
+            background-color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        /* 编辑模式抖动动画 */
+        @keyframes jiggle {
+            0% { transform: rotate(-1.5deg); }
+            50% { transform: rotate(1.5deg); }
+            100% { transform: rotate(-1.5deg); }
+        }
+
+        .app-item.jiggling {
+            animation: jiggle 0.3s infinite;
+            cursor: grab;
+        }
+        .app-item.jiggling:active {
+            cursor: grabbing;
+        }
+
+        /* 隐藏自定义图标时的默认占位方块 */
+        .app-icon.has-custom-icon::before {
+            display: none;
+        }
+        
+        /* 去除自定义图标的白色背景和阴影，完美适配透明底图片 */
+        .app-icon.has-custom-icon {
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+
+        /* --- 主题 APP UI 样式 --- */
+        .theme-app-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fafafa; /* 低饱和素白色 */
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .theme-app-container.show {
+            transform: translateY(0);
+        }
+        /* 顶部导航栏 */
+        .ios-top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 90px;
+            padding: 45px 20px 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 110;
+            background-color: #fafafa; /* 低饱和素白色 */
+            border-bottom: none; /* 确保没有横线 */
+        }
+        .ios-top-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 17px;
+            font-weight: 600;
+            color: #000;
+        }
+        .ios-back-btn {
+            width: 36px;
+            height: 36px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .ios-save-btn {
+            background-color: #fff;
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        
+        /* 底部导航栏外层容器 */
+        .bottom-nav-wrapper {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 110;
+            gap: 12px;
+        }
+        
+        /* 左侧主胶囊 */
+        .nav-capsule-main {
+            flex: 1;
+            height: 64px;
+            background-color: rgba(242, 242, 247, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 32px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+
+        /* 右侧独立按钮 */
+        .nav-capsule-standalone {
+            width: 64px;
+            height: 64px;
+            background-color: rgba(242, 242, 247, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            flex-shrink: 0;
+        }
+
+        .theme-tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            width: 54px;
+            height: 54px;
+            border-radius: 27px;
+            transition: all 0.2s ease;
+        }
+        
+        .theme-tab-item svg {
+            width: 20px;
+            height: 20px;
+            stroke: #8e8e93;
+            stroke-width: 2;
+            fill: none;
+            transition: stroke 0.2s ease;
+        }
+        
+        .theme-tab-item.active {
+            background-color: #e5e5ea;
+        }
+        
+        .theme-tab-item.active svg {
+            stroke: #000;
+        }
+        
+        .theme-tab-text {
+            font-size: 10px;
+            font-weight: 600;
+            color: #8e8e93;
+            transition: color 0.2s ease;
+        }
+
+        .theme-tab-item.active .theme-tab-text {
+            color: #007aff;
+        }
+        
+        .nav-capsule-standalone .theme-tab-item {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+        
+        /* 内容区适配上下栏 */
+        .theme-content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 90px; /* 为底部栏留出空间 */
+            padding-top: 90px; /* 为顶部栏留出空间 */
+            background-color: #fafafa; /* 低饱和素白色 */
+        }
+
+        .theme-grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 0 16px;
+        }
+        .theme-app-card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 28px 12px 16px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .theme-original-name {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            font-size: 10px;
+            color: #aeaeb2;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        .theme-reset-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background-color: rgba(142, 142, 147, 0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: #8e8e93;
+            z-index: 5;
+        }
+        .theme-icon-wrapper {
+            position: relative;
+            width: 56px;
+            height: 56px;
+            flex-shrink: 0;
+        }
+        .theme-app-icon {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            background-color: #e5e5ea;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+        }
+        .theme-camera-badge {
+            position: absolute;
+            bottom: -6px;
+            right: -6px;
+            width: 22px;
+            height: 22px;
+            background-color: #3a3a3c;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .theme-text-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 14px;
+            gap: 4px;
+            max-width: 100%;
+        }
+        .theme-app-name-input {
+            font-size: 13px;
+            color: #000;
+            font-weight: 500;
+            outline: none;
+            border-bottom: 1px solid transparent;
+            padding: 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 90px;
+        }
+        .theme-app-name-input:focus { border-bottom-color: #d1d1d6; }
+
+        /* --- 壁纸 UI 样式 --- */
+        .wallpaper-carousel-container {
+            display: none; /* 默认隐藏，点击Tab后显示 */
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            position: relative;
+            background-color: #fafafa; /* 低饱和素白色 */
+        }
+        .carousel-scroll {
+            display: flex;
+            width: 100%;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            padding: 0 20px;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .carousel-scroll::-webkit-scrollbar { display: none; }
+        .wallpaper-card {
+            flex: 0 0 100%;
+            background-color: #fff;
+            border-radius: 24px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            scroll-snap-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            position: relative;
+        }
+        .card-title {
+            font-size: 16px;
+            color: #8e8e93;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .screens-container {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+        .screen-preview {
+            width: 130px;
+            height: 280px;
+            background-color: #e5e5ea;
+            border-radius: 20px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .screen-preview.selected {
+            border-color: #007aff;
+        }
+        .add-btn {
+            width: 40px;
+            height: 40px;
+            background-color: #007aff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255, 59, 48, 0.1);
+            color: #ff3b30;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .pagination {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+            height: 20px;
+            align-items: center;
+        }
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #d1d1d6;
+            transition: background-color 0.3s;
+        }
+        .dot.active { background-color: #000; }
+        .info-card {
+            background-color: #e5e5ea;
+            margin: 20px;
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: calc(100% - 40px);
+        }
+        .info-text { flex: 1; padding-right: 15px; }
+        .info-title { font-size: 15px; font-weight: 600; color: #000; margin-bottom: 6px; }
+        .info-desc { font-size: 13px; color: #8e8e93; line-height: 1.4; }
+        .info-img {
+            width: 50px;
+            height: 100px;
+            background-color: #aeaeb2;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            padding-top: 15px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* --- 拍立得弹窗 UI 样式 --- */
+        .polaroid-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(245, 245, 245, 0.85); /* 改为浅灰白背景 */
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .polaroid-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .polaroid-paperclip {
+            position: absolute;
+            top: -8px;
+            z-index: 10;
+            width: 12px;
+            height: 28px;
+            border: 1.5px solid #a0a0a0; /* 颜色稍微加深以适应浅色背景 */
+            border-radius: 6px;
+            background: transparent;
+            clip-path: polygon(0 0, 100% 0, 100% 75%, 0 75%);
+        }
+        .polaroid-paperclip::after {
+            content: '';
+            position: absolute;
+            top: 4px; left: 2px; right: 2px; bottom: 4px;
+            border: 1.5px solid #a0a0a0;
+            border-radius: 3px;
+            border-bottom: none;
+        }
+        .polaroid-card {
+            background: #ffffff;
+            padding: 12px 12px 45px 12px;
+            width: 220px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); /* 阴影调淡 */
+            position: relative;
+            z-index: 5;
+            border-radius: 2px;
+        }
+        .polaroid-photo-area {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            background-size: cover;
+            background-position: center;
+            transition: background-color 0.2s;
+            border: 1px solid #f0f0f0;
+        }
+        .polaroid-photo-area:hover {
+            background-color: #ebebeb;
+        }
+        .polaroid-photo-hint {
+            color: #a0a0a0;
+            font-size: 18px;
+            font-weight: 300;
+            pointer-events: none;
+        }
+        .polaroid-controls {
+            margin-top: 30px;
+            width: 220px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 5;
+        }
+        .polaroid-url-input {
+            width: 100%;
+            padding: 8px 0;
+            border: none;
+            border-bottom: 1px solid rgba(0,0,0,0.15); /* 改为深色底线 */
+            background: transparent;
+            text-align: center;
+            font-size: 12px;
+            color: #333; /* 改为深色文字 */
+            outline: none;
+            font-family: "Courier New", Courier, monospace;
+            transition: border-color 0.3s;
+        }
+        .polaroid-url-input::placeholder {
+            color: rgba(0,0,0,0.3); /* 改为深色占位符 */
+        }
+        .polaroid-url-input:focus {
+            border-bottom-color: rgba(0,0,0,0.5);
+        }
+        .polaroid-btn-group {
+            display: flex;
+            gap: 12px;
+        }
+        .polaroid-btn {
+            flex: 1;
+            padding: 10px 0;
+            border: none;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: opacity 0.2s;
+        }
+        .polaroid-btn-cancel {
+            background: rgba(0,0,0,0.05); /* 浅色背景下的取消按钮 */
+            color: #666;
+        }
+        .polaroid-btn-confirm {
+            background: #333; /* 浅色背景下的确认按钮 */
+            color: #fff;
+            font-weight: 600;
+        }
+        .polaroid-btn:hover {
+            opacity: 0.8;
+        }
+
+        /* --- 预设库 UI 样式 --- */
+        .preset-container {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        .preset-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 16px 20px 16px;
+            scrollbar-width: none;
+        }
+        .preset-scroll-area::-webkit-scrollbar { display: none; }
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px 12px;
+            width: 100%;
+        }
+        .preset-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+        .preset-card:active { transform: scale(0.95); }
+        .preset-img-wrapper {
+            width: 100%;
+            aspect-ratio: 9 / 19;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            background-color: #e5e5ea;
+            position: relative;
+        }
+        .preset-bg {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+        .preset-name {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #000;
+            font-family: "Microsoft YaHei", sans-serif;
+            font-weight: 500;
+            text-align: center;
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* 多选打勾样式 */
+        .preset-check-circle {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            background-color: rgba(0,0,0,0.3);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        .preset-card.edit-mode .preset-check-circle { display: flex; }
+        .preset-card.selected .preset-check-circle {
+            background-color: #007aff;
+            border-color: #007aff;
+        }
+        .preset-card.selected .preset-check-circle::after {
+            content: '';
+            width: 6px;
+            height: 10px;
+            border: solid #fff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            margin-bottom: 2px;
+        }
+
+        /* 固定底部按钮区域 */
+        .preset-bottom-fixed {
+            padding: 10px 20px 20px 20px;
+            background: linear-gradient(to top, #fafafa 80%, rgba(250,250,250,0));
+            width: 100%;
+            flex-shrink: 0;
+        }
+        .save-preset-btn {
+            background-color: #ffffff;
+            color: #000;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 14px 0;
+            width: 100%;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        .save-preset-btn.delete-mode {
+            background-color: #ff3b30;
+            color: #fff;
+        }
+
+        /* --- 保存预设名称弹窗样式 --- */
+        .preset-modal-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .preset-modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .preset-m-header {
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .preset-m-header-text {
+            font-size: 13px;
+            color: #333;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .preset-m-stars {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .preset-star-1 { width: 10px; height: 10px; fill: #d1d1d6; }
+        .preset-star-2 { width: 13px; height: 13px; fill: #8e8e93; }
+        .preset-star-3 { width: 16px; height: 16px; fill: #1c1c1e; }
+        
+        .preset-modal-style-1 {
+            width: 310px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .preset-modal-overlay.show .preset-modal-style-1 { transform: scale(1); }
+        
+        .preset-m1-body { padding: 24px 20px; }
+        .preset-m1-input {
+            width: 100%; background: rgba(0,0,0,0.05); border: none;
+            border-radius: 24px; padding: 14px 20px; font-size: 15px; 
+            outline: none; color: #333;
+        }
+        .preset-m1-input::placeholder { color: #aaa; }
+        .preset-m1-footer { display: flex; gap: 12px; padding: 0 20px 24px 20px; }
+        .preset-m1-btn {
+            flex: 1; padding: 12px 0; border-radius: 20px;
+            border: none; font-size: 14px; font-weight: 600; cursor: pointer;
+        }
+        .preset-m1-btn-cancel { background: rgba(0,0,0,0.05); color: #666; }
+        .preset-m1-btn-save { background: #007aff; color: #fff; }
+
+        /* --- 预设详情页样式 --- */
+        #presetDetailPage {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #fafafa;
+            display: none;
+            flex-direction: column;
+            z-index: 200;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        #presetDetailPage.show { transform: translateX(0); }
+        .detail-header {
+            padding: 45px 20px 10px 20px;
+            display: flex;
+            align-items: center;
+            background: #fafafa;
+            height: 90px;
+        }
+        .detail-back-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; margin-right: 4px;
+        }
+        .detail-title {
+            flex: 1; text-align: center; font-size: 17px; font-weight: 600; margin-right: 40px;
+        }
+        .detail-content {
+            flex: 1; overflow-y: auto; scrollbar-width: none; padding-bottom: 100px;
+        }
+        .detail-content::-webkit-scrollbar { display: none; }
+        .preview-carousel {
+            display: flex; justify-content: center;
+            padding: 20px 30px;
+        }
+        .preview-phone-mockup {
+            width: 220px; height: 476px; background-color: #fff;
+            border-radius: 32px; border: 6px solid #e5e5ea;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            position: relative; overflow: hidden;
+        }
+        .preview-phone-mockup::before {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 80px; height: 20px; background: #e5e5ea; border-radius: 0 0 10px 10px; z-index: 10;
+        }
+        /* 1:1 缩放容器，将 375x812 的桌面等比缩小放入 220x476 的模型中 */
+        .preview-scale-container {
+            width: 375px; height: 812px;
+            transform: scale(0.5866); transform-origin: top left;
+            position: absolute; top: 0; left: 0;
+            background-size: cover; background-position: center;
+        }
+        .preset-info-box { padding: 20px 30px; }
+        .info-name { font-size: 22px; font-weight: bold; color: #000; font-family: "Microsoft YaHei", sans-serif; margin-bottom: 8px; }
+        .info-meta { display: flex; align-items: center; justify-content: space-between; }
+        .info-date { font-size: 13px; color: #8e8e93; }
+        .info-size-box { display: flex; align-items: center; gap: 8px; }
+        .info-size { font-size: 12px; color: #007aff; font-weight: 600; background: rgba(0,122,255,0.1); padding: 4px 10px; border-radius: 12px; }
+        .compress-btn { font-size: 12px; color: #fff; background: #333; padding: 4px 12px; border-radius: 12px; cursor: pointer; border: none; transition: background 0.2s; }
+        .compress-btn:active { background: #000; }
+        .detail-bottom-bar {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 15px 20px 30px 20px; background: linear-gradient(to top, #fafafa 80%, rgba(250,250,250,0));
+        }
+        .apply-btn {
+            width: 100%; background-color: #007aff; color: #fff; border: none;
+            border-radius: 25px; padding: 16px 0; font-size: 16px; font-weight: 600;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3); transition: transform 0.2s;
+        }
+        .apply-btn:active { transform: scale(0.98); }
+    </style>
+
+</head>
+<body>
+
+<div class="iphone">
+    <!-- 编辑模式 UI -->
+    <div class="edit-ui edit-plus" id="editPlus">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+    </div>
+    <div class="edit-ui edit-done" id="editDone">完成</div>
+
+    <!-- 顶部状态栏 -->
+    <div class="status-bar" id="statusBar">
+        <div class="time" id="clock">00:00</div>
+        <div class="status-right">
+            <div class="status-icon">
+                <svg width="16" height="12" viewBox="0 0 16 12" fill="#000">
+                    <rect x="0" y="8" width="2.5" height="4" rx="1"/>
+                    <rect x="4" y="5" width="2.5" height="7" rx="1"/>
+                    <rect x="8" y="2" width="2.5" height="10" rx="1"/>
+                    <rect x="12" y="0" width="2.5" height="12" rx="1"/>
+                </svg>
+            </div>
+            <div class="status-icon">
+                <svg width="16" height="12" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                    <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                    <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                </svg>
+            </div>
+            <div class="battery-wrapper">
+                <div class="battery-body">
+                    <div class="battery-fill" id="batteryLevel"></div>
+                    <div class="battery-text" id="batteryText">85</div>
+                </div>
+                <div class="battery-nub"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 桌面 4x7 网格区域 -->
+    <div class="desktop-grid" id="desktopGrid"></div>
+
+    <!-- 搜索按钮 -->
+    <div class="search-bar">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        搜索
+    </div>
+
+    <!-- 底部程序坞 -->
+    <div class="dock" id="dock"></div>
+
+    <!-- 主题 APP UI 容器 -->
+    <div class="theme-app-container" id="themeAppUI">
+        <!-- 顶部导航栏 -->
+        <div class="ios-top-bar">
+            <div class="ios-back-btn" onclick="closeThemeApp()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+            <div class="ios-top-title" id="topBarTitle">Themes</div>
+            <div class="ios-save-btn" id="topRightBtn" onclick="handleTopRightBtn()">Save</div>
+        </div>
+
+        <!-- 底部 iOS 风格导航栏 -->
+        <div class="bottom-nav-wrapper" id="themeTopTabs">
+            <div class="nav-capsule-main">
+                <div class="theme-tab-item active" onclick="switchThemeTab('theme', this)">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+                    <span class="theme-tab-text">Icons</span>
+                </div>
+                <div class="theme-tab-item" onclick="switchThemeTab('wallpaper', this)">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span class="theme-tab-text">Wallpapers</span>
+                </div>
+                <div class="theme-tab-item">
+                    <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                    <span class="theme-tab-text">Fonts</span>
+                </div>
+                <div class="theme-tab-item">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                    <span class="theme-tab-text">Widgets</span>
+                </div>
+            </div>
+            <div class="nav-capsule-standalone">
+                <div class="theme-tab-item" onclick="switchThemeTab('preset', this)">
+                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <span class="theme-tab-text">Themes</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-content-area">
+
+            <!-- 主题网格 -->
+            <div class="theme-grid-container" id="themeAppGrid"></div>
+            
+            <!-- 预设库区域 -->
+            <div class="preset-container" id="presetAppGrid" style="display: none;">
+                <div class="preset-scroll-area">
+                    <div class="preset-grid" id="presetGridContent"></div>
+                </div>
+                <div class="preset-bottom-fixed">
+                    <div class="save-preset-btn" id="presetActionBtn" onclick="handlePresetAction()">+ 保存当前状态为预设</div>
+                </div>
+            </div>
+
+            <!-- 壁纸区域 -->
+            <div class="wallpaper-carousel-container" id="wallpaperAppGrid">
+                <div class="carousel-scroll" id="carouselScroll" onscroll="updatePagination()">
+                    <!-- 卡片将通过 JS 动态渲染 -->
+                </div>
+                <div class="pagination" id="pagination"></div>
+                <div class="info-card">
+                    <div class="info-text">
+                        <div class="info-title">从锁定屏幕更改墙纸</div>
+                        <div class="info-desc">按住锁定屏幕添加、编辑墙纸和小组件，或在不同墙纸和小组件之间切换。</div>
+                    </div>
+                    <div class="info-img" id="infoClock">00:00</div>
+                </div>
+                <input type="file" id="wallpaperFileInput" accept="image/*" style="display:none;" onchange="handleWallpaperUpload(event)">
+            </div>
+        </div>
+
+        <!-- 预设详情页 -->
+        <div id="presetDetailPage">
+            <div class="detail-header">
+                <div class="detail-back-btn" onclick="closePresetDetail()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </div>
+                <div class="detail-title">主题详情</div>
+            </div>
+            <div class="detail-content">
+                <div class="preview-carousel">
+                    <div class="preview-phone-mockup">
+                        <!-- 1:1 桌面还原容器 -->
+                        <div class="preview-scale-container" id="previewScaleContainer"></div>
+                    </div>
+                </div>
+                <div class="preset-info-box">
+                    <div class="info-name" id="detailName">主题名称</div>
+                    <div class="info-meta">
+                        <div class="info-date" id="detailDate">创建于：--</div>
+                        <div class="info-size-box">
+                            <div class="info-size" id="detailSize">0.00 MB</div>
+                            <button class="compress-btn" onclick="compressPreset()">压缩</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-bottom-bar">
+                <button class="apply-btn" onclick="applyCurrentDetailTheme()">应用该预设主题</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 拍立得弹窗 -->
+    <div class="polaroid-modal-overlay" id="polaroidModal">
+        <div class="polaroid-container">
+            <div class="polaroid-paperclip"></div>
+            <div class="polaroid-card">
+                <div class="polaroid-photo-area" id="polaroidPhotoArea" onclick="document.getElementById('polaroidFileInput').click()">
+                    <div class="polaroid-photo-hint" id="polaroidPhotoHint">+</div>
+                </div>
+            </div>
+            <input type="file" id="polaroidFileInput" accept="image/*" style="display: none;" onchange="handlePolaroidLocalUpload(event)">
+            <div class="polaroid-controls">
+                <input type="text" class="polaroid-url-input" id="polaroidUrlInput" placeholder="URL / 链接优先" oninput="updatePolaroidPreview()">
+                <div class="polaroid-btn-group">
+                    <button class="polaroid-btn polaroid-btn-cancel" onclick="closePolaroidModal()">取消</button>
+                    <button class="polaroid-btn polaroid-btn-confirm" onclick="confirmPolaroidImage()">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 保存预设名称弹窗 -->
+    <div class="preset-modal-overlay" id="presetNameModal">
+        <div class="preset-modal-style-1">
+            <div class="preset-m-header">
+                <div class="preset-m-header-text">主题预设</div>
+                <div class="preset-m-stars">
+                    <svg class="preset-star-1" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg class="preset-star-2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg class="preset-star-3" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+            </div>
+            <div class="preset-m1-body">
+                <input type="text" class="preset-m1-input" placeholder="你怎么称呼这个预设..." id="presetNameInput">
+            </div>
+            <div class="preset-m1-footer">
+                <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closePresetModal()">取消</button>
+                <button class="preset-m1-btn preset-m1-btn-save" onclick="saveCurrentAsPreset()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 真实时间与电量逻辑 ---
+    function updateTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('clock').textContent = `${hours}:${minutes}`;
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    function updateBattery(level) {
+        const percentage = Math.round(level * 100);
+        document.getElementById('batteryLevel').style.width = percentage + '%';
+        document.getElementById('batteryText').textContent = percentage;
+    }
+
+    if ('getBattery' in navigator) {
+        navigator.getBattery().then(function(battery) {
+            updateBattery(battery.level);
+            battery.addEventListener('levelchange', function() {
+                updateBattery(battery.level);
+            });
+        });
+    } else {
+        updateBattery(0.85);
+    }
+
+    // --- IndexedDB 数据存储逻辑 ---
+    const dbName = "iOSDesktopDB";
+    const storeName = "layoutStore";
+    let db;
+
+    function initDB() {
+        const request = indexedDB.open(dbName, 2);
+        
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            if (db.objectStoreNames.contains(storeName)) {
+                db.deleteObjectStore(storeName);
+            }
+            db.createObjectStore(storeName, { keyPath: "id" });
+        };
+
+        request.onsuccess = (e) => {
+            db = e.target.result;
+            loadLayout();
+        };
+
+        request.onerror = (e) => {
+            console.error("IndexedDB error:", e);
+            renderDefaultLayout(); // 降级处理
+        };
+    }
+
+    function saveLayout() {
+        if (!db) return;
+        const desktopApps = [];
+        document.querySelectorAll('.desktop-slot').forEach((slot, index) => {
+            const app = slot.querySelector('.app-item');
+            if (app) {
+                const iconEl = app.querySelector('.app-icon');
+                const iconBg = iconEl.style.backgroundImage;
+                desktopApps.push({ 
+                    index, 
+                    name: app.querySelector('.app-name').innerText,
+                    icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null
+                });
+            }
+        });
+
+        const dockApps = [];
+        document.querySelectorAll('.dock .app-item').forEach((app, index) => {
+            const iconEl = app.querySelector('.app-icon');
+            const iconBg = iconEl.style.backgroundImage;
+            dockApps.push({ 
+                index, 
+                name: app.querySelector('.app-name').innerText,
+                icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null
+            });
+        });
+
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "currentLayout", desktop: desktopApps, dock: dockApps });
+    }
+
+    function loadLayout() {
+        const transaction = db.transaction([storeName], "readonly");
+        const store = transaction.objectStore(storeName);
+        const request = store.get("currentLayout");
+
+        request.onsuccess = (e) => {
+            const data = e.target.result;
+            // 增加校验：如果数据存在，并且 desktop 或 dock 中至少有一个有数据，才渲染
+            if (data && data.desktop && data.dock && (data.desktop.length > 0 || data.dock.length > 0)) {
+                renderLayout(data.desktop, data.dock);
+            } else {
+                // 如果数据损坏或为空，强制加载默认布局
+                renderDefaultLayout();
+            }
+        };
+
+        // 同时加载壁纸数据
+        const wpRequest = store.get("wallpaperData");
+        wpRequest.onsuccess = (e) => {
+            const wpData = e.target.result;
+            if (wpData && wpData.wallpapers) {
+                wallpapers = wpData.wallpapers;
+                if (wpData.current) {
+                    applyWallpaperToDesktop(wpData.current);
+                }
+            }
+            renderWallpapers();
+        };
+
+        // 加载预设数据
+        const presetRequest = store.get("presetData");
+        presetRequest.onsuccess = (e) => {
+            const pData = e.target.result;
+            if (pData && pData.presets) {
+                presets = pData.presets;
+            }
+        };
+    }
+
+    let currentWallpaperSrc = null;
+
+    function saveWallpaperData() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "wallpaperData", wallpapers: wallpapers, current: currentWallpaperSrc });
+    }
+
+    function applyWallpaperToDesktop(src) {
+        currentWallpaperSrc = src;
+        const iphoneEl = document.querySelector('.iphone');
+        if (src) {
+            iphoneEl.style.backgroundImage = `url('${src}')`;
+            iphoneEl.style.backgroundSize = 'cover';
+            iphoneEl.style.backgroundPosition = 'center';
+        } else {
+            iphoneEl.style.backgroundImage = 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)';
+        }
+    }
+
+    function renderDefaultLayout() {
+        const defaultDesktop = [
+            { index: 0, name: '时钟' }, { index: 1, name: '备忘录' },
+            { index: 2, name: '天气' }, { index: 3, name: '日历' }
+        ];
+        const defaultDock = [
+            { index: 0, name: '电话' }, { index: 1, name: '信息' }, { index: 2, name: '主题' }
+        ];
+        renderLayout(defaultDesktop, defaultDock);
+        saveLayout();
+    }
+
+    function createAppElement(name, icon) {
+        const app = document.createElement('div');
+        app.className = 'app-item';
+        app.innerHTML = `<div class="app-icon"></div><div class="app-name">${name}</div>`;
+        if (icon) {
+            const iconEl = app.querySelector('.app-icon');
+            iconEl.style.backgroundImage = icon;
+            iconEl.style.backgroundColor = 'transparent';
+            iconEl.classList.add('has-custom-icon');
+        }
+        return app;
+    }
+
+    function renderLayout(desktopData = [], dockData = []) {
+        const desktopGrid = document.getElementById('desktopGrid');
+        const dock = document.getElementById('dock');
+        desktopGrid.innerHTML = '';
+        dock.innerHTML = '';
+
+        // 渲染桌面 28 个格子
+        for (let i = 0; i < 28; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'desktop-slot';
+            const appData = desktopData.find(d => d.index === i);
+            if (appData) {
+                slot.appendChild(createAppElement(appData.name, appData.icon));
+            }
+            desktopGrid.appendChild(slot);
+        }
+
+        // 渲染底栏
+        dockData.forEach(appData => {
+            dock.appendChild(createAppElement(appData.name, appData.icon));
+        });
+    }
+
+    // 初始化数据库并渲染
+    initDB();
+
+    // --- 交互与拖拽逻辑 ---
+    let isEditMode = false;
+    const editPlus = document.getElementById('editPlus');
+    const editDone = document.getElementById('editDone');
+    const statusBar = document.getElementById('statusBar');
+    const dockContainer = document.getElementById('dock');
+
+    let pressTimer = null;
+    let startX = 0, startY = 0;
+    let draggedApp = null;
+    let dragGhost = null;
+    let offsetX = 0, offsetY = 0;
+
+    function enterEditMode() {
+        if (isEditMode) return;
+        isEditMode = true;
+        statusBar.style.opacity = '0';
+        statusBar.style.visibility = 'hidden';
+        editPlus.style.display = 'flex';
+        editDone.style.display = 'block';
+        
+        // 显示桌面格子并开启抖动
+        document.querySelectorAll('.desktop-slot').forEach(slot => slot.classList.add('show-grid'));
+        document.querySelectorAll('.app-item').forEach(app => app.classList.add('jiggling'));
+    }
+
+    function exitEditMode() {
+        isEditMode = false;
+        statusBar.style.opacity = '1';
+        statusBar.style.visibility = 'visible';
+        editPlus.style.display = 'none';
+        editDone.style.display = 'none';
+        
+        // 隐藏桌面格子并停止抖动
+        document.querySelectorAll('.desktop-slot').forEach(slot => slot.classList.remove('show-grid'));
+        document.querySelectorAll('.app-item').forEach(app => app.classList.remove('jiggling'));
+        
+        // 退出编辑模式时保存布局到 IndexedDB
+        saveLayout();
+    }
+
+    editDone.addEventListener('click', exitEditMode);
+
+    document.addEventListener('pointerdown', (e) => {
+        const app = e.target.closest('.app-item');
+        
+        if (!isEditMode) {
+            if (!app) return;
+            startX = e.clientX;
+            startY = e.clientY;
+            pressTimer = setTimeout(() => {
+                enterEditMode();
+            }, 600);
+        } else {
+            if (!app) return;
+            e.preventDefault();
+            draggedApp = app;
+
+            const rect = app.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+
+            dragGhost = app.cloneNode(true);
+            dragGhost.style.position = 'fixed';
+            dragGhost.style.left = rect.left + 'px';
+            dragGhost.style.top = rect.top + 'px';
+            dragGhost.style.width = rect.width + 'px';
+            dragGhost.style.height = rect.height + 'px';
+            dragGhost.style.opacity = '0.8';
+            dragGhost.style.pointerEvents = 'none';
+            dragGhost.style.zIndex = '1000';
+            dragGhost.style.transform = 'scale(1.15)';
+            dragGhost.style.transition = 'transform 0.1s';
+            dragGhost.classList.remove('jiggling');
+            document.body.appendChild(dragGhost);
+
+            app.style.opacity = '0';
+        }
+    });
+
+    document.addEventListener('pointermove', (e) => {
+        if (!isEditMode) {
+            if (pressTimer && (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10)) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            }
+        } else {
+            if (!dragGhost) return;
+            e.preventDefault();
+            dragGhost.style.left = (e.clientX - offsetX) + 'px';
+            dragGhost.style.top = (e.clientY - offsetY) + 'px';
+        }
+    });
+
+    document.addEventListener('pointerup', (e) => {
+        if (pressTimer) {
+            clearTimeout(pressTimer);
+            pressTimer = null;
+        }
+
+        // 处理非编辑模式下的点击事件 (打开APP)
+        if (!isEditMode && !dragGhost) {
+            const app = e.target.closest('.app-item');
+            if (app) {
+                const appName = app.querySelector('.app-name').innerText;
+                if (appName === '主题') {
+                    openThemeApp();
+                }
+            }
+        }
+
+        if (isEditMode && dragGhost && draggedApp) {
+            dragGhost.remove();
+            dragGhost = null;
+            draggedApp.style.opacity = '1';
+
+            draggedApp.style.display = 'none';
+            const targetEl = document.elementFromPoint(e.clientX, e.clientY);
+            draggedApp.style.display = '';
+
+            if (targetEl) {
+                const targetApp = targetEl.closest('.app-item');
+                const targetSlot = targetEl.closest('.desktop-slot');
+                const targetDock = targetEl.closest('.dock');
+
+                const parent1 = draggedApp.parentNode;
+
+                if (targetApp && targetApp !== draggedApp) {
+                    const parent2 = targetApp.parentNode;
+                    const sibling1 = draggedApp.nextSibling === targetApp ? draggedApp : draggedApp.nextSibling;
+                    parent2.insertBefore(draggedApp, targetApp);
+                    parent1.insertBefore(targetApp, sibling1);
+                } else if (targetSlot && !targetSlot.querySelector('.app-item')) {
+                    targetSlot.appendChild(draggedApp);
+                } else if (targetDock && !parent1.classList.contains('dock')) {
+                    if (dockContainer.querySelectorAll('.app-item').length < 4) {
+                        dockContainer.appendChild(draggedApp);
+                    }
+                }
+            }
+            draggedApp = null;
+        }
+    });
+
+    document.addEventListener('pointercancel', () => {
+        if (pressTimer) clearTimeout(pressTimer);
+        if (dragGhost) {
+            dragGhost.remove();
+            dragGhost = null;
+            if (draggedApp) draggedApp.style.opacity = '1';
+            draggedApp = null;
+        }
+    });
+
+    // --- 主题 APP 交互逻辑 ---
+    const themeAppUI = document.getElementById('themeAppUI');
+    const themeAppGrid = document.getElementById('themeAppGrid');
+    let currentEditingApps = [];
+
+    function openThemeApp() {
+        themeAppUI.style.display = 'flex';
+        // 延迟一点添加 show 类，以触发 CSS 过渡动画
+        setTimeout(() => {
+            themeAppUI.classList.add('show');
+        }, 10);
+        loadAppsIntoThemeUI();
+    }
+
+    function closeThemeApp() {
+        themeAppUI.classList.remove('show');
+        setTimeout(() => {
+            themeAppUI.style.display = 'none';
+        }, 300);
+    }
+
+    function loadAppsIntoThemeUI() {
+        themeAppGrid.innerHTML = '';
+        currentEditingApps = [];
+        
+        // 收集桌面上所有的 APP (排除预设详情页里的预览APP)
+        const allApps = document.querySelectorAll('#desktopGrid .app-item, #dock .app-item');
+        allApps.forEach((appEl, index) => {
+            const nameEl = appEl.querySelector('.app-name');
+            const iconEl = appEl.querySelector('.app-icon');
+            if (!nameEl) return; // 排除可能异常的节点
+            
+            const appName = nameEl.innerText;
+            const appIcon = iconEl.style.backgroundImage;
+            
+            // 保存引用以便后续更新
+            currentEditingApps.push({
+                element: appEl,
+                originalName: appName,
+                currentName: appName,
+                currentIcon: appIcon
+            });
+
+            renderThemeAppCard(appName, appIcon, index);
+        });
+    }
+
+    function renderThemeAppCard(name, icon, index) {
+        const card = document.createElement('div');
+        card.className = 'theme-app-card';
+        
+        const cameraSvg = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>`;
+        const themeSvg = `<svg class="theme-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>`;
+        const resetSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`;
+
+        // 将双引号替换为单引号，防止截断 style 属性
+        const safeIcon = icon ? icon.replace(/"/g, "'") : '';
+        const iconStyle = safeIcon && safeIcon !== 'none' ? `background-image: ${safeIcon}; background-color: transparent;` : '';
+
+        card.innerHTML = `
+            <div class="theme-original-name">${name}</div>
+            <div class="theme-reset-btn" onclick="resetThemeApp(${index})" title="恢复默认">${resetSvg}</div>
+            <div class="theme-icon-wrapper">
+                <div class="theme-app-icon" id="theme-icon-${index}" style="${iconStyle}" onclick="openPolaroidModal(${index})"></div>
+            </div>
+            <div class="theme-text-wrapper">
+                ${themeSvg}
+                <span class="theme-app-name-input" id="theme-name-${index}" contenteditable="true" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}" onblur="updateThemeAppName(${index}, this.innerText)">${name}</span>
+            </div>
+        `;
+        themeAppGrid.appendChild(card);
+    }
+
+    // --- 拍立得弹窗逻辑 ---
+    let currentPolaroidIndex = null;
+    let polaroidLocalImage = null;
+
+    function openPolaroidModal(index) {
+        currentPolaroidIndex = index;
+        polaroidLocalImage = null;
+
+        // 清空之前的输入和预览
+        document.getElementById('polaroidUrlInput').value = '';
+        document.getElementById('polaroidFileInput').value = '';
+        
+        // 如果当前APP已经有自定义图标，显示在拍立得上
+        const currentIcon = currentEditingApps[index].currentIcon;
+        if (currentIcon && currentIcon !== 'none') {
+            // 提取 url('...') 中的链接作为初始预览
+            const urlMatch = currentIcon.match(/url\(['"]?(.*?)['"]?\)/);
+            if (urlMatch && urlMatch[1]) {
+                polaroidLocalImage = urlMatch[1];
+            }
+        }
+        
+        updatePolaroidPreview();
+        document.getElementById('polaroidModal').style.display = 'flex';
+    }
+
+    function closePolaroidModal() {
+        document.getElementById('polaroidModal').style.display = 'none';
+        currentPolaroidIndex = null;
+    }
+
+    function handlePolaroidLocalUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 限制最大尺寸，进行真实压缩 (图标不需要太大分辨率)
+                    const MAX_SIZE = 120;
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    if (width > height) {
+                        if (width > MAX_SIZE) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        }
+                    } else {
+                        if (height > MAX_SIZE) {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // 压缩为 webp 格式，质量 0.8，大幅减小 Base64 体积
+                    polaroidLocalImage = canvas.toDataURL('image/webp', 0.8);
+                    updatePolaroidPreview();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        event.target.value = '';
+    }
+
+    function updatePolaroidPreview() {
+        const urlValue = document.getElementById('polaroidUrlInput').value.trim();
+        const photoArea = document.getElementById('polaroidPhotoArea');
+        const photoHint = document.getElementById('polaroidPhotoHint');
+        
+        let finalUrl = null;
+        if (urlValue) {
+            finalUrl = urlValue;
+        } else if (polaroidLocalImage) {
+            finalUrl = polaroidLocalImage;
+        }
+
+        if (finalUrl) {
+            photoArea.style.backgroundImage = `url('${finalUrl}')`;
+            photoHint.style.display = 'none';
+        } else {
+            photoArea.style.backgroundImage = 'none';
+            photoHint.style.display = 'block';
+        }
+    }
+
+    function confirmPolaroidImage() {
+        if (currentPolaroidIndex === null) return;
+        
+        const urlValue = document.getElementById('polaroidUrlInput').value.trim();
+        let finalUrl = null;
+        
+        if (urlValue) {
+            finalUrl = urlValue;
+        } else if (polaroidLocalImage) {
+            finalUrl = polaroidLocalImage;
+        }
+
+        const iconElement = document.getElementById(`theme-icon-${currentPolaroidIndex}`);
+        if (finalUrl) {
+            iconElement.style.backgroundImage = `url('${finalUrl}')`;
+            iconElement.style.backgroundColor = 'transparent';
+            currentEditingApps[currentPolaroidIndex].currentIcon = `url('${finalUrl}')`;
+        } else {
+            // 如果什么都没填，相当于清空自定义图标
+            iconElement.style.backgroundImage = 'none';
+            iconElement.style.backgroundColor = '#e5e5ea';
+            currentEditingApps[currentPolaroidIndex].currentIcon = '';
+        }
+        
+        closePolaroidModal();
+    }
+
+    function updateThemeAppName(index, newName) {
+        currentEditingApps[index].currentName = newName.trim() || currentEditingApps[index].originalName;
+    }
+
+    function resetThemeApp(index) {
+        const appData = currentEditingApps[index];
+        appData.currentName = appData.originalName;
+        appData.currentIcon = '';
+        
+        document.getElementById(`theme-icon-${index}`).style.backgroundImage = 'none';
+        document.getElementById(`theme-icon-${index}`).style.backgroundColor = '#e5e5ea';
+        document.getElementById(`theme-name-${index}`).innerText = appData.originalName;
+        document.getElementById(`theme-file-${index}`).value = '';
+    }
+
+    function saveThemeChanges() {
+        // 将修改应用到真实的桌面 DOM 上
+        currentEditingApps.forEach(appData => {
+            const nameEl = appData.element.querySelector('.app-name');
+            const iconEl = appData.element.querySelector('.app-icon');
+            
+            if (nameEl) nameEl.innerText = appData.currentName;
+            if (iconEl) {
+                if (appData.currentIcon && appData.currentIcon !== 'none') {
+                    iconEl.style.backgroundImage = appData.currentIcon;
+                    iconEl.style.backgroundColor = 'transparent';
+                    iconEl.classList.add('has-custom-icon');
+                } else {
+                    iconEl.style.backgroundImage = 'none';
+                    iconEl.style.backgroundColor = ''; // 恢复默认 CSS 样式
+                    iconEl.classList.remove('has-custom-icon');
+                }
+            }
+        });
+        
+        // 保存到 IndexedDB
+        saveLayout();
+        
+        // 关闭 UI
+        closeThemeApp();
+    }
+
+    // --- 顶栏 Tab 切换逻辑 ---
+    let currentActiveTab = 'theme'; // 记录当前所在的 Tab
+
+    function switchThemeTab(tabName, element) {
+        currentActiveTab = tabName;
+        // 更新 Tab 激活状态
+        const tabs = document.querySelectorAll('#themeTopTabs .theme-tab-item');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        element.classList.add('active');
+
+        const themeGrid = document.getElementById('themeAppGrid');
+        const wallpaperGrid = document.getElementById('wallpaperAppGrid');
+        const presetGrid = document.getElementById('presetAppGrid');
+        const topBarTitle = document.getElementById('topBarTitle');
+        const topRightBtn = document.getElementById('topRightBtn');
+
+        // 退出预设编辑模式
+        if (isPresetEditMode) togglePresetEditMode();
+
+        if (tabName === 'theme') {
+            topBarTitle.innerText = 'Icons';
+            topRightBtn.innerText = 'Save';
+            topRightBtn.style.display = 'block';
+            themeGrid.style.display = 'grid';
+            wallpaperGrid.style.display = 'none';
+            presetGrid.style.display = 'none';
+        } else if (tabName === 'wallpaper') {
+            topBarTitle.innerText = 'Wallpapers';
+            topRightBtn.style.display = 'none'; // 壁纸页不需要右上角按钮
+            themeGrid.style.display = 'none';
+            wallpaperGrid.style.display = 'flex';
+            presetGrid.style.display = 'none';
+            renderWallpapers();
+            
+            const now = new Date();
+            document.getElementById('infoClock').textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        } else if (tabName === 'preset') {
+            topBarTitle.innerText = 'Themes';
+            topRightBtn.innerText = 'Edit';
+            topRightBtn.style.display = 'block';
+            themeGrid.style.display = 'none';
+            wallpaperGrid.style.display = 'none';
+            presetGrid.style.display = 'flex';
+            renderPresets();
+        }
+    }
+
+    // --- 壁纸库逻辑 ---
+    let wallpapers = [
+        { id: 'add', isAdd: true }
+    ];
+
+    function renderWallpapers() {
+        const carouselScroll = document.getElementById('carouselScroll');
+        const pagination = document.getElementById('pagination');
+        if (!carouselScroll || !pagination) return;
+        
+        carouselScroll.innerHTML = '';
+        pagination.innerHTML = '';
+
+        wallpapers.forEach((wp, index) => {
+            const card = document.createElement('div');
+            card.className = 'wallpaper-card';
+
+            if (wp.isAdd) {
+                card.innerHTML = `
+                    <div class="card-title">新墙纸</div>
+                    <div class="screens-container">
+                        <div class="screen-preview">
+                            <div class="add-btn" onclick="document.getElementById('wallpaperFileInput').click()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            </div>
+                        </div>
+                        <div class="screen-preview"></div>
+                    </div>
+                `;
+            } else {
+                const isSelected = currentWallpaperSrc === wp.src ? 'selected' : '';
+                card.innerHTML = `
+                    <div class="delete-btn" onclick="deleteWallpaper('${wp.id}')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </div>
+                    <div class="card-title">已存墙纸</div>
+                    <div class="screens-container">
+                        <div class="screen-preview ${isSelected}" style="background-image: url('${wp.src}')" onclick="setDesktopWallpaper('${wp.src}')"></div>
+                        <div class="screen-preview ${isSelected}" style="background-image: url('${wp.src}')" onclick="setDesktopWallpaper('${wp.src}')"></div>
+                    </div>
+                `;
+            }
+            carouselScroll.appendChild(card);
+
+            const dot = document.createElement('div');
+            dot.className = 'dot';
+            if (index === 0) dot.classList.add('active');
+            pagination.appendChild(dot);
+        });
+
+        updatePagination();
+    }
+
+    function handleWallpaperUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const newWallpaper = {
+                    id: Date.now().toString(),
+                    isAdd: false,
+                    src: e.target.result
+                };
+                wallpapers.splice(1, 0, newWallpaper); // 插入到添加按钮后面
+                renderWallpapers();
+                saveWallpaperData();
+                
+                const carouselScroll = document.getElementById('carouselScroll');
+                setTimeout(() => {
+                    carouselScroll.scrollTo({ left: carouselScroll.clientWidth, behavior: 'smooth' });
+                }, 100);
+            };
+            reader.readAsDataURL(file);
+        }
+        event.target.value = '';
+    }
+
+    function deleteWallpaper(id) {
+        if(confirm('确定要删除这张壁纸吗？')) {
+            const wpToDelete = wallpapers.find(wp => wp.id === id);
+            wallpapers = wallpapers.filter(wp => wp.id !== id);
+            
+            // 如果删除的是当前正在使用的壁纸，恢复默认背景
+            if (wpToDelete && currentWallpaperSrc === wpToDelete.src) {
+                applyWallpaperToDesktop(null);
+            }
+            
+            renderWallpapers();
+            saveWallpaperData();
+        }
+    }
+
+    function setDesktopWallpaper(src) {
+        applyWallpaperToDesktop(src);
+        renderWallpapers(); // 重新渲染以更新选中状态边框
+        saveWallpaperData();
+    }
+
+    function updatePagination() {
+        const carouselScroll = document.getElementById('carouselScroll');
+        const pagination = document.getElementById('pagination');
+        if (!carouselScroll || !pagination) return;
+
+        const scrollLeft = carouselScroll.scrollLeft;
+        const cardWidth = carouselScroll.clientWidth;
+        const currentIndex = Math.round(scrollLeft / cardWidth);
+        
+        const dots = pagination.querySelectorAll('.dot');
+        dots.forEach((dot, index) => {
+            if (index === currentIndex) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+    }
+
+    // --- 预设库逻辑 ---
+    let presets = [];
+    let isPresetEditMode = false;
+    let selectedPresets = new Set();
+
+    function savePresetData() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "presetData", presets: presets });
+    }
+
+    // 处理右上角按钮点击
+    function handleTopRightBtn() {
+        if (currentActiveTab === 'theme') {
+            saveThemeChanges(); // 在 Icons 页面，执行保存
+        } else if (currentActiveTab === 'preset') {
+            togglePresetEditMode(); // 在 Themes 页面，切换编辑模式
+        }
+    }
+
+    // 切换预设编辑模式
+    function togglePresetEditMode() {
+        isPresetEditMode = !isPresetEditMode;
+        selectedPresets.clear(); // 清空选中状态
+        
+        const topRightBtn = document.getElementById('topRightBtn');
+        const actionBtn = document.getElementById('presetActionBtn');
+        
+        if (isPresetEditMode) {
+            topRightBtn.innerText = 'Cancel';
+            actionBtn.innerText = '删除所选预设';
+            actionBtn.classList.add('delete-mode');
+        } else {
+            topRightBtn.innerText = 'Edit';
+            actionBtn.innerText = '+ 保存当前状态为预设';
+            actionBtn.classList.remove('delete-mode');
+        }
+        renderPresets();
+    }
+
+    // 处理底部按钮点击
+    function handlePresetAction() {
+        if (isPresetEditMode) {
+            // 执行多选删除
+            if (selectedPresets.size === 0) return;
+            if (confirm(`确定要删除选中的 ${selectedPresets.size} 个预设吗？`)) {
+                presets = presets.filter(p => !selectedPresets.has(p.id));
+                savePresetData();
+                togglePresetEditMode(); // 删除后退出编辑模式
+            }
+        } else {
+            // 打开输入名称的弹窗
+            openPresetModal();
+        }
+    }
+
+    function renderPresets() {
+        const presetGridContent = document.getElementById('presetGridContent');
+        if (!presetGridContent) return;
+        presetGridContent.innerHTML = '';
+
+        presets.forEach(preset => {
+            const card = document.createElement('div');
+            card.className = `preset-card ${isPresetEditMode ? 'edit-mode' : ''} ${selectedPresets.has(preset.id) ? 'selected' : ''}`;
+            
+            card.onclick = () => {
+                if (isPresetEditMode) {
+                    // 编辑模式下：选中/取消选中
+                    if (selectedPresets.has(preset.id)) {
+                        selectedPresets.delete(preset.id);
+                        card.classList.remove('selected');
+                    } else {
+                        selectedPresets.add(preset.id);
+                        card.classList.add('selected');
+                    }
+                    // 更新底部按钮文字数量
+                    const actionBtn = document.getElementById('presetActionBtn');
+                    actionBtn.innerText = selectedPresets.size > 0 ? `删除所选预设 (${selectedPresets.size})` : '删除所选预设';
+                } else {
+                    // 非编辑模式下：打开详情页
+                    openPresetDetail(preset.id);
+                }
+            };
+
+            const bgStyle = preset.wallpaper ? `background-image: url('${preset.wallpaper}')` : 'background-color: #a0a0a0';
+
+            card.innerHTML = `
+                <div class="preset-img-wrapper">
+                    <div class="preset-bg" style="${bgStyle}"></div>
+                    <div class="preset-check-circle"></div>
+                </div>
+                <div class="preset-name">${preset.name}</div>
+            `;
+            presetGridContent.appendChild(card);
+        });
+    }
+
+    function openPresetModal() {
+        document.getElementById('presetNameModal').classList.add('show');
+        setTimeout(() => {
+            const input = document.getElementById('presetNameInput');
+            if(input) input.focus();
+        }, 100);
+    }
+
+    function closePresetModal() {
+        document.getElementById('presetNameModal').classList.remove('show');
+        document.getElementById('presetNameInput').value = ''; // 清空输入框
+    }
+
+    function saveCurrentAsPreset() {
+        const inputVal = document.getElementById('presetNameInput').value.trim();
+        if (!inputVal) {
+            alert("请输入预设名称！");
+            return;
+        }
+
+        // 完整保存桌面 28 个格子的布局和图标
+        const desktopApps = [];
+        document.querySelectorAll('#desktopGrid .desktop-slot').forEach((slot, index) => {
+            const app = slot.querySelector('.app-item');
+            if (app) {
+                const iconEl = app.querySelector('.app-icon');
+                const iconBg = iconEl.style.backgroundImage;
+                desktopApps.push({ 
+                    index, 
+                    name: app.querySelector('.app-name').innerText,
+                    icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null
+                });
+            }
+        });
+
+        // 完整保存底栏的布局和图标
+        const dockApps = [];
+        document.querySelectorAll('#dock .app-item').forEach((app, index) => {
+            const iconEl = app.querySelector('.app-icon');
+            const iconBg = iconEl.style.backgroundImage;
+            dockApps.push({ 
+                index, 
+                name: app.querySelector('.app-name').innerText,
+                icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null
+            });
+        });
+
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日`;
+
+        // 模拟计算一个初始内存大小 (15MB - 35MB 之间)
+        const initialSizeMB = (Math.random() * 20 + 15);
+
+        const newPreset = {
+            id: Date.now(),
+            name: inputVal,
+            date: dateStr,
+            sizeMB: initialSizeMB,
+            wallpaper: currentWallpaperSrc,
+            desktop: desktopApps,
+            dock: dockApps
+        };
+
+        presets.push(newPreset);
+        savePresetData();
+        renderPresets();
+        
+        closePresetModal(); 
+        
+        const scrollArea = document.querySelector('.preset-scroll-area');
+        setTimeout(() => {
+            scrollArea.scrollTo({ top: scrollArea.scrollHeight, behavior: 'smooth' });
+        }, 100);
+    }
+
+    let currentDetailPresetId = null;
+
+    function openPresetDetail(id) {
+        const preset = presets.find(p => p.id === id);
+        if (!preset) return;
+        
+        currentDetailPresetId = id;
+        
+        document.getElementById('detailName').innerText = preset.name;
+        document.getElementById('detailDate').innerText = '创建于：' + (preset.date || '未知时间');
+        document.getElementById('detailSize').innerText = (preset.sizeMB || 15.0).toFixed(2) + ' MB';
+        
+        const container = document.getElementById('previewScaleContainer');
+        container.style.backgroundImage = preset.wallpaper ? `url('${preset.wallpaper}')` : 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)';
+        
+        // 1:1 渲染桌面网格
+        let desktopHTML = '<div class="desktop-grid" style="height: calc(100% - 180px);">';
+        for (let i = 0; i < 28; i++) {
+            const appData = preset.desktop ? preset.desktop.find(d => d.index === i) : null;
+            if (appData) {
+                // 将双引号替换为单引号，防止截断 style 属性
+                const safeIcon = appData.icon ? appData.icon.replace(/"/g, "'") : '';
+                const iconStyle = safeIcon ? `background-image: ${safeIcon};` : '';
+                const customClass = appData.icon ? 'has-custom-icon' : '';
+                desktopHTML += `<div class="desktop-slot"><div class="app-item"><div class="app-icon ${customClass}" style="${iconStyle}"></div><div class="app-name">${appData.name}</div></div></div>`;
+            } else {
+                desktopHTML += `<div class="desktop-slot"></div>`;
+            }
+        }
+        desktopHTML += '</div>';
+
+        // 1:1 渲染底栏
+        let dockHTML = '<div class="dock" style="bottom: 15px;">';
+        if (preset.dock) {
+            preset.dock.forEach(appData => {
+                // 将双引号替换为单引号，防止截断 style 属性
+                const safeIcon = appData.icon ? appData.icon.replace(/"/g, "'") : '';
+                const iconStyle = safeIcon ? `background-image: ${safeIcon};` : '';
+                const customClass = appData.icon ? 'has-custom-icon' : '';
+                dockHTML += `<div class="app-item"><div class="app-icon ${customClass}" style="${iconStyle}"></div><div class="app-name" style="display:none;">${appData.name}</div></div>`;
+            });
+        }
+        dockHTML += '</div>';
+
+        container.innerHTML = desktopHTML + dockHTML;
+        
+        const detailPage = document.getElementById('presetDetailPage');
+        detailPage.style.display = 'flex';
+        setTimeout(() => {
+            detailPage.classList.add('show');
+        }, 10);
+    }
+
+    function closePresetDetail() {
+        const detailPage = document.getElementById('presetDetailPage');
+        detailPage.classList.remove('show');
+        setTimeout(() => {
+            detailPage.style.display = 'none';
+            currentDetailPresetId = null;
+        }, 300);
+    }
+
+    function extractBase64FromUrl(cssUrl) {
+        if (!cssUrl) return null;
+        const match = cssUrl.match(/url\(['"]?(data:image\/[^'"]+)['"]?\)/);
+        return match ? match[1] : null;
+    }
+
+    function compressImageBase64(base64Str, maxWidth, quality, callback) {
+        if (!base64Str || !base64Str.startsWith('data:image')) {
+            callback(base64Str);
+            return;
+        }
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            let width = img.width;
+            let height = img.height;
+            
+            if (width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            callback(canvas.toDataURL('image/webp', quality));
+        };
+        img.onerror = function() {
+            callback(base64Str);
+        };
+        img.src = base64Str;
+    }
+
+    function compressPreset() {
+        if (!currentDetailPresetId) return;
+        const preset = presets.find(p => p.id === currentDetailPresetId);
+        if (!preset) return;
+
+        const compressBtn = document.querySelector('.compress-btn');
+        compressBtn.innerText = '压缩中...';
+        compressBtn.disabled = true;
+
+        let tasks = [];
+
+        // 压缩壁纸 (限制最大宽度 800)
+        if (preset.wallpaper && preset.wallpaper.startsWith('data:image')) {
+            tasks.push(new Promise(resolve => {
+                compressImageBase64(preset.wallpaper, 800, 0.6, (newBase64) => {
+                    preset.wallpaper = newBase64;
+                    resolve();
+                });
+            }));
+        }
+
+        // 压缩桌面图标 (限制最大宽度 100)
+        if (preset.desktop) {
+            preset.desktop.forEach(app => {
+                if (app.icon) {
+                    const base64 = extractBase64FromUrl(app.icon);
+                    if (base64) {
+                        tasks.push(new Promise(resolve => {
+                            compressImageBase64(base64, 100, 0.6, (newBase64) => {
+                                app.icon = `url('${newBase64}')`;
+                                resolve();
+                            });
+                        }));
+                    }
+                }
+            });
+        }
+
+        // 压缩 Dock 图标 (限制最大宽度 100)
+        if (preset.dock) {
+            preset.dock.forEach(app => {
+                if (app.icon) {
+                    const base64 = extractBase64FromUrl(app.icon);
+                    if (base64) {
+                        tasks.push(new Promise(resolve => {
+                            compressImageBase64(base64, 100, 0.6, (newBase64) => {
+                                app.icon = `url('${newBase64}')`;
+                                resolve();
+                            });
+                        }));
+                    }
+                }
+            });
+        }
+
+        Promise.all(tasks).then(() => {
+            // 重新计算真实大小
+            let totalBytes = 0;
+            if (preset.wallpaper) totalBytes += preset.wallpaper.length;
+            preset.desktop?.forEach(app => { if(app.icon) totalBytes += app.icon.length; });
+            preset.dock?.forEach(app => { if(app.icon) totalBytes += app.icon.length; });
+            
+            // Base64 长度大约是原字节数的 4/3
+            const sizeMB = (totalBytes * 0.75) / (1024 * 1024);
+            preset.sizeMB = Math.max(0.01, sizeMB); // 至少显示 0.01MB
+            
+            document.getElementById('detailSize').innerText = preset.sizeMB.toFixed(2) + ' MB';
+            savePresetData();
+            
+            compressBtn.innerText = '轻量压缩';
+            compressBtn.disabled = false;
+            alert('真实压缩完成！');
+        });
+    }
+
+    function applyCurrentDetailTheme() {
+        if (currentDetailPresetId) {
+            applyPreset(currentDetailPresetId);
+            closePresetDetail();
+        }
+    }
+
+    function applyPreset(id) {
+        const preset = presets.find(p => p.id === id);
+        if (!preset) return;
+
+        // 1. 恢复壁纸
+        applyWallpaperToDesktop(preset.wallpaper);
+        saveWallpaperData();
+
+        // 2. 完整恢复桌面和底栏布局
+        if (preset.desktop && preset.dock) {
+            renderLayout(preset.desktop, preset.dock);
+        }
+
+        saveLayout();
+        
+        if (document.getElementById('themeAppUI').classList.contains('show')) {
+            loadAppsIntoThemeUI();
+        }
+        
+        alert("已应用预设主题！");
+    }
+</script>
+
+</body>
+</html>
