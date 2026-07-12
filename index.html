@@ -905,6 +905,33 @@
         .font-swipe-actions {
             position: absolute; top: 0; right: 0; height: 100%; display: flex; z-index: 1;
         }
+
+        /* iOS 悬浮胶囊提示 */
+        .ios-toast-capsule {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            white-space: nowrap;
+        }
+        .ios-toast-capsule.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
         .font-swipe-btn {
             height: 100%; display: flex; align-items: center; justify-content: center;
             color: #fff; font-size: 14px; font-weight: bold; padding: 0 20px; cursor: pointer;
@@ -1338,6 +1365,95 @@
             cursor: pointer; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3); transition: transform 0.2s;
         }
         .apply-btn:active { transform: scale(0.98); }
+
+        /* --- 自定义现代悬浮毛玻璃弹窗样式 --- */
+        .custom-dialog-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.35);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .custom-dialog-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .custom-dialog {
+            width: 280px;
+            background-color: rgba(242, 242, 247, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            padding-bottom: 16px;
+            transform: scale(1.15);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .custom-dialog-overlay.show .custom-dialog {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .custom-dialog-text {
+            padding: 26px 20px 18px 20px;
+            text-align: center;
+        }
+        .custom-dialog-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            line-height: 1.3;
+            color: #000;
+        }
+        .custom-dialog-message {
+            font-size: 14px;
+            line-height: 1.4;
+            color: rgba(0, 0, 0, 0.6);
+        }
+        .custom-dialog-btns {
+            display: flex;
+            padding: 0 16px;
+            gap: 12px;
+        }
+        .custom-dialog-btn {
+            flex: 1;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 0;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: rgba(0, 0, 0, 0.06);
+            color: #007aff;
+        }
+        .custom-dialog-btn.bold {
+            background-color: #007aff;
+            color: #fff;
+        }
+        .custom-dialog-btn.danger {
+            color: #ff3b30;
+            background-color: rgba(255, 59, 48, 0.1);
+        }
+        .custom-dialog-btn.danger.bold {
+            background-color: #ff3b30;
+            color: #fff;
+        }
+        .custom-dialog-btn:active {
+            transform: scale(0.96);
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        .custom-dialog-btn.bold:active {
+            background-color: #0062cc;
+        }
     </style>
 
 </head>
@@ -1742,9 +1858,73 @@
             </div>
         </div>
     </div>
+
+    <!-- 自定义高级感弹窗容器 -->
+    <div class="custom-dialog-overlay" id="customDialogOverlay">
+        <div class="custom-dialog" id="customDialog">
+            <!-- 内容由 JS 动态生成 -->
+        </div>
+    </div>
 </div>
 
 <script>
+
+    // --- 自定义弹窗逻辑 ---
+    function showCustomAlert(title, message) {
+        return new Promise(resolve => {
+            const overlay = document.getElementById('customDialogOverlay');
+            const dialog = document.getElementById('customDialog');
+            
+            dialog.innerHTML = `
+                <div class="custom-dialog-text">
+                    <div class="custom-dialog-title">${title}</div>
+                    <div class="custom-dialog-message">${message}</div>
+                </div>
+                <div class="custom-dialog-btns">
+                    <button class="custom-dialog-btn bold" id="customAlertBtn">好</button>
+                </div>
+            `;
+            
+            document.getElementById('customAlertBtn').onclick = () => {
+                overlay.classList.remove('show');
+                setTimeout(() => resolve(), 300);
+            };
+            
+            overlay.classList.add('show');
+        });
+    }
+
+    function showCustomConfirm(title, message, confirmText = '确定', isDanger = false) {
+        return new Promise(resolve => {
+            const overlay = document.getElementById('customDialogOverlay');
+            const dialog = document.getElementById('customDialog');
+            
+            const dangerClass = isDanger ? 'danger bold' : 'bold';
+            
+            dialog.innerHTML = `
+                <div class="custom-dialog-text">
+                    <div class="custom-dialog-title">${title}</div>
+                    <div class="custom-dialog-message">${message}</div>
+                </div>
+                <div class="custom-dialog-btns">
+                    <button class="custom-dialog-btn" id="customConfirmCancel">取消</button>
+                    <button class="custom-dialog-btn ${dangerClass}" id="customConfirmOk">${confirmText}</button>
+                </div>
+            `;
+            
+            document.getElementById('customConfirmCancel').onclick = () => {
+                overlay.classList.remove('show');
+                setTimeout(() => resolve(false), 300);
+            };
+            
+            document.getElementById('customConfirmOk').onclick = () => {
+                overlay.classList.remove('show');
+                setTimeout(() => resolve(true), 300);
+            };
+            
+            overlay.classList.add('show');
+        });
+    }
 
     // --- 真实时间与电量逻辑 ---
     function updateTime() {
@@ -2227,7 +2407,7 @@
                     const ctx = canvas.getContext('2d');
                     
                     // 限制最大尺寸，进行真实压缩 (图标不需要太大分辨率)
-                    const MAX_SIZE = 120;
+                    const MAX_SIZE = 256; /* 修改：提高最大分辨率以适配高清屏 */
                     let width = img.width;
                     let height = img.height;
                     
@@ -2247,8 +2427,8 @@
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    // 压缩为 webp 格式，质量 0.8，大幅减小 Base64 体积
-                    polaroidLocalImage = canvas.toDataURL('image/webp', 0.8);
+                    // 压缩为 webp 格式，质量 0.95，大幅减小 Base64 体积同时保持清晰
+                    polaroidLocalImage = canvas.toDataURL('image/webp', 0.95);
                     updatePolaroidPreview();
                 };
                 img.src = e.target.result;
@@ -2497,18 +2677,20 @@
     }
 
     function deleteWallpaper(id) {
-        if(confirm('确定要删除这张壁纸吗？')) {
-            const wpToDelete = wallpapers.find(wp => wp.id === id);
-            wallpapers = wallpapers.filter(wp => wp.id !== id);
-            
-            // 如果删除的是当前正在使用的壁纸，恢复默认背景
-            if (wpToDelete && currentWallpaperSrc === wpToDelete.src) {
-                applyWallpaperToDesktop(null);
+        showCustomConfirm('删除墙纸', '确定要删除这张壁纸吗？', '删除', true).then(confirmed => {
+            if(confirmed) {
+                const wpToDelete = wallpapers.find(wp => wp.id === id);
+                wallpapers = wallpapers.filter(wp => wp.id !== id);
+                
+                // 如果删除的是当前正在使用的壁纸，恢复默认背景
+                if (wpToDelete && currentWallpaperSrc === wpToDelete.src) {
+                    applyWallpaperToDesktop(null);
+                }
+                
+                renderWallpapers();
+                saveWallpaperData();
             }
-            
-            renderWallpapers();
-            saveWallpaperData();
-        }
+        });
     }
 
     function setDesktopWallpaper(src) {
@@ -2606,11 +2788,13 @@
         if (isPresetEditMode) {
             // 执行多选删除
             if (selectedPresets.size === 0) return;
-            if (confirm(`确定要删除选中的 ${selectedPresets.size} 个预设吗？`)) {
-                presets = presets.filter(p => !selectedPresets.has(p.id));
-                savePresetData();
-                togglePresetEditMode(); // 删除后退出编辑模式
-            }
+            showCustomConfirm('删除预设', `确定要删除选中的 ${selectedPresets.size} 个预设吗？`, '删除', true).then(confirmed => {
+                if (confirmed) {
+                    presets = presets.filter(p => !selectedPresets.has(p.id));
+                    savePresetData();
+                    togglePresetEditMode(); // 删除后退出编辑模式
+                }
+            });
         } else {
             // 打开输入名称的弹窗
             openPresetModal();
@@ -2690,7 +2874,7 @@
     function saveCurrentAsPreset() {
         const inputVal = document.getElementById('presetNameInput').value.trim();
         if (!inputVal) {
-            alert("请输入预设名称！");
+            showCustomAlert("提示", "请输入预设名称！");
             return;
         }
 
@@ -2958,14 +3142,14 @@
             }));
         }
 
-        // 压缩桌面图标 (限制最大宽度 150)
+        // 压缩桌面图标 (限制最大宽度 256)
         if (preset.desktop) {
             preset.desktop.forEach(app => {
                 if (app.icon) {
                     const base64 = extractBase64FromUrl(app.icon);
                     if (base64) {
                         tasks.push(new Promise(resolve => {
-                            compressImageBase64(base64, 150, 0.8, (newBase64) => {
+                            compressImageBase64(base64, 256, 0.9, (newBase64) => {
                                 app.icon = `url('${newBase64}')`;
                                 resolve();
                             });
@@ -2975,14 +3159,14 @@
             });
         }
 
-        // 压缩 Dock 图标 (限制最大宽度 150)
+        // 压缩 Dock 图标 (限制最大宽度 256)
         if (preset.dock) {
             preset.dock.forEach(app => {
                 if (app.icon) {
                     const base64 = extractBase64FromUrl(app.icon);
                     if (base64) {
                         tasks.push(new Promise(resolve => {
-                            compressImageBase64(base64, 150, 0.8, (newBase64) => {
+                            compressImageBase64(base64, 256, 0.9, (newBase64) => {
                                 app.icon = `url('${newBase64}')`;
                                 resolve();
                             });
@@ -2999,8 +3183,28 @@
             document.getElementById('detailSize').innerText = preset.sizeMB.toFixed(2) + ' MB';
             savePresetData();
             
-            alert('压缩完成！');
+            showToast('压缩完成');
         });
+    }
+
+    // 显示 iOS 悬浮胶囊提示
+    function showToast(message) {
+        let toast = document.getElementById('iosToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'iosToast';
+            toast.className = 'ios-toast-capsule';
+            document.querySelector('.iphone').appendChild(toast);
+        }
+        toast.innerText = message;
+        toast.classList.add('show');
+        
+        // 如果之前有定时器，先清除
+        if (toast.hideTimer) clearTimeout(toast.hideTimer);
+        
+        toast.hideTimer = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2000);
     }
 
     function applyCurrentDetailTheme() {
@@ -3029,7 +3233,7 @@
             loadAppsIntoThemeUI();
         }
         
-        alert("已应用预设主题！");
+        showToast("已应用预设主题！");
     }
 
     function importPreset(event) {
@@ -3047,12 +3251,12 @@
                     presets.push(importedData);
                     savePresetData();
                     renderPresets();
-                    alert('导入成功！');
+                    showToast('导入成功！');
                 } else {
-                    alert('无效的主题文件！');
+                    showCustomAlert('错误', '无效的主题文件！');
                 }
             } catch (err) {
-                alert('解析文件失败！');
+                showCustomAlert('错误', '解析文件失败！');
             }
         };
         reader.readAsText(file);
@@ -3139,7 +3343,7 @@
             renderPresets();
             closeEditPresetModal();
         } else {
-            alert("名称不能为空！");
+            showCustomAlert("提示", "名称不能为空！");
         }
     }
 
@@ -3357,7 +3561,7 @@
                 
                 addFontToList(fontName, fontFamily);
             }).catch(function(error) {
-                alert('字体加载失败，请检查文件格式！');
+                showCustomAlert('错误', '字体加载失败，请检查文件格式！');
                 console.error(error);
             });
         };
@@ -3386,7 +3590,7 @@
         let fontName = nameInput ? nameInput.value.trim() : '';
 
         if (!url) {
-            alert('请输入字体 URL！');
+            showCustomAlert('提示', '请输入字体 URL！');
             return;
         }
 
@@ -3410,7 +3614,7 @@
             addFontToList(fontName, fontFamily);
             closeUrlFontModal();
         }).catch(function(error) {
-            alert('字体加载失败，请确保 URL 直接指向字体文件且允许跨域访问！');
+            showCustomAlert('错误', '字体加载失败，请确保 URL 直接指向字体文件且允许跨域访问！');
             console.error(error);
         }).finally(function() {
             saveBtn.innerText = originalText;
@@ -3505,7 +3709,7 @@
             }
             closeEditFontModal();
         } else {
-            alert("名称不能为空！");
+            showCustomAlert("提示", "名称不能为空！");
         }
     }
 </script>
