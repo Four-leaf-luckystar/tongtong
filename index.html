@@ -4,13 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>iOS Desktop Simulation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geomini:wght@200..800&display=swap" rel="stylesheet">
     <style>
-        * {
+        *, *::before, *::after, input, button, textarea, select {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            /* 全局使用苹方 */
-            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            /* 全局使用 Geomini，并加入优质中文字体回退链 */
+            font-family: "Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif !important;
+            font-optical-sizing: auto;
+            font-style: normal;
+            font-weight: 600; /* 新增：全局默认半粗体，实现所有地方一点加粗 */
             user-select: none;
             -webkit-user-select: none;
         }
@@ -98,8 +104,8 @@
             font-size: 10px;
             font-weight: bold;
             line-height: 1;
-            /* 强制使用苹方 */
-            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            /* 强制使用 Geomini */
+            font-family: "Geomini", sans-serif;
             transform: scale(0.9);
         }
         
@@ -213,7 +219,7 @@
             font-size: 12px;
             color: #555;
             text-shadow: 0 1px 2px rgba(255,255,255,0.8);
-            font-weight: 500;
+            font-weight: bold;
             pointer-events: none;
         }
 
@@ -357,6 +363,85 @@
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
+        .ios-menu-btn {
+            width: 36px;
+            height: 36px;
+            background-color: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .theme-dropdown-menu {
+            position: absolute;
+            top: 85px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 120;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-15px);
+            transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .theme-dropdown-menu.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+        .detail-dropdown-menu {
+            position: absolute;
+            top: 85px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 220;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-15px);
+            transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .detail-dropdown-menu.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+        .dropdown-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 6px 16px 6px 6px;
+            border-radius: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .dropdown-btn:active {
+            transform: scale(0.95);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .dropdown-icon-circle {
+            width: 32px;
+            height: 32px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
         
         /* 底部导航栏外层容器 */
         .bottom-nav-wrapper {
@@ -433,7 +518,7 @@
         }
         
         .theme-tab-text {
-            font-size: 10px;
+            font-size: 8px;
             font-weight: 600;
             color: #8e8e93;
             transition: color 0.2s ease;
@@ -479,7 +564,7 @@
             left: 12px;
             font-size: 10px;
             color: #aeaeb2;
-            font-weight: 500;
+            font-weight: bold;
             text-transform: uppercase;
         }
         .theme-reset-btn {
@@ -538,7 +623,7 @@
         .theme-app-name-input {
             font-size: 13px;
             color: #000;
-            font-weight: 500;
+            font-weight: bold;
             outline: none;
             border-bottom: 1px solid transparent;
             padding: 2px 0;
@@ -585,7 +670,7 @@
             font-size: 16px;
             color: #8e8e93;
             margin-bottom: 20px;
-            font-weight: 500;
+            font-weight: bold;
         }
         .screens-container {
             display: flex;
@@ -716,6 +801,7 @@
             border-radius: 8px;
             padding: 10px;
             transition: border-color 0.3s, background-color 0.3s;
+            font-weight: bold;
         }
         .font-preview-text.editable {
             border-color: rgba(0, 122, 255, 0.3);
@@ -785,10 +871,10 @@
             flex-direction: column;
             justify-content: center;
         }
-        .font-item-title { font-size: 16px; color: #000; }
+        .font-item-title { font-size: 16px; color: #000; font-weight: bold; }
         .font-item-subtitle { font-size: 13px; color: #8e8e93; margin-top: 2px; }
         .font-item-padding { padding: 14px 16px; }
-        .font-name-text { font-size: 16px; color: #000; margin-bottom: 4px; }
+        .font-name-text { font-size: 16px; color: #000; margin-bottom: 4px; font-weight: bold; }
         .font-preview-subtext { font-size: 14px; color: #8e8e93; }
         .font-checkmark { display: none; color: #007aff; margin-left: 10px; }
         .font-list-item.active .font-checkmark { display: block; }
@@ -807,6 +893,24 @@
         .delete-font-btn svg { width: 14px; height: 14px; stroke: #fff; stroke-width: 3; }
         .font-edit-mode .delete-font-btn { display: flex; }
         .font-edit-mode .font-checkmark { display: none !important; }
+
+        /* 字体左滑操作样式 */
+        #fontListContainer .font-list-item { padding: 0; overflow: hidden; touch-action: pan-y; }
+        .font-item-inner {
+            display: flex; align-items: center; padding: 12px 16px;
+            background-color: #fff; position: relative; z-index: 2;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); width: 100%;
+        }
+        .font-item-inner:active { background-color: #e5e5ea; }
+        .font-swipe-actions {
+            position: absolute; top: 0; right: 0; height: 100%; display: flex; z-index: 1;
+        }
+        .font-swipe-btn {
+            height: 100%; display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 14px; font-weight: bold; padding: 0 20px; cursor: pointer;
+        }
+        .font-swipe-edit { background-color: #ff9500; }
+        .font-swipe-delete { background-color: #ff3b30; }
 
         /* --- 拍立得弹窗 UI 样式 --- */
         .polaroid-modal-overlay {
@@ -895,7 +999,6 @@
             font-size: 12px;
             color: #333; /* 改为深色文字 */
             outline: none;
-            font-family: "Courier New", Courier, monospace;
             transition: border-color 0.3s;
         }
         .polaroid-url-input::placeholder {
@@ -980,8 +1083,8 @@
             margin-top: 8px;
             font-size: 12px;
             color: #000;
-            font-family: "Microsoft YaHei", sans-serif;
-            font-weight: 500;
+            font-family: "Geomini", sans-serif;
+            font-weight: bold;
             text-align: center;
             width: 100%;
             white-space: nowrap;
@@ -1017,6 +1120,52 @@
             border-width: 0 2px 2px 0;
             transform: rotate(45deg);
             margin-bottom: 2px;
+        }
+
+        /* 空提示 */
+        .preset-empty-hint {
+            text-align: center;
+            color: #8e8e93;
+            margin-top: 50px;
+            font-size: 14px;
+            display: none;
+        }
+        /* 导入导出按钮组 */
+        .preset-action-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .preset-action-btn {
+            flex: 1;
+            background-color: #e5e5ea;
+            color: #000;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px 0;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preset-action-btn:active {
+            background-color: #d1d1d6;
+        }
+        /* 详情页编辑名称 */
+        .info-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .info-name {
+            font-size: 22px; font-weight: bold; color: #000; font-family: "Geomini", sans-serif;
+        }
+        .edit-name-btn {
+            cursor: pointer;
+            color: #007aff;
+            display: flex;
+            align-items: center;
         }
 
         /* 固定底部按钮区域 */
@@ -1155,17 +1304,14 @@
         .detail-content::-webkit-scrollbar { display: none; }
         .preview-carousel {
             display: flex; justify-content: center;
-            padding: 20px 30px;
+            padding: 40px 30px 20px 30px; /* 修改：增加顶部 padding 将手机往下移 */
         }
         .preview-phone-mockup {
             width: 220px; height: 476px; background-color: #fff;
             border-radius: 32px; border: 6px solid #e5e5ea;
             box-shadow: 0 15px 35px rgba(0,0,0,0.1);
             position: relative; overflow: hidden;
-        }
-        .preview-phone-mockup::before {
-            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            width: 80px; height: 20px; background: #e5e5ea; border-radius: 0 0 10px 10px; z-index: 10;
+            box-sizing: content-box; /* 新增：防止边框向内挤压导致内容偏移 */
         }
         /* 1:1 缩放容器，将 375x812 的桌面等比缩小放入 220x476 的模型中 */
         .preview-scale-container {
@@ -1175,7 +1321,7 @@
             background-size: cover; background-position: center;
         }
         .preset-info-box { padding: 20px 30px; }
-        .info-name { font-size: 22px; font-weight: bold; color: #000; font-family: "Microsoft YaHei", sans-serif; margin-bottom: 8px; }
+        .info-name { font-size: 22px; font-weight: bold; color: #000; font-family: "Geomini", sans-serif; margin-bottom: 8px; }
         .info-meta { display: flex; align-items: center; justify-content: space-between; }
         .info-date { font-size: 13px; color: #8e8e93; }
         .info-size-box { display: flex; align-items: center; gap: 8px; }
@@ -1261,6 +1407,32 @@
             </div>
             <div class="ios-top-title" id="topBarTitle">Themes</div>
             <div class="ios-save-btn" id="topRightBtn" onclick="handleTopRightBtn()">Save</div>
+            <div class="ios-menu-btn" id="themeMenuBtn" onclick="toggleThemeMenu()" style="display: none;">
+                <svg id="menuIconList" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                <svg id="menuIconChevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+        </div>
+
+        <!-- 下拉菜单 -->
+        <div class="theme-dropdown-menu" id="themeDropdownMenu">
+            <div class="dropdown-btn" onclick="togglePresetEditMode(); toggleThemeMenu();">
+                <div class="dropdown-icon-circle">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </div>
+                <span>编辑</span>
+            </div>
+            <div class="dropdown-btn" onclick="openExportCurrentThemeModal(); toggleThemeMenu();">
+                <div class="dropdown-icon-circle">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </div>
+                <span>导出</span>
+            </div>
+            <div class="dropdown-btn" onclick="document.getElementById('importPresetInput').click(); toggleThemeMenu();">
+                <div class="dropdown-icon-circle">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                </div>
+                <span>导入</span>
+            </div>
         </div>
 
         <!-- 底部 iOS 风格导航栏 -->
@@ -1299,9 +1471,11 @@
             <!-- 预设库区域 -->
             <div class="preset-container" id="presetAppGrid" style="display: none;">
                 <div class="preset-scroll-area">
+                    <div class="preset-empty-hint" id="presetEmptyHint">当前暂无可用主题</div>
                     <div class="preset-grid" id="presetGridContent"></div>
                 </div>
                 <div class="preset-bottom-fixed">
+                    <input type="file" id="importPresetInput" accept=".json" style="display: none;" onchange="importPreset(event)">
                     <div class="save-preset-btn" id="presetActionBtn" onclick="handlePresetAction()">+ 保存主题为预设</div>
                 </div>
             </div>
@@ -1369,12 +1543,14 @@
                 <div class="font-section-title">MY FONTS</div>
                 <div class="font-ios-card" id="fontListContainer">
                     <div class="font-list-item font-item-padding active" data-font="default" onclick="selectFont('default', this)">
-                        <div class="font-item-content">
-                            <div class="font-name-text">系统默认 (Microsoft YaHei)</div>
-                            <div class="font-preview-subtext">The quick brown fox / 探索宇宙</div>
-                        </div>
-                        <div class="font-checkmark">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <div class="font-item-inner">
+                            <div class="font-item-content">
+                                <div class="font-name-text">系统默认 (Geomini)</div>
+                                <div class="font-preview-subtext">The quick brown fox / 探索宇宙</div>
+                            </div>
+                            <div class="font-checkmark">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1388,10 +1564,34 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </div>
                 <div class="detail-title">主题详情</div>
-                <div class="detail-export-btn" onclick="openExportModal()">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <div class="detail-export-btn" onclick="toggleDetailMenu()">
+                    <svg id="detailMenuIconList" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                    <svg id="detailMenuIconChevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
             </div>
+            
+            <!-- 详情页下拉菜单 -->
+            <div class="detail-dropdown-menu" id="detailDropdownMenu">
+                <div class="dropdown-btn" onclick="editPresetName(); toggleDetailMenu();">
+                    <div class="dropdown-icon-circle">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </div>
+                    <span>编辑</span>
+                </div>
+                <div class="dropdown-btn" onclick="compressPreset(); toggleDetailMenu();">
+                    <div class="dropdown-icon-circle">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                    </div>
+                    <span>压缩</span>
+                </div>
+                <div class="dropdown-btn" onclick="openExportModal(); toggleDetailMenu();">
+                    <div class="dropdown-icon-circle">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    </div>
+                    <span>导出</span>
+                </div>
+            </div>
+
             <div class="detail-content">
                 <div class="preview-carousel">
                     <div class="preview-phone-mockup">
@@ -1400,12 +1600,13 @@
                     </div>
                 </div>
                 <div class="preset-info-box">
-                    <div class="info-name" id="detailName">主题名称</div>
+                    <div class="info-name-wrapper">
+                        <div class="info-name" id="detailName">主题名称</div>
+                    </div>
                     <div class="info-meta">
                         <div class="info-date" id="detailDate">创建于：--</div>
                         <div class="info-size-box">
                             <div class="info-size" id="detailSize">0.00 MB</div>
-                            <button class="compress-btn" onclick="compressPreset()">压缩</button>
                         </div>
                     </div>
                 </div>
@@ -1454,7 +1655,6 @@
                 <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closePresetModal()">取消</button>
                 <button class="preset-m1-btn preset-m1-btn-save" onclick="saveCurrentAsPreset()">保存</button>
             </div>
-            </div>
         </div>
     </div>
 
@@ -1470,6 +1670,7 @@
                 </div>
             </div>
             <div class="preset-m1-body">
+                <input type="text" class="preset-m1-input" placeholder="输入字体名称 (选填)" id="fontNameInput" style="margin-bottom: 12px;">
                 <input type="text" class="preset-m1-input" placeholder="https://..." id="fontUrlInput">
             </div>
             <div class="preset-m1-footer">
@@ -1496,6 +1697,48 @@
             <div class="preset-m1-footer">
                 <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closeExportModal()">取消</button>
                 <button class="preset-m1-btn preset-m1-btn-save" onclick="exportCurrentPreset()">导出</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑预设名称弹窗 -->
+    <div class="preset-modal-overlay" id="editPresetModal">
+        <div class="preset-modal-style-1">
+            <div class="preset-m-header">
+                <div class="preset-m-header-text">编辑主题名称</div>
+                <div class="preset-m-stars">
+                    <svg class="preset-star-1" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg class="preset-star-2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg class="preset-star-3" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+            </div>
+            <div class="preset-m1-body">
+                <input type="text" class="preset-m1-input" placeholder="输入新的主题名称..." id="editPresetInput">
+            </div>
+            <div class="preset-m1-footer">
+                <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closeEditPresetModal()">取消</button>
+                <button class="preset-m1-btn preset-m1-btn-save" onclick="confirmEditPresetName()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑字体名称弹窗 -->
+    <div class="preset-modal-overlay" id="editFontNameModal">
+        <div class="preset-modal-style-1">
+            <div class="preset-m-header">
+                <div class="preset-m-header-text">编辑字体名称</div>
+                <div class="preset-m-stars">
+                    <svg class="preset-star-1" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg class="preset-star-2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <svg class="preset-star-3" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+            </div>
+            <div class="preset-m1-body">
+                <input type="text" class="preset-m1-input" placeholder="输入新的字体名称..." id="editFontNameInput">
+            </div>
+            <div class="preset-m1-footer">
+                <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closeEditFontModal()">取消</button>
+                <button class="preset-m1-btn preset-m1-btn-save" onclick="confirmEditFontName()">保存</button>
             </div>
         </div>
     </div>
@@ -1560,7 +1803,7 @@
     function saveLayout() {
         if (!db) return;
         const desktopApps = [];
-        document.querySelectorAll('.desktop-slot').forEach((slot, index) => {
+        document.querySelectorAll('#desktopGrid .desktop-slot').forEach((slot, index) => {
             const app = slot.querySelector('.app-item');
             if (app) {
                 const iconEl = app.querySelector('.app-icon');
@@ -1574,7 +1817,7 @@
         });
 
         const dockApps = [];
-        document.querySelectorAll('.dock .app-item').forEach((app, index) => {
+        document.querySelectorAll('#dock .app-item').forEach((app, index) => {
             const iconEl = app.querySelector('.app-icon');
             const iconBg = iconEl.style.backgroundImage;
             dockApps.push({ 
@@ -1635,6 +1878,9 @@
                 customFonts = fData.fonts;
                 currentSelectedFont = fData.current || 'default';
                 restoreFonts();
+            } else {
+                // 首次加载，应用默认字体
+                selectFont('default', document.querySelector('.font-list-item[data-font="default"]'), true);
             }
         };
     }
@@ -1841,7 +2087,8 @@
                 if (targetApp && targetApp !== draggedApp) {
                     const parent2 = targetApp.parentNode;
                     const sibling1 = draggedApp.nextSibling === targetApp ? draggedApp : draggedApp.nextSibling;
-                    parent2.insertBefore(draggedApp, targetApp);
+                    const sibling2 = targetApp.nextSibling === draggedApp ? targetApp : targetApp.nextSibling;
+                    parent2.insertBefore(draggedApp, sibling2);
                     parent1.insertBefore(targetApp, sibling1);
                 } else if (targetSlot && !targetSlot.querySelector('.app-item')) {
                     targetSlot.appendChild(draggedApp);
@@ -2123,10 +2370,18 @@
         // 退出字体编辑模式
         if (isFontEditMode) toggleFontEditMode();
 
+        // 统一关闭下拉菜单并重置图标
+        document.getElementById('themeDropdownMenu').classList.remove('show');
+        if (document.getElementById('menuIconList')) {
+            document.getElementById('menuIconList').style.display = 'block';
+            document.getElementById('menuIconChevron').style.display = 'none';
+        }
+
         if (tabName === 'theme') {
             topBarTitle.innerText = 'Icons';
             topRightBtn.innerText = 'Save';
             topRightBtn.style.display = 'block';
+            document.getElementById('themeMenuBtn').style.display = 'none';
             themeGrid.style.display = 'grid';
             wallpaperGrid.style.display = 'none';
             presetGrid.style.display = 'none';
@@ -2134,6 +2389,7 @@
         } else if (tabName === 'wallpaper') {
             topBarTitle.innerText = 'Wallpapers';
             topRightBtn.style.display = 'none'; // 壁纸页不需要右上角按钮
+            document.getElementById('themeMenuBtn').style.display = 'none';
             themeGrid.style.display = 'none';
             wallpaperGrid.style.display = 'flex';
             presetGrid.style.display = 'none';
@@ -2144,8 +2400,8 @@
             document.getElementById('infoClock').textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
         } else if (tabName === 'preset') {
             topBarTitle.innerText = 'Themes';
-            topRightBtn.innerText = 'Edit';
-            topRightBtn.style.display = 'block';
+            topRightBtn.style.display = 'none';
+            document.getElementById('themeMenuBtn').style.display = 'flex';
             themeGrid.style.display = 'none';
             wallpaperGrid.style.display = 'none';
             presetGrid.style.display = 'flex';
@@ -2155,6 +2411,7 @@
             topBarTitle.innerText = 'Fonts';
             topRightBtn.innerText = 'Edit';
             topRightBtn.style.display = 'block';
+            document.getElementById('themeMenuBtn').style.display = 'none';
             themeGrid.style.display = 'none';
             wallpaperGrid.style.display = 'none';
             presetGrid.style.display = 'none';
@@ -2302,20 +2559,42 @@
         }
     }
 
+    // 切换下拉菜单显示
+    function toggleThemeMenu() {
+        const menu = document.getElementById('themeDropdownMenu');
+        const isShowing = menu.classList.toggle('show');
+        
+        const iconList = document.getElementById('menuIconList');
+        const iconChevron = document.getElementById('menuIconChevron');
+        if (iconList && iconChevron) {
+            if (isShowing) {
+                iconList.style.display = 'none';
+                iconChevron.style.display = 'block';
+            } else {
+                iconList.style.display = 'block';
+                iconChevron.style.display = 'none';
+            }
+        }
+    }
+
     // 切换预设编辑模式
     function togglePresetEditMode() {
         isPresetEditMode = !isPresetEditMode;
         selectedPresets.clear(); // 清空选中状态
         
         const topRightBtn = document.getElementById('topRightBtn');
+        const menuBtn = document.getElementById('themeMenuBtn');
         const actionBtn = document.getElementById('presetActionBtn');
         
         if (isPresetEditMode) {
             topRightBtn.innerText = 'Cancel';
+            topRightBtn.style.display = 'block';
+            menuBtn.style.display = 'none';
             actionBtn.innerText = '删除所选预设';
             actionBtn.classList.add('delete-mode');
         } else {
-            topRightBtn.innerText = 'Edit';
+            topRightBtn.style.display = 'none';
+            menuBtn.style.display = 'flex';
             actionBtn.innerText = '+ 保存主题为预设';
             actionBtn.classList.remove('delete-mode');
         }
@@ -2338,10 +2617,26 @@
         }
     }
 
+    function calculatePresetSize(preset) {
+        let totalBytes = 0;
+        if (preset.wallpaper) totalBytes += preset.wallpaper.length;
+        preset.desktop?.forEach(app => { if(app.icon) totalBytes += app.icon.length; });
+        preset.dock?.forEach(app => { if(app.icon) totalBytes += app.icon.length; });
+        const sizeMB = (totalBytes * 0.75) / (1024 * 1024);
+        return sizeMB < 0.01 && sizeMB > 0 ? 0.01 : sizeMB;
+    }
+
     function renderPresets() {
         const presetGridContent = document.getElementById('presetGridContent');
+        const emptyHint = document.getElementById('presetEmptyHint');
         if (!presetGridContent) return;
         presetGridContent.innerHTML = '';
+
+        if (presets.length === 0) {
+            if(emptyHint) emptyHint.style.display = 'block';
+        } else {
+            if(emptyHint) emptyHint.style.display = 'none';
+        }
 
         presets.forEach(preset => {
             const card = document.createElement('div');
@@ -2429,18 +2724,17 @@
         const now = new Date();
         const dateStr = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日`;
 
-        // 模拟计算一个初始内存大小 (15MB - 35MB 之间)
-        const initialSizeMB = (Math.random() * 20 + 15);
-
         const newPreset = {
             id: Date.now(),
             name: inputVal,
             date: dateStr,
-            sizeMB: initialSizeMB,
             wallpaper: currentWallpaperSrc,
             desktop: desktopApps,
             dock: dockApps
         };
+        
+        // 真实计算大小
+        newPreset.sizeMB = calculatePresetSize(newPreset);
 
         presets.push(newPreset);
         savePresetData();
@@ -2507,8 +2801,35 @@
         }, 10);
     }
 
+    function toggleDetailMenu() {
+        const menu = document.getElementById('detailDropdownMenu');
+        const isShowing = menu.classList.toggle('show');
+        
+        const iconList = document.getElementById('detailMenuIconList');
+        const iconChevron = document.getElementById('detailMenuIconChevron');
+        if (iconList && iconChevron) {
+            if (isShowing) {
+                iconList.style.display = 'none';
+                iconChevron.style.display = 'block';
+            } else {
+                iconList.style.display = 'block';
+                iconChevron.style.display = 'none';
+            }
+        }
+    }
+
     function closePresetDetail() {
         const detailPage = document.getElementById('presetDetailPage');
+        document.getElementById('detailDropdownMenu').classList.remove('show'); // 关闭时隐藏菜单
+        
+        // 重置详情页菜单图标
+        const iconList = document.getElementById('detailMenuIconList');
+        const iconChevron = document.getElementById('detailMenuIconChevron');
+        if (iconList && iconChevron) {
+            iconList.style.display = 'block';
+            iconChevron.style.display = 'none';
+        }
+
         detailPage.classList.remove('show');
         setTimeout(() => {
             detailPage.style.display = 'none';
@@ -2516,7 +2837,21 @@
         }, 300);
     }
 
+    let isExportingCurrentTheme = false;
+
+    function openExportCurrentThemeModal() {
+        isExportingCurrentTheme = true;
+        const input = document.getElementById('exportPresetInput');
+        input.value = "当前主题"; // 默认名称
+        
+        document.getElementById('exportPresetModal').classList.add('show');
+        setTimeout(() => {
+            input.focus();
+        }, 100);
+    }
+
     function openExportModal() {
+        isExportingCurrentTheme = false;
         if (!currentDetailPresetId) return;
         const preset = presets.find(p => p.id === currentDetailPresetId);
         if (!preset) return;
@@ -2535,6 +2870,12 @@
     }
 
     function exportCurrentPreset() {
+        if (isExportingCurrentTheme) {
+            exportCurrentUsingTheme();
+            closeExportModal();
+            return;
+        }
+
         if (!currentDetailPresetId) return;
         const preset = presets.find(p => p.id === currentDetailPresetId);
         if (!preset) return;
@@ -2602,30 +2943,29 @@
         const preset = presets.find(p => p.id === currentDetailPresetId);
         if (!preset) return;
 
-        const compressBtn = document.querySelector('.compress-btn');
-        compressBtn.innerText = '压缩中...';
-        compressBtn.disabled = true;
+        const sizeEl = document.getElementById('detailSize');
+        sizeEl.innerText = '压缩中...';
 
         let tasks = [];
 
-        // 压缩壁纸 (限制最大宽度 800)
+        // 压缩壁纸 (限制最大宽度 1080)
         if (preset.wallpaper && preset.wallpaper.startsWith('data:image')) {
             tasks.push(new Promise(resolve => {
-                compressImageBase64(preset.wallpaper, 800, 0.6, (newBase64) => {
+                compressImageBase64(preset.wallpaper, 1080, 0.8, (newBase64) => {
                     preset.wallpaper = newBase64;
                     resolve();
                 });
             }));
         }
 
-        // 压缩桌面图标 (限制最大宽度 100)
+        // 压缩桌面图标 (限制最大宽度 150)
         if (preset.desktop) {
             preset.desktop.forEach(app => {
                 if (app.icon) {
                     const base64 = extractBase64FromUrl(app.icon);
                     if (base64) {
                         tasks.push(new Promise(resolve => {
-                            compressImageBase64(base64, 100, 0.6, (newBase64) => {
+                            compressImageBase64(base64, 150, 0.8, (newBase64) => {
                                 app.icon = `url('${newBase64}')`;
                                 resolve();
                             });
@@ -2635,14 +2975,14 @@
             });
         }
 
-        // 压缩 Dock 图标 (限制最大宽度 100)
+        // 压缩 Dock 图标 (限制最大宽度 150)
         if (preset.dock) {
             preset.dock.forEach(app => {
                 if (app.icon) {
                     const base64 = extractBase64FromUrl(app.icon);
                     if (base64) {
                         tasks.push(new Promise(resolve => {
-                            compressImageBase64(base64, 100, 0.6, (newBase64) => {
+                            compressImageBase64(base64, 150, 0.8, (newBase64) => {
                                 app.icon = `url('${newBase64}')`;
                                 resolve();
                             });
@@ -2654,20 +2994,11 @@
 
         Promise.all(tasks).then(() => {
             // 重新计算真实大小
-            let totalBytes = 0;
-            if (preset.wallpaper) totalBytes += preset.wallpaper.length;
-            preset.desktop?.forEach(app => { if(app.icon) totalBytes += app.icon.length; });
-            preset.dock?.forEach(app => { if(app.icon) totalBytes += app.icon.length; });
-            
-            // Base64 长度大约是原字节数的 4/3
-            const sizeMB = (totalBytes * 0.75) / (1024 * 1024);
-            preset.sizeMB = Math.max(0.01, sizeMB); // 至少显示 0.01MB
+            preset.sizeMB = calculatePresetSize(preset);
             
             document.getElementById('detailSize').innerText = preset.sizeMB.toFixed(2) + ' MB';
             savePresetData();
             
-            compressBtn.innerText = '轻量压缩';
-            compressBtn.disabled = false;
             alert('压缩完成！');
         });
     }
@@ -2701,6 +3032,117 @@
         alert("已应用预设主题！");
     }
 
+    function importPreset(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (importedData && importedData.name && (importedData.desktop || importedData.dock)) {
+                    importedData.id = Date.now(); // 重新分配ID避免冲突
+                    const now = new Date();
+                    importedData.date = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日`;
+                    importedData.sizeMB = calculatePresetSize(importedData);
+                    presets.push(importedData);
+                    savePresetData();
+                    renderPresets();
+                    alert('导入成功！');
+                } else {
+                    alert('无效的主题文件！');
+                }
+            } catch (err) {
+                alert('解析文件失败！');
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+    }
+
+    function exportCurrentUsingTheme() {
+        const desktopApps = [];
+        document.querySelectorAll('#desktopGrid .desktop-slot').forEach((slot, index) => {
+            const app = slot.querySelector('.app-item');
+            if (app) {
+                const iconEl = app.querySelector('.app-icon');
+                const iconBg = iconEl.style.backgroundImage;
+                desktopApps.push({ 
+                    index, 
+                    name: app.querySelector('.app-name').innerText,
+                    icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null
+                });
+            }
+        });
+
+        const dockApps = [];
+        document.querySelectorAll('#dock .app-item').forEach((app, index) => {
+            const iconEl = app.querySelector('.app-icon');
+            const iconBg = iconEl.style.backgroundImage;
+            dockApps.push({ 
+                index, 
+                name: app.querySelector('.app-name').innerText,
+                icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null
+            });
+        });
+
+        const inputVal = document.getElementById('exportPresetInput').value.trim();
+        const themeName = inputVal ? inputVal : "当前主题";
+
+        const currentTheme = {
+            name: themeName,
+            wallpaper: currentWallpaperSrc,
+            desktop: desktopApps,
+            dock: dockApps
+        };
+
+        const jsonString = JSON.stringify(currentTheme, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", url);
+        downloadAnchorNode.setAttribute("download", themeName + ".json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        document.body.removeChild(downloadAnchorNode);
+        URL.revokeObjectURL(url);
+    }
+
+    function editPresetName() {
+        if (!currentDetailPresetId) return;
+        const preset = presets.find(p => p.id === currentDetailPresetId);
+        if (!preset) return;
+        
+        const input = document.getElementById('editPresetInput');
+        input.value = preset.name;
+        
+        document.getElementById('editPresetModal').classList.add('show');
+        setTimeout(() => {
+            input.focus();
+        }, 100);
+    }
+
+    function closeEditPresetModal() {
+        document.getElementById('editPresetModal').classList.remove('show');
+    }
+
+    function confirmEditPresetName() {
+        if (!currentDetailPresetId) return;
+        const preset = presets.find(p => p.id === currentDetailPresetId);
+        if (!preset) return;
+        
+        const newName = document.getElementById('editPresetInput').value.trim();
+        if (newName !== "") {
+            preset.name = newName;
+            document.getElementById('detailName').innerText = preset.name;
+            savePresetData();
+            renderPresets();
+            closeEditPresetModal();
+        } else {
+            alert("名称不能为空！");
+        }
+    }
+
     // --- 字体页面逻辑 ---
     let customFontCount = 0;
     let isFontEditMode = false;
@@ -2712,7 +3154,8 @@
         if (!db) return;
         const transaction = db.transaction([storeName], "readwrite");
         const store = transaction.objectStore(storeName);
-        store.put({ id: "fontData", fonts: customFonts, current: currentSelectedFont });
+        const currentSize = document.getElementById('fontSizeSlider').value;
+        store.put({ id: "fontData", fonts: customFonts, current: currentSelectedFont, size: currentSize });
     }
 
     // 从 IndexedDB 恢复字体
@@ -2743,6 +3186,16 @@
             const defaultItem = document.querySelector('.font-list-item[data-font="default"]');
             if (defaultItem) selectFont('default', defaultItem, true);
         }
+
+        // 恢复字体大小
+        const fontRequest = db.transaction([storeName], "readonly").objectStore(storeName).get("fontData");
+        fontRequest.onsuccess = (e) => {
+            const fData = e.target.result;
+            if (fData && fData.size) {
+                document.getElementById('fontSizeSlider').value = fData.size;
+                updateFontSize(true); // 传入 true 表示是恢复阶段，不触发重复保存
+            }
+        };
     }
 
     function toggleFontEditMode() {
@@ -2766,9 +3219,38 @@
         }
     }
 
-    function updateFontSize() {
+    function updateFontSize(isRestore = false) {
         const size = document.getElementById('fontSizeSlider').value;
         document.getElementById('fontPreviewText').style.fontSize = size + 'px';
+
+        // 计算缩放比例，默认 18px 为 1
+        const scale = size / 18;
+        
+        let styleTag = document.getElementById('dynamic-global-font-size');
+        if (!styleTag) {
+            styleTag = document.createElement('style');
+            styleTag.id = 'dynamic-global-font-size';
+            document.head.appendChild(styleTag);
+        }
+        
+        // 针对主要文本元素按比例缩放，实现全局字体大小调节且不破坏 UI 比例
+        styleTag.innerHTML = `
+            .app-name { font-size: ${12 * scale}px !important; }
+            .theme-app-name-input { font-size: ${13 * scale}px !important; }
+            .font-item-title, .font-name-text { font-size: ${16 * scale}px !important; }
+            .font-item-subtitle, .font-preview-subtext { font-size: ${13 * scale}px !important; }
+            .preset-name { font-size: ${12 * scale}px !important; }
+            .card-title { font-size: ${16 * scale}px !important; }
+            .info-title { font-size: ${15 * scale}px !important; }
+            .info-desc { font-size: ${13 * scale}px !important; }
+            .detail-title { font-size: ${17 * scale}px !important; }
+            .info-name { font-size: ${22 * scale}px !important; }
+            .save-preset-btn { font-size: ${15 * scale}px !important; }
+        `;
+
+        if (!isRestore) {
+            saveFontData(); // 拖动滑块时保存数据
+        }
     }
 
     function selectFont(fontFamily, element, isRestore = false) {
@@ -2790,11 +3272,11 @@
         }
 
         if (fontFamily === 'default') {
-            previewBox.style.fontFamily = '"Microsoft YaHei", sans-serif';
-            styleTag.innerHTML = `* { font-family: "Microsoft YaHei", sans-serif !important; }`;
+            previewBox.style.fontFamily = '"Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif';
+            styleTag.innerHTML = `*, *::before, *::after, input, button, textarea, select { font-family: "Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif !important; }`;
         } else {
-            previewBox.style.fontFamily = `"${fontFamily}", "Microsoft YaHei", sans-serif`;
-            styleTag.innerHTML = `* { font-family: "${fontFamily}", "Microsoft YaHei", sans-serif !important; }`;
+            previewBox.style.fontFamily = `"${fontFamily}", "Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif`;
+            styleTag.innerHTML = `*, *::before, *::after, input, button, textarea, select { font-family: "${fontFamily}", "Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif !important; }`;
         }
     }
 
@@ -2804,20 +3286,32 @@
         newItem.className = 'font-list-item font-item-padding';
         newItem.setAttribute('data-font', fontFamily);
         newItem.onclick = function(e) { 
-            if(e.target.closest('.delete-font-btn')) return;
+            if(e.target.closest('.delete-font-btn') || e.target.closest('.font-swipe-btn')) return;
+            if(this.classList.contains('swiped')) {
+                this.querySelector('.font-item-inner').style.transform = 'translateX(0)';
+                this.classList.remove('swiped');
+                currentFontSwipeItem = null;
+                return;
+            }
             selectFont(fontFamily, this); 
         };
         
         newItem.innerHTML = `
-            <div class="font-item-content">
-                <div class="font-name-text" style="font-family: '${fontFamily}', 'Microsoft YaHei', sans-serif">${fontName}</div>
-                <div class="font-preview-subtext" style="font-family: '${fontFamily}', 'Microsoft YaHei', sans-serif">The quick brown fox / 探索宇宙</div>
+            <div class="font-swipe-actions">
+                <div class="font-swipe-btn font-swipe-edit" onclick="openEditFontModal('${fontFamily}')">编辑</div>
+                <div class="font-swipe-btn font-swipe-delete" onclick="deleteFont(this, '${fontFamily}')">删除</div>
             </div>
-            <div class="font-checkmark">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            </div>
-            <div class="delete-font-btn" onclick="deleteFont(this, '${fontFamily}')">
-                <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <div class="font-item-inner">
+                <div class="font-item-content">
+                    <div class="font-name-text" style="font-family: '${fontFamily}', 'Geomini', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif">${fontName}</div>
+                    <div class="font-preview-subtext" style="font-family: '${fontFamily}', 'Geomini', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif">The quick brown fox / 探索宇宙</div>
+                </div>
+                <div class="font-checkmark">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="delete-font-btn" onclick="deleteFont(this, '${fontFamily}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </div>
             </div>
         `;
         fontList.appendChild(newItem);
@@ -2881,19 +3375,29 @@
     function closeUrlFontModal() {
         document.getElementById('urlFontModal').classList.remove('show');
         document.getElementById('fontUrlInput').value = '';
+        const nameInput = document.getElementById('fontNameInput');
+        if (nameInput) nameInput.value = '';
     }
 
     function confirmUrlFont() {
         const urlInput = document.getElementById('fontUrlInput');
+        const nameInput = document.getElementById('fontNameInput');
         const url = urlInput.value.trim();
+        let fontName = nameInput ? nameInput.value.trim() : '';
+
         if (!url) {
             alert('请输入字体 URL！');
             return;
         }
 
+        const saveBtn = document.querySelector('#urlFontModal .preset-m1-btn-save');
+        const originalText = saveBtn.innerText;
+        saveBtn.innerText = '加载中...';
+        saveBtn.disabled = true;
+
         customFontCount++;
         const fontFamily = `UrlFont_${customFontCount}`;
-        const fontName = `网络字体 ${customFontCount}`;
+        if (!fontName) fontName = `网络字体 ${customFontCount}`;
 
         const newFont = new FontFace(fontFamily, `url(${url})`);
         newFont.load().then(function(loadedFont) {
@@ -2908,7 +3412,101 @@
         }).catch(function(error) {
             alert('字体加载失败，请确保 URL 直接指向字体文件且允许跨域访问！');
             console.error(error);
+        }).finally(function() {
+            saveBtn.innerText = originalText;
+            saveBtn.disabled = false;
         });
+    }
+
+    // --- 字体右滑与编辑逻辑 ---
+    let fontTouchStartX = 0;
+    let currentFontSwipeItem = null;
+    let currentEditFontId = null;
+
+    document.addEventListener('touchstart', function(e) {
+        const item = e.target.closest('#fontListContainer .font-list-item');
+        if (item && !isFontEditMode && item.getAttribute('data-font') !== 'default') {
+            fontTouchStartX = e.touches[0].clientX;
+            if (currentFontSwipeItem && currentFontSwipeItem !== item) {
+                currentFontSwipeItem.querySelector('.font-item-inner').style.transform = 'translateX(0)';
+                currentFontSwipeItem.classList.remove('swiped');
+                currentFontSwipeItem = null;
+            }
+        } else if (currentFontSwipeItem) {
+            currentFontSwipeItem.querySelector('.font-item-inner').style.transform = 'translateX(0)';
+            currentFontSwipeItem.classList.remove('swiped');
+            currentFontSwipeItem = null;
+        }
+    });
+
+    document.addEventListener('touchmove', function(e) {
+        if (!fontTouchStartX) return;
+        const item = e.target.closest('#fontListContainer .font-list-item');
+        if (item && !isFontEditMode && item.getAttribute('data-font') !== 'default') {
+            const touchCurrentX = e.touches[0].clientX;
+            const diff = touchCurrentX - fontTouchStartX;
+            if (diff < -30) { // 左滑展开
+                if (e.cancelable) e.preventDefault();
+                item.querySelector('.font-item-inner').style.transform = 'translateX(-130px)';
+                item.classList.add('swiped');
+                currentFontSwipeItem = item;
+            } else if (diff > 30 && currentFontSwipeItem === item) { // 右滑收起
+                if (e.cancelable) e.preventDefault();
+                item.querySelector('.font-item-inner').style.transform = 'translateX(0)';
+                item.classList.remove('swiped');
+                currentFontSwipeItem = null;
+            }
+        }
+    }, { passive: false });
+
+    document.addEventListener('touchend', function(e) {
+        fontTouchStartX = 0;
+    });
+
+    function openEditFontModal(fontId) {
+        currentEditFontId = fontId;
+        const fontData = customFonts.find(f => f.id === fontId);
+        if (!fontData) return;
+        
+        const input = document.getElementById('editFontNameInput');
+        input.value = fontData.name;
+        
+        document.getElementById('editFontNameModal').classList.add('show');
+        setTimeout(() => { input.focus(); }, 100);
+        
+        // 收起滑块
+        if (currentFontSwipeItem) {
+            currentFontSwipeItem.querySelector('.font-item-inner').style.transform = 'translateX(0)';
+            currentFontSwipeItem.classList.remove('swiped');
+            currentFontSwipeItem = null;
+        }
+    }
+
+    function closeEditFontModal() {
+        document.getElementById('editFontNameModal').classList.remove('show');
+        currentEditFontId = null;
+    }
+
+    function confirmEditFontName() {
+        if (!currentEditFontId) return;
+        const fontData = customFonts.find(f => f.id === currentEditFontId);
+        if (!fontData) return;
+        
+        const newName = document.getElementById('editFontNameInput').value.trim();
+        if (newName !== "") {
+            fontData.name = newName;
+            saveFontData();
+            
+            // 更新 UI 上的名称
+            const listItem = document.querySelector(`.font-list-item[data-font="${currentEditFontId}"]`);
+            if (listItem) {
+                const nameEl = listItem.querySelector('.font-name-text');
+                if (nameEl) nameEl.innerText = newName;
+            }
+            closeEditFontModal();
+        } else {
+            alert("名称不能为空！");
+        }
     }
 </script>
 
