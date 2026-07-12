@@ -939,126 +939,61 @@
         .font-swipe-edit { background-color: #ff9500; }
         .font-swipe-delete { background-color: #ff3b30; }
 
-        /* --- 拍立得弹窗 UI 样式 --- */
-        .polaroid-modal-overlay {
+        /* --- 图标操作菜单 UI 样式 --- */
+        .icon-menu-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(245, 245, 245, 0.85); /* 改为浅灰白背景 */
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
-            align-items: center;
             z-index: 9999;
+            display: none;
         }
-        .polaroid-container {
-            position: relative;
+        .icon-menu {
+            position: absolute;
+            width: 240px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-        }
-        .polaroid-paperclip {
-            position: absolute;
-            top: -8px;
-            z-index: 10;
-            width: 12px;
-            height: 28px;
-            border: 1.5px solid #a0a0a0; /* 颜色稍微加深以适应浅色背景 */
-            border-radius: 6px;
-            background: transparent;
-            clip-path: polygon(0 0, 100% 0, 100% 75%, 0 75%);
-        }
-        .polaroid-paperclip::after {
-            content: '';
-            position: absolute;
-            top: 4px; left: 2px; right: 2px; bottom: 4px;
-            border: 1.5px solid #a0a0a0;
-            border-radius: 3px;
-            border-bottom: none;
-        }
-        .polaroid-card {
-            background: #ffffff;
-            padding: 12px 12px 45px 12px;
-            width: 220px;
-            box-sizing: border-box;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); /* 阴影调淡 */
-            position: relative;
-            z-index: 5;
-            border-radius: 2px;
-        }
-        .polaroid-photo-area {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            background-size: cover;
-            background-position: center;
-            transition: background-color 0.2s;
-            border: 1px solid #f0f0f0;
-        }
-        .polaroid-photo-area:hover {
-            background-color: #ebebeb;
-        }
-        .polaroid-photo-hint {
-            color: #a0a0a0;
-            font-size: 18px;
-            font-weight: 300;
-            pointer-events: none;
-        }
-        .polaroid-controls {
-            margin-top: 30px;
-            width: 220px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            z-index: 5;
-        }
-        .polaroid-url-input {
-            width: 100%;
+            overflow: hidden;
+            /* 降低模糊度至 10px，让背后图像透得更清晰；提高饱和度保持色彩 */
+            backdrop-filter: blur(10px) saturate(180%);
+            -webkit-backdrop-filter: blur(10px) saturate(180%);
+            /* 将白色背景透明度降至极低 (0.02)，几乎完全透明 */
+            background: rgba(255, 255, 255, 0.02);
+            /* 保持阴影和边缘高光，维持玻璃的物理边缘感 */
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+            /* 增加圆角大小，从 28px 增加到 34px */
+            border-radius: 34px;
             padding: 8px 0;
-            border: none;
-            border-bottom: 1px solid rgba(0,0,0,0.15); /* 改为深色底线 */
-            background: transparent;
-            text-align: center;
-            font-size: 12px;
-            color: #333; /* 改为深色文字 */
-            outline: none;
-            transition: border-color 0.3s;
+            transform-origin: top left;
+            animation: menuPop 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        .polaroid-url-input::placeholder {
-            color: rgba(0,0,0,0.3); /* 改为深色占位符 */
+        @keyframes menuPop {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
         }
-        .polaroid-url-input:focus {
-            border-bottom-color: rgba(0,0,0,0.5);
-        }
-        .polaroid-btn-group {
+        .icon-menu-item {
             display: flex;
-            gap: 12px;
-        }
-        .polaroid-btn {
-            flex: 1;
-            padding: 10px 0;
-            border: none;
-            border-radius: 20px;
-            font-size: 12px;
+            align-items: center;
+            gap: 14px;
             cursor: pointer;
-            letter-spacing: 1px;
-            transition: opacity 0.2s;
+            transition: background-color 0.2s ease;
+            padding: 14px 24px;
+            color: #000;
         }
-        .polaroid-btn-cancel {
-            background: rgba(0,0,0,0.05); /* 浅色背景下的取消按钮 */
-            color: #666;
+        .icon-menu-item svg {
+            width: 22px;
+            height: 22px;
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke: #1c1c1e;
         }
-        .polaroid-btn-confirm {
-            background: #333; /* 浅色背景下的确认按钮 */
-            color: #fff;
-            font-weight: 600;
+        .icon-menu-item span {
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
-        .polaroid-btn:hover {
-            opacity: 0.8;
+        .icon-menu-item:active {
+            background-color: rgba(0, 0, 0, 0.06);
         }
 
         /* --- 预设库 UI 样式 --- */
@@ -1733,22 +1668,63 @@
         </div>
     </div>
 
-    <!-- 拍立得弹窗 -->
-    <div class="polaroid-modal-overlay" id="polaroidModal">
-        <div class="polaroid-container">
-            <div class="polaroid-paperclip"></div>
-            <div class="polaroid-card">
-                <div class="polaroid-photo-area" id="polaroidPhotoArea" onclick="document.getElementById('polaroidFileInput').click()">
-                    <div class="polaroid-photo-hint" id="polaroidPhotoHint">+</div>
-                </div>
+    <!-- 图标操作菜单 -->
+    <div class="icon-menu-overlay" id="iconMenuOverlay" onclick="closeIconMenu()">
+        <div class="icon-menu" id="iconMenu" onclick="event.stopPropagation()">
+            <div class="icon-menu-item" onclick="document.getElementById('iconFileInput').click()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16V6a2 2 0 0 1 2-2h10"></path><rect x="8" y="8" width="14" height="14" rx="2" ry="2"></rect><circle cx="13.5" cy="13.5" r="1.5"></circle><path d="M8 18l4-4 2 2 3-3 5 5"></path></svg>
+                <span>照片图库</span>
             </div>
-            <input type="file" id="polaroidFileInput" accept="image/*" style="display: none;" onchange="handlePolaroidLocalUpload(event)">
-            <div class="polaroid-controls">
-                <input type="text" class="polaroid-url-input" id="polaroidUrlInput" placeholder="URL / 链接优先" oninput="updatePolaroidPreview()">
-                <div class="polaroid-btn-group">
-                    <button class="polaroid-btn polaroid-btn-cancel" onclick="closePolaroidModal()">取消</button>
-                    <button class="polaroid-btn polaroid-btn-confirm" onclick="confirmPolaroidImage()">确定</button>
-                </div>
+            <div class="icon-menu-item" onclick="openIconUrlModal()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                <span>使用 URL</span>
+            </div>
+        </div>
+    </div>
+    <input type="file" id="iconFileInput" accept="image/*" style="display: none;" onchange="handleIconLocalUpload(event)">
+
+    <!-- URL 导入图标弹窗 -->
+    <div class="preset-modal-overlay" id="iconUrlModal">
+        <div class="preset-modal-style-1">
+            <div class="preset-m-header">
+                <div class="preset-m-header-text">使用 URL 上传图标</div>
+            </div>
+            <div class="preset-m1-body">
+                <input type="text" class="preset-m1-input" placeholder="https://..." id="iconUrlInput">
+            </div>
+            <div class="preset-m1-footer">
+                <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closeIconUrlModal()">取消</button>
+                <button class="preset-m1-btn preset-m1-btn-save" onclick="confirmIconUrl()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 壁纸操作菜单 -->
+    <div class="icon-menu-overlay" id="wallpaperMenuOverlay" onclick="closeWallpaperMenu()">
+        <div class="icon-menu" id="wallpaperMenu" onclick="event.stopPropagation()">
+            <div class="icon-menu-item" onclick="document.getElementById('wallpaperFileInput').click(); closeWallpaperMenu();">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16V6a2 2 0 0 1 2-2h10"></path><rect x="8" y="8" width="14" height="14" rx="2" ry="2"></rect><circle cx="13.5" cy="13.5" r="1.5"></circle><path d="M8 18l4-4 2 2 3-3 5 5"></path></svg>
+                <span>照片图库</span>
+            </div>
+            <div class="icon-menu-item" onclick="openWallpaperUrlModal()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                <span>使用 URL</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- URL 导入壁纸弹窗 -->
+    <div class="preset-modal-overlay" id="wallpaperUrlModal">
+        <div class="preset-modal-style-1">
+            <div class="preset-m-header">
+                <div class="preset-m-header-text">使用 URL 上传壁纸</div>
+            </div>
+            <div class="preset-m1-body">
+                <input type="text" class="preset-m1-input" placeholder="https://..." id="wallpaperUrlInput">
+            </div>
+            <div class="preset-m1-footer">
+                <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closeWallpaperUrlModal()">取消</button>
+                <button class="preset-m1-btn preset-m1-btn-save" onclick="confirmWallpaperUrl()">确定</button>
             </div>
         </div>
     </div>
@@ -1869,7 +1845,7 @@
 
 <script>
 
-    // --- 自定义弹窗逻辑 ---
+    // --- 通用弹窗与提示逻辑 (Universal Popups) ---
     function showCustomAlert(title, message) {
         return new Promise(resolve => {
             const overlay = document.getElementById('customDialogOverlay');
@@ -1925,6 +1901,35 @@
             overlay.classList.add('show');
         });
     }
+
+    // 显示 iOS 悬浮胶囊提示 (用于一般通知)
+    function showToast(message) {
+        let toast = document.getElementById('iosToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'iosToast';
+            toast.className = 'ios-toast-capsule';
+            document.querySelector('.iphone').appendChild(toast);
+        }
+        toast.innerText = message;
+        toast.classList.add('show');
+        
+        if (toast.hideTimer) clearTimeout(toast.hideTimer);
+        
+        toast.hideTimer = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2000);
+    }
+
+    // 拦截并覆盖全局原生弹窗，确保未来代码默认使用高级 UI
+    window.alert = function(message) {
+        return showCustomAlert('提示', message);
+    };
+
+    window.confirm = function(message) {
+        // 注意：被覆盖后的 confirm 是异步的，未来写代码需使用 confirm('...').then(res => {...})
+        return showCustomConfirm('请确认', message);
+    };
 
     // --- 真实时间与电量逻辑 ---
     function updateTime() {
@@ -2355,7 +2360,7 @@
             <div class="theme-original-name">${name}</div>
             <div class="theme-reset-btn" onclick="resetThemeApp(${index})" title="恢复默认">${resetSvg}</div>
             <div class="theme-icon-wrapper">
-                <div class="theme-app-icon" id="theme-icon-${index}" style="${iconStyle}" onclick="openPolaroidModal(${index})"></div>
+                <div class="theme-app-icon" id="theme-icon-${index}" style="${iconStyle}" onclick="openIconMenu(event, ${index})"></div>
             </div>
             <div class="theme-text-wrapper">
                 ${themeSvg}
@@ -2365,38 +2370,40 @@
         themeAppGrid.appendChild(card);
     }
 
-    // --- 拍立得弹窗逻辑 ---
-    let currentPolaroidIndex = null;
-    let polaroidLocalImage = null;
+    // --- 图标菜单逻辑 ---
+    let currentIconIndex = null;
 
-    function openPolaroidModal(index) {
-        currentPolaroidIndex = index;
-        polaroidLocalImage = null;
-
-        // 清空之前的输入和预览
-        document.getElementById('polaroidUrlInput').value = '';
-        document.getElementById('polaroidFileInput').value = '';
+    function openIconMenu(event, index) {
+        currentIconIndex = index;
+        const overlay = document.getElementById('iconMenuOverlay');
+        const menu = document.getElementById('iconMenu');
         
-        // 如果当前APP已经有自定义图标，显示在拍立得上
-        const currentIcon = currentEditingApps[index].currentIcon;
-        if (currentIcon && currentIcon !== 'none') {
-            // 提取 url('...') 中的链接作为初始预览
-            const urlMatch = currentIcon.match(/url\(['"]?(.*?)['"]?\)/);
-            if (urlMatch && urlMatch[1]) {
-                polaroidLocalImage = urlMatch[1];
-            }
+        overlay.style.display = 'block';
+        
+        // 计算菜单位置，使其出现在点击的图标附近
+        const rect = event.target.getBoundingClientRect();
+        // 将 top 的位置往上移，原来是 rect.bottom + 10，现在改为 rect.bottom - 15 (整体上移 25px)
+        let top = rect.bottom - 15;
+        let left = rect.left;
+        
+        // 防止菜单超出屏幕右侧和底部 (适配 240px 宽度的完美复刻版)
+        if (left + 240 > window.innerWidth) {
+            left = window.innerWidth - 250;
+        }
+        if (top + 130 > window.innerHeight) {
+            // 如果底部超出，向上弹出的位置也稍微往下调一点点，保持比例
+            top = rect.top - 120;
         }
         
-        updatePolaroidPreview();
-        document.getElementById('polaroidModal').style.display = 'flex';
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
     }
 
-    function closePolaroidModal() {
-        document.getElementById('polaroidModal').style.display = 'none';
-        currentPolaroidIndex = null;
+    function closeIconMenu() {
+        document.getElementById('iconMenuOverlay').style.display = 'none';
     }
 
-    function handlePolaroidLocalUpload(event) {
+    function handleIconLocalUpload(event) {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
@@ -2406,8 +2413,7 @@
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // 限制最大尺寸，进行真实压缩 (图标不需要太大分辨率)
-                    const MAX_SIZE = 256; /* 修改：提高最大分辨率以适配高清屏 */
+                    const MAX_SIZE = 256;
                     let width = img.width;
                     let height = img.height;
                     
@@ -2427,63 +2433,44 @@
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    // 压缩为 webp 格式，质量 0.95，大幅减小 Base64 体积同时保持清晰
-                    polaroidLocalImage = canvas.toDataURL('image/webp', 0.95);
-                    updatePolaroidPreview();
+                    const base64Url = canvas.toDataURL('image/webp', 0.95);
+                    applyIconToApp(base64Url);
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
         event.target.value = '';
+        closeIconMenu();
     }
 
-    function updatePolaroidPreview() {
-        const urlValue = document.getElementById('polaroidUrlInput').value.trim();
-        const photoArea = document.getElementById('polaroidPhotoArea');
-        const photoHint = document.getElementById('polaroidPhotoHint');
-        
-        let finalUrl = null;
-        if (urlValue) {
-            finalUrl = urlValue;
-        } else if (polaroidLocalImage) {
-            finalUrl = polaroidLocalImage;
-        }
-
-        if (finalUrl) {
-            photoArea.style.backgroundImage = `url('${finalUrl}')`;
-            photoHint.style.display = 'none';
-        } else {
-            photoArea.style.backgroundImage = 'none';
-            photoHint.style.display = 'block';
-        }
+    function openIconUrlModal() {
+        closeIconMenu();
+        document.getElementById('iconUrlInput').value = '';
+        document.getElementById('iconUrlModal').classList.add('show');
+        setTimeout(() => {
+            document.getElementById('iconUrlInput').focus();
+        }, 100);
     }
 
-    function confirmPolaroidImage() {
-        if (currentPolaroidIndex === null) return;
-        
-        const urlValue = document.getElementById('polaroidUrlInput').value.trim();
-        let finalUrl = null;
-        
-        if (urlValue) {
-            finalUrl = urlValue;
-        } else if (polaroidLocalImage) {
-            finalUrl = polaroidLocalImage;
-        }
+    function closeIconUrlModal() {
+        document.getElementById('iconUrlModal').classList.remove('show');
+    }
 
-        const iconElement = document.getElementById(`theme-icon-${currentPolaroidIndex}`);
-        if (finalUrl) {
-            iconElement.style.backgroundImage = `url('${finalUrl}')`;
-            iconElement.style.backgroundColor = 'transparent';
-            currentEditingApps[currentPolaroidIndex].currentIcon = `url('${finalUrl}')`;
-        } else {
-            // 如果什么都没填，相当于清空自定义图标
-            iconElement.style.backgroundImage = 'none';
-            iconElement.style.backgroundColor = '#e5e5ea';
-            currentEditingApps[currentPolaroidIndex].currentIcon = '';
+    function confirmIconUrl() {
+        const url = document.getElementById('iconUrlInput').value.trim();
+        if (url) {
+            applyIconToApp(url);
         }
-        
-        closePolaroidModal();
+        closeIconUrlModal();
+    }
+
+    function applyIconToApp(url) {
+        if (currentIconIndex === null) return;
+        const iconElement = document.getElementById(`theme-icon-${currentIconIndex}`);
+        iconElement.style.backgroundImage = `url('${url}')`;
+        iconElement.style.backgroundColor = 'transparent';
+        currentEditingApps[currentIconIndex].currentIcon = `url('${url}')`;
     }
 
     function updateThemeAppName(index, newName) {
@@ -2498,7 +2485,6 @@
         document.getElementById(`theme-icon-${index}`).style.backgroundImage = 'none';
         document.getElementById(`theme-icon-${index}`).style.backgroundColor = '#e5e5ea';
         document.getElementById(`theme-name-${index}`).innerText = appData.originalName;
-        document.getElementById(`theme-file-${index}`).value = '';
     }
 
     function saveThemeChanges() {
@@ -2621,7 +2607,7 @@
                     <div class="card-title">新墙纸</div>
                     <div class="screens-container">
                         <div class="screen-preview">
-                            <div class="add-btn" onclick="document.getElementById('wallpaperFileInput').click()">
+                            <div class="add-btn" onclick="openWallpaperMenu(event)">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             </div>
                         </div>
@@ -2657,23 +2643,111 @@
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const newWallpaper = {
-                    id: Date.now().toString(),
-                    isAdd: false,
-                    src: e.target.result
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 设定适合手机屏幕的高清物理分辨率上限 (参考 iPhone 14 Pro)
+                    // 既保证 Retina 屏幕绝对清晰，又避免超大 Base64 触发浏览器强制降级变糊
+                    const MAX_WIDTH = 1170;
+                    const MAX_HEIGHT = 2532;
+                    
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    // 如果图片超大，则按比例缩放
+                    if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                        const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+                        width = Math.round(width * ratio);
+                        height = Math.round(height * ratio);
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // 导出为高质量 JPEG，大幅减小 Base64 体积
+                    const base64Url = canvas.toDataURL('image/jpeg', 0.95);
+                    
+                    const newWallpaper = {
+                        id: Date.now().toString(),
+                        isAdd: false,
+                        src: base64Url
+                    };
+                    wallpapers.splice(1, 0, newWallpaper); // 插入到添加按钮后面
+                    renderWallpapers();
+                    saveWallpaperData();
+                    
+                    const carouselScroll = document.getElementById('carouselScroll');
+                    setTimeout(() => {
+                        carouselScroll.scrollTo({ left: carouselScroll.clientWidth, behavior: 'smooth' });
+                    }, 100);
                 };
-                wallpapers.splice(1, 0, newWallpaper); // 插入到添加按钮后面
-                renderWallpapers();
-                saveWallpaperData();
-                
-                const carouselScroll = document.getElementById('carouselScroll');
-                setTimeout(() => {
-                    carouselScroll.scrollTo({ left: carouselScroll.clientWidth, behavior: 'smooth' });
-                }, 100);
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
         event.target.value = '';
+    }
+
+    function openWallpaperMenu(event) {
+        const overlay = document.getElementById('wallpaperMenuOverlay');
+        const menu = document.getElementById('wallpaperMenu');
+        
+        overlay.style.display = 'block';
+        
+        // 获取点击按钮的位置
+        const rect = event.target.closest('.add-btn').getBoundingClientRect();
+        let top = rect.bottom + 10;
+        let left = rect.left - 100; // 稍微往左偏移一点，避免超出屏幕
+        
+        if (left + 240 > window.innerWidth) {
+            left = window.innerWidth - 250;
+        }
+        if (top + 130 > window.innerHeight) {
+            top = rect.top - 120;
+        }
+        
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+    }
+
+    function closeWallpaperMenu() {
+        document.getElementById('wallpaperMenuOverlay').style.display = 'none';
+    }
+
+    function openWallpaperUrlModal() {
+        closeWallpaperMenu();
+        document.getElementById('wallpaperUrlInput').value = '';
+        document.getElementById('wallpaperUrlModal').classList.add('show');
+        setTimeout(() => {
+            document.getElementById('wallpaperUrlInput').focus();
+        }, 100);
+    }
+
+    function closeWallpaperUrlModal() {
+        document.getElementById('wallpaperUrlModal').classList.remove('show');
+    }
+
+    function confirmWallpaperUrl() {
+        const url = document.getElementById('wallpaperUrlInput').value.trim();
+        if (url) {
+            const newWallpaper = {
+                id: Date.now().toString(),
+                isAdd: false,
+                src: url
+            };
+            wallpapers.splice(1, 0, newWallpaper);
+            renderWallpapers();
+            saveWallpaperData();
+            
+            const carouselScroll = document.getElementById('carouselScroll');
+            setTimeout(() => {
+                carouselScroll.scrollTo({ left: carouselScroll.clientWidth, behavior: 'smooth' });
+            }, 100);
+        }
+        closeWallpaperUrlModal();
     }
 
     function deleteWallpaper(id) {
@@ -2802,11 +2876,12 @@
     }
 
     function calculatePresetSize(preset) {
-        let totalBytes = 0;
-        if (preset.wallpaper) totalBytes += preset.wallpaper.length;
-        preset.desktop?.forEach(app => { if(app.icon) totalBytes += app.icon.length; });
-        preset.dock?.forEach(app => { if(app.icon) totalBytes += app.icon.length; });
-        const sizeMB = (totalBytes * 0.75) / (1024 * 1024);
+        // 直接将预设数据转换为 JSON 字符串，计算其真实字符长度
+        // 因为 Base64 和 JSON 结构主要由 ASCII 字符组成，1 字符 ≈ 1 字节
+        // 这样计算出来的大小与最终导出的 .json 文件大小几乎完全一致
+        const jsonString = JSON.stringify(preset);
+        const totalBytes = jsonString.length;
+        const sizeMB = totalBytes / (1024 * 1024);
         return sizeMB < 0.01 && sizeMB > 0 ? 0.01 : sizeMB;
     }
 
@@ -2942,7 +3017,11 @@
         
         document.getElementById('detailName').innerText = preset.name;
         document.getElementById('detailDate').innerText = '创建于：' + (preset.date || '未知时间');
-        document.getElementById('detailSize').innerText = (preset.sizeMB || 15.0).toFixed(2) + ' MB';
+        
+        // 智能判断显示 KB 还是 MB
+        let sizeMB = preset.sizeMB || 15.0;
+        let sizeKB = sizeMB * 1024;
+        document.getElementById('detailSize').innerText = sizeKB < 1024 ? sizeKB.toFixed(2) + ' KB' : sizeMB.toFixed(2) + ' MB';
         
         const container = document.getElementById('previewScaleContainer');
         container.style.backgroundImage = preset.wallpaper ? `url('${preset.wallpaper}')` : 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)';
@@ -3180,31 +3259,14 @@
             // 重新计算真实大小
             preset.sizeMB = calculatePresetSize(preset);
             
-            document.getElementById('detailSize').innerText = preset.sizeMB.toFixed(2) + ' MB';
+            // 智能判断显示 KB 还是 MB
+            let finalSizeKB = preset.sizeMB * 1024;
+            document.getElementById('detailSize').innerText = finalSizeKB < 1024 ? finalSizeKB.toFixed(2) + ' KB' : preset.sizeMB.toFixed(2) + ' MB';
+            
             savePresetData();
             
             showToast('压缩完成');
         });
-    }
-
-    // 显示 iOS 悬浮胶囊提示
-    function showToast(message) {
-        let toast = document.getElementById('iosToast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'iosToast';
-            toast.className = 'ios-toast-capsule';
-            document.querySelector('.iphone').appendChild(toast);
-        }
-        toast.innerText = message;
-        toast.classList.add('show');
-        
-        // 如果之前有定时器，先清除
-        if (toast.hideTimer) clearTimeout(toast.hideTimer);
-        
-        toast.hideTimer = setTimeout(() => {
-            toast.classList.remove('show');
-        }, 2000);
     }
 
     function applyCurrentDetailTheme() {
