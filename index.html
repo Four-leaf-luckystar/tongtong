@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iOS Desktop Simulation</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geomini:wght@200..800&display=swap" rel="stylesheet">
+    <title>童话机</title>
+    <link rel="manifest" href="manifest.json">
     <style>
+        @font-face {
+            font-family: Geomini;
+            src: url(https://nos.netease.com/ysf/260de1ccc0fffea1b1af12b7f5b50c3c.ttf) format(truetype);
+            font-weight: normal;
+            font-style: normal;
+        }
         *, *::before, *::after, input, button, textarea, select {
             margin: 0;
             padding: 0;
@@ -47,19 +51,36 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 18px 28px 0 28px;
-            font-size: 15px;
-            font-weight: bold;
+            padding: 14px 26px 0 26px;
             color: #000;
             z-index: 10;
             position: relative;
             transition: opacity 0.2s ease, visibility 0.2s ease;
         }
 
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .time {
+            font-size: 14.5px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .focus-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1px;
+        }
+
         .status-right {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .status-icon {
@@ -72,51 +93,34 @@
         .battery-wrapper {
             display: flex;
             align-items: center;
-            margin-left: 2px;
+            margin-left: 1px;
         }
         
         .battery-body {
-            width: 26px;
-            height: 13px;
-            background-color: #a0a0a0;
+            width: 22px;
+            height: 11px;
+            border: 1px solid rgba(0, 0, 0, 0.4);
             border-radius: 3.5px;
             position: relative;
-            overflow: hidden;
+            padding: 1px;
             display: flex;
             align-items: center;
-            justify-content: center;
         }
         
         .battery-fill {
-            position: absolute;
-            left: 0;
-            top: 0;
             height: 100%;
             background-color: #000;
+            border-radius: 1.5px;
             width: 85%;
             transition: width 0.3s ease;
         }
-
-        .battery-text {
-            position: relative;
-            z-index: 2;
-            color: #fff;
-            font-size: 10px;
-            font-weight: bold;
-            line-height: 1;
-            /* 强制使用 Geomini */
-            font-family: "Geomini", sans-serif;
-            transform: scale(0.9);
-        }
         
         .battery-nub {
-            width: 2px;
-            height: 4px;
-            background-color: #a0a0a0;
-            border-radius: 0 2px 2px 0;
-            margin-left: 1px;
+            width: 1.2px;
+            height: 3.5px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 0 1.5px 1.5px 0;
         }
-
         /* 编辑模式 UI */
         .edit-ui {
             position: absolute;
@@ -1403,9 +1407,7 @@
             flex-direction: column;
             transform: translateX(100%);
             transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-        .settings-app-container.show {
-            transform: translateX(0);
+            overflow: hidden; /* 新增：防止整个页面被水平拖动 */
         }
         .settings-top-bar {
             padding: 45px 20px 0 20px;
@@ -1417,8 +1419,12 @@
         .settings-scroll-area {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden; /* 新增：防止内部元素撑开导致水平滑动 */
             padding-bottom: 40px;
             scrollbar-width: none;
+        }
+        .settings-app-container.show {
+            transform: translateX(0);
         }
         .settings-scroll-area::-webkit-scrollbar { display: none; }
         
@@ -1441,8 +1447,9 @@
         .set-list-item:active { background-color: #e5e5ea; }
         
         @keyframes setIconBreathe { 0% { transform: scale(1); box-shadow: none; } 50% { transform: scale(1.06); box-shadow: 0 4px 10px rgba(0,0,0,0.12); } 100% { transform: scale(1); box-shadow: none; } }
-        .set-item-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; justify-content: center; align-items: center; margin-right: 16px; animation: setIconBreathe 3s infinite ease-in-out; }
+                .set-item-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; justify-content: center; align-items: center; margin-right: 16px; animation: setIconBreathe 3s infinite ease-in-out; }
         .set-item-icon svg { width: 20px; height: 20px; fill: white; }
+        .set-item-icon svg[stroke="#fff"] { fill: none; width: 16px; height: 12px; }
         .set-item-content { flex: 1; display: flex; justify-content: space-between; align-items: center; padding: 11px 16px 11px 0; font-size: 17px; font-weight: 500; letter-spacing: -0.2px; }
         .set-list-item:last-child .set-item-content { border-bottom: none; }
         
@@ -1625,6 +1632,190 @@
         .apple-id-logout-btn:active {
             background-color: #e5e5ea;
         }
+
+        /* --- API 连接页面 UI 样式 --- */
+        .api-app-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; z-index: 160; display: none; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden; }
+        .api-app-container.show { transform: translateX(0); }
+        .api-page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; display: flex; flex-direction: column; transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .api-page.slide-right { transform: translateX(100%); }
+        .api-page.slide-left { transform: translateX(-30%); opacity: 0.8; }
+        .api-page.active { transform: translateX(0); opacity: 1; z-index: 10; }
+        
+        /* 导航栏与磨砂按钮 */
+        .api-nav-bar { height: 90px; padding: 45px 20px 10px 20px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 20; }
+        .api-nav-btn-circle { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: flex; justify-content: center; align-items: center; cursor: pointer; color: #000; font-size: 15px; font-weight: 600; }
+        .api-nav-btn-circle svg { width: 20px; height: 20px; stroke: #000; }
+        .api-nav-btn-circle.text-btn { width: auto; padding: 0 16px; border-radius: 18px; }
+        .api-nav-title { position: absolute; left: 0; right: 0; text-align: center; font-size: 17px; font-weight: 700; color: #000; pointer-events: none; }
+        
+        .api-content { flex: 1; overflow-y: auto; padding-bottom: 40px; }
+        .api-content::-webkit-scrollbar { display: none; }
+        .api-hero-card { background-color: #fff; border-radius: 20px; margin: 10px 16px 0; padding-top: 24px; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
+        .api-hero-icon-bg { width: 64px; height: 64px; border-radius: 18px; background: linear-gradient(135deg, #4eb3ff 0%, #007aff 100%); box-shadow: inset 1.5px 1.5px 3px rgba(255, 255, 255, 0.5), inset -1.5px -1.5px 3px rgba(0, 0, 0, 0.15); display: flex; justify-content: center; align-items: center; }
+        .api-hero-title { font-size: 22px; font-weight: 800; color: #000; margin-top: 16px; }
+        .api-hero-desc { font-size: 13px; color: #000; text-align: center; padding: 0 24px; margin-top: 8px; line-height: 1.4; margin-bottom: 20px; }
+        .api-hero-desc span { color: #007aff; }
+        .api-list-group { background-color: #fff; border-radius: 20px; margin: 0 16px; overflow: hidden; }
+        .api-list-title { font-size: 14px; color: #8e8e93; margin: 24px 16px 8px 32px; text-transform: uppercase; }
+        .api-row { display: flex; align-items: center; padding: 12px 16px; min-height: 48px; position: relative; background-color: #fff; }
+        .api-row.clickable:active { background-color: #e5e5ea; cursor: pointer; }
+        .api-row-left { width: 32px; display: flex; align-items: center; justify-content: flex-start; }
+        .api-row-left svg { width: 20px; height: 20px; stroke: #007aff; }
+        .api-row-text { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .api-row-title-text { font-size: 17px; color: #000; }
+        .api-row-subtitle-text { font-size: 13px; color: #8e8e93; margin-top: 2px; }
+        .api-row-right { display: flex; align-items: center; gap: 10px; }
+        .api-icon-lock { width: 12px; height: 14px; fill: #000; opacity: 0.8; }
+        .api-icon-wifi { width: 18px; height: 18px; fill: #000; }
+        .api-icon-info { width: 22px; height: 22px; cursor: pointer; }
+        .api-toggle { width: 51px; height: 31px; background-color: #34c759; border-radius: 15.5px; position: relative; cursor: pointer; transition: background-color 0.3s; }
+        .api-toggle::after { content: ''; position: absolute; width: 27px; height: 27px; background-color: white; border-radius: 50%; top: 2px; right: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .api-toggle.off { background-color: #e9e9eb; }
+        .api-toggle.off::after { transform: translateX(-20px); }
+        
+        /* 抽屉样式 */
+        .api-drawer-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 100; }
+        .api-drawer-overlay.show { opacity: 1; pointer-events: auto; }
+        .api-drawer { position: absolute; bottom: 0; left: 0; width: 100%; height: 88%; background: #f2f2f7; border-radius: 20px 20px 0 0; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); z-index: 101; display: flex; flex-direction: column; overflow: hidden; }
+        .api-drawer.show { transform: translateY(0); }
+        .api-drawer-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; position: relative; background: #f2f2f7; z-index: 10; }
+        .api-drawer-handle { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 36px; height: 5px; background: #c7c7cc; border-radius: 3px; }
+        .api-drawer-title { font-size: 17px; font-weight: 700; position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; }
+        
+        /* 新增：图1风格表单样式 (卡片包裹) */
+        .api-form-card { background-color: #fff; border-radius: 20px; padding: 20px 16px; margin: 0 16px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .api-form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px; }
+        .api-form-title { font-size: 15px; font-weight: 700; color: #333; text-transform: uppercase; letter-spacing: 0.5px; }
+        .api-form-fetch-btn { font-size: 13px; color: #007aff; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+        .api-form-fetch-btn:active { opacity: 0.5; }
+        .api-form-group { margin-bottom: 16px; display: flex; flex-direction: column; }
+        .api-form-label { font-size: 12px; color: #8e8e93; margin-bottom: 6px; margin-left: 4px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+        .api-form-input-wrapper { background-color: #f2f2f7; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; }
+        .api-form-input { flex: 1; width: 100%; border: none; outline: none; font-size: 16px; color: #000; background: transparent; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+        .api-form-input::placeholder { color: #c7c7cc; }
+        .api-form-select { flex: 1; width: 100%; border: none; outline: none; font-size: 16px; color: #000; background: transparent; appearance: none; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+        .api-form-btn { background-color: #007aff; color: #fff; border-radius: 14px; padding: 14px; text-align: center; font-size: 16px; font-weight: 600; cursor: pointer; margin: 0 16px 24px; transition: opacity 0.2s; }
+        .api-form-btn:active { opacity: 0.8; }
+        .api-form-btn.danger { background-color: #ff3b30; }
+
+        /* --- 全局搜索抽屉 UI 样式 --- */
+        .search-drawer-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 9000;
+        }
+        .search-drawer-overlay.show { opacity: 1; pointer-events: auto; }
+        .search-drawer {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 85%; /* 改为 left:0; right:0; 强制吸附两侧 */
+            background: #f2f2f7; border-radius: 24px 24px 0 0;
+            transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            z-index: 9001; display: flex; flex-direction: column; overflow: hidden;
+            box-sizing: border-box; /* 增加盒模型保险 */
+        }
+        .search-drawer.show { transform: translateY(0); }
+        .search-drawer-header {
+            padding: 16px 20px 10px; display: flex; flex-direction: column;
+            box-sizing: border-box; width: 100%; /* 移除 align-items: center，增加 100% 宽度 */
+        }
+        .search-drawer-handle {
+            width: 36px; height: 5px; background: #c7c7cc; border-radius: 3px; margin-bottom: 16px;
+        }
+        .search-input-container {
+            width: 100%; background: #e3e3e8; border-radius: 12px; height: 40px;
+            display: flex; align-items: center; padding: 0 12px;
+            box-sizing: border-box; /* 增加盒模型保险 */
+        }
+        .search-input-container svg { width: 18px; height: 18px; fill: #8e8e93; margin-right: 8px; flex-shrink: 0; } /* 防止图标被挤压 */
+        .search-input-container input {
+            flex: 1; border: none; background: transparent; outline: none;
+            font-size: 16px; color: #000; font-weight: 500; min-width: 0; /* 关键修复：防止 input 隐式撑宽父容器 */
+        }
+        .search-results-area {
+            flex: 1; overflow-y: auto; padding: 10px 20px 40px; scrollbar-width: none;
+            box-sizing: border-box; width: 100%; /* 增加盒模型保险 */
+        }
+        .search-results-area::-webkit-scrollbar { display: none; }
+        .search-result-card {
+            background: #fff; border-radius: 16px; overflow: hidden; margin-bottom: 16px;
+        }
+        .search-result-item {
+            display: flex; align-items: center; padding: 12px 16px;
+            border-bottom: 1px solid #f2f2f7; cursor: pointer;
+        }
+        .search-result-item:last-child { border-bottom: none; }
+        .search-result-item:active { background: #e5e5ea; }
+        .search-result-icon {
+            width: 30px; height: 30px; border-radius: 8px; display: flex;
+            justify-content: center; align-items: center; margin-right: 14px; color: #fff;
+        }
+        .search-result-text { flex: 1; font-size: 16px; font-weight: 500; color: #000; }
+        .search-result-arrow { width: 16px; height: 16px; stroke: #c7c7cc; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* --- iCloud 页面 UI 样式 --- */
+        .icloud-app-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; z-index: 170; display: none; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden; }
+        .icloud-app-container.show { transform: translateX(0); }
+        .ic-page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; display: block; transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .ic-page::-webkit-scrollbar { display: none; }
+        .ic-page.slide-right { transform: translateX(100%); }
+        .ic-page.slide-left { transform: translateX(-30%); opacity: 0.8; }
+        .ic-page.active { transform: translateX(0); opacity: 1; z-index: 10; }
+        
+        .ic-status-bar { display: flex; justify-content: space-between; padding: 14px 24px 10px; font-size: 15px; font-weight: 600; color: #000; position: sticky; top: 0; background: #f2f2f7; z-index: 100; }
+        .ic-status-icons { display: flex; gap: 5px; align-items: center; }
+        .ic-header-area { padding: 10px 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+        .ic-back-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: #fff; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; }
+        .ic-header-title-row { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; }
+        .ic-header-title { font-size: 26px; font-weight: 700; color: #000; letter-spacing: 0.5px; }
+        .ic-nav-bar-detail { display: flex; align-items: center; padding: 10px 16px 20px; position: relative; }
+        .ic-nav-title-detail { flex: 1; text-align: center; font-size: 17px; font-weight: 600; color: #000; }
+        .ic-card { background: #fff; border-radius: 16px; margin: 0 16px 16px; padding: 16px; }
+        .ic-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .ic-card-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #000; }
+        .ic-dot { width: 8px; height: 8px; background-color: #34c759; border-radius: 50%; }
+        .ic-dot.gray { background-color: #8e8e93; }
+        .ic-dot.red { background-color: #ff3b30; }
+        .ic-dot.orange { background-color: #ff9500; }
+        .ic-dot.light-gray { background-color: #d1d1d6; }
+        .ic-card-action { font-size: 15px; color: #8e8e93; display: flex; align-items: center; gap: 4px; }
+        .ic-storage-row { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .ic-storage-left { display: flex; align-items: center; gap: 12px; }
+        .ic-storage-label { font-size: 16px; font-weight: 500; color: #000; }
+        .ic-progress-bar-bg { width: 80px; height: 8px; background-color: #e5e5ea; border-radius: 4px; overflow: hidden; }
+        .ic-progress-bar-fill { width: 90%; height: 100%; background-color: #34c759; border-radius: 4px; }
+        .ic-storage-detail-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; }
+        .ic-storage-detail-title { font-size: 17px; font-weight: 500; }
+        .ic-storage-detail-size { font-size: 15px; color: #8e8e93; }
+        .ic-multi-progress-bar { display: flex; height: 22px; border-radius: 4px; overflow: hidden; gap: 2px; margin-bottom: 12px; }
+        .ic-segment { height: 100%; }
+        .ic-segment.red { background-color: #ff3b30; width: 45%; }
+        .ic-segment.orange { background-color: #ff9500; width: 30%; }
+        .ic-segment.gray { background-color: #8e8e93; width: 10%; }
+        .ic-segment.light-gray { background-color: #d1d1d6; width: 15%; }
+        .ic-legend-container { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .ic-legend-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #333; }
+        .ic-sort-row { display: flex; justify-content: flex-end; padding: 0 24px 8px; color: #007aff; font-size: 14px; align-items: center; gap: 4px; }
+        .ic-grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .ic-grid-item { display: flex; align-items: center; gap: 8px; background: #f2f2f7; border-radius: 12px; padding: 10px 8px; min-width: 0; }
+        .ic-app-icon-wrapper { width: 36px; height: 36px; background: #ffffff; border-radius: 10px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.06), inset 0px 1px 1px rgba(255, 255, 255, 0.9), inset 0px -1px 2px rgba(0, 0, 0, 0.03); border: 0.5px solid rgba(0, 0, 0, 0.04); overflow: hidden; }
+        .ic-app-icon-wrapper svg { width: 24px; height: 24px; }
+        .ic-item-info { display: flex; flex-direction: column; overflow: hidden; min-width: 0; flex: 1; }
+        .ic-item-name { font-size: 14px; font-weight: 600; color: #000; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .ic-item-desc { font-size: 12px; color: #8e8e93; margin-top: 2px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .ic-list-card { background: #fff; border-radius: 16px; margin: 0 16px 16px; overflow: hidden; }
+        .ic-list-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f2f2f7; min-height: 52px; }
+        .ic-list-item:last-child { border-bottom: none; }
+        .ic-list-item-left { display: flex; align-items: center; gap: 14px; }
+        .ic-list-item-title { font-size: 16px; font-weight: 500; color: #000; }
+        .ic-list-item-right { display: flex; align-items: center; gap: 8px; color: #8e8e93; font-size: 16px; }
+        .ic-app-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f2f2f7; }
+        .ic-app-list-item:last-child { border-bottom: none; }
+        .ic-app-list-left { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
+        .ic-app-list-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+        .ic-app-list-name { font-size: 16px; color: #000; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .ic-app-list-date { font-size: 12px; color: #8e8e93; margin-top: 2px; }
+        .ic-app-list-right { display: flex; align-items: center; gap: 8px; color: #8e8e93; font-size: 15px; flex-shrink: 0; }
+        .ic-chevron { width: 8px; height: 13px; stroke: #c5c5c7; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+        .ic-custom-icon { width: 100%; height: 100%; background-size: cover; background-position: center; border-radius: 10px; }
     </style>
 
 </head>
@@ -1640,41 +1831,40 @@
     </div>
     <div class="edit-ui edit-done" id="editDone">完成</div>
 
-    <!-- 顶部状态栏 -->
+        <!-- 顶部状态栏 -->
     <div class="status-bar" id="statusBar">
-        <div class="time" id="clock">00:00</div>
+        <div class="status-left">
+            <div class="time" id="clock">00:00</div>
+        </div>
         <div class="status-right">
             <div class="status-icon">
-                <svg width="16" height="12" viewBox="0 0 16 12" fill="#000">
-                    <rect x="0" y="8" width="2.5" height="4" rx="1"/>
-                    <rect x="4" y="5" width="2.5" height="7" rx="1"/>
-                    <rect x="8" y="2" width="2.5" height="10" rx="1"/>
-                    <rect x="12" y="0" width="2.5" height="12" rx="1"/>
+                <svg width="16" height="10" viewBox="0 0 16 10" fill="#000">
+                    <rect x="0" y="6.5" width="2.6" height="3.5" rx="0.5"/>
+                    <rect x="4.2" y="4" width="2.6" height="6" rx="0.5"/>
+                    <rect x="8.4" y="1.5" width="2.6" height="8.5" rx="0.5"/>
+                    <rect x="12.6" y="0" width="2.6" height="10" rx="0.5"/>
                 </svg>
             </div>
             <div class="status-icon">
-                <svg width="16" height="12" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
-                    <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
-                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
-                    <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                <svg width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="#000" stroke-width="2.7" stroke-linecap="butt">
+                    <path d="M 1.8 4.6 A 9 7.5 0 0 1 16.2 4.6" />
+                    <path d="M 5.2 7.6 A 4.5 3.5 0 0 1 12.8 7.6" />
+                    <path d="M 8.2 10.2 A 1 1 0 0 1 9.8 10.2" />
                 </svg>
             </div>
             <div class="battery-wrapper">
                 <div class="battery-body">
                     <div class="battery-fill" id="batteryLevel"></div>
-                    <div class="battery-text" id="batteryText">85</div>
                 </div>
                 <div class="battery-nub"></div>
             </div>
         </div>
     </div>
-
-    <!-- 桌面 4x7 网格区域 -->
+<!-- 桌面 4x7 网格区域 -->
     <div class="desktop-grid" id="desktopGrid"></div>
 
     <!-- 搜索按钮 -->
-    <div class="search-bar">
+    <div class="search-bar" onclick="openSearchDrawer()" style="cursor: pointer;">
         <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -1926,7 +2116,7 @@
                 </div>
                 <div class="set-profile-info">
                     <div class="set-profile-name">@uu</div>
-                    <div class="set-profile-sub">Apple账户、iCloud等</div>
+                    <div class="set-profile-sub">账户、云端等</div>
                 </div>
                 <svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
             </div>
@@ -1935,9 +2125,11 @@
                     <div class="set-item-icon set-bg-orange" style="animation-delay: 0s;"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16z"/></svg></div>
                     <div class="set-item-content"><span>飞行模式</span><div class="set-toggle"></div></div>
                 </div>
-                <div class="set-list-item">
-                    <div class="set-item-icon set-bg-blue" style="animation-delay: 0.2s;"><svg viewBox="0 0 24 24"><path d="M12 21.5c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm-4.6-4.9c2.5-2.4 6.6-2.4 9.2 0 .4.4 1 .4 1.4 0 .4-.4.4-1 0-1.4-3.3-3.1-8.6-3.1-11.9 0-.4.4-.4 1 0 1.4.3.4.9.4 1.3 0zm-4.2-4.2c4.9-4.7 12.8-4.7 17.6 0 .4.4 1 .4 1.4 0 .4-.4.4-1 0-1.4-5.7-5.5-14.8-5.5-20.5 0-.4.4-.4 1 0 1.4.4.4 1 .4 1.5 0z"/></svg></div>
-                    <div class="set-item-content"><span>无线局域网</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                <div class="set-list-item" onclick="openApiApp()" style="cursor: pointer;">
+                    <div class="set-item-icon set-bg-blue" style="animation-delay: 0.2s;">
+                        <svg viewBox="0 0 24 24"><path fill="white" d="m6.35 15.35l-2.1-2.15q1.475-1.475 3.463-2.337T12 10q2.3 0 4.288.875t3.462 2.375l-2.1 2.1q-1.1-1.1-2.55-1.725T12 13q-1.65 0-3.1.625T6.35 15.35ZM2.1 11.1L0 9q2.3-2.35 5.375-3.675T12 4q3.55 0 6.625 1.325T24 9l-2.1 2.1q-1.925-1.925-4.463-3.013T12 7Q9.1 7 6.562 8.088T2.1 11.1ZM12 21l3.525-3.55q-.675-.675-1.575-1.063T12 16q-1.05 0-1.95.388T8.475 17.45L12 21Z"/></svg>
+                    </div>
+                    <div class="set-item-content"><span>API连接</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
                 <div class="set-list-item">
                     <div class="set-item-icon set-bg-blue" style="animation-delay: 0.4s;"><svg viewBox="0 0 24 24"><path d="M17.71 7.71L12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm1.88 10.46L13 18.17v-3.76l1.88 1.88z"/></svg></div>
@@ -1948,7 +2140,7 @@
                     <div class="set-item-content"><span>蜂窝网络</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
                 <div class="set-list-item">
-                    <div class="set-item-icon set-bg-green" style="animation-delay: 0.8s;"><svg viewBox="0 0 24 24"><path d="M16 8h-2v3h-3v2h3v3h2v-3h3v-2h-3zM2 12c0-2.76 2.24-5 5-5s5 2.24 5 5-2.24 5-5 5-5-2.24-5-5zm8 0c0-1.66-1.34-3-3-3S4 10.34 4 12s1.34 3 3 3 3-1.34 3-3z"/></svg></div>
+                    <div class="set-item-icon set-bg-green" style="animation-delay: 0.8s;"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="fill: none !important; stroke: white; width: 18px; height: 18px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></div>
                     <div class="set-item-content"><span>个人热点</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
                 <div class="set-list-item">
@@ -1962,7 +2154,7 @@
             </div>
             <div class="set-card">
                 <div class="set-list-item">
-                    <div class="set-item-icon set-bg-gray" style="animation-delay: 1.4s;"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg></div>
+                    <div class="set-item-icon set-bg-gray" style="animation-delay: 1.4s;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.004 10.407c.138.435-.216.842-.672.842h-3.465a.75.75 0 0 1-.65-.375l-1.732-3c-.229-.396-.053-.907.393-1.004a5.252 5.252 0 0 1 6.126 3.537ZM8.12 8.464c.307-.338.838-.235 1.066.16l1.732 3a.75.75 0 0 1 0 .75l-1.732 3c-.229.397-.76.5-1.067.161A5.23 5.23 0 0 1 6.75 12a5.23 5.23 0 0 1 1.37-3.536ZM10.878 17.13c-.447-.098-.623-.608-.394-1.004l1.733-3.002a.75.75 0 0 1 .65-.375h3.465c.457 0 .81.407.672.842a5.252 5.252 0 0 1-6.126 3.539Z" /><path fill-rule="evenodd" d="M21 12.75a.75.75 0 1 0 0-1.5h-.783a8.22 8.22 0 0 0-.237-1.357l.734-.267a.75.75 0 1 0-.513-1.41l-.735.268a8.24 8.24 0 0 0-.689-1.192l.6-.503a.75.75 0 1 0-.964-1.149l-.6.504a8.3 8.3 0 0 0-1.054-.885l.391-.678a.75.75 0 1 0-1.299-.75l-.39.676a8.188 8.188 0 0 0-1.295-.47l.136-.77a.75.75 0 0 0-1.477-.26l-.136.77a8.36 8.36 0 0 0-1.377 0l-.136-.77a.75.75 0 1 0-1.477.26l.136.77c-.448.121-.88.28-1.294.47l-.39-.676a.75.75 0 0 0-1.3.75l.392.678a8.29 8.29 0 0 0-1.054.885l-.6-.504a.75.75 0 1 0-.965 1.149l.6.503a8.243 8.243 0 0 0-.689 1.192L3.8 8.216a.75.75 0 1 0-.513 1.41l.735.267a8.222 8.222 0 0 0-.238 1.356h-.783a.75.75 0 0 0 0 1.5h.783c.042.464.122.917.238 1.356l-.735.268a.75.75 0 0 0 .513 1.41l.735-.268c.197.417.428.816.69 1.191l-.6.504a.75.75 0 0 0 .963 1.15l.601-.505c.326.323.679.62 1.054.885l-.392.68a.75.75 0 0 0 1.3.75l.39-.679c.414.192.847.35 1.294.471l-.136.77a.75.75 0 0 0 1.477.261l.137-.772a8.332 8.332 0 0 0 1.376 0l.136.772a.75.75 0 1 0 1.477-.26l-.136-.771a8.19 8.19 0 0 0 1.294-.47l.391.677a.75.75 0 0 0 1.3-.75l-.393-.679a8.29 8.29 0 0 0 1.054-.885l.601.504a.75.75 0 0 0 .964-1.15l-.6-.503c.261-.375.492-.774.69-1.191l.735.267a.75.75 0 1 0 .512-1.41l-.734-.267c.115-.439.195-.892.237-1.356h.784Zm-2.657-3.06a6.744 6.744 0 0 0-1.19-2.053 6.784 6.784 0 0 0-1.82-1.51A6.705 6.705 0 0 0 12 5.25a6.8 6.8 0 0 0-1.225.11 6.7 6.7 0 0 0-2.15.793 6.784 6.784 0 0 0-2.952 3.489.76.76 0 0 1-.036.098A6.74 6.74 0 0 0 5.251 12a6.74 6.74 0 0 0 3.366 5.842l.009.005a6.704 6.704 0 0 0 2.18.798l.022.003a6.792 6.792 0 0 0 2.368-.004 6.704 6.704 0 0 0 2.205-.811 6.785 6.785 0 0 0 1.762-1.484l.009-.01.009-.01a6.743 6.743 0 0 0 1.18-2.066c.253-.707.39-1.469.39-2.263a6.74 6.74 0 0 0-.408-2.309Z" clip-rule="evenodd" /></svg></div>
                     <div class="set-item-content"><span>通用</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
                 <div class="set-list-item">
@@ -1984,7 +2176,7 @@
             <div class="apple-id-back-btn" onclick="closeAppleIdApp()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </div>
-            <div class="apple-id-nav-title">Apple账户</div>
+            <div class="apple-id-nav-title">账户</div>
         </div>
 
         <!-- 内容区 -->
@@ -2057,14 +2249,14 @@
 
             <!-- 第二组卡片 -->
             <div class="apple-id-card">
-                <div class="apple-id-list-item">
+                <div class="apple-id-list-item" onclick="openIcloudApp()" style="cursor: pointer;">
                     <div class="apple-id-item-icon apple-id-icon-transparent">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 24px; height: 24px;">
                             <path d="M17 7C13.5705 7 10.6449 9.15804 9.50734 12.1903L11.3805 12.8927C12.2337 10.6185 14.4278 9 17 9C17.6983 9 18.3687 9.11928 18.992 9.33857C21.3265 10.16 23 12.3846 23 15C23 18.3137 20.3137 21 17 21H7C3.68629 21 1 18.3137 1 15C1 12.3846 2.67346 10.16 5.00804 9.33857C5.0027 9.22639 5 9.11351 5 9C5 5.13401 8.13401 2 12 2C15.242 2 17.9693 4.20399 18.7652 7.19539C18.1973 7.0675 17.6065 7 17 7Z"></path>
                         </svg>
                     </div>
                     <div class="apple-id-item-content">
-                        <span>iCloud</span>
+                        <span>云端</span>
                         <div class="apple-id-item-right">
                             <span class="apple-id-item-value">设置</span>
                             <svg class="apple-id-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
@@ -2091,6 +2283,499 @@
         </div>
     </div>
 
+    <!-- iCloud 页面容器 -->
+    <div class="icloud-app-container" id="icloudAppUI">
+        <!-- 主页面 -->
+        <div class="ic-page active" id="ic-main-page">
+            <div class="ic-status-bar">
+                <div>14:18</div>
+                <div class="ic-status-icons">
+                    <svg width="16" height="10" viewBox="0 0 16 10" fill="#000"><rect x="0" y="6.5" width="2.6" height="3.5" rx="0.5"/><rect x="4.2" y="4" width="2.6" height="6" rx="0.5"/><rect x="8.4" y="1.5" width="2.6" height="8.5" rx="0.5"/><rect x="12.6" y="0" width="2.6" height="10" rx="0.5"/></svg>
+                    <svg width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="#000" stroke-width="2.7" stroke-linecap="butt"><path d="M 1.8 4.6 A 9 7.5 0 0 1 16.2 4.6" /><path d="M 5.2 7.6 A 4.5 3.5 0 0 1 12.8 7.6" /><path d="M 8.2 10.2 A 1 1 0 0 1 9.8 10.2" /></svg>
+                    <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="21" height="10" rx="3.5" stroke="#000"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="#000"/><path d="M23 4V7" stroke="#000" stroke-linecap="round"/></svg>
+                </div>
+            </div>
+            <div class="ic-header-area">
+                <div class="ic-back-btn" onclick="closeIcloudApp()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </div>
+                <div class="ic-header-title-row">
+                    <div class="ic-header-title">数据管理中心</div>
+                </div>
+            </div>
+            <div class="ic-card" style="padding: 18px 16px;" onclick="openIcStoragePage()">
+                <div class="ic-storage-row">
+                    <div class="ic-storage-left">
+                        <span class="ic-storage-label">储存空间</span>
+                        <div class="ic-progress-bar-bg">
+                            <div class="ic-progress-bar-fill" id="ic-main-progress" style="width: 0%; transition: width 0.5s ease;"></div>
+                        </div>
+                    </div>
+                    <div class="ic-card-action" id="ic-main-size" style="font-weight: 800; color: #000;">
+                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                    </div>
+                </div>
+            </div>
+            <div class="ic-card">
+                <div class="ic-card-header">
+                    <div class="ic-card-title"><div class="ic-dot"></div>已存至云端</div>
+                    <div class="ic-card-action">查看全部 <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                </div>
+                <div class="ic-grid-container">
+                    <div class="ic-grid-item">
+                        <div class="ic-app-icon-wrapper">
+                            <div class="ic-custom-icon" style="background-image: url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png');"></div>
+                        </div>
+                        <div class="ic-item-info">
+                            <div class="ic-item-name">主题</div>
+                            <div class="ic-item-desc" id="ic-cloud-theme-size">计算中...</div>
+                        </div>
+                    </div>
+                    <div class="ic-grid-item">
+                        <div class="ic-app-icon-wrapper">
+                            <div class="ic-custom-icon" style="background-image: url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png');"></div>
+                        </div>
+                        <div class="ic-item-info">
+                            <div class="ic-item-name">世界书</div>
+                            <div class="ic-item-desc" id="ic-cloud-worldbook-size">计算中...</div>
+                        </div>
+                    </div>
+                    <div class="ic-grid-item">
+                        <div class="ic-app-icon-wrapper">
+                            <div class="ic-custom-icon" style="background-image: url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png');"></div>
+                        </div>
+                        <div class="ic-item-info">
+                            <div class="ic-item-name">微信</div>
+                            <div class="ic-item-desc" id="ic-cloud-wechat-size">计算中...</div>
+                        </div>
+                    </div>
+                    <div class="ic-grid-item">
+                        <div class="ic-app-icon-wrapper">
+                            <div class="ic-custom-icon" style="background-image: url('https://file.zhuyitai.com/feedback/202607/13/21b50befb04dae331997fec05eaa0d25.png');"></div>
+                        </div>
+                        <div class="ic-item-info">
+                            <div class="ic-item-name">Contacts</div>
+                            <div class="ic-item-desc" id="ic-cloud-contacts-size">计算中...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ic-card" style="padding: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div class="ic-card-title"><div class="ic-dot"></div> 云备份 </div>
+                        <div class="ic-item-desc" style="margin-left: 16px; margin-top: 4px;">当前设备</div>
+                    </div>
+                    <div class="ic-card-action">23分钟前 <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                </div>
+            </div>
+            <div class="ic-card" style="padding: 16px 16px 8px;">
+                <div class="ic-card-title" style="margin-bottom: 16px;">数据管理功能</div>
+                <div class="ic-grid-container">
+                    <div class="ic-grid-item" onclick="exportAllDataJson()" style="cursor: pointer;">
+                        <div class="ic-app-icon-wrapper" style="background: transparent; box-shadow: none; border: none;">
+                            <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#007AFF" opacity="0.1"/><path d="M20 12v12m0 0l-4-4m4 4l4-4m-8 8h8" stroke="#007AFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                        </div>
+                        <div class="ic-item-info">
+                            <div class="ic-item-name">数据备份</div>
+                            <div class="ic-item-desc">导出 JSON</div>
+                        </div>
+                    </div>
+                    <div class="ic-grid-item" onclick="importAllDataJson()" style="cursor: pointer;">
+                        <div class="ic-app-icon-wrapper" style="background: transparent; box-shadow: none; border: none;">
+                            <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#34C759" opacity="0.1"/><path d="M20 28V16m0 0l-4 4m4-4l4 4m-8-8h8" stroke="#34C759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                        </div>
+                        <div class="ic-item-info">
+                            <div class="ic-item-name">恢复数据</div>
+                            <div class="ic-item-desc">导入 JSON</div>
+                        </div>
+                    </div>
+                    <div class="ic-grid-item" onclick="exportAllDataZip()" style="cursor: pointer;">
+                        <div class="ic-app-icon-wrapper" style="background: transparent; box-shadow: none; border: none;">
+                            <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#FF9500" opacity="0.1"/><rect x="14" y="14" width="12" height="14" rx="2" stroke="#FF9500" stroke-width="2" fill="none"/><line x1="20" y1="14" x2="20" y2="20" stroke="#FF9500" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="22" r="1" fill="#FF9500"/></svg>
+                        </div>
+                        <div class="ic-item-info">
+                            <div class="ic-item-name">zip备份</div>
+                            <div class="ic-item-desc">导出 ZIP</div>
+                        </div>
+                    </div>
+                    <div class="ic-grid-item" onclick="syncToLocalDrive()" style="cursor: pointer;">
+                        <div class="ic-app-icon-wrapper" style="background: transparent; box-shadow: none; border: none;">
+                            <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#5AC8FA" opacity="0.1"/><path d="M12 16h16v10a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V16z" stroke="#5AC8FA" stroke-width="2" fill="none"/><path d="M16 16v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#5AC8FA" stroke-width="2" fill="none"/><line x1="16" y1="22" x2="24" y2="22" stroke="#5AC8FA" stroke-width="2" stroke-linecap="round"/></svg>
+                        </div>
+                        <div class="ic-item-info">
+                            <div class="ic-item-name">本地硬盘</div>
+                            <div class="ic-item-desc">File System</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="file" id="importAllDataInput" accept=".json,.zip" style="display: none;" onchange="handleImportAllData(event)">
+            <div class="ic-list-card">
+                <div class="ic-list-item" onclick="requestPersistentStorage()" style="cursor: pointer;">
+                    <div class="ic-list-item-left">
+                        <div class="ic-list-item-title">数据持久化储存</div>
+                    </div>
+                    <div class="ic-list-item-right" id="ic-persist-status" style="font-weight: 600;">
+                        检测中 <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                    </div>
+                </div>
+            </div>
+            <div style="height: 40px;"></div>
+        </div>
+
+        <!-- 储存空间详情页 -->
+        <div class="ic-page slide-right" id="ic-storage-page">
+            <div class="ic-status-bar">
+                <div>11:20</div>
+                <div class="ic-status-icons">
+                    <svg width="16" height="10" viewBox="0 0 16 10" fill="#000"><rect x="0" y="6.5" width="2.6" height="3.5" rx="0.5"/><rect x="4.2" y="4" width="2.6" height="6" rx="0.5"/><rect x="8.4" y="1.5" width="2.6" height="8.5" rx="0.5"/><rect x="12.6" y="0" width="2.6" height="10" rx="0.5"/></svg>
+                    <svg width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="#000" stroke-width="2.7" stroke-linecap="butt"><path d="M 1.8 4.6 A 9 7.5 0 0 1 16.2 4.6" /><path d="M 5.2 7.6 A 4.5 3.5 0 0 1 12.8 7.6" /><path d="M 8.2 10.2 A 1 1 0 0 1 9.8 10.2" /></svg>
+                    <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="21" height="10" rx="3.5" stroke="#000"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="#000"/><path d="M23 4V7" stroke="#000" stroke-linecap="round"/></svg>
+                </div>
+            </div>
+            <div class="ic-nav-bar-detail">
+                <div class="ic-back-btn" onclick="closeIcStoragePage()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </div>
+                <div class="ic-nav-title-detail">储存空间</div>
+                <div style="width: 36px;"></div>
+            </div>
+            <div class="ic-card">
+                <div class="ic-storage-detail-header">
+                    <div class="ic-storage-detail-title">当前设备</div>
+                    <div class="ic-storage-detail-size" id="ic-detail-size" style="font-weight: 700; color: #000;">已使用 计算中...</div>
+                </div>
+                <div class="ic-multi-progress-bar">
+                    <div class="ic-segment red" id="ic-seg-red" style="width: 0%; transition: width 0.5s ease;"></div>
+                    <div class="ic-segment orange" id="ic-seg-orange" style="width: 0%; transition: width 0.5s ease;"></div>
+                    <div class="ic-segment gray" id="ic-seg-gray" style="width: 0%; transition: width 0.5s ease;"></div>
+                    <div class="ic-segment light-gray" id="ic-seg-light" style="width: 0%; transition: width 0.5s ease;"></div>
+                </div>
+                <div class="ic-legend-container">
+                    <div class="ic-legend-item"><span class="ic-dot red"></span><span id="ic-legend-photo">照片</span></div>
+                    <div class="ic-legend-item"><span class="ic-dot orange"></span><span id="ic-legend-apps">应用程序</span></div>
+                    <div class="ic-legend-item"><span class="ic-dot gray"></span><span id="ic-legend-chat">聊天数据</span></div>
+                    <div class="ic-legend-item"><span class="ic-dot light-gray"></span><span id="ic-legend-system">系统数据</span></div>
+                </div>
+            </div>
+            <div class="ic-sort-row">
+                <span style="font-weight: bold;">大小</span> 
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 15 12 20 17 15"></polyline><polyline points="7 9 12 4 17 9"></polyline></svg>
+            </div>
+            <div class="ic-list-card">
+                <div class="ic-app-list-item">
+                    <div class="ic-app-list-left">
+                        <div class="ic-app-icon-wrapper">
+                            <div class="ic-custom-icon" style="background-image: url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg');"></div>
+                        </div>
+                        <div class="ic-app-list-info">
+                            <div class="ic-app-list-name">设置</div>
+                            <div class="ic-app-list-date">上次使用：今天</div>
+                        </div>
+                    </div>
+                    <div class="ic-app-list-right" id="ic-detail-settings-size">
+                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                    </div>
+                </div>
+                <div class="ic-app-list-item">
+                    <div class="ic-app-list-left">
+                        <div class="ic-app-icon-wrapper">
+                            <div class="ic-custom-icon" style="background-image: url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png');"></div>
+                        </div>
+                        <div class="ic-app-list-info">
+                            <div class="ic-app-list-name">主题</div>
+                            <div class="ic-app-list-date">上次使用：今天</div>
+                        </div>
+                    </div>
+                    <div class="ic-app-list-right" id="ic-detail-theme-size">
+                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                    </div>
+                </div>
+                <div class="ic-app-list-item">
+                    <div class="ic-app-list-left">
+                        <div class="ic-app-icon-wrapper">
+                            <div class="ic-custom-icon" style="background-image: url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png');"></div>
+                        </div>
+                        <div class="ic-app-list-info">
+                            <div class="ic-app-list-name">世界书</div>
+                            <div class="ic-app-list-date">上次使用：今天</div>
+                        </div>
+                    </div>
+                    <div class="ic-app-list-right" id="ic-detail-worldbook-size">
+                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                    </div>
+                </div>
+                <div class="ic-app-list-item">
+                    <div class="ic-app-list-left">
+                        <div class="ic-app-icon-wrapper">
+                            <div class="ic-custom-icon" style="background-image: url('https://file.zhuyitai.com/feedback/202607/13/21b50befb04dae331997fec05eaa0d25.png');"></div>
+                        </div>
+                        <div class="ic-app-list-info">
+                            <div class="ic-app-list-name">Contacts</div>
+                            <div class="ic-app-list-date">上次使用：2026/5/7</div>
+                        </div>
+                    </div>
+                    <div class="ic-app-list-right" id="ic-detail-contacts-size">
+                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                    </div>
+                </div>
+                <div class="ic-app-list-item">
+                    <div class="ic-app-list-left">
+                        <div class="ic-app-icon-wrapper">
+                            <div class="ic-custom-icon" style="background-image: url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png');"></div>
+                        </div>
+                        <div class="ic-app-list-info">
+                            <div class="ic-app-list-name">微信</div>
+                            <div class="ic-app-list-date">上次使用：昨天</div>
+                        </div>
+                    </div>
+                    <div class="ic-app-list-right" id="ic-detail-wechat-size">
+                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                    </div>
+                </div>
+                <div class="ic-app-list-item">
+                    <div class="ic-app-list-left">
+                        <div class="ic-app-icon-wrapper">
+                            <div class="ic-custom-icon" style="background-image: url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png');"></div>
+                        </div>
+                        <div class="ic-app-list-info">
+                            <div class="ic-app-list-name">电话</div>
+                            <div class="ic-app-list-date">上次使用：10月30日</div>
+                        </div>
+                    </div>
+                    <div class="ic-app-list-right" id="ic-detail-phone-size">
+                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                    </div>
+                </div>
+                <div class="ic-app-list-item">
+                    <div class="ic-app-list-left">
+                        <div class="ic-app-icon-wrapper">
+                            <div class="ic-custom-icon" style="background-image: url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png');"></div>
+                        </div>
+                        <div class="ic-app-list-info">
+                            <div class="ic-app-list-name">信息</div>
+                            <div class="ic-app-list-date">上次使用：10月29日</div>
+                        </div>
+                    </div>
+                    <div class="ic-app-list-right" id="ic-detail-message-size">
+                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                    </div>
+                </div>
+            </div>
+            <div style="height: 40px;"></div>
+        </div>
+
+        <!-- 本地硬盘备份页 -->
+        <div class="ic-page slide-right" id="ic-local-drive-page">
+            <div class="ic-status-bar">
+                <div>11:20</div>
+                <div class="ic-status-icons">
+                    <svg width="16" height="10" viewBox="0 0 16 10" fill="#000"><rect x="0" y="6.5" width="2.6" height="3.5" rx="0.5"/><rect x="4.2" y="4" width="2.6" height="6" rx="0.5"/><rect x="8.4" y="1.5" width="2.6" height="8.5" rx="0.5"/><rect x="12.6" y="0" width="2.6" height="10" rx="0.5"/></svg>
+                    <svg width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="#000" stroke-width="2.7" stroke-linecap="butt"><path d="M 1.8 4.6 A 9 7.5 0 0 1 16.2 4.6" /><path d="M 5.2 7.6 A 4.5 3.5 0 0 1 12.8 7.6" /><path d="M 8.2 10.2 A 1 1 0 0 1 9.8 10.2" /></svg>
+                    <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="21" height="10" rx="3.5" stroke="#000"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="#000"/><path d="M23 4V7" stroke="#000" stroke-linecap="round"/></svg>
+                </div>
+            </div>
+            <div class="ic-nav-bar-detail">
+                <div class="ic-back-btn" onclick="closeLocalDrivePage()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </div>
+                <div class="ic-nav-title-detail">本地硬盘备份</div>
+                <div style="width: 36px;"></div>
+            </div>
+            
+            <div class="ic-card">
+                <div class="ic-card-title" style="margin-bottom: 16px;">备份状态</div>
+                <div class="ic-list-item" style="padding: 8px 0; min-height: auto; border: none;">
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">当前模式</div>
+                    <div class="ic-list-item-right" id="ld-current-mode" style="color: #000;">未设置</div>
+                </div>
+                <div class="ic-list-item" style="padding: 8px 0; min-height: auto; border: none;">
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">目标位置</div>
+                    <div class="ic-list-item-right" id="ld-target-name" style="color: #000; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">--</div>
+                </div>
+                <div class="ic-list-item" style="padding: 8px 0; min-height: auto; border: none;">
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">上次备份</div>
+                    <div class="ic-list-item-right" id="ld-last-time" style="color: #000;">--</div>
+                </div>
+                <div class="ic-list-item" style="padding: 8px 0; min-height: auto; border: none;">
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">备份大小</div>
+                    <div class="ic-list-item-right" id="ld-last-size" style="color: #000;">--</div>
+                </div>
+            </div>
+
+            <div class="ic-card" style="padding: 16px 16px 8px;">
+                <div class="ic-card-title" style="margin-bottom: 16px;">选择模式</div>
+                <div class="ic-grid-container">
+                    <div class="ic-grid-item" onclick="setupFolderMode()" style="cursor: pointer;">
+                        <div class="ic-app-icon-wrapper" style="background: transparent; box-shadow: none; border: none;">
+                            <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#007AFF" opacity="0.1"/><path d="M12 16h16v10a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V16z" stroke="#007AFF" stroke-width="2" fill="none"/><path d="M16 16v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#007AFF" stroke-width="2" fill="none"/></svg>
+                        </div>
+                        <div class="ic-item-info">
+                            <div class="ic-item-name">文件夹模式</div>
+                            <div class="ic-item-desc">自动覆盖保存</div>
+                        </div>
+                    </div>
+                    <div class="ic-grid-item" onclick="setupFileMode()" style="cursor: pointer;">
+                        <div class="ic-app-icon-wrapper" style="background: transparent; box-shadow: none; border: none;">
+                            <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#34C759" opacity="0.1"/><path d="M14 12h8l6 6v10a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V14a2 2 0 0 1 2-2z" stroke="#34C759" stroke-width="2" fill="none"/><polyline points="22 12 22 18 28 18" stroke="#34C759" stroke-width="2" fill="none"/></svg>
+                        </div>
+                        <div class="ic-item-info">
+                            <div class="ic-item-name">单文件模式</div>
+                            <div class="ic-item-desc">保存为单文件</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ic-list-card">
+                <div class="ic-list-item" onclick="performLocalBackup()" style="cursor: pointer; justify-content: center;">
+                    <div class="ic-list-item-title" style="color: #007aff; font-weight: 600;">立即备份</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API 连接页面容器 -->
+    <div class="api-app-container" id="apiAppUI">
+        <!-- 主页面 -->
+        <div id="api-page-main" class="api-page active">
+            <div class="api-nav-bar">
+                <div class="api-nav-btn-circle" onclick="closeApiApp()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </div>
+                <div class="api-nav-btn-circle text-btn">编辑</div>
+            </div>
+            <div class="api-content">
+                <div class="api-hero-card">
+                    <div class="api-hero-icon-bg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24">
+                            <path fill="#ffffff" d="M2.06 10.06c.51.51 1.32.56 1.87.1c4.67-3.84 11.45-3.84 16.13-.01c.56.46 1.38.42 1.89-.09c.59-.59.55-1.57-.1-2.1c-5.71-4.67-13.97-4.67-19.69 0c-.65.52-.7 1.5-.1 2.1zm7.76 7.76l1.47 1.47c.39.39 1.02.39 1.41 0l1.47-1.47c.47-.47.37-1.28-.23-1.59a4.28 4.28 0 0 0-3.91 0c-.57.31-.68 1.12-.21 1.59zm-3.73-3.73c.49.49 1.26.54 1.83.13a7.064 7.064 0 0 1 8.16 0c.57.4 1.34.36 1.83-.13l.01-.01c.6-.6.56-1.62-.13-2.11c-3.44-2.49-8.13-2.49-11.58 0c-.69.5-.73 1.51-.12 2.12z"/>
+                        </svg>
+                    </div>
+                    <div class="api-hero-title">API 连接</div>
+                    <div class="api-hero-desc">接入 API、查看可用模型，并管理加入网络及附近节点设置。<span>进一步了解...</span></div>
+                    <div style="width: 100%; border-top: 0.5px solid #c6c6c8;">
+                        <div class="api-row">
+                            <div class="api-row-left"></div>
+                            <div class="api-row-text"><div class="api-row-title-text">流式输出</div></div>
+                            <div class="api-toggle" onclick="this.classList.toggle('off')"></div>
+                        </div>
+                    </div>
+                    <div style="width: 100%;" id="api-connected-container"></div>
+                </div>
+                <div class="api-list-title">预设</div>
+                <div class="api-list-group" id="api-preset-container"></div>
+                <div class="api-list-group" style="margin-top: 24px;">
+                    <div class="api-row clickable">
+                        <div class="api-row-text"><div class="api-row-title-text">使用 API 与本地模型的 App</div></div>
+                        <svg style="width: 8px; height: 13px; stroke: #c5c5c7; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; fill: none;" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 添加 API 页面 -->
+        <div id="api-page-add" class="api-page slide-right">
+            <div class="api-nav-bar">
+                <div class="api-nav-btn-circle" onclick="closeApiAddPage()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </div>
+                <div class="api-nav-title">添加 API</div>
+                <div class="api-nav-btn-circle text-btn" onclick="saveNewApi()">保存</div>
+            </div>
+            <div class="api-content" style="padding-top: 20px;">
+                
+                <!-- 预设名称独立卡片 -->
+                <div class="api-form-card" style="padding: 12px 16px; margin-bottom: 16px;">
+                    <div class="api-form-input-wrapper" style="background: transparent; padding: 0;">
+                        <input type="text" class="api-form-input" id="api-add-name" placeholder="预设名称 (例如：GPT-4 官方接口)">
+                    </div>
+                </div>
+
+                <!-- API 配置卡片 -->
+                <div class="api-form-card">
+                    <div class="api-form-group">
+                        <div class="api-form-label">URL (接口地址)</div>
+                        <div class="api-form-input-wrapper">
+                            <input type="text" class="api-form-input" id="api-add-url" placeholder="https://api.openai.com/v1">
+                        </div>
+                    </div>
+                    <div class="api-form-group">
+                        <div class="api-form-label">KEY (接口密钥)</div>
+                        <div class="api-form-input-wrapper">
+                            <input type="password" class="api-form-input" id="api-add-key" placeholder="sk-...">
+                        </div>
+                    </div>
+                    
+                    <!-- 恢复原来的拉取模型大按钮 -->
+                    <div class="api-form-btn" onclick="fetchApiModels('add')" style="margin: 24px 0;">拉取模型</div>
+                    
+                    <div class="api-form-group" style="margin-bottom: 0;">
+                        <div class="api-form-label">MODEL (模型)</div>
+                        <div class="api-form-input-wrapper">
+                            <select class="api-form-select" id="api-add-model">
+                                <option value="" disabled selected>请先拉取模型</option>
+                            </select>
+                            <svg style="width: 12px; height: 12px; stroke: #8e8e93; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; margin-left: 10px;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部抽屉 -->
+        <div class="api-drawer-overlay" id="apiDrawerOverlay" onclick="closeApiDrawer()"></div>
+        <div class="api-drawer" id="apiDrawer">
+            <div class="api-drawer-header">
+                <div class="api-drawer-handle"></div>
+                <div class="api-nav-btn-circle text-btn" onclick="closeApiDrawer()" style="font-weight: 400; background: rgba(0,0,0,0.05); box-shadow: none;">取消</div>
+                <div class="api-drawer-title">编辑 API</div>
+                <div class="api-nav-btn-circle text-btn" onclick="saveApiDrawer()" style="background: rgba(0,0,0,0.05); box-shadow: none;">保存</div>
+            </div>
+            <div class="api-content" style="padding-top: 20px;">
+                
+                <!-- 预设名称独立卡片 -->
+                <div class="api-form-card" style="padding: 12px 16px; margin-bottom: 16px;">
+                    <div class="api-form-input-wrapper" style="background: transparent; padding: 0;">
+                        <input type="text" class="api-form-input" id="api-edit-name" placeholder="预设名称">
+                    </div>
+                </div>
+
+                <!-- API 配置卡片 -->
+                <div class="api-form-card">
+                    <div class="api-form-group">
+                        <div class="api-form-label">URL (接口地址)</div>
+                        <div class="api-form-input-wrapper">
+                            <input type="text" class="api-form-input" id="api-edit-url" placeholder="https://api.openai.com/v1">
+                        </div>
+                    </div>
+                    <div class="api-form-group">
+                        <div class="api-form-label">KEY (接口密钥)</div>
+                        <div class="api-form-input-wrapper">
+                            <input type="password" class="api-form-input" id="api-edit-key" placeholder="sk-...">
+                        </div>
+                    </div>
+                    
+                    <!-- 恢复原来的拉取模型大按钮 -->
+                    <div class="api-form-btn" onclick="fetchApiModels('edit')" style="margin: 24px 0;">拉取模型</div>
+                    
+                    <div class="api-form-group" style="margin-bottom: 0;">
+                        <div class="api-form-label">MODEL (模型)</div>
+                        <div class="api-form-input-wrapper">
+                            <select class="api-form-select" id="api-edit-model">
+                                <option value="" disabled selected>请先拉取模型</option>
+                            </select>
+                            <svg style="width: 12px; height: 12px; stroke: #8e8e93; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; margin-left: 10px;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="api-form-btn danger" onclick="deleteApiDrawer()">删除此 API</div>
+            </div>
+        </div>
+    </div>
+
     <!-- 图标操作菜单 -->
     <div class="icon-menu-overlay" id="iconMenuOverlay" onclick="closeIconMenu()">
         <div class="icon-menu" id="iconMenu" onclick="event.stopPropagation()">
@@ -2106,23 +2791,7 @@
     </div>
     <input type="file" id="iconFileInput" accept="image/*" style="display: none;" onchange="handleIconLocalUpload(event)">
 
-    <!-- URL 导入图标弹窗 -->
-    <div class="preset-modal-overlay" id="iconUrlModal">
-        <div class="preset-modal-style-1">
-            <div class="preset-m-header">
-                <div class="preset-m-header-text">使用 URL 上传图标</div>
-            </div>
-            <div class="preset-m1-body">
-                <input type="text" class="preset-m1-input" placeholder="https://..." id="iconUrlInput">
-            </div>
-            <div class="preset-m1-footer">
-                <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closeIconUrlModal()">取消</button>
-                <button class="preset-m1-btn preset-m1-btn-save" onclick="confirmIconUrl()">确定</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 壁纸操作菜单 -->
+ <!-- 壁纸操作菜单 -->
     <div class="icon-menu-overlay" id="wallpaperMenuOverlay" onclick="closeWallpaperMenu()">
         <div class="icon-menu" id="wallpaperMenu" onclick="event.stopPropagation()">
             <div class="icon-menu-item" onclick="document.getElementById('wallpaperFileInput').click(); closeWallpaperMenu();">
@@ -2136,132 +2805,28 @@
         </div>
     </div>
 
-    <!-- URL 导入壁纸弹窗 -->
-    <div class="preset-modal-overlay" id="wallpaperUrlModal">
-        <div class="preset-modal-style-1">
-            <div class="preset-m-header">
-                <div class="preset-m-header-text">使用 URL 上传壁纸</div>
-            </div>
-            <div class="preset-m1-body">
-                <input type="text" class="preset-m1-input" placeholder="https://..." id="wallpaperUrlInput">
-            </div>
-            <div class="preset-m1-footer">
-                <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closeWallpaperUrlModal()">取消</button>
-                <button class="preset-m1-btn preset-m1-btn-save" onclick="confirmWallpaperUrl()">确定</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 保存预设名称弹窗 -->
-    <div class="preset-modal-overlay" id="presetNameModal">
-        <div class="preset-modal-style-1">
-            <div class="preset-m-header">
-                <div class="preset-m-header-text">主题预设</div>
-                <div class="preset-m-stars">
-                    <svg class="preset-star-1" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg class="preset-star-2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg class="preset-star-3" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                </div>
-            </div>
-            <div class="preset-m1-body">
-                <input type="text" class="preset-m1-input" placeholder="输入预设名称..." id="presetNameInput">
-            </div>
-            <div class="preset-m1-footer">
-                <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closePresetModal()">取消</button>
-                <button class="preset-m1-btn preset-m1-btn-save" onclick="saveCurrentAsPreset()">保存</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- URL 导入字体弹窗 -->
-    <div class="preset-modal-overlay" id="urlFontModal">
-        <div class="preset-modal-style-1">
-            <div class="preset-m-header">
-                <div class="preset-m-header-text">导入字体</div>
-                <div class="preset-m-stars">
-                    <svg class="preset-star-1" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg class="preset-star-2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg class="preset-star-3" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                </div>
-            </div>
-            <div class="preset-m1-body">
-                <input type="text" class="preset-m1-input" placeholder="输入字体名称 (选填)" id="fontNameInput" style="margin-bottom: 12px;">
-                <input type="text" class="preset-m1-input" placeholder="https://..." id="fontUrlInput">
-            </div>
-            <div class="preset-m1-footer">
-                <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closeUrlFontModal()">取消</button>
-                <button class="preset-m1-btn preset-m1-btn-save" onclick="confirmUrlFont()">安装</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 导出预设名称弹窗 -->
-    <div class="preset-modal-overlay" id="exportPresetModal">
-        <div class="preset-modal-style-1">
-            <div class="preset-m-header">
-                <div class="preset-m-header-text">导出主题</div>
-                <div class="preset-m-stars">
-                    <svg class="preset-star-1" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg class="preset-star-2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg class="preset-star-3" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                </div>
-            </div>
-            <div class="preset-m1-body">
-                <input type="text" class="preset-m1-input" placeholder="输入导出文件名称..." id="exportPresetInput">
-            </div>
-            <div class="preset-m1-footer">
-                <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closeExportModal()">取消</button>
-                <button class="preset-m1-btn preset-m1-btn-save" onclick="exportCurrentPreset()">导出</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 编辑预设名称弹窗 -->
-    <div class="preset-modal-overlay" id="editPresetModal">
-        <div class="preset-modal-style-1">
-            <div class="preset-m-header">
-                <div class="preset-m-header-text">编辑主题名称</div>
-                <div class="preset-m-stars">
-                    <svg class="preset-star-1" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg class="preset-star-2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg class="preset-star-3" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                </div>
-            </div>
-            <div class="preset-m1-body">
-                <input type="text" class="preset-m1-input" placeholder="输入新的主题名称..." id="editPresetInput">
-            </div>
-            <div class="preset-m1-footer">
-                <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closeEditPresetModal()">取消</button>
-                <button class="preset-m1-btn preset-m1-btn-save" onclick="confirmEditPresetName()">保存</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 编辑字体名称弹窗 -->
-    <div class="preset-modal-overlay" id="editFontNameModal">
-        <div class="preset-modal-style-1">
-            <div class="preset-m-header">
-                <div class="preset-m-header-text">编辑字体名称</div>
-                <div class="preset-m-stars">
-                    <svg class="preset-star-1" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg class="preset-star-2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    <svg class="preset-star-3" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                </div>
-            </div>
-            <div class="preset-m1-body">
-                <input type="text" class="preset-m1-input" placeholder="输入新的字体名称..." id="editFontNameInput">
-            </div>
-            <div class="preset-m1-footer">
-                <button class="preset-m1-btn preset-m1-btn-cancel" onclick="closeEditFontModal()">取消</button>
-                <button class="preset-m1-btn preset-m1-btn-save" onclick="confirmEditFontName()">保存</button>
-            </div>
-        </div>
-    </div>
-
     <!-- 自定义高级感弹窗容器 -->
     <div class="custom-dialog-overlay" id="customDialogOverlay">
         <div class="custom-dialog" id="customDialog">
             <!-- 内容由 JS 动态生成 -->
+        </div>
+    </div>
+
+    <!-- 全局搜索抽屉 -->
+    <div class="search-drawer-overlay" id="searchDrawerOverlay" onclick="closeSearchDrawer()"></div>
+    <div class="search-drawer" id="searchDrawer">
+        <div class="search-drawer-header">
+            <!-- 新增包裹层：增加点击区域并绑定收回事件 -->
+            <div style="width: 100%; display: flex; justify-content: center; padding-bottom: 16px; cursor: pointer;" onclick="closeSearchDrawer()">
+                <div class="search-drawer-handle" style="margin-bottom: 0;"></div>
+            </div>
+            <div class="search-input-container">
+                <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <input type="text" id="globalSearchInput" placeholder="搜索应用或功能..." oninput="handleGlobalSearch()">
+            </div>
+        </div>
+        <div class="search-results-area" id="searchResultsArea">
+            <!-- 搜索结果动态渲染 -->
         </div>
     </div>
 </div>
@@ -2325,6 +2890,77 @@
         });
     }
 
+    // --- 通用输入弹窗 (Universal Prompt) ---
+    function showCustomPrompt(title, inputs, confirmText = '确定') {
+        return new Promise(resolve => {
+            let overlay = document.getElementById('customPromptOverlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.className = 'preset-modal-overlay';
+                overlay.id = 'customPromptOverlay';
+                document.querySelector('.iphone').appendChild(overlay);
+            }
+            
+            let inputConfigs = [];
+            if (typeof inputs === 'string') {
+                inputConfigs = [{ placeholder: inputs, value: '' }];
+            } else if (Array.isArray(inputs)) {
+                inputConfigs = inputs;
+            } else if (typeof inputs === 'object') {
+                inputConfigs = [inputs];
+            }
+
+            let inputsHtml = inputConfigs.map((cfg, idx) => `
+                <input type="${cfg.type || 'text'}" class="preset-m1-input" id="customPromptInput_${idx}" placeholder="${cfg.placeholder || ''}" value="${cfg.value || ''}" style="margin-bottom: ${idx < inputConfigs.length - 1 ? '12px' : '0'};">
+            `).join('');
+
+            overlay.innerHTML = `
+                <div class="preset-modal-style-1">
+                    <div class="preset-m-header">
+                        <div class="preset-m-header-text">${title}</div>
+                        <div class="preset-m-stars">
+                            <svg class="preset-star-1" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            <svg class="preset-star-2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            <svg class="preset-star-3" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        </div>
+                    </div>
+                    <div class="preset-m1-body">
+                        ${inputsHtml}
+                    </div>
+                    <div class="preset-m1-footer">
+                        <button class="preset-m1-btn preset-m1-btn-cancel" id="customPromptCancel">取消</button>
+                        <button class="preset-m1-btn preset-m1-btn-save" id="customPromptOk">${confirmText}</button>
+                    </div>
+                </div>
+            `;
+
+            const btnCancel = overlay.querySelector('#customPromptCancel');
+            const btnOk = overlay.querySelector('#customPromptOk');
+
+            btnCancel.onclick = () => {
+                overlay.classList.remove('show');
+                setTimeout(() => resolve(null), 300);
+            };
+
+            btnOk.onclick = () => {
+                const results = inputConfigs.map((_, idx) => overlay.querySelector(`#customPromptInput_${idx}`).value);
+                overlay.classList.remove('show');
+                setTimeout(() => resolve(results.length === 1 ? results[0] : results), 300);
+            };
+
+            overlay.classList.add('show');
+            setTimeout(() => {
+                const firstInput = overlay.querySelector('#customPromptInput_0');
+                if (firstInput) {
+                    firstInput.focus();
+                    if(firstInput.value) {
+                        firstInput.selectionStart = firstInput.selectionEnd = firstInput.value.length;
+                    }
+                }
+            }, 100);
+        });
+    }
+
     // 显示 iOS 悬浮胶囊提示 (用于一般通知)
     function showToast(message) {
         let toast = document.getElementById('iosToast');
@@ -2367,7 +3003,8 @@
     function updateBattery(level) {
         const percentage = Math.round(level * 100);
         document.getElementById('batteryLevel').style.width = percentage + '%';
-        document.getElementById('batteryText').textContent = percentage;
+        const batteryText = document.getElementById('batteryText');
+        if (batteryText) batteryText.textContent = percentage;
     }
 
     if ('getBattery' in navigator) {
@@ -2387,24 +3024,45 @@
     let db;
 
     function initDB() {
-        const request = indexedDB.open(dbName, 2);
+        // 移除硬编码的版本号，默认打开当前最新版本，避免手动修改版本号导致降级报错和数据被覆盖
+        const request = indexedDB.open(dbName); 
         
         request.onupgradeneeded = (e) => {
             db = e.target.result;
-            if (db.objectStoreNames.contains(storeName)) {
-                db.deleteObjectStore(storeName);
+            if (!db.objectStoreNames.contains(storeName)) {
+                db.createObjectStore(storeName, { keyPath: "id" });
             }
-            db.createObjectStore(storeName, { keyPath: "id" });
         };
 
         request.onsuccess = (e) => {
             db = e.target.result;
+            // 自动检测是否需要升级版本来创建 store，彻底解放手动改版本号
+            if (!db.objectStoreNames.contains(storeName)) {
+                const currentVersion = db.version;
+                db.close();
+                const upgradeRequest = indexedDB.open(dbName, currentVersion + 1);
+                upgradeRequest.onupgradeneeded = (e2) => {
+                    const db2 = e2.target.result;
+                    if (!db2.objectStoreNames.contains(storeName)) {
+                        db2.createObjectStore(storeName, { keyPath: "id" });
+                    }
+                };
+                upgradeRequest.onsuccess = (e2) => {
+                    db = e2.target.result;
+                    loadLayout();
+                };
+                upgradeRequest.onerror = (e2) => {
+                    console.error("IndexedDB upgrade error:", e2);
+                    renderDefaultLayout();
+                };
+                return;
+            }
             loadLayout();
         };
 
         request.onerror = (e) => {
             console.error("IndexedDB error:", e);
-            renderDefaultLayout(); // 降级处理
+            renderDefaultLayout(); // 发生错误时降级显示默认布局
         };
     }
 
@@ -2442,6 +3100,8 @@
         const transaction = db.transaction([storeName], "readwrite");
         const store = transaction.objectStore(storeName);
         store.put({ id: "currentLayout", desktop: desktopApps, dock: dockApps });
+        
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
     }
 
     function loadLayout() {
@@ -2451,11 +3111,11 @@
 
         request.onsuccess = (e) => {
             const data = e.target.result;
-            // 增加校验：如果数据存在，并且 desktop 或 dock 中至少有一个有数据，才渲染
-            if (data && data.desktop && data.dock && (data.desktop.length > 0 || data.dock.length > 0)) {
+            // 放宽校验条件：只要数据结构存在，就信任并渲染，防止因为用户清空了桌面导致被误判为损坏而强制覆盖
+            if (data && Array.isArray(data.desktop) && Array.isArray(data.dock)) {
                 renderLayout(data.desktop, data.dock);
             } else {
-                // 如果数据损坏或为空，强制加载默认布局
+                // 只有真正没有数据时，才加载默认布局
                 renderDefaultLayout();
             }
         };
@@ -2480,6 +3140,31 @@
             if (pData && pData.presets) {
                 presets = pData.presets;
             }
+            
+            // 检查是否已经有默认主题，没有则自动添加
+            const hasDefault = presets.find(p => p.id === "default_theme_001");
+            if (!hasDefault) {
+                const defaultPreset = {
+                    id: "default_theme_001",
+                    name: "默认主题",
+                    date: "系统内置",
+                    wallpaper: null,
+                    sizeMB: 0.01,
+                    desktop: [
+                        { index: 0, name: '设置', appId: 'settings', icon: "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')" }, 
+                        { index: 1, name: 'wechat', icon: "url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png')" },
+                        { index: 2, name: 'Contacts', icon: "url('https://file.zhuyitai.com/feedback/202607/13/21b50befb04dae331997fec05eaa0d25.png')" }, 
+                        { index: 3, name: '世界书', icon: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')" }
+                    ],
+                    dock: [
+                        { index: 0, name: '电话', icon: "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')" }, 
+                        { index: 1, name: '信息', icon: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')" }, 
+                        { index: 2, name: '主题', appId: 'theme', icon: "url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png')" }
+                    ]
+                };
+                presets.unshift(defaultPreset); // 插入到最前面
+                savePresetData(); // 保存到数据库
+            }
         };
 
         // 加载字体数据
@@ -2495,6 +3180,38 @@
                 selectFont('default', document.querySelector('.font-list-item[data-font="default"]'), true);
             }
         };
+
+        // 加载 API 数据
+        const apiRequest = store.get("apiData");
+        apiRequest.onsuccess = (e) => {
+            const aData = e.target.result;
+            if (aData && aData.list) {
+                apiDataList = aData.list;
+                apiConnectedId = aData.connectedId;
+            }
+        };
+
+        // 加载头像数据
+        const profileRequest = store.get("profileData");
+        profileRequest.onsuccess = (e) => {
+            const pData = e.target.result;
+            if (pData && pData.avatar) {
+                const appleIdAvatar = document.getElementById('appleIdAvatarPreview');
+                const settingsAvatar = document.getElementById('settingsAvatarPreview');
+                if (appleIdAvatar) {
+                    appleIdAvatar.innerHTML = '';
+                    appleIdAvatar.style.backgroundImage = `url('${pData.avatar}')`;
+                    appleIdAvatar.style.backgroundSize = 'cover';
+                    appleIdAvatar.style.backgroundPosition = 'center';
+                }
+                if (settingsAvatar) {
+                    settingsAvatar.innerHTML = '';
+                    settingsAvatar.style.backgroundImage = `url('${pData.avatar}')`;
+                    settingsAvatar.style.backgroundSize = 'cover';
+                    settingsAvatar.style.backgroundPosition = 'center';
+                }
+            }
+        };
     }
 
     let currentWallpaperSrc = null;
@@ -2504,6 +3221,17 @@
         const transaction = db.transaction([storeName], "readwrite");
         const store = transaction.objectStore(storeName);
         store.put({ id: "wallpaperData", wallpapers: wallpapers, current: currentWallpaperSrc });
+        
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+    }
+
+    function saveProfileData(avatarUrl) {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "profileData", avatar: avatarUrl });
+        
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
     }
 
     function applyWallpaperToDesktop(src) {
@@ -2519,12 +3247,26 @@
     }
 
     function renderDefaultLayout() {
+        const iconMap = {
+            '设置': "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')",
+            'wechat': "url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png')",
+            'Contacts': "url('https://file.zhuyitai.com/feedback/202607/13/21b50befb04dae331997fec05eaa0d25.png')",
+            '世界书': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')",
+            '电话': "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')",
+            '信息': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')",
+            '主题': "url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png')"
+        };
+
         const defaultDesktop = [
-            { index: 0, name: '设置', appId: 'settings' }, { index: 1, name: '备忘录' },
-            { index: 2, name: '天气' }, { index: 3, name: '日历' }
+            { index: 0, name: '设置', appId: 'settings', icon: iconMap['设置'] }, 
+            { index: 1, name: 'wechat', icon: iconMap['wechat'] },
+            { index: 2, name: 'Contacts', icon: iconMap['Contacts'] }, 
+            { index: 3, name: '世界书', icon: iconMap['世界书'] }
         ];
         const defaultDock = [
-            { index: 0, name: '电话' }, { index: 1, name: '信息' }, { index: 2, name: '主题', appId: 'theme' }
+            { index: 0, name: '电话', icon: iconMap['电话'] }, 
+            { index: 1, name: '信息', icon: iconMap['信息'] }, 
+            { index: 2, name: '主题', appId: 'theme', icon: iconMap['主题'] }
         ];
         renderLayout(defaultDesktop, defaultDock);
         saveLayout();
@@ -2551,6 +3293,38 @@
         const dock = document.getElementById('dock');
         desktopGrid.innerHTML = '';
         dock.innerHTML = '';
+
+        // --- 核心应用防丢失（自愈）逻辑 ---
+        let hasSettings = false;
+        let hasTheme = false;
+
+        const checkAndHeal = (app) => {
+            if (app.appId === 'settings') hasSettings = true;
+            if (app.appId === 'theme') hasTheme = true;
+            // 如果没有 appId，尝试通过名称或默认图标特征来恢复
+            if (!app.appId) {
+                if (app.name === '设置' || (app.icon && app.icon.includes('5b0f2ceab564421096b8a761f125b9f8'))) {
+                    app.appId = 'settings';
+                    hasSettings = true;
+                }
+                if (app.name === '主题' || (app.icon && app.icon.includes('6a54a036dfcc02hklfme5i6442'))) {
+                    app.appId = 'theme';
+                    hasTheme = true;
+                }
+            }
+        };
+
+        desktopData.forEach(checkAndHeal);
+        dockData.forEach(checkAndHeal);
+
+        // 如果依然找不到，强制将桌面的第一个应用设为设置，底栏的最后一个应用设为主题
+        if (!hasSettings && desktopData.length > 0) {
+            desktopData[0].appId = 'settings';
+        }
+        if (!hasTheme && dockData.length > 0) {
+            dockData[dockData.length - 1].appId = 'theme';
+        }
+        // ----------------------------------
 
         // 渲染桌面 28 个格子
         for (let i = 0; i < 28; i++) {
@@ -2878,23 +3652,9 @@
 
     function openIconUrlModal() {
         closeIconMenu();
-        document.getElementById('iconUrlInput').value = '';
-        document.getElementById('iconUrlModal').classList.add('show');
-        setTimeout(() => {
-            document.getElementById('iconUrlInput').focus();
-        }, 100);
-    }
-
-    function closeIconUrlModal() {
-        document.getElementById('iconUrlModal').classList.remove('show');
-    }
-
-    function confirmIconUrl() {
-        const url = document.getElementById('iconUrlInput').value.trim();
-        if (url) {
-            applyIconToApp(url);
-        }
-        closeIconUrlModal();
+        showCustomPrompt('使用 URL 上传图标', 'https://...', '确定').then(url => {
+            if (url && url.trim()) applyIconToApp(url.trim());
+        });
     }
 
     function applyIconToApp(url) {
@@ -2917,6 +3677,7 @@
                 settingsAvatar.style.backgroundSize = 'cover';
                 settingsAvatar.style.backgroundPosition = 'center';
             }
+            saveProfileData(url);
             return;
         }
 
@@ -2934,10 +3695,32 @@
     function resetThemeApp(index) {
         const appData = currentEditingApps[index];
         appData.currentName = appData.originalName;
-        appData.currentIcon = '';
         
-        document.getElementById(`theme-icon-${index}`).style.backgroundImage = 'none';
-        document.getElementById(`theme-icon-${index}`).style.backgroundColor = '#e5e5ea';
+        // 定义默认图标映射表
+        const iconMap = {
+            '设置': "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')",
+            'wechat': "url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png')",
+            'Contacts': "url('https://file.zhuyitai.com/feedback/202607/13/21b50befb04dae331997fec05eaa0d25.png')",
+            '世界书': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')",
+            '电话': "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')",
+            '信息': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')",
+            '主题': "url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png')"
+        };
+
+        const defaultIcon = iconMap[appData.originalName];
+
+        if (defaultIcon) {
+            // 如果在映射表里找到了默认图标，就恢复为默认图标
+            appData.currentIcon = defaultIcon;
+            document.getElementById(`theme-icon-${index}`).style.backgroundImage = defaultIcon;
+            document.getElementById(`theme-icon-${index}`).style.backgroundColor = 'transparent';
+        } else {
+            // 如果没有默认图标，才清空变成灰色方块
+            appData.currentIcon = '';
+            document.getElementById(`theme-icon-${index}`).style.backgroundImage = 'none';
+            document.getElementById(`theme-icon-${index}`).style.backgroundColor = '#e5e5ea';
+        }
+        
         document.getElementById(`theme-name-${index}`).innerText = appData.originalName;
     }
 
@@ -3173,35 +3956,16 @@
 
     function openWallpaperUrlModal() {
         closeWallpaperMenu();
-        document.getElementById('wallpaperUrlInput').value = '';
-        document.getElementById('wallpaperUrlModal').classList.add('show');
-        setTimeout(() => {
-            document.getElementById('wallpaperUrlInput').focus();
-        }, 100);
-    }
-
-    function closeWallpaperUrlModal() {
-        document.getElementById('wallpaperUrlModal').classList.remove('show');
-    }
-
-    function confirmWallpaperUrl() {
-        const url = document.getElementById('wallpaperUrlInput').value.trim();
-        if (url) {
-            const newWallpaper = {
-                id: Date.now().toString(),
-                isAdd: false,
-                src: url
-            };
-            wallpapers.splice(1, 0, newWallpaper);
-            renderWallpapers();
-            saveWallpaperData();
-            
-            const carouselScroll = document.getElementById('carouselScroll');
-            setTimeout(() => {
-                carouselScroll.scrollTo({ left: carouselScroll.clientWidth, behavior: 'smooth' });
-            }, 100);
-        }
-        closeWallpaperUrlModal();
+        showCustomPrompt('使用 URL 上传壁纸', 'https://...', '确定').then(url => {
+            if (url && url.trim()) {
+                const newWallpaper = { id: Date.now().toString(), isAdd: false, src: url.trim() };
+                wallpapers.splice(1, 0, newWallpaper);
+                renderWallpapers();
+                saveWallpaperData();
+                const carouselScroll = document.getElementById('carouselScroll');
+                setTimeout(() => { carouselScroll.scrollTo({ left: carouselScroll.clientWidth, behavior: 'smooth' }); }, 100);
+            }
+        });
     }
 
     function deleteWallpaper(id) {
@@ -3256,6 +4020,8 @@
         const transaction = db.transaction([storeName], "readwrite");
         const store = transaction.objectStore(storeName);
         store.put({ id: "presetData", presets: presets });
+        
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
     }
 
     // 处理右上角按钮点击
@@ -3388,25 +4154,17 @@
     }
 
     function openPresetModal() {
-        document.getElementById('presetNameModal').classList.add('show');
-        setTimeout(() => {
-            const input = document.getElementById('presetNameInput');
-            if(input) input.focus();
-        }, 100);
+        showCustomPrompt('主题预设', '输入预设名称...', '保存').then(inputVal => {
+            if (inputVal === null) return;
+            if (!inputVal.trim()) {
+                showCustomAlert("提示", "请输入预设名称！");
+                return;
+            }
+            saveCurrentAsPreset(inputVal.trim());
+        });
     }
 
-    function closePresetModal() {
-        document.getElementById('presetNameModal').classList.remove('show');
-        document.getElementById('presetNameInput').value = ''; // 清空输入框
-    }
-
-    function saveCurrentAsPreset() {
-        const inputVal = document.getElementById('presetNameInput').value.trim();
-        if (!inputVal) {
-            showCustomAlert("提示", "请输入预设名称！");
-            return;
-        }
-
+    function saveCurrentAsPreset(inputVal) {
         // 完整保存桌面 28 个格子的布局和图标
         const desktopApps = [];
         document.querySelectorAll('#desktopGrid .desktop-slot').forEach((slot, index) => {
@@ -3414,10 +4172,12 @@
             if (app) {
                 const iconEl = app.querySelector('.app-icon');
                 const iconBg = iconEl.style.backgroundImage;
+                const appId = app.getAttribute('data-app-id');
                 desktopApps.push({ 
                     index, 
                     name: app.querySelector('.app-name').innerText,
-                    icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null
+                    icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
+                    appId: appId
                 });
             }
         });
@@ -3427,10 +4187,12 @@
         document.querySelectorAll('#dock .app-item').forEach((app, index) => {
             const iconEl = app.querySelector('.app-icon');
             const iconBg = iconEl.style.backgroundImage;
+            const appId = app.getAttribute('data-app-id');
             dockApps.push({ 
                 index, 
                 name: app.querySelector('.app-name').innerText,
-                icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null
+                icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
+                appId: appId
             });
         });
 
@@ -3452,8 +4214,6 @@
         presets.push(newPreset);
         savePresetData();
         renderPresets();
-        
-        closePresetModal(); 
         
         const scrollArea = document.querySelector('.preset-scroll-area');
         setTimeout(() => {
@@ -3558,13 +4318,10 @@
 
     function openExportCurrentThemeModal() {
         isExportingCurrentTheme = true;
-        const input = document.getElementById('exportPresetInput');
-        input.value = "当前主题"; // 默认名称
-        
-        document.getElementById('exportPresetModal').classList.add('show');
-        setTimeout(() => {
-            input.focus();
-        }, 100);
+        showCustomPrompt('导出主题', { placeholder: '输入导出文件名称...', value: '当前主题' }, '导出').then(fileName => {
+            if (fileName === null) return;
+            exportCurrentUsingTheme(fileName.trim() || '当前主题');
+        });
     }
 
     function openExportModal() {
@@ -3573,37 +4330,18 @@
         const preset = presets.find(p => p.id === currentDetailPresetId);
         if (!preset) return;
         
-        const input = document.getElementById('exportPresetInput');
-        input.value = preset.name; // 默认显示该主题的预设名称
-        
-        document.getElementById('exportPresetModal').classList.add('show');
-        setTimeout(() => {
-            input.focus();
-        }, 100);
+        showCustomPrompt('导出主题', { placeholder: '输入导出文件名称...', value: preset.name }, '导出').then(fileName => {
+            if (fileName === null) return;
+            exportCurrentPreset(fileName.trim() || preset.name);
+        });
     }
 
-    function closeExportModal() {
-        document.getElementById('exportPresetModal').classList.remove('show');
-    }
-
-    function exportCurrentPreset() {
-        if (isExportingCurrentTheme) {
-            exportCurrentUsingTheme();
-            closeExportModal();
-            return;
-        }
-
+    function exportCurrentPreset(fileName) {
         if (!currentDetailPresetId) return;
         const preset = presets.find(p => p.id === currentDetailPresetId);
         if (!preset) return;
         
-        const inputVal = document.getElementById('exportPresetInput').value.trim();
-        const fileName = inputVal ? inputVal : preset.name;
-        
-        // 将预设数据转换为格式化的 JSON 字符串
         const jsonString = JSON.stringify(preset, null, 2);
-        
-        // 使用 Blob 对象处理大文件下载，避免 URL 长度限制导致的文件名错乱问题
         const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         
@@ -3613,11 +4351,7 @@
         document.body.appendChild(downloadAnchorNode);
         downloadAnchorNode.click();
         document.body.removeChild(downloadAnchorNode);
-        
-        // 释放内存
         URL.revokeObjectURL(url);
-        
-        closeExportModal();
     }
 
     function extractBase64FromUrl(cssUrl) {
@@ -3779,17 +4513,19 @@
         event.target.value = '';
     }
 
-    function exportCurrentUsingTheme() {
+    function exportCurrentUsingTheme(themeName) {
         const desktopApps = [];
         document.querySelectorAll('#desktopGrid .desktop-slot').forEach((slot, index) => {
             const app = slot.querySelector('.app-item');
             if (app) {
                 const iconEl = app.querySelector('.app-icon');
                 const iconBg = iconEl.style.backgroundImage;
+                const appId = app.getAttribute('data-app-id');
                 desktopApps.push({ 
                     index, 
                     name: app.querySelector('.app-name').innerText,
-                    icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null
+                    icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
+                    appId: appId
                 });
             }
         });
@@ -3798,15 +4534,14 @@
         document.querySelectorAll('#dock .app-item').forEach((app, index) => {
             const iconEl = app.querySelector('.app-icon');
             const iconBg = iconEl.style.backgroundImage;
+            const appId = app.getAttribute('data-app-id');
             dockApps.push({ 
                 index, 
                 name: app.querySelector('.app-name').innerText,
-                icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null
+                icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
+                appId: appId
             });
         });
-
-        const inputVal = document.getElementById('exportPresetInput').value.trim();
-        const themeName = inputVal ? inputVal : "当前主题";
 
         const currentTheme = {
             name: themeName,
@@ -3833,34 +4568,17 @@
         const preset = presets.find(p => p.id === currentDetailPresetId);
         if (!preset) return;
         
-        const input = document.getElementById('editPresetInput');
-        input.value = preset.name;
-        
-        document.getElementById('editPresetModal').classList.add('show');
-        setTimeout(() => {
-            input.focus();
-        }, 100);
-    }
-
-    function closeEditPresetModal() {
-        document.getElementById('editPresetModal').classList.remove('show');
-    }
-
-    function confirmEditPresetName() {
-        if (!currentDetailPresetId) return;
-        const preset = presets.find(p => p.id === currentDetailPresetId);
-        if (!preset) return;
-        
-        const newName = document.getElementById('editPresetInput').value.trim();
-        if (newName !== "") {
-            preset.name = newName;
-            document.getElementById('detailName').innerText = preset.name;
-            savePresetData();
-            renderPresets();
-            closeEditPresetModal();
-        } else {
-            showCustomAlert("提示", "名称不能为空！");
-        }
+        showCustomPrompt('编辑主题名称', { placeholder: '输入新的主题名称...', value: preset.name }, '保存').then(newName => {
+            if (newName === null) return;
+            if (newName.trim() !== "") {
+                preset.name = newName.trim();
+                document.getElementById('detailName').innerText = preset.name;
+                savePresetData();
+                renderPresets();
+            } else {
+                showCustomAlert("提示", "名称不能为空！");
+            }
+        });
     }
 
     // --- 字体页面逻辑 ---
@@ -3876,6 +4594,8 @@
         const store = transaction.objectStore(storeName);
         const currentSize = document.getElementById('fontSizeSlider').value;
         store.put({ id: "fontData", fonts: customFonts, current: currentSelectedFont, size: currentSize });
+        
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
     }
 
     // 从 IndexedDB 恢复字体
@@ -4086,55 +4806,33 @@
     }
 
     function openUrlFontModal() {
-        document.getElementById('urlFontModal').classList.add('show');
-        setTimeout(() => {
-            document.getElementById('fontUrlInput').focus();
-        }, 100);
-    }
+        showCustomPrompt('导入字体', [
+            { placeholder: '输入字体名称 (选填)' },
+            { placeholder: 'https://...' }
+        ], '安装').then(res => {
+            if (res === null) return;
+            let fontName = res[0].trim();
+            const url = res[1].trim();
 
-    function closeUrlFontModal() {
-        document.getElementById('urlFontModal').classList.remove('show');
-        document.getElementById('fontUrlInput').value = '';
-        const nameInput = document.getElementById('fontNameInput');
-        if (nameInput) nameInput.value = '';
-    }
+            if (!url) {
+                showCustomAlert('提示', '请输入字体 URL！');
+                return;
+            }
 
-    function confirmUrlFont() {
-        const urlInput = document.getElementById('fontUrlInput');
-        const nameInput = document.getElementById('fontNameInput');
-        const url = urlInput.value.trim();
-        let fontName = nameInput ? nameInput.value.trim() : '';
+            customFontCount++;
+            const fontFamily = `UrlFont_${customFontCount}`;
+            if (!fontName) fontName = `网络字体 ${customFontCount}`;
 
-        if (!url) {
-            showCustomAlert('提示', '请输入字体 URL！');
-            return;
-        }
-
-        const saveBtn = document.querySelector('#urlFontModal .preset-m1-btn-save');
-        const originalText = saveBtn.innerText;
-        saveBtn.innerText = '加载中...';
-        saveBtn.disabled = true;
-
-        customFontCount++;
-        const fontFamily = `UrlFont_${customFontCount}`;
-        if (!fontName) fontName = `网络字体 ${customFontCount}`;
-
-        const newFont = new FontFace(fontFamily, `url(${url})`);
-        newFont.load().then(function(loadedFont) {
-            document.fonts.add(loadedFont);
-            
-            // 保存到数组并写入 IndexedDB
-            customFonts.push({ id: fontFamily, name: fontName, type: 'url', url: url });
-            saveFontData();
-            
-            addFontToList(fontName, fontFamily);
-            closeUrlFontModal();
-        }).catch(function(error) {
-            showCustomAlert('错误', '字体加载失败，请确保 URL 直接指向字体文件且允许跨域访问！');
-            console.error(error);
-        }).finally(function() {
-            saveBtn.innerText = originalText;
-            saveBtn.disabled = false;
+            const newFont = new FontFace(fontFamily, `url(${url})`);
+            newFont.load().then(function(loadedFont) {
+                document.fonts.add(loadedFont);
+                customFonts.push({ id: fontFamily, name: fontName, type: 'url', url: url });
+                saveFontData();
+                addFontToList(fontName, fontFamily);
+            }).catch(function(error) {
+                showCustomAlert('错误', '字体加载失败，请确保 URL 直接指向字体文件且允许跨域访问！');
+                console.error(error);
+            });
         });
     }
 
@@ -4188,45 +4886,31 @@
         const fontData = customFonts.find(f => f.id === fontId);
         if (!fontData) return;
         
-        const input = document.getElementById('editFontNameInput');
-        input.value = fontData.name;
-        
-        document.getElementById('editFontNameModal').classList.add('show');
-        setTimeout(() => { input.focus(); }, 100);
-        
-        // 收起滑块
         if (currentFontSwipeItem) {
             currentFontSwipeItem.querySelector('.font-item-inner').style.transform = 'translateX(0)';
             currentFontSwipeItem.classList.remove('swiped');
             currentFontSwipeItem = null;
         }
-    }
 
-    function closeEditFontModal() {
-        document.getElementById('editFontNameModal').classList.remove('show');
-        currentEditFontId = null;
-    }
-
-    function confirmEditFontName() {
-        if (!currentEditFontId) return;
-        const fontData = customFonts.find(f => f.id === currentEditFontId);
-        if (!fontData) return;
-        
-        const newName = document.getElementById('editFontNameInput').value.trim();
-        if (newName !== "") {
-            fontData.name = newName;
-            saveFontData();
-            
-            // 更新 UI 上的名称
-            const listItem = document.querySelector(`.font-list-item[data-font="${currentEditFontId}"]`);
-            if (listItem) {
-                const nameEl = listItem.querySelector('.font-name-text');
-                if (nameEl) nameEl.innerText = newName;
+        showCustomPrompt('编辑字体名称', { placeholder: '输入新的字体名称...', value: fontData.name }, '保存').then(newName => {
+            if (newName === null) {
+                currentEditFontId = null;
+                return;
             }
-            closeEditFontModal();
-        } else {
-            showCustomAlert("提示", "名称不能为空！");
-        }
+            if (newName.trim() !== "") {
+                fontData.name = newName.trim();
+                saveFontData();
+                const listItem = document.querySelector(`.font-list-item[data-font="${currentEditFontId}"]`);
+                if (listItem) {
+                    const nameEl = listItem.querySelector('.font-name-text');
+                    if (nameEl) nameEl.innerText = fontData.name;
+                }
+                currentEditFontId = null;
+            } else {
+                showCustomAlert("提示", "名称不能为空！");
+                currentEditFontId = null;
+            }
+        });
     }
 
     // --- 设置 APP 交互逻辑 ---
@@ -4262,7 +4946,820 @@
             appleIdUI.style.display = 'none';
         }, 300);
     }
+
+    // --- API 连接页面交互逻辑 ---
+    let apiDataList = [];
+    let apiConnectedId = null;
+    let apiEditingId = null;
+
+    function saveApiData() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "apiData", list: apiDataList, connectedId: apiConnectedId });
+        
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+    }
+
+    async function fetchApiModels(mode) {
+        const urlInput = document.getElementById(mode === 'add' ? 'api-add-url' : 'api-edit-url').value.trim();
+        const keyInput = document.getElementById(mode === 'add' ? 'api-add-key' : 'api-edit-key').value.trim();
+        const selectEl = document.getElementById(mode === 'add' ? 'api-add-model' : 'api-edit-model');
+
+        if (!urlInput || !keyInput) {
+            showCustomAlert('提示', '请先填写 URL 和 Key');
+            return;
+        }
+
+        try {
+            showToast('正在拉取模型...');
+            const baseUrl = urlInput.endsWith('/') ? urlInput.slice(0, -1) : urlInput;
+            
+            // 真实发起网络请求拉取模型列表
+            const response = await fetch(`${baseUrl}/models`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${keyInput}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP 错误: ${response.status}`);
+            }
+            
+            const data = await response.json();
+
+            if (data && data.data && Array.isArray(data.data)) {
+                selectEl.innerHTML = ''; // 清空旧选项
+                
+                if (data.data.length === 0) {
+                    selectEl.innerHTML = '<option value="" disabled selected>未找到可用模型</option>';
+                    showToast('未找到可用模型');
+                    return;
+                }
+
+                data.data.forEach((model, index) => {
+                    const option = document.createElement('option');
+                    option.value = model.id;
+                    option.textContent = model.id;
+                    if (index === 0) option.selected = true; // 默认选中第一个
+                    selectEl.appendChild(option);
+                });
+                showToast('模型拉取成功');
+            } else {
+                throw new Error('接口返回的数据格式不符合 OpenAI 标准');
+            }
+        } catch (error) {
+            console.error("拉取模型失败:", error);
+            showCustomAlert('拉取失败', `请检查 URL 和 Key 是否正确，或目标服务器是否存在跨域(CORS)限制。\n\n错误信息: ${error.message}`);
+        }
+    }
+
+    function saveNewApi() {
+        const name = document.getElementById('api-add-name').value.trim();
+        const url = document.getElementById('api-add-url').value.trim();
+        const key = document.getElementById('api-add-key').value.trim();
+        const model = document.getElementById('api-add-model').value;
+
+        if (!name || !url || !key) {
+            showCustomAlert('提示', '请填写完整信息');
+            return;
+        }
+
+        const newApi = {
+            id: Date.now(),
+            name, url, key, model: model || ''
+        };
+
+        apiDataList.push(newApi);
+        if (!apiConnectedId) apiConnectedId = newApi.id; // 如果是第一个，自动连接
+        saveApiData();
+        renderApiList();
+        closeApiAddPage();
+
+        // 清空输入框
+        document.getElementById('api-add-name').value = '';
+        document.getElementById('api-add-url').value = '';
+        document.getElementById('api-add-key').value = '';
+        document.getElementById('api-add-model').innerHTML = '<option value="" disabled selected>请先拉取模型</option>';
+    }
+
+    function deleteApiDrawer() {
+        if (!apiEditingId) return;
+        showCustomConfirm('删除 API', '确定要删除这个 API 预设吗？', '删除', true).then(confirmed => {
+            if (confirmed) {
+                apiDataList = apiDataList.filter(a => a.id !== apiEditingId);
+                if (apiConnectedId === apiEditingId) {
+                    apiConnectedId = apiDataList.length > 0 ? apiDataList[0].id : null;
+                }
+                saveApiData();
+                renderApiList();
+                closeApiDrawer();
+            }
+        });
+    }
+
+    function openApiApp() {
+        const apiAppUI = document.getElementById('apiAppUI');
+        apiAppUI.style.display = 'flex';
+        renderApiList();
+        setTimeout(() => {
+            apiAppUI.classList.add('show');
+        }, 10);
+    }
+
+    function closeApiApp() {
+        const apiAppUI = document.getElementById('apiAppUI');
+        apiAppUI.classList.remove('show');
+        setTimeout(() => {
+            apiAppUI.style.display = 'none';
+        }, 300);
+    }
+
+    function renderApiList() {
+        const connectedContainer = document.getElementById('api-connected-container');
+        const presetContainer = document.getElementById('api-preset-container');
+        connectedContainer.innerHTML = '';
+        presetContainer.innerHTML = '';
+
+        apiDataList.forEach(api => {
+            const isConnected = api.id === apiConnectedId;
+            const rowAction = isConnected ? `openApiDrawer(event, ${api.id})` : `connectApi(${api.id})`;
+
+            const rowHTML = `
+                <div class="api-row clickable" onclick="${rowAction}">
+                    <div class="api-row-left">
+                        ${isConnected ? '<svg viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+                    </div>
+                    <div class="api-row-text">
+                        <div class="api-row-title-text">${api.name}</div>
+                        ${isConnected ? '<div class="api-row-subtitle-text">已连接</div>' : ''}
+                    </div>
+                    <div class="api-row-right">
+                        <svg class="api-icon-lock" viewBox="0 0 24 24"><path d="M17 10H7V7c0-2.76 2.24-5 5-5s5 2.24 5 5v3zm-2 0V7c0-1.65-1.35-3-3-3S9 5.35 9 7v3h6zM5 12v8c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-8c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2z"/></svg>
+                        <svg class="api-icon-wifi" viewBox="0 0 24 24"><path fill="#000000" d="M2.06 10.06c.51.51 1.32.56 1.87.1c4.67-3.84 11.45-3.84 16.13-.01c.56.46 1.38.42 1.89-.09c.59-.59.55-1.57-.1-2.1c-5.71-4.67-13.97-4.67-19.69 0c-.65.52-.7 1.5-.1 2.1zm7.76 7.76l1.47 1.47c.39.39 1.02.39 1.41 0l1.47-1.47c.47-.47.37-1.28-.23-1.59a4.28 4.28 0 0 0-3.91 0c-.57.31-.68 1.12-.21 1.59zm-3.73-3.73c.49.49 1.26.54 1.83.13a7.064 7.064 0 0 1 8.16 0c.57.4 1.34.36 1.83-.13l.01-.01c.6-.6.56-1.62-.13-2.11c-3.44-2.49-8.13-2.49-11.58 0c-.69.5-.73 1.51-.12 2.12z"/></svg>
+                        <svg class="api-icon-info" viewBox="0 0 24 24" onclick="openApiDrawer(event, ${api.id})">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="#007aff" stroke-width="1.5"></circle>
+                            <circle cx="12" cy="6.8" r="1.3" fill="#007aff" stroke="none"></circle>
+                            <path d="M10.5 11 L12 10 V16.5 M10.5 16.5 H13.5" stroke="#007aff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                        </svg>
+                    </div>
+                </div>
+            `;
+
+            if (isConnected) {
+                connectedContainer.innerHTML = rowHTML;
+            } else {
+                presetContainer.innerHTML += rowHTML;
+            }
+        });
+
+        presetContainer.innerHTML += `
+            <div class="api-row clickable" onclick="openApiAddPage()">
+                <div class="api-row-left"></div>
+                <div class="api-row-text"><div class="api-row-title-text" style="color: #007aff;">+ 添加API</div></div>
+            </div>
+        `;
+    }
+
+    function connectApi(id) {
+        apiConnectedId = id;
+        saveApiData();
+        renderApiList();
+    }
+
+    function openApiDrawer(event, id) {
+        event.stopPropagation();
+        apiEditingId = id;
+        const api = apiDataList.find(a => a.id === id);
+        document.getElementById('api-edit-name').value = api.name;
+        document.getElementById('api-edit-url').value = api.url;
+        document.getElementById('api-edit-key').value = api.key;
+        
+        // 恢复模型下拉框
+        const selectEl = document.getElementById('api-edit-model');
+        selectEl.innerHTML = `<option value="${api.model}" selected>${api.model || '未选择模型'}</option>`;
+        
+        document.getElementById('apiDrawerOverlay').classList.add('show');
+        document.getElementById('apiDrawer').classList.add('show');
+    }
+
+    function closeApiDrawer() {
+        document.getElementById('apiDrawerOverlay').classList.remove('show');
+        document.getElementById('apiDrawer').classList.remove('show');
+        apiEditingId = null;
+    }
+
+    function saveApiDrawer() {
+        if (apiEditingId) {
+            const api = apiDataList.find(a => a.id === apiEditingId);
+            api.name = document.getElementById('api-edit-name').value;
+            api.url = document.getElementById('api-edit-url').value;
+            api.key = document.getElementById('api-edit-key').value;
+            api.model = document.getElementById('api-edit-model').value;
+            saveApiData();
+            renderApiList();
+        }
+        closeApiDrawer();
+    }
+
+    function openApiAddPage() {
+        document.getElementById('api-page-main').classList.remove('active');
+        document.getElementById('api-page-main').classList.add('slide-left');
+        document.getElementById('api-page-add').classList.remove('slide-right');
+        document.getElementById('api-page-add').classList.add('active');
+    }
+
+    function closeApiAddPage() {
+        document.getElementById('api-page-add').classList.remove('active');
+        document.getElementById('api-page-add').classList.add('slide-right');
+        document.getElementById('api-page-main').classList.remove('slide-left');
+        document.getElementById('api-page-main').classList.add('active');
+    }
+
+    // --- 全局搜索抽屉逻辑 ---
+    const searchableItems = [
+        { name: '设置', desc: '系统设置、网络、通用', iconBg: '#8e8e93', actionKey: 'settings' },
+        { name: '主题', desc: '壁纸、图标、字体、预设', iconBg: '#ff9500', actionKey: 'theme' },
+        { name: '账户信息', desc: '云端、登陆管理', iconBg: '#007aff', actionKey: 'appleId' },
+        { name: 'API连接', desc: '模型配置、流式输出', iconBg: '#34c759', actionKey: 'api' }
+    ];
+
+    const searchActions = {
+        'settings': openSettingsApp,
+        'theme': openThemeApp,
+        'appleId': openAppleIdApp,
+        'api': openApiApp
+    };
+
+    function openSearchDrawer() {
+        document.getElementById('searchDrawerOverlay').classList.add('show');
+        document.getElementById('searchDrawer').classList.add('show');
+        document.getElementById('globalSearchInput').value = '';
+        renderSearchResults(''); // 默认显示全部推荐
+        setTimeout(() => {
+            document.getElementById('globalSearchInput').focus();
+        }, 300);
+    }
+
+    function closeSearchDrawer() {
+        document.getElementById('searchDrawerOverlay').classList.remove('show');
+        document.getElementById('searchDrawer').classList.remove('show');
+        document.getElementById('globalSearchInput').blur();
+    }
+
+    function handleGlobalSearch() {
+        const query = document.getElementById('globalSearchInput').value.trim().toLowerCase();
+        renderSearchResults(query);
+    }
+
+    function renderSearchResults(query) {
+        const area = document.getElementById('searchResultsArea');
+        area.innerHTML = '';
+
+        const filtered = searchableItems.filter(item => 
+            item.name.toLowerCase().includes(query) || 
+            item.desc.toLowerCase().includes(query)
+        );
+
+        if (filtered.length === 0) {
+            area.innerHTML = '<div style="text-align:center; color:#8e8e93; margin-top:40px; font-size:14px;">无结果</div>';
+            return;
+        }
+
+        let html = '<div class="search-result-card">';
+        filtered.forEach(item => {
+            html += `
+                <div class="search-result-item" onclick="executeSearchAction('${item.actionKey}')">
+                    <div class="search-result-icon" style="background-color: ${item.iconBg};">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    </div>
+                    <div class="search-result-text">
+                        <div>${item.name}</div>
+                        <div style="font-size:12px; color:#8e8e93; margin-top:2px;">${item.desc}</div>
+                    </div>
+                    <svg class="search-result-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            `;
+        });
+        html += '</div>';
+        area.innerHTML = html;
+    }
+
+    function executeSearchAction(actionKey) {
+        closeSearchDrawer();
+        setTimeout(() => {
+            if (searchActions[actionKey]) {
+                searchActions[actionKey]();
+            }
+        }, 300); // 等待抽屉收起动画完成后再打开对应页面
+    }
+
+    // --- iCloud 页面交互逻辑 ---
+    function openIcloudApp() {
+        const icloudUI = document.getElementById('icloudAppUI');
+        icloudUI.style.display = 'flex';
+        updateRealStorage(); // 触发真实储存计算与持久化检测
+        setTimeout(() => {
+            icloudUI.classList.add('show');
+        }, 10);
+    }
+
+    function closeIcloudApp() {
+        const icloudUI = document.getElementById('icloudAppUI');
+        icloudUI.classList.remove('show');
+        setTimeout(() => {
+            icloudUI.style.display = 'none';
+            // 退出时重置内部页面状态，确保下次打开是主页
+            closeIcStoragePage();
+            if (typeof closeLocalDrivePage === 'function') closeLocalDrivePage();
+        }, 300);
+    }
+
+    function openIcStoragePage() {
+        document.getElementById('ic-main-page').classList.remove('active');
+        document.getElementById('ic-main-page').classList.add('slide-left');
+        document.getElementById('ic-storage-page').classList.remove('slide-right');
+        document.getElementById('ic-storage-page').classList.add('active');
+    }
+
+    function closeIcStoragePage() {
+        document.getElementById('ic-storage-page').classList.remove('active');
+        document.getElementById('ic-storage-page').classList.add('slide-right');
+        document.getElementById('ic-main-page').classList.remove('slide-left');
+        document.getElementById('ic-main-page').classList.add('active');
+    }
+
+    // --- 真实储存与持久化逻辑 ---
+    async function updateRealStorage() {
+        // 1. 计算真实储存空间占比 (仅保留主进度条动画，文本由真实数据接管)
+        if (navigator.storage && navigator.storage.estimate) {
+            try {
+                const estimate = await navigator.storage.estimate();
+                const usage = estimate.usage || 0;
+                const quota = estimate.quota || 1;
+                const percentage = Math.max(Math.min((usage / quota) * 100, 100), 1).toFixed(1);
+                const mainProgressEl = document.getElementById('ic-main-progress');
+                if(mainProgressEl) mainProgressEl.style.width = `${percentage}%`;
+            } catch (e) {
+                console.error("Storage estimate failed:", e);
+            }
+        }
+        
+        // 2. 检测持久化状态
+        if (navigator.storage && navigator.storage.persisted) {
+            const isPersisted = await navigator.storage.persisted();
+            const persistStatusEl = document.getElementById('ic-persist-status');
+            if(persistStatusEl) {
+                persistStatusEl.innerHTML = `${isPersisted ? '已开启' : '未开启'} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+                if(isPersisted) persistStatusEl.style.color = '#34c759'; // 开启显示绿色
+            }
+        }
+
+        // 3. 计算各个 APP 的真实占用
+        const getStoreSize = (key) => {
+            return new Promise((resolve) => {
+                if (!db) { resolve(0); return; }
+                const transaction = db.transaction([storeName], "readonly");
+                const store = transaction.objectStore(storeName);
+                const request = store.get(key);
+                request.onsuccess = (e) => {
+                    const data = e.target.result;
+                    if (data) {
+                        const jsonString = JSON.stringify(data);
+                        resolve(jsonString.length);
+                    } else {
+                        resolve(0);
+                    }
+                };
+                request.onerror = () => resolve(0);
+            });
+        };
+
+        const formatMB = (bytes) => {
+            if (bytes === 0) return '0 MB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        };
+
+        // 获取各项真实数据大小
+        const wallpaperSize = await getStoreSize("wallpaperData");
+        const presetSize = await getStoreSize("presetData");
+        const layoutSize = await getStoreSize("currentLayout");
+        const fontSize = await getStoreSize("fontData");
+        const profileSize = await getStoreSize("profileData");
+        const apiSize = await getStoreSize("apiData");
+
+        // 将数据归类
+        const photoSize = wallpaperSize; // 壁纸归为照片
+        const appsSize = presetSize + layoutSize; // 预设和桌面布局归为应用程序
+        const chatSize = 0; // 聊天数据暂无，显示0
+        const systemSize = fontSize + profileSize + apiSize; // 字体、配置等归为系统数据
+
+        const themeSize = presetSize + wallpaperSize + fontSize;
+        const settingsSize = profileSize + apiSize + layoutSize;
+        
+        const totalBytes = photoSize + appsSize + chatSize + systemSize;
+        const totalMB = totalBytes === 0 ? '0.00 MB' : (totalBytes / (1024 * 1024)).toFixed(2) + ' MB';
+
+        // 智能格式化大小 (小于1MB显示KB，否则显示MB)
+        const formatSizeStr = (bytes) => {
+            if (bytes === 0) return '0 MB';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        };
+
+        const themeMB = formatMB(themeSize);
+        const settingsMB = formatMB(settingsSize);
+        const zeroMB = '0 MB';
+
+        // 更新主页和详情页的总占用文本 (只显示总占用，不显示总内存)
+        const mainSizeEl = document.getElementById('ic-main-size');
+        if(mainSizeEl) mainSizeEl.innerHTML = `${totalMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+        
+        const detailSizeEl = document.getElementById('ic-detail-size');
+        if(detailSizeEl) detailSizeEl.innerText = `已使用 ${totalMB}`;
+
+        // 更新分类图例真实数据
+        const legendPhoto = document.getElementById('ic-legend-photo');
+        if(legendPhoto) legendPhoto.innerText = `照片 ${formatSizeStr(photoSize)}`;
+        
+        const legendApps = document.getElementById('ic-legend-apps');
+        if(legendApps) legendApps.innerText = `应用程序 ${formatSizeStr(appsSize)}`;
+        
+        const legendChat = document.getElementById('ic-legend-chat');
+        if(legendChat) legendChat.innerText = `聊天数据 ${formatSizeStr(chatSize)}`;
+        
+        const legendSystem = document.getElementById('ic-legend-system');
+        if(legendSystem) legendSystem.innerText = `系统数据 ${formatSizeStr(systemSize)}`;
+
+        // 动态分配多色进度条比例 (根据真实数据计算百分比)
+        const getPercent = (part, total) => total === 0 ? 0 : (part / total * 100).toFixed(1);
+        
+        const segRed = document.getElementById('ic-seg-red');
+        const segOrange = document.getElementById('ic-seg-orange');
+        const segGray = document.getElementById('ic-seg-gray');
+        const segLight = document.getElementById('ic-seg-light');
+        
+        if(segRed) segRed.style.width = `${getPercent(photoSize, totalBytes)}%`;
+        if(segOrange) segOrange.style.width = `${getPercent(appsSize, totalBytes)}%`;
+        if(segGray) segGray.style.width = `${getPercent(chatSize, totalBytes)}%`;
+        if(segLight) segLight.style.width = `${getPercent(systemSize, totalBytes)}%`;
+
+        // 更新“已存至云端”卡片
+        const cloudTheme = document.getElementById('ic-cloud-theme-size');
+        if (cloudTheme) cloudTheme.innerText = themeMB;
+        
+        const cloudWorldBook = document.getElementById('ic-cloud-worldbook-size');
+        if (cloudWorldBook) cloudWorldBook.innerText = zeroMB;
+
+        const cloudWechat = document.getElementById('ic-cloud-wechat-size');
+        if (cloudWechat) cloudWechat.innerText = zeroMB;
+
+        const cloudContacts = document.getElementById('ic-cloud-contacts-size');
+        if (cloudContacts) cloudContacts.innerText = zeroMB;
+
+        // 更新详情页列表
+        const detailSettings = document.getElementById('ic-detail-settings-size');
+        if (detailSettings) detailSettings.innerHTML = `${settingsMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+
+        const detailTheme = document.getElementById('ic-detail-theme-size');
+        if (detailTheme) detailTheme.innerHTML = `${themeMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+
+        const detailWorldBook = document.getElementById('ic-detail-worldbook-size');
+        if (detailWorldBook) detailWorldBook.innerHTML = `${zeroMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+
+        const detailContacts = document.getElementById('ic-detail-contacts-size');
+        if (detailContacts) detailContacts.innerHTML = `${zeroMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+
+        const detailWechat = document.getElementById('ic-detail-wechat-size');
+        if (detailWechat) detailWechat.innerHTML = `${zeroMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+
+        const detailPhone = document.getElementById('ic-detail-phone-size');
+        if (detailPhone) detailPhone.innerHTML = `${zeroMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+
+        const detailMessage = document.getElementById('ic-detail-message-size');
+        if (detailMessage) detailMessage.innerHTML = `${zeroMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+    }
+
+    async function requestPersistentStorage() {
+        if (navigator.storage && navigator.storage.persist) {
+            const isPersisted = await navigator.storage.persisted();
+            if (isPersisted) {
+                showToast("数据持久化已开启，数据安全");
+                return;
+            }
+            const granted = await navigator.storage.persist();
+            if (granted) {
+                showToast("成功开启数据持久化储存！");
+            } else {
+                showCustomAlert("提示", "浏览器拒绝了持久化请求。建议：\n1. 将本网页添加到主屏幕\n2. 经常与网页互动\n3. 检查浏览器设置");
+            }
+            updateRealStorage();
+        } else {
+            showCustomAlert("提示", "当前浏览器不支持数据持久化 API。");
+        }
+    }
+
+    // --- 新增：数据管理功能核心逻辑 ---
+
+    // 辅助函数：获取数据库中所有数据
+    async function getAllDataFromDB() {
+        return new Promise((resolve) => {
+            if (!db) return resolve({});
+            const transaction = db.transaction([storeName], "readonly");
+            const store = transaction.objectStore(storeName);
+            const request = store.getAll();
+            request.onsuccess = (e) => {
+                const allRecords = e.target.result;
+                const dataObj = {};
+                allRecords.forEach(record => {
+                    dataObj[record.id] = record;
+                });
+                resolve(dataObj);
+            };
+        });
+    }
+
+    // 1. 数据备份 (导出 JSON)
+    async function exportAllDataJson() {
+        const fileName = await showCustomPrompt('导出 JSON 备份', { placeholder: '输入文件名', value: `童话机` }, '导出');
+        if (!fileName) return;
+        
+        showToast("正在打包数据...");
+        const data = await getAllDataFromDB();
+        const jsonString = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName.endsWith('.json') ? fileName : fileName + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast("导出 JSON 成功");
+    }
+
+    // 2. 恢复数据 (导入 JSON 或 ZIP)
+    function importAllDataJson() {
+        document.getElementById('importAllDataInput').click();
+    }
+
+    function handleImportAllData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const fileName = file.name.toLowerCase();
+
+        if (fileName.endsWith('.zip')) {
+            showToast("正在读取 ZIP 文件...");
+            if (typeof JSZip === 'undefined') {
+                const script = document.createElement('script');
+                script.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+                script.onload = () => processZipImport(file);
+                script.onerror = () => showCustomAlert("错误", "无法加载 ZIP 库，请检查网络连接。");
+                document.head.appendChild(script);
+            } else {
+                processZipImport(file);
+            }
+        } else {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                processJsonImport(e.target.result);
+            };
+            reader.readAsText(file);
+        }
+        event.target.value = '';
+    }
+
+    function processZipImport(file) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const zip = await JSZip.loadAsync(e.target.result);
+                // 优先寻找 backup_data.json
+                let jsonFile = zip.file("backup_data.json");
+                
+                // 如果没找到，尝试寻找压缩包内的任意 .json 文件
+                if (!jsonFile) {
+                    const files = Object.keys(zip.files).filter(name => name.endsWith('.json'));
+                    if (files.length > 0) {
+                        jsonFile = zip.file(files[0]);
+                    }
+                }
+
+                if (!jsonFile) {
+                    showCustomAlert("错误", "ZIP 文件中未找到 JSON 备份数据！");
+                    return;
+                }
+
+                const content = await jsonFile.async("string");
+                processJsonImport(content);
+            } catch (err) {
+                showCustomAlert("错误", "解析 ZIP 文件失败: " + err.message);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function processJsonImport(jsonString) {
+        try {
+            const data = JSON.parse(jsonString);
+            if (!db) return;
+            const transaction = db.transaction([storeName], "readwrite");
+            const store = transaction.objectStore(storeName);
+            
+            // 遍历并覆盖写入数据
+            Object.values(data).forEach(record => {
+                store.put(record);
+            });
+            
+            transaction.oncomplete = () => {
+                showToast("恢复数据成功，即将刷新应用");
+                setTimeout(() => location.reload(), 1500);
+            };
+        } catch (err) {
+            showCustomAlert("错误", "解析备份文件失败，请确保文件格式正确！");
+        }
+    }
+
+    // 3. zip备份 (动态加载 JSZip 并导出)
+    async function exportAllDataZip() {
+        const fileName = await showCustomPrompt('导出 ZIP 备份', { placeholder: '输入文件名', value: `童话机` }, '导出');
+        if (!fileName) return;
+
+        showToast("正在生成 ZIP...");
+        if (typeof JSZip === 'undefined') {
+            const script = document.createElement('script');
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+            script.onload = () => doZipExport(fileName);
+            script.onerror = () => showCustomAlert("错误", "无法加载 ZIP 库，请检查网络连接。");
+            document.head.appendChild(script);
+        } else {
+            doZipExport(fileName);
+        }
+    }
+
+    async function doZipExport(fileName) {
+        try {
+            const data = await getAllDataFromDB();
+            const zip = new JSZip();
+            zip.file("backup_data.json", JSON.stringify(data, null, 2));
+            
+            const content = await zip.generateAsync({ type: "blob" });
+            const url = URL.createObjectURL(content);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName.endsWith('.zip') ? fileName : fileName + '.zip';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("导出 ZIP 成功");
+        } catch (err) {
+            showCustomAlert("错误", "生成 ZIP 失败: " + err.message);
+        }
+    }
+
+    // 4. 本地硬盘 (File System Access API 双模式与自动备份)
+    let localDriveHandle = null;
+    let localDriveMode = null; // 'folder' 或 'file'
+    let localDriveFileName = '童话机备份.json';
+
+    function syncToLocalDrive() {
+        openLocalDrivePage();
+    }
+
+    function openLocalDrivePage() {
+        document.getElementById('ic-main-page').classList.remove('active');
+        document.getElementById('ic-main-page').classList.add('slide-left');
+        document.getElementById('ic-local-drive-page').classList.remove('slide-right');
+        document.getElementById('ic-local-drive-page').classList.add('active');
+    }
+
+    function closeLocalDrivePage() {
+        document.getElementById('ic-local-drive-page').classList.remove('active');
+        document.getElementById('ic-local-drive-page').classList.add('slide-right');
+        document.getElementById('ic-main-page').classList.remove('slide-left');
+        document.getElementById('ic-main-page').classList.add('active');
+    }
+
+    async function setupFolderMode() {
+        if (!('showDirectoryPicker' in window)) {
+            showCustomAlert("提示", "您的浏览器不支持文件夹选择，请使用最新版 Chrome/Edge。");
+            return;
+        }
+        try {
+            const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            localDriveHandle = dirHandle;
+            localDriveMode = 'folder';
+            
+            const fileName = await showCustomPrompt('设置备份文件名', { placeholder: '输入文件名', value: `童话机备份.json` }, '确定');
+            if (fileName) {
+                localDriveFileName = fileName.endsWith('.json') ? fileName : fileName + '.json';
+            }
+            
+            document.getElementById('ld-current-mode').innerText = '文件夹模式';
+            document.getElementById('ld-target-name').innerText = dirHandle.name + ' / ' + localDriveFileName;
+            
+            await performLocalBackup();
+        } catch (err) {
+            if (err.name !== 'AbortError') showCustomAlert("错误", "设置文件夹失败: " + err.message);
+        }
+    }
+
+    async function setupFileMode() {
+        if (!('showSaveFilePicker' in window)) {
+            showCustomAlert("提示", "您的浏览器不支持单文件保存，请使用最新版 Chrome/Edge。");
+            return;
+        }
+        try {
+            const fileHandle = await window.showSaveFilePicker({
+                suggestedName: '童话机备份.json',
+                types: [{
+                    description: 'JSON 备份文件',
+                    accept: { 'application/json': ['.json'] }
+                }]
+            });
+            localDriveHandle = fileHandle;
+            localDriveMode = 'file';
+            
+            document.getElementById('ld-current-mode').innerText = '单文件模式';
+            document.getElementById('ld-target-name').innerText = fileHandle.name;
+            
+            await performLocalBackup();
+        } catch (err) {
+            if (err.name !== 'AbortError') showCustomAlert("错误", "设置文件失败: " + err.message);
+        }
+    }
+
+    async function performLocalBackup(isAuto = false) {
+        if (!localDriveHandle || !localDriveMode) {
+            if (!isAuto) showCustomAlert("提示", "请先选择文件夹模式或单文件模式。");
+            return;
+        }
+        
+        try {
+            // 检查并请求权限
+            if (await localDriveHandle.queryPermission({ mode: 'readwrite' }) !== 'granted') {
+                if (await localDriveHandle.requestPermission({ mode: 'readwrite' }) !== 'granted') {
+                    if (!isAuto) showCustomAlert("提示", "未获得读写权限。");
+                    return;
+                }
+            }
+
+            let fileHandleToWrite;
+            if (localDriveMode === 'folder') {
+                fileHandleToWrite = await localDriveHandle.getFileHandle(localDriveFileName, { create: true });
+            } else {
+                fileHandleToWrite = localDriveHandle;
+            }
+
+            const writable = await fileHandleToWrite.createWritable();
+            const data = await getAllDataFromDB();
+            const jsonString = JSON.stringify(data, null, 2);
+            await writable.write(jsonString);
+            await writable.close();
+
+            // 更新 UI
+            const now = new Date();
+            const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+            const sizeMB = (jsonString.length / (1024 * 1024)).toFixed(2);
+
+            document.getElementById('ld-last-time').innerText = timeStr + (isAuto ? ' (自动)' : ' (手动)');
+            document.getElementById('ld-last-size').innerText = sizeMB + ' MB';
+
+            if (!isAuto) showToast("备份成功！");
+        } catch (err) {
+            console.error("Local backup failed:", err);
+            if (!isAuto) showCustomAlert("错误", "备份失败: " + err.message);
+        }
+    }
+
+    function triggerAutoLocalBackup() {
+        if (localDriveHandle && localDriveMode) {
+            performLocalBackup(true);
+        }
+    }
 </script>
 
+<script src="fullscreen.js"></script>
+<script>
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', async () => {
+            try {
+                const swResponse = await fetch('sw.js', { method: 'HEAD', cache: 'no-store' });
+                if (!swResponse.ok) return;
+
+                const registration = await navigator.serviceWorker.register('sw.js');
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            } catch (err) {
+                console.log('ServiceWorker registration skipped/failed: ', err);
+            }
+        });
+    }
+</script>
 </body>
 </html>
