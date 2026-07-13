@@ -2595,6 +2595,10 @@
                     <div class="ic-list-item-right" id="ld-target-name" style="color: #000; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">--</div>
                 </div>
                 <div class="ic-list-item" style="padding: 8px 0; min-height: auto; border: none;">
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">文件名称</div>
+                    <div class="ic-list-item-right" id="ld-file-name" style="color: #000; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">--</div>
+                </div>
+                <div class="ic-list-item" style="padding: 8px 0; min-height: auto; border: none;">
                     <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">上次备份</div>
                     <div class="ic-list-item-right" id="ld-last-time" style="color: #000;">--</div>
                 </div>
@@ -3242,6 +3246,41 @@
                     settingsAvatar.style.backgroundSize = 'cover';
                     settingsAvatar.style.backgroundPosition = 'center';
                 }
+            }
+        };
+
+        // 加载本地硬盘备份设置与句柄
+        const ldRequest = store.get("localDriveSettings");
+        ldRequest.onsuccess = (e) => {
+            const ldData = e.target.result;
+            if (ldData) {
+                localDriveHandle = ldData.handle;
+                localDriveMode = ldData.mode;
+                localDriveFileName = ldData.fileName;
+                autoBackupEnabled = ldData.autoEnabled;
+                backupModeType = ldData.backupMode;
+                
+                // 恢复 UI 状态
+                document.getElementById('ld-current-mode').innerText = ldData.mode === 'folder' ? '文件夹模式' : (ldData.mode === 'file' ? '单文件模式' : '未设置');
+                document.getElementById('ld-target-name').innerText = ldData.targetName || '--';
+                document.getElementById('ld-file-name').innerText = ldData.fileName || '--';
+                document.getElementById('ld-last-time').innerText = ldData.lastTime || '--';
+                document.getElementById('ld-last-size').innerText = ldData.lastSize || '--';
+                
+                document.getElementById('autoBackupMode').value = ldData.backupMode || 'action';
+                document.getElementById('backupIntervalValue').value = ldData.intervalValue || '30';
+                document.getElementById('backupIntervalUnit').value = ldData.intervalUnit || '60000';
+                document.getElementById('backupScheduledTime').value = ldData.scheduledTime || '02:00';
+                
+                const toggleBtn = document.getElementById('autoBackupToggle');
+                if (autoBackupEnabled) {
+                    toggleBtn.classList.remove('off');
+                } else {
+                    toggleBtn.classList.add('off');
+                }
+                
+                // 触发 UI 显示隐藏并重启定时器
+                changeBackupMode(); 
             }
         };
     }
@@ -5662,6 +5701,34 @@
     let autoBackupInterval = 0; // 0 表示每次修改时触发
     let autoBackupTimerId = null;
 
+    function saveLocalDriveSettings() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        
+        const targetName = document.getElementById('ld-target-name').innerText;
+        const lastTime = document.getElementById('ld-last-time').innerText;
+        const lastSize = document.getElementById('ld-last-size').innerText;
+        const intervalValue = document.getElementById('backupIntervalValue').value;
+        const intervalUnit = document.getElementById('backupIntervalUnit').value;
+        const scheduledTime = document.getElementById('backupScheduledTime').value;
+
+        store.put({
+            id: "localDriveSettings",
+            handle: localDriveHandle,
+            mode: localDriveMode,
+            fileName: localDriveFileName,
+            autoEnabled: autoBackupEnabled,
+            backupMode: backupModeType,
+            targetName: targetName,
+            lastTime: lastTime,
+            lastSize: lastSize,
+            intervalValue: intervalValue,
+            intervalUnit: intervalUnit,
+            scheduledTime: scheduledTime
+        });
+    }
+
     function syncToLocalDrive() {
         openLocalDrivePage();
     }
@@ -5686,30 +5753,25 @@
             return;
         }
         try {
-            // 修复无反应：必须在点击后第一时间调用原生 API，不能有任何前置弹窗阻挡
-            const baseDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            // 1. 直接调用原生 API 让用户选择目标文件夹（去除了多余的创建子文件夹弹窗，防止双重创建）
+            const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
             
-            // 获得授权后，再弹出自定义弹窗询问是否创建子文件夹
-            const subFolderName = await showCustomPrompt('创建/选择项目文件夹', { placeholder: '输入文件夹名称(留空则直接存入)', value: `童话机备份` }, '确定');
-            
-            let targetDirHandle = baseDirHandle;
-            if (subFolderName && subFolderName.trim() !== '') {
-                // 核心：直接在选中的目录下创建或获取子文件夹
-                targetDirHandle = await baseDirHandle.getDirectoryHandle(subFolderName.trim(), { create: true });
-            }
-
-            localDriveHandle = targetDirHandle;
+            localDriveHandle = dirHandle;
             localDriveMode = 'folder';
             
-            const fileName = await showCustomPrompt('设置备份文件名', { placeholder: '输入文件名', value: `backup.json` }, '确定');
+            // 2. 询问要保存的文件名
+            const fileName = await showCustomPrompt('设置备份文件名', { placeholder: '输入文件名', value: `童话机备份.json` }, '确定');
             if (fileName) {
                 localDriveFileName = fileName.endsWith('.json') ? fileName : fileName + '.json';
             }
             
+            // 3. 更新 UI 显示
             document.getElementById('ld-current-mode').innerText = '文件夹模式';
-            document.getElementById('ld-target-name').innerText = targetDirHandle.name + ' / ' + localDriveFileName;
+            document.getElementById('ld-target-name').innerText = dirHandle.name; // 仅显示文件夹名
+            document.getElementById('ld-file-name').innerText = localDriveFileName; // 显示文件名
             
             await performLocalBackup();
+            saveLocalDriveSettings();
         } catch (err) {
             if (err.name !== 'AbortError') showCustomAlert("错误", "设置文件夹失败: " + err.message);
         }
@@ -5721,7 +5783,6 @@
             return;
         }
         try {
-            // 修复无反应：第一时间调用原生 API
             const fileHandle = await window.showSaveFilePicker({
                 suggestedName: '童话机备份.json',
                 types: [{
@@ -5731,11 +5792,14 @@
             });
             localDriveHandle = fileHandle;
             localDriveMode = 'file';
+            localDriveFileName = fileHandle.name;
             
             document.getElementById('ld-current-mode').innerText = '单文件模式';
-            document.getElementById('ld-target-name').innerText = fileHandle.name;
+            document.getElementById('ld-target-name').innerText = '本地指定路径';
+            document.getElementById('ld-file-name').innerText = fileHandle.name;
             
             await performLocalBackup();
+            saveLocalDriveSettings();
         } catch (err) {
             if (err.name !== 'AbortError') showCustomAlert("错误", "设置文件失败: " + err.message);
         }
@@ -5748,10 +5812,16 @@
         }
         
         try {
-            // 检查并请求权限
-            if (await localDriveHandle.queryPermission({ mode: 'readwrite' }) !== 'granted') {
-                if (await localDriveHandle.requestPermission({ mode: 'readwrite' }) !== 'granted') {
-                    if (!isAuto) showCustomAlert("提示", "未获得读写权限。");
+            // 优化权限检查：仅在没有权限时才请求，避免每次都弹窗
+            const permission = await localDriveHandle.queryPermission({ mode: 'readwrite' });
+            if (permission !== 'granted') {
+                if (isAuto) {
+                    console.warn("自动备份被拦截：浏览器要求用户手动授权。");
+                    return; // 自动备份不能触发授权弹窗
+                }
+                const request = await localDriveHandle.requestPermission({ mode: 'readwrite' });
+                if (request !== 'granted') {
+                    showCustomAlert("提示", "未获得读写权限，无法备份。");
                     return;
                 }
             }
@@ -5778,6 +5848,7 @@
             document.getElementById('ld-last-size').innerText = sizeMB + ' MB';
 
             if (!isAuto) showToast("备份成功！");
+            saveLocalDriveSettings();
         } catch (err) {
             console.error("Local backup failed:", err);
             if (!isAuto) showCustomAlert("错误", "备份失败: " + err.message);
@@ -5805,6 +5876,7 @@
             stopAutoBackupTimer();
             showToast("自动备份已关闭");
         }
+        saveLocalDriveSettings();
     }
 
     function changeBackupMode() {
@@ -5818,12 +5890,14 @@
         if (autoBackupEnabled) {
             startAutoBackupTimer();
         }
+        saveLocalDriveSettings();
     }
 
     function updateBackupSettings() {
         if (autoBackupEnabled) {
             startAutoBackupTimer();
         }
+        saveLocalDriveSettings();
     }
 
     function startAutoBackupTimer() {
