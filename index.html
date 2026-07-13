@@ -2628,9 +2628,41 @@
                 </div>
             </div>
 
-            <div class="ic-list-card">
-                <div class="ic-list-item" onclick="performLocalBackup()" style="cursor: pointer; justify-content: center;">
-                    <div class="ic-list-item-title" style="color: #007aff; font-weight: 600;">立即备份</div>
+            <div class="ic-card" style="padding: 0;">
+                <div class="ic-list-item" style="padding: 12px 16px; border-bottom: 1px solid #f2f2f7;">
+                    <div class="ic-list-item-title">自动备份</div>
+                    <div class="api-toggle off" id="autoBackupToggle" onclick="toggleAutoBackup()"></div>
+                </div>
+                <div class="ic-list-item" style="padding: 12px 16px; border-bottom: 1px solid #f2f2f7;">
+                    <div class="ic-list-item-title">备份模式</div>
+                    <select id="autoBackupMode" onchange="changeBackupMode()" style="border: none; background: transparent; font-size: 16px; color: #8e8e93; outline: none; text-align: right; direction: rtl; cursor: pointer;">
+                        <option value="action">每次修改时</option>
+                        <option value="interval">间隔时间备份</option>
+                        <option value="scheduled">定时备份</option>
+                    </select>
+                </div>
+                <div class="ic-list-item" id="intervalSettingsRow" style="padding: 12px 16px; display: none; border-bottom: 1px solid #f2f2f7;">
+                    <div class="ic-list-item-title">间隔时间</div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="number" id="backupIntervalValue" value="30" onchange="updateBackupSettings()" style="width: 50px; text-align: right; border: none; background: transparent; font-size: 16px; color: #007aff; outline: none;">
+                        <select id="backupIntervalUnit" onchange="updateBackupSettings()" style="border: none; background: transparent; font-size: 16px; color: #8e8e93; outline: none; cursor: pointer;">
+                            <option value="60000">分钟</option>
+                            <option value="3600000">小时</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ic-list-item" id="scheduledSettingsRow" style="padding: 12px 16px; display: none;">
+                    <div class="ic-list-item-title">定时时间</div>
+                    <input type="time" id="backupScheduledTime" value="02:00" onchange="updateBackupSettings()" style="border: none; background: transparent; font-size: 16px; color: #007aff; outline: none; text-align: right;">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; padding: 0 16px 24px 16px;">
+                <div onclick="performLocalBackup()" style="flex: 1; background-color: #007aff; color: #fff; border-radius: 14px; padding: 14px 0; text-align: center; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0,122,255,0.3);">
+                    立即备份
+                </div>
+                <div onclick="restoreFromLocalFolder()" style="flex: 1; background-color: #34c759; color: #fff; border-radius: 14px; padding: 14px 0; text-align: center; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(52,199,89,0.3);">
+                    恢复数据
                 </div>
             </div>
         </div>
@@ -5626,6 +5658,9 @@
     let localDriveHandle = null;
     let localDriveMode = null; // 'folder' 或 'file'
     let localDriveFileName = '童话机备份.json';
+    let autoBackupEnabled = false;
+    let autoBackupInterval = 0; // 0 表示每次修改时触发
+    let autoBackupTimerId = null;
 
     function syncToLocalDrive() {
         openLocalDrivePage();
@@ -5647,21 +5682,32 @@
 
     async function setupFolderMode() {
         if (!('showDirectoryPicker' in window)) {
-            showCustomAlert("提示", "您的浏览器不支持文件夹选择，请使用最新版 Chrome/Edge。");
+            showCustomAlert("提示", "您的浏览器不支持文件夹选择，请使用最新版桌面端 Chrome/Edge。");
             return;
         }
         try {
-            const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-            localDriveHandle = dirHandle;
+            // 修复无反应：必须在点击后第一时间调用原生 API，不能有任何前置弹窗阻挡
+            const baseDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            
+            // 获得授权后，再弹出自定义弹窗询问是否创建子文件夹
+            const subFolderName = await showCustomPrompt('创建/选择项目文件夹', { placeholder: '输入文件夹名称(留空则直接存入)', value: `童话机备份` }, '确定');
+            
+            let targetDirHandle = baseDirHandle;
+            if (subFolderName && subFolderName.trim() !== '') {
+                // 核心：直接在选中的目录下创建或获取子文件夹
+                targetDirHandle = await baseDirHandle.getDirectoryHandle(subFolderName.trim(), { create: true });
+            }
+
+            localDriveHandle = targetDirHandle;
             localDriveMode = 'folder';
             
-            const fileName = await showCustomPrompt('设置备份文件名', { placeholder: '输入文件名', value: `童话机备份.json` }, '确定');
+            const fileName = await showCustomPrompt('设置备份文件名', { placeholder: '输入文件名', value: `backup.json` }, '确定');
             if (fileName) {
                 localDriveFileName = fileName.endsWith('.json') ? fileName : fileName + '.json';
             }
             
             document.getElementById('ld-current-mode').innerText = '文件夹模式';
-            document.getElementById('ld-target-name').innerText = dirHandle.name + ' / ' + localDriveFileName;
+            document.getElementById('ld-target-name').innerText = targetDirHandle.name + ' / ' + localDriveFileName;
             
             await performLocalBackup();
         } catch (err) {
@@ -5671,10 +5717,11 @@
 
     async function setupFileMode() {
         if (!('showSaveFilePicker' in window)) {
-            showCustomAlert("提示", "您的浏览器不支持单文件保存，请使用最新版 Chrome/Edge。");
+            showCustomAlert("提示", "您的浏览器不支持单文件保存，请使用最新版桌面端 Chrome/Edge。");
             return;
         }
         try {
+            // 修复无反应：第一时间调用原生 API
             const fileHandle = await window.showSaveFilePicker({
                 suggestedName: '童话机备份.json',
                 types: [{
@@ -5737,9 +5784,136 @@
         }
     }
 
+    let backupModeType = 'action'; // 'action', 'interval', 'scheduled'
+
     function triggerAutoLocalBackup() {
-        if (localDriveHandle && localDriveMode) {
+        // 只有开启了自动备份，且模式为“每次修改时(action)”才触发
+        if (localDriveHandle && localDriveMode && autoBackupEnabled && backupModeType === 'action') {
             performLocalBackup(true);
+        }
+    }
+
+    function toggleAutoBackup() {
+        const toggleBtn = document.getElementById('autoBackupToggle');
+        autoBackupEnabled = !autoBackupEnabled;
+        if (autoBackupEnabled) {
+            toggleBtn.classList.remove('off');
+            startAutoBackupTimer();
+            showToast("自动备份已开启");
+        } else {
+            toggleBtn.classList.add('off');
+            stopAutoBackupTimer();
+            showToast("自动备份已关闭");
+        }
+    }
+
+    function changeBackupMode() {
+        const mode = document.getElementById('autoBackupMode').value;
+        backupModeType = mode;
+        
+        // 动态显示/隐藏对应的设置行
+        document.getElementById('intervalSettingsRow').style.display = mode === 'interval' ? 'flex' : 'none';
+        document.getElementById('scheduledSettingsRow').style.display = mode === 'scheduled' ? 'flex' : 'none';
+        
+        if (autoBackupEnabled) {
+            startAutoBackupTimer();
+        }
+    }
+
+    function updateBackupSettings() {
+        if (autoBackupEnabled) {
+            startAutoBackupTimer();
+        }
+    }
+
+    function startAutoBackupTimer() {
+        stopAutoBackupTimer();
+        if (!autoBackupEnabled) return;
+
+        if (backupModeType === 'interval') {
+            const val = parseInt(document.getElementById('backupIntervalValue').value, 10) || 30;
+            const unit = parseInt(document.getElementById('backupIntervalUnit').value, 10) || 60000;
+            const intervalMs = val * unit;
+            
+            autoBackupTimerId = setInterval(() => {
+                performLocalBackup(true);
+            }, intervalMs);
+            showToast(`已设置为每 ${val} ${unit === 60000 ? '分钟' : '小时'} 自动备份`);
+            
+        } else if (backupModeType === 'scheduled') {
+            const timeStr = document.getElementById('backupScheduledTime').value || "02:00";
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            
+            const now = new Date();
+            const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+            
+            if (now > target) {
+                target.setDate(target.getDate() + 1); // 如果今天的时间已过，设定为明天
+            }
+            
+            const delay = target.getTime() - now.getTime();
+            autoBackupTimerId = setTimeout(() => {
+                performLocalBackup(true);
+                startAutoBackupTimer(); // 触发后重新设置第二天的定时器
+            }, delay);
+            showToast(`已设置为每天 ${timeStr} 自动备份`);
+        }
+    }
+
+    function stopAutoBackupTimer() {
+        if (autoBackupTimerId) {
+            clearInterval(autoBackupTimerId);
+            clearTimeout(autoBackupTimerId);
+            autoBackupTimerId = null;
+        }
+    }
+
+    async function restoreFromLocalFolder() {
+        if (localDriveMode !== 'folder' || !localDriveHandle) {
+            showCustomAlert("提示", "请先设置并授权【文件夹模式】。");
+            return;
+        }
+        try {
+            // 检查读取权限
+            if (await localDriveHandle.queryPermission({ mode: 'read' }) !== 'granted') {
+                if (await localDriveHandle.requestPermission({ mode: 'read' }) !== 'granted') {
+                    showCustomAlert("提示", "未获得读取权限。");
+                    return;
+                }
+            }
+
+            let newestFileHandle = null;
+            let newestTime = 0;
+
+            // 遍历文件夹寻找最新的 .json 文件
+            for await (const entry of localDriveHandle.values()) {
+                if (entry.kind === 'file' && entry.name.endsWith('.json')) {
+                    const file = await entry.getFile();
+                    if (file.lastModified > newestTime) {
+                        newestTime = file.lastModified;
+                        newestFileHandle = entry;
+                    }
+                }
+            }
+
+            if (!newestFileHandle) {
+                showCustomAlert("提示", "该文件夹中没有找到任何 JSON 备份文件。");
+                return;
+            }
+
+            const confirmed = await showCustomConfirm("恢复数据", `找到最新备份文件：\n${newestFileHandle.name}\n\n确定要覆盖当前所有数据吗？`, "恢复", true);
+            if (!confirmed) return;
+
+            showToast("正在读取备份文件...");
+            const file = await newestFileHandle.getFile();
+            const text = await file.text();
+            
+            // 复用你之前写好的 JSON 导入恢复逻辑
+            processJsonImport(text);
+
+        } catch (err) {
+            console.error("Restore failed:", err);
+            showCustomAlert("错误", "恢复失败: " + err.message);
         }
     }
 </script>
