@@ -5641,9 +5641,32 @@
             const transaction = db.transaction([storeName], "readwrite");
             const store = transaction.objectStore(storeName);
             
+            // 导入前，先保留当前的 localDriveSettings 状态
+            const currentSettings = {
+                handle: localDriveHandle,
+                mode: localDriveMode,
+                fileName: localDriveFileName,
+                autoEnabled: autoBackupEnabled,
+                backupMode: backupModeType,
+                targetName: document.getElementById('ld-target-name').innerText,
+                lastTime: document.getElementById('ld-last-time').innerText,
+                lastSize: document.getElementById('ld-last-size').innerText,
+                intervalValue: document.getElementById('backupIntervalValue').value,
+                intervalUnit: document.getElementById('backupIntervalUnit').value,
+                scheduledTime: document.getElementById('backupScheduledTime').value
+            };
+
             // 遍历并覆盖写入数据
             Object.values(data).forEach(record => {
+                // 跳过 localDriveSettings，不覆盖本地硬盘的备份设置
+                if (record.id === 'localDriveSettings') return;
                 store.put(record);
+            });
+            
+            // 将当前的设置写回，确保不被旧数据覆盖
+            store.put({
+                id: "localDriveSettings",
+                ...currentSettings
             });
             
             transaction.oncomplete = () => {
@@ -5812,6 +5835,13 @@
         }
         
         try {
+            // 拦截失效的 Handle 对象
+            if (typeof localDriveHandle.queryPermission !== 'function') {
+                if (isAuto) return;
+                showCustomAlert("提示", "授权已失效，请重新点击【文件夹模式】或【单文件模式】选择路径。");
+                return;
+            }
+
             // 优化权限检查：仅在没有权限时才请求，避免每次都弹窗
             const permission = await localDriveHandle.queryPermission({ mode: 'readwrite' });
             if (permission !== 'granted') {
@@ -5948,6 +5978,12 @@
             return;
         }
         try {
+            // 拦截失效的 Handle 对象
+            if (typeof localDriveHandle.queryPermission !== 'function') {
+                showCustomAlert("提示", "文件夹授权已失效，请重新点击【文件夹模式】选择目标文件夹。");
+                return;
+            }
+
             // 检查读取权限
             if (await localDriveHandle.queryPermission({ mode: 'read' }) !== 'granted') {
                 if (await localDriveHandle.requestPermission({ mode: 'read' }) !== 'granted') {
