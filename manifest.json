@@ -8,13 +8,13 @@
   "theme_color": "#fdfbfb",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "https://zkaicc.huilan.com/aicc/api/aicc-file/miniofile/preViewPicture/aicc/4XfHp9js_1783997766723.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon.png",
+      "src": "https://zkaicc.huilan.com/aicc/api/aicc-file/miniofile/preViewPicture/aicc/4XfHp9js_1783997766723.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
