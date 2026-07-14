@@ -1,27 +1,23 @@
-﻿{
-    "id":  "./index.html",
-    "short_name":  "童话机",
-    "background_color":  "#fdfbfb",
-    "icons":  [
-                  {
-                      "purpose":  "any maskable",
-                      "type":  "image/png",
-                      "sizes":  "192x192",
-                      "src":  "https://img.heliar.top/file/1781748288512_IMG_20260618_095839.png"
-                  },
-                  {
-                      "purpose":  "any maskable",
-                      "type":  "image/png",
-                      "sizes":  "512x512",
-                      "src":  "https://img.heliar.top/file/1781748288512_IMG_20260618_095839.png"
-                  }
-              ],
-    "lang":  "zh-CN",
-    "description":  "童话机 Web App",
-    "theme_color":  "#fdfbfb",
-    "display":  "fullscreen",
-    "name":  "童话机",
-    "scope":  "./",
-    "start_url":  "./index.html",
-    "orientation":  "portrait"
+{
+  "name": "童话机",
+  "short_name": "童话机",
+  "description": "A web-based iOS desktop simulation.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fdfbfb",
+  "theme_color": "#fdfbfb",
+  "icons": [
+    {
+      "src": "https://zkaicc.huilan.com/aicc/api/aicc-file/miniofile/preViewPicture/aicc/4XfHp9js_1783997766723.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://zkaicc.huilan.com/aicc/api/aicc-file/miniofile/preViewPicture/aicc/4XfHp9js_1783997766723.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
