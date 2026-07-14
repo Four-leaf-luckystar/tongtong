@@ -312,6 +312,8 @@
         .app-item.jiggling {
             animation: jiggle 0.3s infinite;
             cursor: grab;
+            will-change: transform;
+            transform: translateZ(0);
         }
         .app-item.jiggling:active {
             cursor: grabbing;
@@ -402,6 +404,7 @@
             cursor: pointer;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }
+        .ios-top-right-group { display: flex; align-items: center; gap: 8px; }
         .theme-dropdown-menu {
             position: absolute;
             top: 85px;
@@ -1080,6 +1083,25 @@
             text-overflow: ellipsis;
         }
         
+        /* 预设封面锁屏时间 */
+        .preset-lock-time {
+            position: absolute;
+            top: 12%;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+            z-index: 5;
+            pointer-events: none;
+            letter-spacing: 0.5px;
+        }
+        .preset-lock-time.has-bg {
+            color: #fff;
+            text-shadow: 0 1px 5px rgba(0,0,0,0.4);
+        }
+
         /* 多选打勾样式 */
         .preset-check-circle {
             position: absolute;
@@ -1459,7 +1481,7 @@
         
         @keyframes setAvatarBreathe { 0% { transform: scale(1); } 50% { transform: scale(1.04); } 100% { transform: scale(1); } }
         .set-profile-card { display: flex; align-items: center; padding: 12px 16px; }
-        .set-avatar { width: 60px; height: 60px; margin-right: 16px; border-radius: 50%; display: flex; justify-content: center; align-items: center; overflow: hidden; animation: setAvatarBreathe 4s infinite ease-in-out; }
+        .set-avatar { width: 60px; height: 60px; margin-right: 16px; border-radius: 50%; display: flex; justify-content: center; align-items: center; overflow: hidden; animation: setAvatarBreathe 4s infinite ease-in-out; will-change: transform; transform: translateZ(0); }
         .set-avatar svg { width: 100%; height: 100%; }
         .set-profile-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
         .set-profile-name { font-size: 20px; font-weight: 600; margin-bottom: 2px; letter-spacing: 0.3px; }
@@ -1469,7 +1491,7 @@
         .set-list-item:active { background-color: #e5e5ea; }
         
         @keyframes setIconBreathe { 0% { transform: scale(1); box-shadow: none; } 50% { transform: scale(1.06); box-shadow: 0 4px 10px rgba(0,0,0,0.12); } 100% { transform: scale(1); box-shadow: none; } }
-                .set-item-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; justify-content: center; align-items: center; margin-right: 16px; animation: setIconBreathe 3s infinite ease-in-out; }
+                .set-item-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; justify-content: center; align-items: center; margin-right: 16px; animation: setIconBreathe 3s infinite ease-in-out; will-change: transform, box-shadow; transform: translateZ(0); }
         .set-item-icon svg { width: 20px; height: 20px; fill: white; }
         .set-item-icon svg[stroke="#fff"] { fill: none; width: 16px; height: 12px; }
         .set-item-content { flex: 1; display: flex; justify-content: space-between; align-items: center; padding: 11px 16px 11px 0; font-size: 17px; font-weight: 500; letter-spacing: -0.2px; }
@@ -1836,12 +1858,167 @@
         .ic-app-list-right { display: flex; align-items: center; gap: 8px; color: #8e8e93; font-size: 15px; flex-shrink: 0; }
         .ic-chevron { width: 8px; height: 13px; stroke: #c5c5c7; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
         .ic-custom-icon { width: 100%; height: 100%; background-size: cover; background-position: center; border-radius: 10px; }
+
+        /* --- 显示与亮度 页面 UI 样式 --- */
+        .display-settings-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; z-index: 160; display: none; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden; }
+        .display-settings-container.show { transform: translateX(0); }
+        .ds-nav-bar { height: 90px; padding: 45px 20px 10px 20px; display: flex; align-items: center; justify-content: center; position: relative; background-color: #f2f2f7; z-index: 10; }
+        .ds-back-btn { position: absolute; left: 16px; bottom: 10px; width: 30px; height: 30px; background-color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .ds-nav-title { font-size: 17px; font-weight: 600; position: absolute; bottom: 14px; }
+        .ds-content { flex: 1; overflow-y: auto; padding-bottom: 40px; }
+        .ds-content::-webkit-scrollbar { display: none; }
+        .ds-section-title { font-size: 13px; color: #8e8e93; margin: 24px 32px 8px; text-transform: uppercase; }
+        .ds-section-footer { font-size: 13px; color: #8e8e93; margin: 8px 32px 0; line-height: 1.4; }
+        .ds-card-group { background-color: #ffffff; border-radius: 14px; margin: 0 16px; overflow: hidden; }
+        .ds-list-item { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 10px 16px; position: relative; }
+        .ds-appearance-selector { display: flex; justify-content: space-around; padding: 20px 0; position: relative; }
+        .ds-appearance-option { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .ds-phone-mockup { width: 70px; height: 140px; border-radius: 12px; padding: 4px; margin-bottom: 12px; position: relative; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .ds-phone-mockup.light { background-color: #fff; border: 1px solid #e5e5ea; }
+        .ds-phone-mockup.dark { background-color: #1c1c1e; border: 1px solid #38383a; }
+        .ds-mockup-screen { width: 100%; height: 100%; border-radius: 8px; background: linear-gradient(to bottom, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); position: relative; overflow: hidden; }
+        .ds-phone-mockup.dark .ds-mockup-screen { background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 100%); }
+        .ds-mockup-time { font-size: 8px; text-align: center; margin-top: 6px; color: #fff; font-weight: bold; }
+        .ds-mockup-widget { width: 80%; height: 20px; background: rgba(255,255,255,0.5); border-radius: 4px; margin: 10px auto 0; }
+        .ds-phone-mockup.dark .ds-mockup-widget { background: rgba(0,0,0,0.5); }
+        .ds-radio-circle { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #c7c7cc; display: flex; justify-content: center; align-items: center; margin-top: 8px; }
+        .ds-appearance-option.active .ds-radio-circle { background-color: #007aff; border-color: #007aff; }
+        .ds-appearance-option.active .ds-radio-circle::after { content: ''; width: 10px; height: 10px; background-color: #fff; border-radius: 50%; }
+        .ds-toggle { width: 51px; height: 31px; background-color: #e9e9eb; border-radius: 15.5px; position: relative; cursor: pointer; transition: background-color 0.3s; }
+        .ds-toggle::after { content: ''; position: absolute; width: 27px; height: 27px; background-color: white; border-radius: 50%; top: 2px; left: 2px; box-shadow: 0 3px 8px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.16), 0 3px 1px rgba(0,0,0,0.1); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .ds-toggle.on { background-color: #34c759; }
+        .ds-toggle.on::after { transform: translateX(20px); }
+        .ds-brightness-container { display: flex; align-items: center; padding: 12px 16px; min-height: 44px; position: relative; }
+        .ds-sun-icon { width: 22px; height: 22px; color: #8e8e93; flex-shrink: 0; }
+        .ds-sun-icon.small { width: 16px; height: 16px; }
+        .ds-slider { flex: 1; margin: 0 15px; -webkit-appearance: none; height: 4px; border-radius: 2px; outline: none; background: linear-gradient(to right, #007aff 30%, #e5e5ea 30%); }
+        .ds-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 3px 8px rgba(0,0,0,0.15); cursor: pointer; }
+
+        /* --- 真正的全局深色模式覆盖 (极简优化版) --- */
+        .iphone.dark-mode, .iphone.dark-mode .preview-scale-container { background: linear-gradient(135deg, #1c1c1e 0%, #000000 100%); }
+        .iphone.dark-mode .dock { background: rgba(0,0,0,0.5); }
+        .iphone.dark-mode .app-name { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+        .iphone.dark-mode .status-bar { color: #fff; }
+        .iphone.dark-mode .status-icon svg rect { fill: #fff; }
+        .iphone.dark-mode .status-icon svg path { stroke: #fff; }
+        .iphone.dark-mode .battery-body { border-color: rgba(255,255,255,0.4); }
+        .iphone.dark-mode .battery-fill { background-color: #fff; }
+        .iphone.dark-mode .battery-nub { background-color: rgba(255,255,255,0.4); }
+        .iphone.dark-mode .preset-bg.default-bg { background-color: #1c1c1e; }
+        
+        /* 容器与顶栏深色 */
+        .iphone.dark-mode .settings-app-container, .iphone.dark-mode .display-settings-container, .iphone.dark-mode .apple-id-container, .iphone.dark-mode .api-app-container, .iphone.dark-mode .icloud-app-container, .iphone.dark-mode .api-page, .iphone.dark-mode .ic-page, .iphone.dark-mode .theme-app-container, .iphone.dark-mode .theme-content-area, .iphone.dark-mode .wallpaper-carousel-container, .iphone.dark-mode #presetDetailPage, .iphone.dark-mode .settings-top-bar, .iphone.dark-mode .ds-nav-bar, .iphone.dark-mode .apple-id-nav-bar, .iphone.dark-mode .api-nav-bar, .iphone.dark-mode .ic-header-area, .iphone.dark-mode .ios-top-bar, .iphone.dark-mode .detail-header { background-color: #000000; }
+        
+        /* 卡片与列表深色 */
+        .iphone.dark-mode .set-card, .iphone.dark-mode .ds-card-group, .iphone.dark-mode .apple-id-card, .iphone.dark-mode .api-hero-card, .iphone.dark-mode .api-list-group, .iphone.dark-mode .api-form-card, .iphone.dark-mode .ic-card, .iphone.dark-mode .ic-list-card, .iphone.dark-mode .theme-app-card, .iphone.dark-mode .wallpaper-card, .iphone.dark-mode .font-ios-card, .iphone.dark-mode .font-list-item, .iphone.dark-mode .font-item-inner, .iphone.dark-mode .search-result-card, .iphone.dark-mode .set-list-item, .iphone.dark-mode .ds-list-item, .iphone.dark-mode .apple-id-list-item, .iphone.dark-mode .api-row, .iphone.dark-mode .ic-list-item, .iphone.dark-mode .ic-app-list-item, .iphone.dark-mode .search-result-item { background-color: #1c1c1e; color: #ffffff; }
+        
+        /* 全局文字浅色覆盖 */
+        .iphone.dark-mode .set-page-title, .iphone.dark-mode .ds-nav-title, .iphone.dark-mode .apple-id-nav-title, .iphone.dark-mode .api-nav-title, .iphone.dark-mode .ic-header-title, .iphone.dark-mode .ic-nav-title-detail, .iphone.dark-mode .ios-top-title, .iphone.dark-mode .detail-title, .iphone.dark-mode .info-name, .iphone.dark-mode .theme-app-name-input, .iphone.dark-mode .set-profile-name, .iphone.dark-mode .apple-id-name, .iphone.dark-mode .font-item-title, .iphone.dark-mode .font-name-text, .iphone.dark-mode .api-hero-title, .iphone.dark-mode .api-row-title-text, .iphone.dark-mode .ic-list-item-title, .iphone.dark-mode .ic-app-list-name, .iphone.dark-mode .ic-storage-label, .iphone.dark-mode .ic-storage-detail-title, .iphone.dark-mode .ds-appearance-option, .iphone.dark-mode .custom-dialog-title, .iphone.dark-mode .preset-m-header-text, .iphone.dark-mode .search-result-text, .iphone.dark-mode .ic-item-name, .iphone.dark-mode .ic-card-title, .iphone.dark-mode .ic-legend-item, .iphone.dark-mode .ic-card-action, .iphone.dark-mode .preset-lock-time:not(.has-bg), .iphone.dark-mode .set-item-content, .iphone.dark-mode .apple-id-item-content, .iphone.dark-mode .api-drawer-title, .iphone.dark-mode .search-drawer-header input, .iphone.dark-mode .api-drawer-header .text-btn, .iphone.dark-mode .save-preset-btn, .iphone.dark-mode .font-preview-text { color: #ffffff; }
+        
+        /* 强制覆盖内联样式的文字与图标 */
+        .iphone.dark-mode .ic-storage-detail-size, .iphone.dark-mode #ic-main-size, .iphone.dark-mode #ic-detail-size, .iphone.dark-mode #ld-current-mode, .iphone.dark-mode #ld-target-name, .iphone.dark-mode #ld-file-name, .iphone.dark-mode #ld-last-time, .iphone.dark-mode #ld-last-size { color: #ffffff !important; }
+        .iphone.dark-mode .api-icon-lock path, .iphone.dark-mode .api-icon-wifi path { fill: #ffffff !important; }
+        
+        /* 分割线深色 */
+        .iphone.dark-mode .set-list-item:not(:last-child) .set-item-content, .iphone.dark-mode .apple-id-list-item:not(:last-child) .apple-id-item-content, .iphone.dark-mode .api-row:not(:last-child), .iphone.dark-mode .ic-list-item:not(:last-child), .iphone.dark-mode .ic-app-list-item:not(:last-child), .iphone.dark-mode .search-result-item:not(:last-child) { border-bottom-color: #38383a; }
+        .iphone.dark-mode .ds-list-item:not(:last-child)::after, .iphone.dark-mode .ds-appearance-selector::after, .iphone.dark-mode .ds-brightness-container::after { background-color: #38383a; }
+        
+        /* 按钮、输入框、弹窗等杂项 */
+        .iphone.dark-mode .ios-back-btn, .iphone.dark-mode .ios-save-btn, .iphone.dark-mode .ios-menu-btn, .iphone.dark-mode .detail-back-btn, .iphone.dark-mode .detail-export-btn, .iphone.dark-mode .api-nav-btn-circle, .iphone.dark-mode .ic-back-btn, .iphone.dark-mode .ds-back-btn, .iphone.dark-mode .set-search-bar, .iphone.dark-mode .search-input-container, .iphone.dark-mode .preset-m1-input, .iphone.dark-mode .api-form-input-wrapper, .iphone.dark-mode .ic-grid-item { background-color: #2c2c2e; color: #fff; }
+        .iphone.dark-mode .ios-back-btn svg, .iphone.dark-mode .ios-menu-btn svg, .iphone.dark-mode .detail-back-btn svg, .iphone.dark-mode .detail-export-btn svg, .iphone.dark-mode .api-nav-btn-circle svg, .iphone.dark-mode .ic-back-btn svg, .iphone.dark-mode .ds-back-btn svg { stroke: #fff; }
+        .iphone.dark-mode .nav-capsule-main, .iphone.dark-mode .nav-capsule-standalone, .iphone.dark-mode .theme-dropdown-menu .dropdown-btn, .iphone.dark-mode .detail-dropdown-menu .dropdown-btn, .iphone.dark-mode .icon-menu { background-color: rgba(44, 44, 46, 0.85); color: #fff; }
+        .iphone.dark-mode .theme-tab-item.active, .iphone.dark-mode .dropdown-icon-circle { background-color: #3a3a3c; }
+        .iphone.dark-mode .theme-tab-item.active svg, .iphone.dark-mode .dropdown-icon-circle svg, .iphone.dark-mode .icon-menu-item svg { stroke: #fff; }
+        .iphone.dark-mode .custom-dialog, .iphone.dark-mode .preset-modal-style-1 { background-color: rgba(30, 30, 30, 0.85); }
+        .iphone.dark-mode .api-drawer, .iphone.dark-mode .search-drawer, .iphone.dark-mode .api-drawer-header, .iphone.dark-mode .search-drawer-header, .iphone.dark-mode .save-preset-btn, .iphone.dark-mode .ic-app-icon-wrapper { background-color: #1c1c1e; border-color: #38383a; }
+        .iphone.dark-mode .set-search-bar input, .iphone.dark-mode .search-input-container input, .iphone.dark-mode .preset-m1-input, .iphone.dark-mode .api-form-input, .iphone.dark-mode .api-form-select, .iphone.dark-mode .icon-menu-item { color: #fff; }
+        .iphone.dark-mode .preset-bottom-fixed, .iphone.dark-mode .detail-bottom-bar { background: linear-gradient(to top, #000 80%, rgba(0,0,0,0)); }
+        .iphone.dark-mode .ds-toggle, .iphone.dark-mode .font-ios-slider { background-color: #39393d; }
+        .iphone.dark-mode .apple-id-icon-transparent, .iphone.dark-mode .api-hero-desc { color: #fff; }
+        .iphone.dark-mode .api-hero-desc span, .iphone.dark-mode .custom-dialog-btn { color: #0a84ff; }
+        .iphone.dark-mode .custom-dialog-btn { background-color: rgba(255,255,255,0.05); }
+        .iphone.dark-mode .custom-dialog-btn.bold, .iphone.dark-mode .preset-m1-btn-save { background-color: #0a84ff; color: #fff; }
+        .iphone.dark-mode .preset-m1-btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
+        /* ===== Widget 小组件库 (作用域: #themeAppUI 内, 前缀隔离) ===== */
+        #themeAppUI .widget-app-container { flex: 1; display: flex; flex-direction: column; position: relative; height: 100%; padding-bottom: 90px; }
+        #themeAppUI .widget-content-area { flex: 1; position: relative; overflow: hidden; }
+        /* 分段控件 */
+        #themeAppUI .widget-segment-control { position: relative; display: flex; background: rgba(118,118,128,0.12); border-radius: 9px; padding: 2px; margin: 16px 20px 12px; height: 32px; flex-shrink: 0; }
+        #themeAppUI .widget-segment-indicator { position: absolute; top: 2px; left: 2px; width: calc(50% - 2px); height: calc(100% - 4px); background: #fff; border-radius: 7px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 1; }
+        #themeAppUI .widget-segment-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #000; z-index: 2; cursor: pointer; transition: opacity 0.2s; background: none; border: none; }
+        #themeAppUI .widget-segment-btn:not(.active) { opacity: 0.55; }
+        /* 空状态 */
+        #themeAppUI .widget-empty-state { color: #8e8e93; text-align: center; padding: 80px 20px; display: none; }
+        #themeAppUI .widget-empty-state svg { display: block; margin: 0 auto 12px; width: 44px; height: 44px; stroke: #c7c7cc; stroke-width: 1.5; fill: none; }
+        #themeAppUI .widget-empty-state p { font-size: 14px; line-height: 1.6; margin: 0; }
+        /* 3D 轮播容器/轨道 */
+        #themeAppUI .widget-carousel-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s; touch-action: pan-y; }
+        #themeAppUI .widget-carousel-track { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; perspective: 1000px; }
+        /* 液态玻璃卡片 */
+        #themeAppUI .widget-card { position: absolute; width: 260px; height: 380px; left: 50%; top: 50%; margin-left: -130px; margin-top: -190px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.5) 100%); backdrop-filter: blur(25px) saturate(150%); -webkit-backdrop-filter: blur(25px) saturate(150%); border-radius: 32px; border: 1px solid #fff; box-shadow: 0 15px 35px rgba(0,0,0,0.08), inset 0 2px 10px rgba(255,255,255,0.8); display: flex; flex-direction: column; align-items: center; padding: 20px; will-change: transform, opacity; }
+        #themeAppUI .widget-card-more-btn { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; background: rgba(255,255,255,0.8); border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; z-index: 10; transition: transform 0.2s; }
+        #themeAppUI .widget-card-more-btn:active { transform: scale(0.9); }
+        #themeAppUI .widget-card-preview { width: 100%; flex: 1; border-radius: 20px; background-color: #fff; margin-bottom: 16px; margin-top: 36px; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; }
+        #themeAppUI .widget-card-name { font-size: 16px; font-weight: 600; color: #000; margin-bottom: 4px; }
+        /* 分页点 */
+        #themeAppUI .widget-pagination { display: flex; justify-content: center; gap: 8px; padding-bottom: 20px; position: absolute; bottom: 0; left: 0; width: 100%; }
+        #themeAppUI .widget-pagination .widget-dot { width: 6px; height: 6px; border-radius: 50%; background-color: #d1d1d6; transition: background-color 0.3s; }
+        #themeAppUI .widget-pagination .widget-dot.active { background-color: #000; }
+        /* 垂直列表 */
+        #themeAppUI .widget-list-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; padding: 0 20px 20px; display: flex; flex-direction: column; gap: 12px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        #themeAppUI .widget-list-container::-webkit-scrollbar { display: none; }
+        #themeAppUI .widget-list-item { background: #fff; border-radius: 20px; padding: 16px; display: flex; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); transition: transform 0.2s; position: relative; overflow: hidden; }
+        #themeAppUI .widget-list-item:active { transform: scale(0.98); }
+        #themeAppUI .widget-delete-btn-left { width: 0; opacity: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        #themeAppUI .widget-delete-btn-left svg { width: 22px; height: 22px; fill: #ff3b30; cursor: pointer; }
+        #themeAppUI .widget-list-item-icon { width: 48px; height: 48px; border-radius: 12px; background-color: #fff; margin-right: 14px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; }
+        #themeAppUI .widget-list-item-info { flex: 1; min-width: 0; }
+        #themeAppUI .widget-title-wrapper { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+        #themeAppUI .widget-list-item-title { font-size: 15px; font-weight: 600; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #themeAppUI .widget-edit-pencil { display: none; width: 12px; height: 12px; stroke: #8e8e93; }
+        #themeAppUI .widget-list-item-sub { font-size: 12px; color: #8e8e93; font-weight: 500; }
+        #themeAppUI .widget-list-action-trigger { width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 50%; transition: background 0.2s; }
+        /* 视图切换: 列表/轮播互斥 */
+        #themeAppUI .widget-content-area.show-list .widget-carousel-container { opacity: 0; pointer-events: none; }
+        #themeAppUI .widget-content-area.show-list .widget-list-container { opacity: 1; pointer-events: auto; }
+        /* 编辑模式态 */
+        #themeAppUI.is-widget-editing .widget-delete-btn-left { width: 22px; opacity: 1; margin-right: 12px; }
+        #themeAppUI.is-widget-editing .widget-edit-pencil { display: block; }
+        #themeAppUI.is-widget-editing .widget-list-action-trigger { opacity: 0; pointer-events: none; }
+        #themeAppUI.is-widget-editing .widget-segment-control { opacity: 0.5; pointer-events: none; }
+        /* 顶部新增按钮 */
+        #themeAppUI .widget-view-btn { display: none; margin-right: 8px; background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        #themeAppUI .widget-done-btn { display: none; padding: 8px 16px; border-radius: 20px; background: #000; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; align-self: center; }
+        /* 遮罩层 */
+        #themeAppUI .widget-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 105; display: none; background: rgba(0,0,0,0.1); }
+        /* 高级毛玻璃悬浮菜单 */
+        #themeAppUI .widget-context-menu { position: absolute; width: 140px; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%); border-radius: 28px; padding: 8px 0; box-shadow: 0 15px 40px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.6); display: flex; flex-direction: column; z-index: 400; opacity: 0; pointer-events: none; transform: scale(0.9); transform-origin: top right; transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        #themeAppUI .widget-context-menu.show { opacity: 1; pointer-events: auto; transform: scale(1); }
+        #themeAppUI .widget-ctx-item { display: flex; align-items: center; padding: 14px 24px; gap: 16px; cursor: pointer; transition: background 0.2s; }
+        #themeAppUI .widget-ctx-item:active { background: rgba(0,0,0,0.08); }
+        #themeAppUI .widget-ctx-item svg { width: 22px; height: 22px; stroke: #1d1d1f; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        #themeAppUI .widget-ctx-text { font-size: 17px; font-weight: 500; color: #1d1d1f; letter-spacing: 0.5px; }
+        /* 底部代码编辑器 */
+        #themeAppUI .widget-editor-modal { position: absolute; bottom: 0; left: 0; width: 100%; height: 85%; background: #f2f2f7; border-radius: 24px 24px 0 0; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); z-index: 300; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); }
+        #themeAppUI .widget-editor-modal.show { transform: translateY(0); }
+        /* 顶部右侧按钮分组：紧凑靠右排列 */
+        /* Widget 竖向分离式胶囊菜单（点击三个点展开）*/
+        #themeAppUI .widget-toolbar-cluster { position: absolute; top: 100px; right: 16px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; z-index: 260; opacity: 0; pointer-events: none; transform: scale(0.9) translateY(-8px); transform-origin: top right; transition: all 0.28s cubic-bezier(0.25,0.8,0.25,1); }
+        #themeAppUI .widget-toolbar-cluster.show { opacity: 1; pointer-events: auto; transform: scale(1) translateY(0); }
+        #themeAppUI .widget-cap { display: flex; align-items: center; gap: 9px; padding: 12px 18px; border-radius: 28px; cursor: pointer; background: rgba(255,255,255,0.55); backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%); border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 10px 28px rgba(0,0,0,0.16), inset 0 1px 1px rgba(255,255,255,0.9); transition: transform 0.18s cubic-bezier(0.25,0.8,0.25,1), box-shadow 0.18s, background 0.18s; }
+        #themeAppUI .widget-cap:active { transform: scale(0.94); background: rgba(255,255,255,0.78); }
+        #themeAppUI .widget-cap svg { width: 20px; height: 20px; stroke: rgba(0,0,0,0.8); stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+        #themeAppUI .widget-cap-text { font-size: 15px; font-weight: 600; color: rgba(0,0,0,0.82); letter-spacing: 0.2px; white-space: nowrap; }
+        /* 全局图片上传兜底：点击组件预览图换图 */
     </style>
 
 </head>
 <body>
 
 <div class="iphone">
+    <!-- 全局亮度遮罩 -->
+    <div id="brightnessOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0); pointer-events: none; z-index: 9998; transition: background-color 0.1s;"></div>
+
     <!-- 编辑模式 UI -->
     <div class="edit-ui edit-plus" id="editPlus">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -1903,13 +2080,29 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </div>
             <div class="ios-top-title" id="topBarTitle">Themes</div>
-            <div class="ios-save-btn" id="topRightBtn" onclick="handleTopRightBtn()">Save</div>
-            <div class="ios-menu-btn" id="themeMenuBtn" onclick="toggleThemeMenu()" style="display: none;">
-                <svg id="menuIconList" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-                <svg id="menuIconChevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <div class="ios-top-right-group">
+                <div class="ios-save-btn" id="topRightBtn" onclick="handleTopRightBtn()">Save</div>
+                <div class="widget-done-btn" id="widgetDoneBtn" onclick="exitWidgetEditMode()">完成</div>
+                <div class="ios-menu-btn widget-view-btn" id="widgetViewBtn" onclick="toggleWidgetViewMode()" style="display: none;" title="toggle list / carousel view">
+                    <svg id="widgetIconList" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                    <svg id="widgetIconCard" style="display:none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3" ry="3"></rect><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </div>
+                <div class="ios-menu-btn" id="themeMenuBtn" onclick="toggleThemeMenu()" style="display: none; background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+                    <svg id="menuIconList" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                    <svg id="menuIconDots" style="display: none;" width="20" height="20" viewBox="0 0 24 24" fill="#000" stroke="none"><circle cx="5" cy="12" r="2.5"></circle><circle cx="12" cy="12" r="2.5"></circle><circle cx="19" cy="12" r="2.5"></circle></svg>
+                    <svg id="menuIconChevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
             </div>
         </div>
 
+        <!-- Widget vertical capsule menu (click 3-dots to expand) -->
+        <div class="widget-toolbar-cluster" id="widgetToolbarMenu" style="display:none;">
+            <div class="widget-cap" onclick="enterWidgetEditMode()"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg><span class="widget-cap-text">&#x7F16;&#x8F91;</span></div>
+            <div class="widget-cap" onclick="handleAddWidget()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg><span class="widget-cap-text">&#x6DFB;&#x52A0;</span></div>
+            <div class="widget-cap" onclick="document.getElementById('widgetJsonInput').click()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><span class="widget-cap-text">&#x5BFC;&#x5165;</span></div>
+            
+            <input type="file" accept="application/json,.json" id="widgetJsonInput" onchange="handleWidgetJsonImport(event)" style="display: none;">
+        </div>
         <!-- 下拉菜单 -->
         <div class="theme-dropdown-menu" id="themeDropdownMenu">
             <div class="dropdown-btn" onclick="togglePresetEditMode(); toggleThemeMenu();">
@@ -1947,7 +2140,7 @@
                     <svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
                     <span class="theme-tab-text">Fonts</span>
                 </div>
-                <div class="theme-tab-item">
+                <div class="theme-tab-item" onclick="switchThemeTab('widget', this)">
                     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
                     <span class="theme-tab-text">Widgets</span>
                 </div>
@@ -2052,6 +2245,25 @@
                     </div>
                 </div>
             </div>
+            <!-- 小组件区域 (Widget) -->
+            <div class="widget-app-container" id="widgetAppGrid" style="display: none;">
+                <div class="widget-segment-control">
+                    <div class="widget-segment-indicator" id="widgetSegmentIndicator"></div>
+                    <button class="widget-segment-btn active" onclick="switchWidgetTab(0)">推荐/官方</button>
+                    <button class="widget-segment-btn" onclick="switchWidgetTab(1)">自定义组件</button>
+                </div>
+                <div class="widget-empty-state" id="widgetEmptyState">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4" ry="4"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>
+                    <p>此目录暂无组件<br>请点击右上角菜单添加</p>
+                </div>
+                <div class="widget-content-area" id="widgetContentArea">
+                    <div class="widget-carousel-container" id="widgetCarousel">
+                        <div class="widget-carousel-track" id="widgetTrack"></div>
+                        <div class="widget-pagination" id="widgetPagination"></div>
+                    </div>
+                    <div class="widget-list-container" id="widgetList"></div>
+                </div>
+            </div>
         </div>
 
         <!-- 预设详情页 -->
@@ -2110,6 +2322,30 @@
             </div>
             <div class="detail-bottom-bar">
                 <button class="apply-btn" onclick="applyCurrentDetailTheme()">应用该预设主题</button>
+            </div>
+        </div>
+        <!-- Widget 全局弹窗 -->
+        <div class="widget-overlay" id="widgetOverlay" onclick="closeWidgetMenus()"></div>
+        <div class="widget-context-menu" id="widgetContextMenu">
+            <div class="widget-ctx-item" onclick="widgetCtxAction('preview')"><svg viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="14" height="14" rx="2" ry="2"></rect><path d="M7 3h12a2 2 0 0 1 2 2v12"></path><circle cx="8.5" cy="11.5" r="1.5"></circle><polyline points="17 15 13 11 7 17"></polyline></svg><span class="widget-ctx-text">预览</span></div>
+            <div class="widget-ctx-item" onclick="widgetCtxAction('edit')"><svg viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg><span class="widget-ctx-text">编辑</span></div>
+            <div class="widget-ctx-item" onclick="widgetCtxAction('export')"><svg viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg><span class="widget-ctx-text">导出</span></div>
+        </div>
+        <div class="widget-editor-modal" id="widgetEditorModal">
+            <div class="ios-top-bar" style="height:60px; padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); background:#f2f2f7; border-radius: 24px 24px 0 0;">
+                <div style="font-size: 15px; color: #007aff; cursor: pointer;" onclick="closeWidgetEditor()">取消</div>
+                <div style="font-size: 16px; font-weight: 600; color: #000;">编辑组件</div>
+                <div style="font-size: 15px; color: #007aff; font-weight: 600; cursor: pointer;" onclick="saveWidgetEditor()">保存</div>
+            </div>
+            <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px; flex: 1; overflow-y: auto;">
+                <div>
+                    <div style="font-size: 12px; color: #8e8e93; margin-left: 8px; font-weight: 600; margin-bottom: 6px;">组件名称</div>
+                    <input type="text" id="widgetEditName" placeholder="输入组件名称" style="width: 100%; background: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; outline: none;">
+                </div>
+                <div style="flex:1; display:flex; flex-direction:column;">
+                    <div style="font-size: 12px; color: #8e8e93; margin-left: 8px; font-weight: 600; margin-bottom: 6px;">HTML / CSS 代码</div>
+                    <textarea id="widgetEditContent" placeholder="&lt;style&gt;...&lt;/style&gt;&#10;&lt;div class='widget'&gt;...&lt;/div&gt;" style="width: 100%; flex: 1; min-height: 260px; background: #1e1e1e; border: none; border-radius: 12px; padding: 14px; font-size: 13px; color: #d4d4d4; font-family: monospace; outline: none; resize: none;"></textarea>
+                </div>
             </div>
         </div>
     </div>
@@ -2177,6 +2413,10 @@
                     <div class="set-item-icon set-bg-gray" style="animation-delay: 1.4s;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.004 10.407c.138.435-.216.842-.672.842h-3.465a.75.75 0 0 1-.65-.375l-1.732-3c-.229-.396-.053-.907.393-1.004a5.252 5.252 0 0 1 6.126 3.537ZM8.12 8.464c.307-.338.838-.235 1.066.16l1.732 3a.75.75 0 0 1 0 .75l-1.732 3c-.229.397-.76.5-1.067.161A5.23 5.23 0 0 1 6.75 12a5.23 5.23 0 0 1 1.37-3.536ZM10.878 17.13c-.447-.098-.623-.608-.394-1.004l1.733-3.002a.75.75 0 0 1 .65-.375h3.465c.457 0 .81.407.672.842a5.252 5.252 0 0 1-6.126 3.539Z" /><path fill-rule="evenodd" d="M21 12.75a.75.75 0 1 0 0-1.5h-.783a8.22 8.22 0 0 0-.237-1.357l.734-.267a.75.75 0 1 0-.513-1.41l-.735.268a8.24 8.24 0 0 0-.689-1.192l.6-.503a.75.75 0 1 0-.964-1.149l-.6.504a8.3 8.3 0 0 0-1.054-.885l.391-.678a.75.75 0 1 0-1.299-.75l-.39.676a8.188 8.188 0 0 0-1.295-.47l.136-.77a.75.75 0 0 0-1.477-.26l-.136.77a8.36 8.36 0 0 0-1.377 0l-.136-.77a.75.75 0 1 0-1.477.26l.136.77c-.448.121-.88.28-1.294.47l-.39-.676a.75.75 0 0 0-1.3.75l.392.678a8.29 8.29 0 0 0-1.054.885l-.6-.504a.75.75 0 1 0-.965 1.149l.6.503a8.243 8.243 0 0 0-.689 1.192L3.8 8.216a.75.75 0 1 0-.513 1.41l.735.267a8.222 8.222 0 0 0-.238 1.356h-.783a.75.75 0 0 0 0 1.5h.783c.042.464.122.917.238 1.356l-.735.268a.75.75 0 0 0 .513 1.41l.735-.268c.197.417.428.816.69 1.191l-.6.504a.75.75 0 0 0 .963 1.15l.601-.505c.326.323.679.62 1.054.885l-.392.68a.75.75 0 0 0 1.3.75l.39-.679c.414.192.847.35 1.294.471l-.136.77a.75.75 0 0 0 1.477.261l.137-.772a8.332 8.332 0 0 0 1.376 0l.136.772a.75.75 0 1 0 1.477-.26l-.136-.771a8.19 8.19 0 0 0 1.294-.47l.391.677a.75.75 0 0 0 1.3-.75l-.393-.679a8.29 8.29 0 0 0 1.054-.885l.601.504a.75.75 0 0 0 .964-1.15l-.6-.503c.261-.375.492-.774.69-1.191l.735.267a.75.75 0 1 0 .512-1.41l-.734-.267c.115-.439.195-.892.237-1.356h.784Zm-2.657-3.06a6.744 6.744 0 0 0-1.19-2.053 6.784 6.784 0 0 0-1.82-1.51A6.705 6.705 0 0 0 12 5.25a6.8 6.8 0 0 0-1.225.11 6.7 6.7 0 0 0-2.15.793 6.784 6.784 0 0 0-2.952 3.489.76.76 0 0 1-.036.098A6.74 6.74 0 0 0 5.251 12a6.74 6.74 0 0 0 3.366 5.842l.009.005a6.704 6.704 0 0 0 2.18.798l.022.003a6.792 6.792 0 0 0 2.368-.004 6.704 6.704 0 0 0 2.205-.811 6.785 6.785 0 0 0 1.762-1.484l.009-.01.009-.01a6.743 6.743 0 0 0 1.18-2.066c.253-.707.39-1.469.39-2.263a6.74 6.74 0 0 0-.408-2.309Z" clip-rule="evenodd" /></svg></div>
                     <div class="set-item-content"><span>通用</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
+                <div class="set-list-item" onclick="openDisplaySettingsApp()" style="cursor: pointer;">
+                    <div class="set-item-icon set-bg-blue" style="animation-delay: 1.5s;"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></div>
+                    <div class="set-item-content"><span>显示与亮度</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                </div>
                 <div class="set-list-item">
                     <div class="set-item-icon set-bg-blue" style="animation-delay: 1.6s;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="white" stroke-width="2"/><path d="M12 6a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-3 4h6v2h-2v5h-2v-5H9v-2z"/></svg></div>
                     <div class="set-item-content"><span>辅助功能</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
@@ -2186,6 +2426,79 @@
                     <div class="set-item-content"><span>待机显示</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- 显示与亮度 页面容器 -->
+    <div class="display-settings-container" id="displaySettingsUI">
+        <div class="ds-nav-bar">
+            <div class="ds-back-btn" onclick="closeDisplaySettingsApp()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+            <div class="ds-nav-title">显示与亮度</div>
+        </div>
+        <div class="ds-content">
+            <div class="ds-section-title">外观</div>
+            <div class="ds-card-group">
+                <div class="ds-appearance-selector">
+                    <div class="ds-appearance-option active" id="dsLightOption" onclick="toggleDsAppearance('light')">
+                        <div class="ds-phone-mockup light">
+                            <div class="ds-mockup-screen">
+                                <div class="ds-mockup-time">09:41</div>
+                                <div class="ds-mockup-widget"></div>
+                                <div class="ds-mockup-widget"></div>
+                            </div>
+                        </div>
+                        <div>浅色</div>
+                        <div class="ds-radio-circle"></div>
+                    </div>
+                    <div class="ds-appearance-option" id="dsDarkOption" onclick="toggleDsAppearance('dark')">
+                        <div class="ds-phone-mockup dark">
+                            <div class="ds-mockup-screen">
+                                <div class="ds-mockup-time">09:41</div>
+                                <div class="ds-mockup-widget"></div>
+                                <div class="ds-mockup-widget"></div>
+                            </div>
+                        </div>
+                        <div>深色</div>
+                        <div class="ds-radio-circle"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ds-section-title">亮度</div>
+            <div class="ds-card-group">
+                <div class="ds-brightness-container">
+                    <svg class="ds-sun-icon small" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.8912 12C17.8912 13.1774 17.5414 14.3283 16.8862 15.307C16.2309 16.2858 15.2997 17.0485 14.2102 17.4986C13.1207 17.9486 11.9221 18.0658 10.7658 17.8354C9.60961 17.6049 8.54773 17.0372 7.71476 16.204C6.88179 15.3707 6.31513 14.3095 6.08638 13.1545C5.85764 11.9995 5.9771 10.8028 6.42973 9.71563C6.88237 8.62851 7.64782 7.69987 8.62916 7.04728C9.6105 6.3947 10.7636 6.0475 11.9426 6.04957C12.7247 6.04957 13.4991 6.20356 14.2215 6.50272C14.9439 6.80189 15.6002 7.24034 16.1527 7.79304C16.7052 8.34573 17.1431 9.00181 17.4415 9.72369C17.7398 10.4456 17.8926 11.2191 17.8912 12Z" fill="currentColor"/>
+                        <path d="M3.20314 13.0476H2.04913C1.77088 13.0476 1.50398 12.9372 1.30723 12.7408C1.11048 12.5443 1 12.2779 1 12C1 11.7222 1.11048 11.4557 1.30723 11.2592C1.50398 11.0627 1.77088 10.9524 2.04913 10.9524H3.20314C3.48139 10.9524 3.74828 11.0627 3.94503 11.2592C4.14178 11.4557 4.25227 11.7222 4.25227 12C4.25227 12.2779 4.14178 12.5443 3.94503 12.7408C3.74828 12.9372 3.48139 13.0476 3.20314 13.0476Z" fill="currentColor"/>
+                        <path d="M21.9509 13.0476H20.8074C20.5292 13.0476 20.2623 12.9372 20.0655 12.7408C19.8688 12.5443 19.7583 12.2779 19.7583 12C19.7583 11.7222 19.8688 11.4557 20.0655 11.2592C20.2623 11.0627 20.5292 10.9524 20.8074 10.9524H21.9509C22.2292 10.9524 22.4961 11.0627 22.6928 11.2592C22.8896 11.4557 23.0001 11.7222 23.0001 12C23.0001 12.2779 22.8896 12.5443 22.6928 12.7408C22.4961 12.9372 22.2292 13.0476 21.9509 13.0476Z" fill="currentColor"/>
+                        <path d="M11.9847 4.24763C11.7064 4.24763 11.4395 4.13724 11.2428 3.94077C11.046 3.74431 10.9355 3.47786 10.9355 3.20001V2.04762C10.9355 1.76977 11.046 1.50329 11.2428 1.30682C11.4395 1.11036 11.7064 1 11.9847 1C12.2629 1 12.5298 1.11036 12.7266 1.30682C12.9233 1.50329 13.0338 1.76977 13.0338 2.04762V3.20001C13.0338 3.47786 12.9233 3.74431 12.7266 3.94077C12.5298 4.13724 12.2629 4.24763 11.9847 4.24763Z" fill="currentColor"/>
+                        <path d="M11.9847 23.0001C11.7064 23.0001 11.4395 22.8897 11.2428 22.6932C11.046 22.4967 10.9355 22.2303 10.9355 21.9525V20.8001C10.9355 20.5222 11.046 20.2557 11.2428 20.0593C11.4395 19.8628 11.7064 19.7524 11.9847 19.7524C12.2629 19.7524 12.5298 19.8628 12.7266 20.0593C12.9233 20.2557 13.0338 20.5222 13.0338 20.8001V21.9525C13.0338 22.2303 12.9233 22.4967 12.7266 22.6932C12.5298 22.8897 12.2629 23.0001 11.9847 23.0001Z" fill="currentColor"/>
+                        <path d="M5.75269 6.82487C5.61388 6.8243 5.4765 6.79621 5.34864 6.74226C5.22078 6.68831 5.10489 6.60955 5.00772 6.51057L4.18937 5.70391C3.99182 5.50664 3.88086 5.23909 3.88086 4.96011C3.88086 4.68112 3.99182 4.41358 4.18937 4.21631C4.38693 4.01904 4.65496 3.9082 4.93434 3.9082C5.21372 3.9082 5.48163 4.01904 5.67918 4.21631L6.49753 5.03345C6.69293 5.22973 6.80259 5.49524 6.80259 5.77201C6.80259 6.04877 6.69293 6.31428 6.49753 6.51057C6.40036 6.60955 6.28448 6.68831 6.15661 6.74226C6.02875 6.79621 5.8915 6.8243 5.75269 6.82487Z" fill="currentColor"/>
+                        <path d="M19.0239 20.0458C18.7486 20.0447 18.4849 19.9356 18.2895 19.742L17.4712 18.9249C17.3613 18.831 17.2721 18.7154 17.2091 18.5854C17.1462 18.4554 17.1109 18.3139 17.1053 18.1696C17.0997 18.0253 17.124 17.8814 17.1767 17.747C17.2295 17.6126 17.3095 17.4905 17.4117 17.3884C17.514 17.2863 17.6362 17.2064 17.7708 17.1537C17.9055 17.101 18.0496 17.0768 18.1941 17.0823C18.3386 17.0879 18.4803 17.1232 18.6104 17.1861C18.7406 17.249 18.8564 17.3381 18.9505 17.4477L19.7688 18.2649C19.9642 18.4611 20.0739 18.7267 20.0739 19.0035C20.0739 19.2802 19.9642 19.5457 19.7688 19.742C19.6708 19.8391 19.5544 19.9159 19.4266 19.9681C19.2988 20.0202 19.1619 20.0466 19.0239 20.0458Z" fill="currentColor"/>
+                        <path d="M18.2164 6.82484C18.008 6.82605 17.8039 6.76524 17.6303 6.65021C17.4566 6.53518 17.3212 6.37114 17.2413 6.17896C17.1614 5.98678 17.1406 5.77519 17.1816 5.57116C17.2226 5.36714 17.3235 5.17995 17.4715 5.03341L18.2898 4.21627C18.4864 4.02115 18.7522 3.91162 19.0294 3.91162C19.3066 3.91162 19.5725 4.02115 19.7691 4.21627C19.8674 4.31366 19.9455 4.42951 19.9987 4.55718C20.052 4.68484 20.0794 4.82177 20.0794 4.96007C20.0794 5.09837 20.052 5.23531 19.9987 5.36297C19.9455 5.49063 19.8674 5.60648 19.7691 5.70387L18.9508 6.51053C18.7571 6.70792 18.4931 6.8209 18.2164 6.82484Z" fill="currentColor"/>
+                        <path d="M4.9343 20.0457C4.79623 20.0465 4.65935 20.02 4.53153 19.9679C4.40371 19.9158 4.28736 19.8389 4.18933 19.7418C3.99393 19.5456 3.88428 19.2801 3.88428 19.0033C3.88428 18.7265 3.99393 18.461 4.18933 18.2647L5.00768 17.4476C5.10521 17.3494 5.22126 17.2714 5.34911 17.2183C5.47696 17.1651 5.61415 17.1377 5.75265 17.1377C5.89115 17.1377 6.02822 17.1651 6.15606 17.2183C6.28391 17.2714 6.39996 17.3494 6.49749 17.4476C6.69289 17.6438 6.80255 17.9094 6.80255 18.1861C6.80255 18.4629 6.69289 18.7284 6.49749 18.9247L5.67914 19.7418C5.58111 19.8389 5.4649 19.9158 5.33707 19.9679C5.20925 20.02 5.07237 20.0465 4.9343 20.0457Z" fill="currentColor"/>
+                    </svg>
+                    <input type="range" class="ds-slider" id="dsBrightnessSlider" min="0" max="100" value="100" oninput="updateDsSlider(this)">
+                    <svg class="ds-sun-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.8912 12C17.8912 13.1774 17.5414 14.3283 16.8862 15.307C16.2309 16.2858 15.2997 17.0485 14.2102 17.4986C13.1207 17.9486 11.9221 18.0658 10.7658 17.8354C9.60961 17.6049 8.54773 17.0372 7.71476 16.204C6.88179 15.3707 6.31513 14.3095 6.08638 13.1545C5.85764 11.9995 5.9771 10.8028 6.42973 9.71563C6.88237 8.62851 7.64782 7.69987 8.62916 7.04728C9.6105 6.3947 10.7636 6.0475 11.9426 6.04957C12.7247 6.04957 13.4991 6.20356 14.2215 6.50272C14.9439 6.80189 15.6002 7.24034 16.1527 7.79304C16.7052 8.34573 17.1431 9.00181 17.4415 9.72369C17.7398 10.4456 17.8926 11.2191 17.8912 12Z" fill="currentColor"/>
+                        <path d="M3.20314 13.0476H2.04913C1.77088 13.0476 1.50398 12.9372 1.30723 12.7408C1.11048 12.5443 1 12.2779 1 12C1 11.7222 1.11048 11.4557 1.30723 11.2592C1.50398 11.0627 1.77088 10.9524 2.04913 10.9524H3.20314C3.48139 10.9524 3.74828 11.0627 3.94503 11.2592C4.14178 11.4557 4.25227 11.7222 4.25227 12C4.25227 12.2779 4.14178 12.5443 3.94503 12.7408C3.74828 12.9372 3.48139 13.0476 3.20314 13.0476Z" fill="currentColor"/>
+                        <path d="M21.9509 13.0476H20.8074C20.5292 13.0476 20.2623 12.9372 20.0655 12.7408C19.8688 12.5443 19.7583 12.2779 19.7583 12C19.7583 11.7222 19.8688 11.4557 20.0655 11.2592C20.2623 11.0627 20.5292 10.9524 20.8074 10.9524H21.9509C22.2292 10.9524 22.4961 11.0627 22.6928 11.2592C22.8896 11.4557 23.0001 11.7222 23.0001 12C23.0001 12.2779 22.8896 12.5443 22.6928 12.7408C22.4961 12.9372 22.2292 13.0476 21.9509 13.0476Z" fill="currentColor"/>
+                        <path d="M11.9847 4.24763C11.7064 4.24763 11.4395 4.13724 11.2428 3.94077C11.046 3.74431 10.9355 3.47786 10.9355 3.20001V2.04762C10.9355 1.76977 11.046 1.50329 11.2428 1.30682C11.4395 1.11036 11.7064 1 11.9847 1C12.2629 1 12.5298 1.11036 12.7266 1.30682C12.9233 1.50329 13.0338 1.76977 13.0338 2.04762V3.20001C13.0338 3.47786 12.9233 3.74431 12.7266 3.94077C12.5298 4.13724 12.2629 4.24763 11.9847 4.24763Z" fill="currentColor"/>
+                        <path d="M11.9847 23.0001C11.7064 23.0001 11.4395 22.8897 11.2428 22.6932C11.046 22.4967 10.9355 22.2303 10.9355 21.9525V20.8001C10.9355 20.5222 11.046 20.2557 11.2428 20.0593C11.4395 19.8628 11.7064 19.7524 11.9847 19.7524C12.2629 19.7524 12.5298 19.8628 12.7266 20.0593C12.9233 20.2557 13.0338 20.5222 13.0338 20.8001V21.9525C13.0338 22.2303 12.9233 22.4967 12.7266 22.6932C12.5298 22.8897 12.2629 23.0001 11.9847 23.0001Z" fill="currentColor"/>
+                        <path d="M5.75269 6.82487C5.61388 6.8243 5.4765 6.79621 5.34864 6.74226C5.22078 6.68831 5.10489 6.60955 5.00772 6.51057L4.18937 5.70391C3.99182 5.50664 3.88086 5.23909 3.88086 4.96011C3.88086 4.68112 3.99182 4.41358 4.18937 4.21631C4.38693 4.01904 4.65496 3.9082 4.93434 3.9082C5.21372 3.9082 5.48163 4.01904 5.67918 4.21631L6.49753 5.03345C6.69293 5.22973 6.80259 5.49524 6.80259 5.77201C6.80259 6.04877 6.69293 6.31428 6.49753 6.51057C6.40036 6.60955 6.28448 6.68831 6.15661 6.74226C6.02875 6.79621 5.8915 6.8243 5.75269 6.82487Z" fill="currentColor"/>
+                        <path d="M19.0239 20.0458C18.7486 20.0447 18.4849 19.9356 18.2895 19.742L17.4712 18.9249C17.3613 18.831 17.2721 18.7154 17.2091 18.5854C17.1462 18.4554 17.1109 18.3139 17.1053 18.1696C17.0997 18.0253 17.124 17.8814 17.1767 17.747C17.2295 17.6126 17.3095 17.4905 17.4117 17.3884C17.514 17.2863 17.6362 17.2064 17.7708 17.1537C17.9055 17.101 18.0496 17.0768 18.1941 17.0823C18.3386 17.0879 18.4803 17.1232 18.6104 17.1861C18.7406 17.249 18.8564 17.3381 18.9505 17.4477L19.7688 18.2649C19.9642 18.4611 20.0739 18.7267 20.0739 19.0035C20.0739 19.2802 19.9642 19.5457 19.7688 19.742C19.6708 19.8391 19.5544 19.9159 19.4266 19.9681C19.2988 20.0202 19.1619 20.0466 19.0239 20.0458Z" fill="currentColor"/>
+                        <path d="M18.2164 6.82484C18.008 6.82605 17.8039 6.76524 17.6303 6.65021C17.4566 6.53518 17.3212 6.37114 17.2413 6.17896C17.1614 5.98678 17.1406 5.77519 17.1816 5.57116C17.2226 5.36714 17.3235 5.17995 17.4715 5.03341L18.2898 4.21627C18.4864 4.02115 18.7522 3.91162 19.0294 3.91162C19.3066 3.91162 19.5725 4.02115 19.7691 4.21627C19.8674 4.31366 19.9455 4.42951 19.9987 4.55718C20.052 4.68484 20.0794 4.82177 20.0794 4.96007C20.0794 5.09837 20.052 5.23531 19.9987 5.36297C19.9455 5.49063 19.8674 5.60648 19.7691 5.70387L18.9508 6.51053C18.7571 6.70792 18.4931 6.8209 18.2164 6.82484Z" fill="currentColor"/>
+                        <path d="M4.9343 20.0457C4.79623 20.0465 4.65935 20.02 4.53153 19.9679C4.40371 19.9158 4.28736 19.8389 4.18933 19.7418C3.99393 19.5456 3.88428 19.2801 3.88428 19.0033C3.88428 18.7265 3.99393 18.461 4.18933 18.2647L5.00768 17.4476C5.10521 17.3494 5.22126 17.2714 5.34911 17.2183C5.47696 17.1651 5.61415 17.1377 5.75265 17.1377C5.89115 17.1377 6.02822 17.1651 6.15606 17.2183C6.28391 17.2714 6.39996 17.3494 6.49749 17.4476C6.69289 17.6438 6.80255 17.9094 6.80255 18.1861C6.80255 18.4629 6.69289 18.7284 6.49749 18.9247L5.67914 19.7418C5.58111 19.8389 5.4649 19.9158 5.33707 19.9679C5.20925 20.02 5.07237 20.0465 4.9343 20.0457Z" fill="currentColor"/>
+                    </svg>
+                </div>
+                <div class="ds-list-item">
+                    <div>原彩显示</div>
+                    <div class="ds-toggle on" onclick="this.classList.toggle('on')"></div>
+                </div>
+            </div>
+            <div class="ds-section-footer">根据环境光线条件自动调整手机屏幕以在不同环境下保持色彩显示一致。</div>
         </div>
     </div>
 
@@ -2629,7 +2942,7 @@
             </div>
 
             <div class="ic-card" style="padding: 0;">
-                <div class="ic-list-item" style="padding: 12px 16px; border-bottom: 1px solid #f2f2f7;">
+                <div class="ic-list-item" style="padding: 12px 16px;">
                     <div class="ic-list-item-title">自动备份</div>
                     <div class="api-toggle off" id="autoBackupToggle" onclick="toggleAutoBackup()"></div>
                 </div>
@@ -2686,7 +2999,7 @@
                         </svg>
                     </div>
                     <div class="api-hero-title">API 连接</div>
-                    <div class="api-hero-desc">接入 API、查看可用模型，并管理加入网络及附近节点设置。<span>进一步了解...</span></div>
+                    <div class="api-hero-desc">接入 API、查看可用模型，并管理加入API预设设置。<span>进一步了解...</span></div>
                     <div style="width: 100%; border-top: 0.5px solid #c6c6c8;">
                         <div class="api-row">
                             <div class="api-row-left"></div>
@@ -2865,7 +3178,7 @@
 
 <script>
 
-    // --- 通用弹窗与提示逻辑 (Universal Popups) ---
+            // show three-dots button; click to expand vertical capsule menu
     function showCustomAlert(title, message) {
         return new Promise(resolve => {
             const overlay = document.getElementById('customDialogOverlay');
@@ -2922,7 +3235,7 @@
         });
     }
 
-    // --- 通用输入弹窗 (Universal Prompt) ---
+            // show three-dots button; click to expand vertical capsule menu
     function showCustomPrompt(title, inputs, confirmText = '确定') {
         return new Promise(resolve => {
             let overlay = document.getElementById('customPromptOverlay');
@@ -2993,7 +3306,7 @@
         });
     }
 
-    // 显示 iOS 悬浮胶囊提示 (用于一般通知)
+            // show three-dots button; click to expand vertical capsule menu
     function showToast(message) {
         let toast = document.getElementById('iosToast');
         if (!toast) {
@@ -3012,22 +3325,23 @@
         }, 2000);
     }
 
-    // 拦截并覆盖全局原生弹窗，确保未来代码默认使用高级 UI
+            // show three-dots button; click to expand vertical capsule menu
     window.alert = function(message) {
         return showCustomAlert('提示', message);
     };
 
     window.confirm = function(message) {
-        // 注意：被覆盖后的 confirm 是异步的，未来写代码需使用 confirm('...').then(res => {...})
+            // show three-dots button; click to expand vertical capsule menu
         return showCustomConfirm('请确认', message);
     };
 
-    // --- 真实时间与电量逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
+    const clockElement = document.getElementById('clock');
     function updateTime() {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
-        document.getElementById('clock').textContent = `${hours}:${minutes}`;
+        if (clockElement) clockElement.textContent = `${hours}:${minutes}`;
     }
     setInterval(updateTime, 1000);
     updateTime();
@@ -3050,13 +3364,13 @@
         updateBattery(0.85);
     }
 
-    // --- IndexedDB 数据存储逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
     const dbName = "iOSDesktopDB";
     const storeName = "layoutStore";
     let db;
 
     function initDB() {
-        // 移除硬编码的版本号，默认打开当前最新版本，避免手动修改版本号导致降级报错和数据被覆盖
+            // show three-dots button; click to expand vertical capsule menu
         const request = indexedDB.open(dbName); 
         
         request.onupgradeneeded = (e) => {
@@ -3068,7 +3382,7 @@
 
         request.onsuccess = (e) => {
             db = e.target.result;
-            // 自动检测是否需要升级版本来创建 store，彻底解放手动改版本号
+            // show three-dots button; click to expand vertical capsule menu
             if (!db.objectStoreNames.contains(storeName)) {
                 const currentVersion = db.version;
                 db.close();
@@ -3143,16 +3457,16 @@
 
         request.onsuccess = (e) => {
             const data = e.target.result;
-            // 放宽校验条件：只要数据结构存在，就信任并渲染，防止因为用户清空了桌面导致被误判为损坏而强制覆盖
+            // show three-dots button; click to expand vertical capsule menu
             if (data && Array.isArray(data.desktop) && Array.isArray(data.dock)) {
                 renderLayout(data.desktop, data.dock);
             } else {
-                // 只有真正没有数据时，才加载默认布局
+            // show three-dots button; click to expand vertical capsule menu
                 renderDefaultLayout();
             }
         };
 
-        // 同时加载壁纸数据
+            // show three-dots button; click to expand vertical capsule menu
         const wpRequest = store.get("wallpaperData");
         wpRequest.onsuccess = (e) => {
             const wpData = e.target.result;
@@ -3165,7 +3479,7 @@
             renderWallpapers();
         };
 
-        // 加载预设数据
+            // show three-dots button; click to expand vertical capsule menu
         const presetRequest = store.get("presetData");
         presetRequest.onsuccess = (e) => {
             const pData = e.target.result;
@@ -3173,7 +3487,7 @@
                 presets = pData.presets;
             }
             
-            // 检查是否已经有默认主题，没有则自动添加
+            // show three-dots button; click to expand vertical capsule menu
             const hasDefault = presets.find(p => p.id === "default_theme_001");
             if (!hasDefault) {
                 const defaultPreset = {
@@ -3199,7 +3513,7 @@
             }
         };
 
-        // 加载字体数据
+            // show three-dots button; click to expand vertical capsule menu
         const fontRequest = store.get("fontData");
         fontRequest.onsuccess = (e) => {
             const fData = e.target.result;
@@ -3208,12 +3522,12 @@
                 currentSelectedFont = fData.current || 'default';
                 restoreFonts();
             } else {
-                // 首次加载，应用默认字体
+            // show three-dots button; click to expand vertical capsule menu
                 selectFont('default', document.querySelector('.font-list-item[data-font="default"]'), true);
             }
         };
 
-        // 加载 API 数据
+            // show three-dots button; click to expand vertical capsule menu
         const apiRequest = store.get("apiData");
         apiRequest.onsuccess = (e) => {
             const aData = e.target.result;
@@ -3223,7 +3537,7 @@
             }
         };
 
-        // 加载头像数据
+            // show three-dots button; click to expand vertical capsule menu
         const profileRequest = store.get("profileData");
         profileRequest.onsuccess = (e) => {
             const pData = e.target.result;
@@ -3245,7 +3559,7 @@
             }
         };
 
-        // 加载本地硬盘备份设置与句柄
+            // show three-dots button; click to expand vertical capsule menu
         const ldRequest = store.get("localDriveSettings");
         ldRequest.onsuccess = (e) => {
             const ldData = e.target.result;
@@ -3256,7 +3570,7 @@
                 autoBackupEnabled = ldData.autoEnabled;
                 backupModeType = ldData.backupMode;
                 
-                // 恢复 UI 状态
+            // show three-dots button; click to expand vertical capsule menu
                 document.getElementById('ld-current-mode').innerText = ldData.mode === 'folder' ? '文件夹模式' : (ldData.mode === 'file' ? '单文件模式' : '未设置');
                 document.getElementById('ld-target-name').innerText = ldData.targetName || '--';
                 document.getElementById('ld-file-name').innerText = ldData.fileName || '--';
@@ -3275,7 +3589,7 @@
                     toggleBtn.classList.add('off');
                 }
                 
-                // 触发 UI 显示隐藏并重启定时器
+            // show three-dots button; click to expand vertical capsule menu
                 changeBackupMode(); 
             }
         };
@@ -3309,7 +3623,7 @@
             iphoneEl.style.backgroundSize = 'cover';
             iphoneEl.style.backgroundPosition = 'center';
         } else {
-            iphoneEl.style.backgroundImage = 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)';
+            iphoneEl.style.backgroundImage = ''; // 清空内联样式，让 CSS 类接管深浅色渐变
         }
     }
 
@@ -3361,14 +3675,14 @@
         desktopGrid.innerHTML = '';
         dock.innerHTML = '';
 
-        // --- 核心应用防丢失（自愈）逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
         let hasSettings = false;
         let hasTheme = false;
 
         const checkAndHeal = (app) => {
             if (app.appId === 'settings') hasSettings = true;
             if (app.appId === 'theme') hasTheme = true;
-            // 如果没有 appId，尝试通过名称或默认图标特征来恢复
+            // show three-dots button; click to expand vertical capsule menu
             if (!app.appId) {
                 if (app.name === '设置' || (app.icon && app.icon.includes('5b0f2ceab564421096b8a761f125b9f8'))) {
                     app.appId = 'settings';
@@ -3384,7 +3698,7 @@
         desktopData.forEach(checkAndHeal);
         dockData.forEach(checkAndHeal);
 
-        // 如果依然找不到，强制将桌面的第一个应用设为设置，底栏的最后一个应用设为主题
+            // show three-dots button; click to expand vertical capsule menu
         if (!hasSettings && desktopData.length > 0) {
             desktopData[0].appId = 'settings';
         }
@@ -3393,7 +3707,7 @@
         }
         // ----------------------------------
 
-        // 渲染桌面 28 个格子
+            // show three-dots button; click to expand vertical capsule menu
         for (let i = 0; i < 28; i++) {
             const slot = document.createElement('div');
             slot.className = 'desktop-slot';
@@ -3404,16 +3718,16 @@
             desktopGrid.appendChild(slot);
         }
 
-        // 渲染底栏
+            // show three-dots button; click to expand vertical capsule menu
         dockData.forEach(appData => {
             dock.appendChild(createAppElement(appData.name, appData.icon, appData.appId));
         });
     }
 
-    // 初始化数据库并渲染
+            // show three-dots button; click to expand vertical capsule menu
     initDB();
 
-    // --- 交互与拖拽逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
     let isEditMode = false;
     const editPlus = document.getElementById('editPlus');
     const editDone = document.getElementById('editDone');
@@ -3434,7 +3748,7 @@
         editPlus.style.display = 'flex';
         editDone.style.display = 'block';
         
-        // 显示桌面格子并开启抖动
+            // show three-dots button; click to expand vertical capsule menu
         document.querySelectorAll('.desktop-slot').forEach(slot => slot.classList.add('show-grid'));
         document.querySelectorAll('.app-item').forEach(app => app.classList.add('jiggling'));
     }
@@ -3446,11 +3760,11 @@
         editPlus.style.display = 'none';
         editDone.style.display = 'none';
         
-        // 隐藏桌面格子并停止抖动
+            // show three-dots button; click to expand vertical capsule menu
         document.querySelectorAll('.desktop-slot').forEach(slot => slot.classList.remove('show-grid'));
         document.querySelectorAll('.app-item').forEach(app => app.classList.remove('jiggling'));
         
-        // 退出编辑模式时保存布局到 IndexedDB
+            // show three-dots button; click to expand vertical capsule menu
         saveLayout();
     }
 
@@ -3477,15 +3791,15 @@
 
             dragGhost = app.cloneNode(true);
             dragGhost.style.position = 'fixed';
-            dragGhost.style.left = rect.left + 'px';
-            dragGhost.style.top = rect.top + 'px';
+            dragGhost.style.left = '0px';
+            dragGhost.style.top = '0px';
             dragGhost.style.width = rect.width + 'px';
             dragGhost.style.height = rect.height + 'px';
             dragGhost.style.opacity = '0.8';
             dragGhost.style.pointerEvents = 'none';
             dragGhost.style.zIndex = '1000';
-            dragGhost.style.transform = 'scale(1.15)';
-            dragGhost.style.transition = 'transform 0.1s';
+            dragGhost.style.transform = `translate3d(${rect.left}px, ${rect.top}px, 0) scale(1.15)`;
+            dragGhost.style.willChange = 'transform';
             dragGhost.classList.remove('jiggling');
             document.body.appendChild(dragGhost);
 
@@ -3502,8 +3816,7 @@
         } else {
             if (!dragGhost) return;
             e.preventDefault();
-            dragGhost.style.left = (e.clientX - offsetX) + 'px';
-            dragGhost.style.top = (e.clientY - offsetY) + 'px';
+            dragGhost.style.transform = `translate3d(${e.clientX - offsetX}px, ${e.clientY - offsetY}px, 0) scale(1.15)`;
         }
     });
 
@@ -3513,7 +3826,7 @@
             pressTimer = null;
         }
 
-        // 处理非编辑模式下的点击事件 (打开APP)
+            // show three-dots button; click to expand vertical capsule menu
         if (!isEditMode && !dragGhost) {
             const app = e.target.closest('.app-item');
             if (app) {
@@ -3570,14 +3883,14 @@
         }
     });
 
-    // --- 主题 APP 交互逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
     const themeAppUI = document.getElementById('themeAppUI');
     const themeAppGrid = document.getElementById('themeAppGrid');
     let currentEditingApps = [];
 
     function openThemeApp() {
         themeAppUI.style.display = 'flex';
-        // 延迟一点添加 show 类，以触发 CSS 过渡动画
+            // show three-dots button; click to expand vertical capsule menu
         setTimeout(() => {
             themeAppUI.classList.add('show');
         }, 10);
@@ -3595,7 +3908,7 @@
         themeAppGrid.innerHTML = '';
         currentEditingApps = [];
         
-        // 收集桌面上所有的 APP (排除预设详情页里的预览APP)
+            // show three-dots button; click to expand vertical capsule menu
         const allApps = document.querySelectorAll('#desktopGrid .app-item, #dock .app-item');
         allApps.forEach((appEl, index) => {
             const nameEl = appEl.querySelector('.app-name');
@@ -3605,7 +3918,7 @@
             const appName = nameEl.innerText;
             const appIcon = iconEl.style.backgroundImage;
             
-            // 保存引用以便后续更新
+            // show three-dots button; click to expand vertical capsule menu
             currentEditingApps.push({
                 element: appEl,
                 originalName: appName,
@@ -3625,7 +3938,7 @@
         const themeSvg = `<svg class="theme-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>`;
         const resetSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`;
 
-        // 将双引号替换为单引号，防止截断 style 属性
+            // show three-dots button; click to expand vertical capsule menu
         const safeIcon = icon ? icon.replace(/"/g, "'") : '';
         const iconStyle = safeIcon && safeIcon !== 'none' ? `background-image: ${safeIcon}; background-color: transparent;` : '';
 
@@ -3643,7 +3956,7 @@
         themeAppGrid.appendChild(card);
     }
 
-    // --- 图标菜单逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
     let currentIconIndex = null;
 
     function openIconMenu(event, index) {
@@ -3653,18 +3966,18 @@
         
         overlay.style.display = 'block';
         
-        // 计算菜单位置，使其出现在点击的图标附近
+            // show three-dots button; click to expand vertical capsule menu
         const rect = event.target.getBoundingClientRect();
-        // 将 top 的位置往上移，原来是 rect.bottom + 10，现在改为 rect.bottom - 15 (整体上移 25px)
+            // show three-dots button; click to expand vertical capsule menu
         let top = rect.bottom - 15;
         let left = rect.left;
         
-        // 防止菜单超出屏幕右侧和底部 (适配 240px 宽度的完美复刻版)
+            // show three-dots button; click to expand vertical capsule menu
         if (left + 240 > window.innerWidth) {
             left = window.innerWidth - 250;
         }
         if (top + 130 > window.innerHeight) {
-            // 如果底部超出，向上弹出的位置也稍微往下调一点点，保持比例
+            // show three-dots button; click to expand vertical capsule menu
             top = rect.top - 120;
         }
         
@@ -3727,7 +4040,7 @@
     function applyIconToApp(url) {
         if (currentIconIndex === null) return;
         
-        // 如果当前操作的是 Apple ID 头像
+            // show three-dots button; click to expand vertical capsule menu
         if (currentIconIndex === 'appleIdAvatar') {
             const appleIdAvatar = document.getElementById('appleIdAvatarPreview');
             const settingsAvatar = document.getElementById('settingsAvatarPreview');
@@ -3748,7 +4061,7 @@
             return;
         }
 
-        // 原有的主题 APP 图标替换逻辑
+            // show three-dots button; click to expand vertical capsule menu
         const iconElement = document.getElementById(`theme-icon-${currentIconIndex}`);
         iconElement.style.backgroundImage = `url('${url}')`;
         iconElement.style.backgroundColor = 'transparent';
@@ -3763,7 +4076,7 @@
         const appData = currentEditingApps[index];
         appData.currentName = appData.originalName;
         
-        // 定义默认图标映射表
+            // show three-dots button; click to expand vertical capsule menu
         const iconMap = {
             '设置': "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')",
             'wechat': "url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png')",
@@ -3777,12 +4090,12 @@
         const defaultIcon = iconMap[appData.originalName];
 
         if (defaultIcon) {
-            // 如果在映射表里找到了默认图标，就恢复为默认图标
+            // show three-dots button; click to expand vertical capsule menu
             appData.currentIcon = defaultIcon;
             document.getElementById(`theme-icon-${index}`).style.backgroundImage = defaultIcon;
             document.getElementById(`theme-icon-${index}`).style.backgroundColor = 'transparent';
         } else {
-            // 如果没有默认图标，才清空变成灰色方块
+            // show three-dots button; click to expand vertical capsule menu
             appData.currentIcon = '';
             document.getElementById(`theme-icon-${index}`).style.backgroundImage = 'none';
             document.getElementById(`theme-icon-${index}`).style.backgroundColor = '#e5e5ea';
@@ -3792,7 +4105,7 @@
     }
 
     function saveThemeChanges() {
-        // 将修改应用到真实的桌面 DOM 上
+            // show three-dots button; click to expand vertical capsule menu
         currentEditingApps.forEach(appData => {
             const nameEl = appData.element.querySelector('.app-name');
             const iconEl = appData.element.querySelector('.app-icon');
@@ -3811,19 +4124,19 @@
             }
         });
         
-        // 保存到 IndexedDB
+            // show three-dots button; click to expand vertical capsule menu
         saveLayout();
         
-        // 关闭 UI
+            // show three-dots button; click to expand vertical capsule menu
         closeThemeApp();
     }
 
-    // --- 顶栏 Tab 切换逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
     let currentActiveTab = 'theme'; // 记录当前所在的 Tab
 
     function switchThemeTab(tabName, element) {
         currentActiveTab = tabName;
-        // 更新 Tab 激活状态
+            // show three-dots button; click to expand vertical capsule menu
         const tabs = document.querySelectorAll('#themeTopTabs .theme-tab-item');
         tabs.forEach(tab => tab.classList.remove('active'));
         element.classList.add('active');
@@ -3835,12 +4148,12 @@
         const topBarTitle = document.getElementById('topBarTitle');
         const topRightBtn = document.getElementById('topRightBtn');
 
-        // 退出预设编辑模式
+            // show three-dots button; click to expand vertical capsule menu
         if (isPresetEditMode) togglePresetEditMode();
-        // 退出字体编辑模式
+            // show three-dots button; click to expand vertical capsule menu
         if (isFontEditMode) toggleFontEditMode();
 
-        // 统一关闭下拉菜单并重置图标
+            // show three-dots button; click to expand vertical capsule menu
         document.getElementById('themeDropdownMenu').classList.remove('show');
         if (document.getElementById('menuIconList')) {
             document.getElementById('menuIconList').style.display = 'block';
@@ -3856,6 +4169,7 @@
             wallpaperGrid.style.display = 'none';
             presetGrid.style.display = 'none';
             if(fontGrid) fontGrid.style.display = 'none';
+            hideWidgetChrome();
         } else if (tabName === 'wallpaper') {
             topBarTitle.innerText = 'Wallpapers';
             topRightBtn.style.display = 'none'; // 壁纸页不需要右上角按钮
@@ -3864,6 +4178,7 @@
             wallpaperGrid.style.display = 'flex';
             presetGrid.style.display = 'none';
             if(fontGrid) fontGrid.style.display = 'none';
+            hideWidgetChrome();
             renderWallpapers();
             
             const now = new Date();
@@ -3876,6 +4191,7 @@
             wallpaperGrid.style.display = 'none';
             presetGrid.style.display = 'flex';
             if(fontGrid) fontGrid.style.display = 'none';
+            hideWidgetChrome();
             renderPresets();
         } else if (tabName === 'font') {
             topBarTitle.innerText = 'Fonts';
@@ -3886,10 +4202,28 @@
             wallpaperGrid.style.display = 'none';
             presetGrid.style.display = 'none';
             if(fontGrid) fontGrid.style.display = 'flex';
+            hideWidgetChrome();
+        } else if (tabName === 'widget') {
+            topBarTitle.innerText = "Widgets";
+            topRightBtn.style.display = "none";
+            document.getElementById("widgetDoneBtn").style.display = "none";
+            // show three-dots button; click to expand vertical capsule menu
+            const mb = document.getElementById("themeMenuBtn"); if (mb) mb.style.display = "flex";
+            const di = document.getElementById("menuIconDots"); if (di) di.style.display = "block";
+            const vb = document.getElementById('widgetViewBtn'); if (vb) vb.style.display = 'flex';
+            const li = document.getElementById("menuIconList"); if (li) li.style.display = "none";
+            const ch = document.getElementById("menuIconChevron"); if (ch) ch.style.display = "none";
+            const wgc = document.getElementById("widgetToolbarMenu"); if (wgc) { wgc.style.display = "flex"; wgc.classList.remove("show"); }
+            themeGrid.style.display = "none";
+            wallpaperGrid.style.display = "none";
+            presetGrid.style.display = "none";
+            if(fontGrid) fontGrid.style.display = "none";
+            document.getElementById("widgetAppGrid").style.display = "flex";
+            if (typeof renderWidgetViews === "function") renderWidgetViews();
         }
     }
 
-    // --- 壁纸库逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
     let wallpapers = [
         { id: 'add', isAdd: true }
     ];
@@ -3952,15 +4286,15 @@
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // 设定适合手机屏幕的高清物理分辨率上限 (参考 iPhone 14 Pro)
-                    // 既保证 Retina 屏幕绝对清晰，又避免超大 Base64 触发浏览器强制降级变糊
+            // show three-dots button; click to expand vertical capsule menu
+            // show three-dots button; click to expand vertical capsule menu
                     const MAX_WIDTH = 1170;
                     const MAX_HEIGHT = 2532;
                     
                     let width = img.width;
                     let height = img.height;
                     
-                    // 如果图片超大，则按比例缩放
+            // show three-dots button; click to expand vertical capsule menu
                     if (width > MAX_WIDTH || height > MAX_HEIGHT) {
                         const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
                         width = Math.round(width * ratio);
@@ -3971,7 +4305,7 @@
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    // 导出为高质量 JPEG，大幅减小 Base64 体积
+            // show three-dots button; click to expand vertical capsule menu
                     const base64Url = canvas.toDataURL('image/jpeg', 0.95);
                     
                     const newWallpaper = {
@@ -4001,7 +4335,7 @@
         
         overlay.style.display = 'block';
         
-        // 获取点击按钮的位置
+            // show three-dots button; click to expand vertical capsule menu
         const rect = event.target.closest('.add-btn').getBoundingClientRect();
         let top = rect.bottom + 10;
         let left = rect.left - 100; // 稍微往左偏移一点，避免超出屏幕
@@ -4041,7 +4375,7 @@
                 const wpToDelete = wallpapers.find(wp => wp.id === id);
                 wallpapers = wallpapers.filter(wp => wp.id !== id);
                 
-                // 如果删除的是当前正在使用的壁纸，恢复默认背景
+            // show three-dots button; click to expand vertical capsule menu
                 if (wpToDelete && currentWallpaperSrc === wpToDelete.src) {
                     applyWallpaperToDesktop(null);
                 }
@@ -4058,26 +4392,34 @@
         saveWallpaperData();
     }
 
+    let paginationRafId = null;
     function updatePagination() {
-        const carouselScroll = document.getElementById('carouselScroll');
-        const pagination = document.getElementById('pagination');
-        if (!carouselScroll || !pagination) return;
-
-        const scrollLeft = carouselScroll.scrollLeft;
-        const cardWidth = carouselScroll.clientWidth;
-        const currentIndex = Math.round(scrollLeft / cardWidth);
-        
-        const dots = pagination.querySelectorAll('.dot');
-        dots.forEach((dot, index) => {
-            if (index === currentIndex) {
-                dot.classList.add('active');
-            } else {
-                dot.classList.remove('active');
+        if (paginationRafId) return;
+        paginationRafId = requestAnimationFrame(() => {
+            const carouselScroll = document.getElementById('carouselScroll');
+            const pagination = document.getElementById('pagination');
+            if (!carouselScroll || !pagination) {
+                paginationRafId = null;
+                return;
             }
+
+            const scrollLeft = carouselScroll.scrollLeft;
+            const cardWidth = carouselScroll.clientWidth;
+            const currentIndex = Math.round(scrollLeft / cardWidth);
+            
+            const dots = pagination.querySelectorAll('.dot');
+            dots.forEach((dot, index) => {
+                if (index === currentIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+            paginationRafId = null;
         });
     }
 
-    // --- 预设库逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
     let presets = [];
     let isPresetEditMode = false;
     let selectedPresets = new Set();
@@ -4091,7 +4433,7 @@
         if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
     }
 
-    // 处理右上角按钮点击
+            // show three-dots button; click to expand vertical capsule menu
     function handleTopRightBtn() {
         if (currentActiveTab === 'theme') {
             saveThemeChanges(); // 在 Icons 页面，执行保存
@@ -4102,7 +4444,7 @@
         }
     }
 
-    // 切换下拉菜单显示
+            // show three-dots button; click to expand vertical capsule menu
     function toggleThemeMenu() {
         const menu = document.getElementById('themeDropdownMenu');
         const isShowing = menu.classList.toggle('show');
@@ -4120,7 +4462,7 @@
         }
     }
 
-    // 切换预设编辑模式
+            // show three-dots button; click to expand vertical capsule menu
     function togglePresetEditMode() {
         isPresetEditMode = !isPresetEditMode;
         selectedPresets.clear(); // 清空选中状态
@@ -4144,10 +4486,10 @@
         renderPresets();
     }
 
-    // 处理底部按钮点击
+            // show three-dots button; click to expand vertical capsule menu
     function handlePresetAction() {
         if (isPresetEditMode) {
-            // 执行多选删除
+            // show three-dots button; click to expand vertical capsule menu
             if (selectedPresets.size === 0) return;
             showCustomConfirm('删除预设', `确定要删除选中的 ${selectedPresets.size} 个预设吗？`, '删除', true).then(confirmed => {
                 if (confirmed) {
@@ -4157,15 +4499,15 @@
                 }
             });
         } else {
-            // 打开输入名称的弹窗
+            // show three-dots button; click to expand vertical capsule menu
             openPresetModal();
         }
     }
 
     function calculatePresetSize(preset) {
-        // 直接将预设数据转换为 JSON 字符串，计算其真实字符长度
-        // 因为 Base64 和 JSON 结构主要由 ASCII 字符组成，1 字符 ≈ 1 字节
-        // 这样计算出来的大小与最终导出的 .json 文件大小几乎完全一致
+            // show three-dots button; click to expand vertical capsule menu
+            // show three-dots button; click to expand vertical capsule menu
+            // show three-dots button; click to expand vertical capsule menu
         const jsonString = JSON.stringify(preset);
         const totalBytes = jsonString.length;
         const sizeMB = totalBytes / (1024 * 1024);
@@ -4190,7 +4532,7 @@
             
             card.onclick = () => {
                 if (isPresetEditMode) {
-                    // 编辑模式下：选中/取消选中
+            // show three-dots button; click to expand vertical capsule menu
                     if (selectedPresets.has(preset.id)) {
                         selectedPresets.delete(preset.id);
                         card.classList.remove('selected');
@@ -4198,20 +4540,25 @@
                         selectedPresets.add(preset.id);
                         card.classList.add('selected');
                     }
-                    // 更新底部按钮文字数量
+            // show three-dots button; click to expand vertical capsule menu
                     const actionBtn = document.getElementById('presetActionBtn');
                     actionBtn.innerText = selectedPresets.size > 0 ? `删除所选预设 (${selectedPresets.size})` : '删除所选预设';
                 } else {
-                    // 非编辑模式下：打开详情页
+            // show three-dots button; click to expand vertical capsule menu
                     openPresetDetail(preset.id);
                 }
             };
 
-            const bgStyle = preset.wallpaper ? `background-image: url('${preset.wallpaper}')` : 'background-color: #a0a0a0';
+            const hasWallpaper = !!preset.wallpaper;
+            const bgStyle = hasWallpaper ? `background-image: url('${preset.wallpaper}')` : '';
+            const bgClass = hasWallpaper ? 'preset-bg' : 'preset-bg default-bg';
+            const timeClass = hasWallpaper ? 'preset-lock-time has-bg' : 'preset-lock-time';
+            const timeStr = "09:41"; // 模拟 iOS 经典锁屏时间
 
             card.innerHTML = `
                 <div class="preset-img-wrapper">
-                    <div class="preset-bg" style="${bgStyle}"></div>
+                    <div class="${bgClass}" style="${bgStyle}"></div>
+                    <div class="${timeClass}">${timeStr}</div>
                     <div class="preset-check-circle"></div>
                 </div>
                 <div class="preset-name">${preset.name}</div>
@@ -4232,7 +4579,7 @@
     }
 
     function saveCurrentAsPreset(inputVal) {
-        // 完整保存桌面 28 个格子的布局和图标
+            // show three-dots button; click to expand vertical capsule menu
         const desktopApps = [];
         document.querySelectorAll('#desktopGrid .desktop-slot').forEach((slot, index) => {
             const app = slot.querySelector('.app-item');
@@ -4249,7 +4596,7 @@
             }
         });
 
-        // 完整保存底栏的布局和图标
+            // show three-dots button; click to expand vertical capsule menu
         const dockApps = [];
         document.querySelectorAll('#dock .app-item').forEach((app, index) => {
             const iconEl = app.querySelector('.app-icon');
@@ -4275,7 +4622,7 @@
             dock: dockApps
         };
         
-        // 真实计算大小
+            // show three-dots button; click to expand vertical capsule menu
         newPreset.sizeMB = calculatePresetSize(newPreset);
 
         presets.push(newPreset);
@@ -4299,20 +4646,20 @@
         document.getElementById('detailName').innerText = preset.name;
         document.getElementById('detailDate').innerText = '创建于：' + (preset.date || '未知时间');
         
-        // 智能判断显示 KB 还是 MB
+            // show three-dots button; click to expand vertical capsule menu
         let sizeMB = preset.sizeMB || 15.0;
         let sizeKB = sizeMB * 1024;
         document.getElementById('detailSize').innerText = sizeKB < 1024 ? sizeKB.toFixed(2) + ' KB' : sizeMB.toFixed(2) + ' MB';
         
         const container = document.getElementById('previewScaleContainer');
-        container.style.backgroundImage = preset.wallpaper ? `url('${preset.wallpaper}')` : 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)';
+        container.style.backgroundImage = preset.wallpaper ? `url('${preset.wallpaper}')` : ''; // 清空内联样式，跟随 CSS 深浅色
         
-        // 1:1 渲染桌面网格
+            // show three-dots button; click to expand vertical capsule menu
         let desktopHTML = '<div class="desktop-grid" style="height: calc(100% - 180px);">';
         for (let i = 0; i < 28; i++) {
             const appData = preset.desktop ? preset.desktop.find(d => d.index === i) : null;
             if (appData) {
-                // 将双引号替换为单引号，防止截断 style 属性
+            // show three-dots button; click to expand vertical capsule menu
                 const safeIcon = appData.icon ? appData.icon.replace(/"/g, "'") : '';
                 const iconStyle = safeIcon ? `background-image: ${safeIcon};` : '';
                 const customClass = appData.icon ? 'has-custom-icon' : '';
@@ -4323,11 +4670,11 @@
         }
         desktopHTML += '</div>';
 
-        // 1:1 渲染底栏
+            // show three-dots button; click to expand vertical capsule menu
         let dockHTML = '<div class="dock" style="bottom: 15px;">';
         if (preset.dock) {
             preset.dock.forEach(appData => {
-                // 将双引号替换为单引号，防止截断 style 属性
+            // show three-dots button; click to expand vertical capsule menu
                 const safeIcon = appData.icon ? appData.icon.replace(/"/g, "'") : '';
                 const iconStyle = safeIcon ? `background-image: ${safeIcon};` : '';
                 const customClass = appData.icon ? 'has-custom-icon' : '';
@@ -4366,7 +4713,7 @@
         const detailPage = document.getElementById('presetDetailPage');
         document.getElementById('detailDropdownMenu').classList.remove('show'); // 关闭时隐藏菜单
         
-        // 重置详情页菜单图标
+            // show three-dots button; click to expand vertical capsule menu
         const iconList = document.getElementById('detailMenuIconList');
         const iconChevron = document.getElementById('detailMenuIconChevron');
         if (iconList && iconChevron) {
@@ -4466,7 +4813,7 @@
 
         let tasks = [];
 
-        // 压缩壁纸 (限制最大宽度 1080)
+            // show three-dots button; click to expand vertical capsule menu
         if (preset.wallpaper && preset.wallpaper.startsWith('data:image')) {
             tasks.push(new Promise(resolve => {
                 compressImageBase64(preset.wallpaper, 1080, 0.8, (newBase64) => {
@@ -4476,7 +4823,7 @@
             }));
         }
 
-        // 压缩桌面图标 (限制最大宽度 256)
+            // show three-dots button; click to expand vertical capsule menu
         if (preset.desktop) {
             preset.desktop.forEach(app => {
                 if (app.icon) {
@@ -4493,7 +4840,7 @@
             });
         }
 
-        // 压缩 Dock 图标 (限制最大宽度 256)
+            // show three-dots button; click to expand vertical capsule menu
         if (preset.dock) {
             preset.dock.forEach(app => {
                 if (app.icon) {
@@ -4511,10 +4858,10 @@
         }
 
         Promise.all(tasks).then(() => {
-            // 重新计算真实大小
+            // show three-dots button; click to expand vertical capsule menu
             preset.sizeMB = calculatePresetSize(preset);
             
-            // 智能判断显示 KB 还是 MB
+            // show three-dots button; click to expand vertical capsule menu
             let finalSizeKB = preset.sizeMB * 1024;
             document.getElementById('detailSize').innerText = finalSizeKB < 1024 ? finalSizeKB.toFixed(2) + ' KB' : preset.sizeMB.toFixed(2) + ' MB';
             
@@ -4535,11 +4882,11 @@
         const preset = presets.find(p => p.id === id);
         if (!preset) return;
 
-        // 1. 恢复壁纸
+            // show three-dots button; click to expand vertical capsule menu
         applyWallpaperToDesktop(preset.wallpaper);
         saveWallpaperData();
 
-        // 2. 完整恢复桌面和底栏布局
+            // show three-dots button; click to expand vertical capsule menu
         if (preset.desktop && preset.dock) {
             renderLayout(preset.desktop, preset.dock);
         }
@@ -4648,13 +4995,13 @@
         });
     }
 
-    // --- 字体页面逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
     let customFontCount = 0;
     let isFontEditMode = false;
     let customFonts = []; // 存储字体数据
     let currentSelectedFont = 'default'; // 当前选中的字体
 
-    // 保存字体数据到 IndexedDB
+            // show three-dots button; click to expand vertical capsule menu
     function saveFontData() {
         if (!db) return;
         const transaction = db.transaction([storeName], "readwrite");
@@ -4665,11 +5012,11 @@
         if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
     }
 
-    // 从 IndexedDB 恢复字体
+            // show three-dots button; click to expand vertical capsule menu
     async function restoreFonts() {
         for (const font of customFonts) {
             try {
-                // 更新计数器，防止 ID 冲突
+            // show three-dots button; click to expand vertical capsule menu
                 const num = parseInt(font.id.split('_')[1]);
                 if (num > customFontCount) customFontCount = num;
 
@@ -4678,14 +5025,14 @@
                 const loadedFont = await newFont.load();
                 document.fonts.add(loadedFont);
                 
-                // 仅添加到 UI，不触发保存
+            // show three-dots button; click to expand vertical capsule menu
                 addFontToList(font.name, font.id, true);
             } catch (err) {
                 console.error("恢复字体失败:", font.name, err);
             }
         }
         
-        // 恢复选中状态
+            // show three-dots button; click to expand vertical capsule menu
         const targetItem = document.querySelector(`.font-list-item[data-font="${currentSelectedFont}"]`);
         if (targetItem) {
             selectFont(currentSelectedFont, targetItem, true);
@@ -4694,7 +5041,7 @@
             if (defaultItem) selectFont('default', defaultItem, true);
         }
 
-        // 恢复字体大小
+            // show three-dots button; click to expand vertical capsule menu
         const fontRequest = db.transaction([storeName], "readonly").objectStore(storeName).get("fontData");
         fontRequest.onsuccess = (e) => {
             const fData = e.target.result;
@@ -4730,7 +5077,7 @@
         const size = document.getElementById('fontSizeSlider').value;
         document.getElementById('fontPreviewText').style.fontSize = size + 'px';
 
-        // 计算缩放比例，默认 18px 为 1
+            // show three-dots button; click to expand vertical capsule menu
         const scale = size / 18;
         
         let styleTag = document.getElementById('dynamic-global-font-size');
@@ -4740,7 +5087,7 @@
             document.head.appendChild(styleTag);
         }
         
-        // 针对主要文本元素按比例缩放，实现全局字体大小调节且不破坏 UI 比例
+            // show three-dots button; click to expand vertical capsule menu
         styleTag.innerHTML = `
             .app-name { font-size: ${12 * scale}px !important; }
             .theme-app-name-input { font-size: ${13 * scale}px !important; }
@@ -4833,7 +5180,7 @@
         const isActive = listItem.classList.contains('active');
         listItem.remove();
 
-        // 从数据中移除并保存
+            // show three-dots button; click to expand vertical capsule menu
         customFonts = customFonts.filter(f => f.id !== fontFamily);
         saveFontData();
 
@@ -4858,7 +5205,7 @@
             newFont.load().then(function(loadedFont) {
                 document.fonts.add(loadedFont);
                 
-                // 保存到数组并写入 IndexedDB
+            // show three-dots button; click to expand vertical capsule menu
                 customFonts.push({ id: fontFamily, name: fontName, type: 'local', data: fontData });
                 saveFontData();
                 
@@ -4903,7 +5250,7 @@
         });
     }
 
-    // --- 字体右滑与编辑逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
     let fontTouchStartX = 0;
     let currentFontSwipeItem = null;
     let currentEditFontId = null;
@@ -4980,7 +5327,7 @@
         });
     }
 
-    // --- 设置 APP 交互逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
     function openSettingsApp() {
         const settingsUI = document.getElementById('settingsAppUI');
         settingsUI.style.display = 'flex';
@@ -4997,7 +5344,86 @@
         }, 300);
     }
 
-    // --- Apple ID 页面交互逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
+    function openDisplaySettingsApp() {
+        const displayUI = document.getElementById('displaySettingsUI');
+        displayUI.style.display = 'flex';
+        setTimeout(() => {
+            displayUI.classList.add('show');
+        }, 10);
+            // show three-dots button; click to expand vertical capsule menu
+        const slider = document.getElementById('dsBrightnessSlider');
+        if(slider) updateDsSlider(slider);
+    }
+
+    function closeDisplaySettingsApp() {
+        const displayUI = document.getElementById('displaySettingsUI');
+        displayUI.classList.remove('show');
+        setTimeout(() => {
+            displayUI.style.display = 'none';
+        }, 300);
+    }
+
+    function toggleDsAppearance(mode) {
+        const lightOpt = document.getElementById('dsLightOption');
+        const darkOpt = document.getElementById('dsDarkOption');
+        const iphone = document.querySelector('.iphone');
+
+        if (mode === 'dark') {
+            lightOpt.classList.remove('active');
+            darkOpt.classList.add('active');
+            iphone.classList.add('dark-mode');
+            localStorage.setItem('ios_theme_mode', 'dark');
+        } else {
+            darkOpt.classList.remove('active');
+            lightOpt.classList.add('active');
+            iphone.classList.remove('dark-mode');
+            localStorage.setItem('ios_theme_mode', 'light');
+        }
+        
+            // show three-dots button; click to expand vertical capsule menu
+        const slider = document.getElementById('dsBrightnessSlider');
+        if(slider) updateDsSlider(slider);
+    }
+
+    function updateDsSlider(el) {
+        const percentage = (el.value - el.min) / (el.max - el.min) * 100;
+        const isDark = document.querySelector('.iphone').classList.contains('dark-mode');
+        const trackColor = isDark ? '#39393d' : '#e5e5ea';
+        el.style.background = `linear-gradient(to right, #007aff ${percentage}%, ${trackColor} ${percentage}%)`;
+        
+            // show three-dots button; click to expand vertical capsule menu
+        const overlay = document.getElementById('brightnessOverlay');
+        if (overlay) {
+            const opacity = 0.7 - (percentage / 100) * 0.7; // 最大暗度为 0.7
+            overlay.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
+        }
+
+            // show three-dots button; click to expand vertical capsule menu
+        localStorage.setItem('ios_brightness', el.value);
+    }
+
+            // show three-dots button; click to expand vertical capsule menu
+    (function initThemeAndBrightness() {
+        const savedTheme = localStorage.getItem('ios_theme_mode');
+        if (savedTheme === 'dark') {
+            toggleDsAppearance('dark');
+        }
+
+            // show three-dots button; click to expand vertical capsule menu
+        const savedBrightness = localStorage.getItem('ios_brightness');
+        const slider = document.getElementById('dsBrightnessSlider');
+        if (slider) {
+            if (savedBrightness !== null) {
+                slider.value = savedBrightness;
+            } else {
+                slider.value = 100; // 默认最亮
+            }
+            updateDsSlider(slider);
+        }
+    })();
+
+            // show three-dots button; click to expand vertical capsule menu
     function openAppleIdApp() {
         const appleIdUI = document.getElementById('appleIdUI');
         appleIdUI.style.display = 'flex';
@@ -5014,7 +5440,7 @@
         }, 300);
     }
 
-    // --- API 连接页面交互逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
     let apiDataList = [];
     let apiConnectedId = null;
     let apiEditingId = null;
@@ -5042,7 +5468,7 @@
             showToast('正在拉取模型...');
             const baseUrl = urlInput.endsWith('/') ? urlInput.slice(0, -1) : urlInput;
             
-            // 真实发起网络请求拉取模型列表
+            // show three-dots button; click to expand vertical capsule menu
             const response = await fetch(`${baseUrl}/models`, {
                 method: 'GET',
                 headers: {
@@ -5105,7 +5531,7 @@
         renderApiList();
         closeApiAddPage();
 
-        // 清空输入框
+            // show three-dots button; click to expand vertical capsule menu
         document.getElementById('api-add-name').value = '';
         document.getElementById('api-add-url').value = '';
         document.getElementById('api-add-key').value = '';
@@ -5204,7 +5630,7 @@
         document.getElementById('api-edit-url').value = api.url;
         document.getElementById('api-edit-key').value = api.key;
         
-        // 恢复模型下拉框
+            // show three-dots button; click to expand vertical capsule menu
         const selectEl = document.getElementById('api-edit-model');
         selectEl.innerHTML = `<option value="${api.model}" selected>${api.model || '未选择模型'}</option>`;
         
@@ -5245,7 +5671,7 @@
         document.getElementById('api-page-main').classList.add('active');
     }
 
-    // --- 全局搜索抽屉逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
     const searchableItems = [
         { name: '设置', desc: '系统设置、网络、通用', iconBg: '#8e8e93', actionKey: 'settings' },
         { name: '主题', desc: '壁纸、图标、字体、预设', iconBg: '#ff9500', actionKey: 'theme' },
@@ -5323,7 +5749,7 @@
         }, 300); // 等待抽屉收起动画完成后再打开对应页面
     }
 
-    // --- iCloud 页面交互逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
     function openIcloudApp() {
         const icloudUI = document.getElementById('icloudAppUI');
         icloudUI.style.display = 'flex';
@@ -5338,7 +5764,7 @@
         icloudUI.classList.remove('show');
         setTimeout(() => {
             icloudUI.style.display = 'none';
-            // 退出时重置内部页面状态，确保下次打开是主页
+            // show three-dots button; click to expand vertical capsule menu
             closeIcStoragePage();
             if (typeof closeLocalDrivePage === 'function') closeLocalDrivePage();
         }, 300);
@@ -5358,9 +5784,9 @@
         document.getElementById('ic-main-page').classList.add('active');
     }
 
-    // --- 真实储存与持久化逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
     async function updateRealStorage() {
-        // 1. 计算真实储存空间占比 (仅保留主进度条动画，文本由真实数据接管)
+            // show three-dots button; click to expand vertical capsule menu
         if (navigator.storage && navigator.storage.estimate) {
             try {
                 const estimate = await navigator.storage.estimate();
@@ -5374,7 +5800,7 @@
             }
         }
         
-        // 2. 检测持久化状态
+            // show three-dots button; click to expand vertical capsule menu
         if (navigator.storage && navigator.storage.persisted) {
             const isPersisted = await navigator.storage.persisted();
             const persistStatusEl = document.getElementById('ic-persist-status');
@@ -5384,7 +5810,7 @@
             }
         }
 
-        // 3. 计算各个 APP 的真实占用
+            // show three-dots button; click to expand vertical capsule menu
         const getStoreSize = (key) => {
             return new Promise((resolve) => {
                 if (!db) { resolve(0); return; }
@@ -5409,7 +5835,7 @@
             return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
         };
 
-        // 获取各项真实数据大小
+            // show three-dots button; click to expand vertical capsule menu
         const wallpaperSize = await getStoreSize("wallpaperData");
         const presetSize = await getStoreSize("presetData");
         const layoutSize = await getStoreSize("currentLayout");
@@ -5417,7 +5843,7 @@
         const profileSize = await getStoreSize("profileData");
         const apiSize = await getStoreSize("apiData");
 
-        // 将数据归类
+            // show three-dots button; click to expand vertical capsule menu
         const photoSize = wallpaperSize; // 壁纸归为照片
         const appsSize = presetSize + layoutSize; // 预设和桌面布局归为应用程序
         const chatSize = 0; // 聊天数据暂无，显示0
@@ -5429,7 +5855,7 @@
         const totalBytes = photoSize + appsSize + chatSize + systemSize;
         const totalMB = totalBytes === 0 ? '0.00 MB' : (totalBytes / (1024 * 1024)).toFixed(2) + ' MB';
 
-        // 智能格式化大小 (小于1MB显示KB，否则显示MB)
+            // show three-dots button; click to expand vertical capsule menu
         const formatSizeStr = (bytes) => {
             if (bytes === 0) return '0 MB';
             if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
@@ -5440,14 +5866,14 @@
         const settingsMB = formatMB(settingsSize);
         const zeroMB = '0 MB';
 
-        // 更新主页和详情页的总占用文本 (只显示总占用，不显示总内存)
+            // show three-dots button; click to expand vertical capsule menu
         const mainSizeEl = document.getElementById('ic-main-size');
         if(mainSizeEl) mainSizeEl.innerHTML = `${totalMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
         
         const detailSizeEl = document.getElementById('ic-detail-size');
         if(detailSizeEl) detailSizeEl.innerText = `已使用 ${totalMB}`;
 
-        // 更新分类图例真实数据
+            // show three-dots button; click to expand vertical capsule menu
         const legendPhoto = document.getElementById('ic-legend-photo');
         if(legendPhoto) legendPhoto.innerText = `照片 ${formatSizeStr(photoSize)}`;
         
@@ -5460,7 +5886,7 @@
         const legendSystem = document.getElementById('ic-legend-system');
         if(legendSystem) legendSystem.innerText = `系统数据 ${formatSizeStr(systemSize)}`;
 
-        // 动态分配多色进度条比例 (根据真实数据计算百分比)
+            // show three-dots button; click to expand vertical capsule menu
         const getPercent = (part, total) => total === 0 ? 0 : (part / total * 100).toFixed(1);
         
         const segRed = document.getElementById('ic-seg-red');
@@ -5473,7 +5899,7 @@
         if(segGray) segGray.style.width = `${getPercent(chatSize, totalBytes)}%`;
         if(segLight) segLight.style.width = `${getPercent(systemSize, totalBytes)}%`;
 
-        // 更新“已存至云端”卡片
+            // show three-dots button; click to expand vertical capsule menu
         const cloudTheme = document.getElementById('ic-cloud-theme-size');
         if (cloudTheme) cloudTheme.innerText = themeMB;
         
@@ -5486,7 +5912,7 @@
         const cloudContacts = document.getElementById('ic-cloud-contacts-size');
         if (cloudContacts) cloudContacts.innerText = zeroMB;
 
-        // 更新详情页列表
+            // show three-dots button; click to expand vertical capsule menu
         const detailSettings = document.getElementById('ic-detail-settings-size');
         if (detailSettings) detailSettings.innerHTML = `${settingsMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
 
@@ -5528,9 +5954,9 @@
         }
     }
 
-    // --- 新增：数据管理功能核心逻辑 ---
+            // show three-dots button; click to expand vertical capsule menu
 
-    // 辅助函数：获取数据库中所有数据
+            // show three-dots button; click to expand vertical capsule menu
     async function getAllDataFromDB() {
         return new Promise((resolve) => {
             if (!db) return resolve({});
@@ -5548,7 +5974,7 @@
         });
     }
 
-    // 1. 数据备份 (导出 JSON)
+            // show three-dots button; click to expand vertical capsule menu
     async function exportAllDataJson() {
         const fileName = await showCustomPrompt('导出 JSON 备份', { placeholder: '输入文件名', value: `童话机` }, '导出');
         if (!fileName) return;
@@ -5568,7 +5994,7 @@
         showToast("导出 JSON 成功");
     }
 
-    // 2. 恢复数据 (导入 JSON 或 ZIP)
+            // show three-dots button; click to expand vertical capsule menu
     function importAllDataJson() {
         document.getElementById('importAllDataInput').click();
     }
@@ -5605,10 +6031,10 @@
         reader.onload = async function(e) {
             try {
                 const zip = await JSZip.loadAsync(e.target.result);
-                // 优先寻找 backup_data.json
+            // show three-dots button; click to expand vertical capsule menu
                 let jsonFile = zip.file("backup_data.json");
                 
-                // 如果没找到，尝试寻找压缩包内的任意 .json 文件
+            // show three-dots button; click to expand vertical capsule menu
                 if (!jsonFile) {
                     const files = Object.keys(zip.files).filter(name => name.endsWith('.json'));
                     if (files.length > 0) {
@@ -5637,7 +6063,7 @@
             const transaction = db.transaction([storeName], "readwrite");
             const store = transaction.objectStore(storeName);
             
-            // 导入前，先保留当前的 localDriveSettings 状态
+            // show three-dots button; click to expand vertical capsule menu
             const currentSettings = {
                 handle: localDriveHandle,
                 mode: localDriveMode,
@@ -5652,14 +6078,14 @@
                 scheduledTime: document.getElementById('backupScheduledTime').value
             };
 
-            // 遍历并覆盖写入数据
+            // show three-dots button; click to expand vertical capsule menu
             Object.values(data).forEach(record => {
-                // 跳过 localDriveSettings，不覆盖本地硬盘的备份设置
+            // show three-dots button; click to expand vertical capsule menu
                 if (record.id === 'localDriveSettings') return;
                 store.put(record);
             });
             
-            // 将当前的设置写回，确保不被旧数据覆盖
+            // show three-dots button; click to expand vertical capsule menu
             store.put({
                 id: "localDriveSettings",
                 ...currentSettings
@@ -5674,7 +6100,7 @@
         }
     }
 
-    // 3. zip备份 (动态加载 JSZip 并导出)
+            // show three-dots button; click to expand vertical capsule menu
     async function exportAllDataZip() {
         const fileName = await showCustomPrompt('导出 ZIP 备份', { placeholder: '输入文件名', value: `童话机` }, '导出');
         if (!fileName) return;
@@ -5712,7 +6138,7 @@
         }
     }
 
-    // 4. 本地硬盘 (File System Access API 双模式与自动备份)
+            // show three-dots button; click to expand vertical capsule menu
     let localDriveHandle = null;
     let localDriveMode = null; // 'folder' 或 'file'
     let localDriveFileName = '童话机备份.json';
@@ -5772,19 +6198,19 @@
             return;
         }
         try {
-            // 1. 直接调用原生 API 让用户选择目标文件夹（去除了多余的创建子文件夹弹窗，防止双重创建）
+            // show three-dots button; click to expand vertical capsule menu
             const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
             
             localDriveHandle = dirHandle;
             localDriveMode = 'folder';
             
-            // 2. 询问要保存的文件名
+            // show three-dots button; click to expand vertical capsule menu
             const fileName = await showCustomPrompt('设置备份文件名', { placeholder: '输入文件名', value: `童话机备份.json` }, '确定');
             if (fileName) {
                 localDriveFileName = fileName.endsWith('.json') ? fileName : fileName + '.json';
             }
             
-            // 3. 更新 UI 显示
+            // show three-dots button; click to expand vertical capsule menu
             document.getElementById('ld-current-mode').innerText = '文件夹模式';
             document.getElementById('ld-target-name').innerText = dirHandle.name; // 仅显示文件夹名
             document.getElementById('ld-file-name').innerText = localDriveFileName; // 显示文件名
@@ -5831,14 +6257,14 @@
         }
         
         try {
-            // 拦截失效的 Handle 对象
+            // show three-dots button; click to expand vertical capsule menu
             if (typeof localDriveHandle.queryPermission !== 'function') {
                 if (isAuto) return;
                 showCustomAlert("提示", "授权已失效，请重新点击【文件夹模式】或【单文件模式】选择路径。");
                 return;
             }
 
-            // 优化权限检查：仅在没有权限时才请求，避免每次都弹窗
+            // show three-dots button; click to expand vertical capsule menu
             const permission = await localDriveHandle.queryPermission({ mode: 'readwrite' });
             if (permission !== 'granted') {
                 if (isAuto) {
@@ -5865,7 +6291,7 @@
             await writable.write(jsonString);
             await writable.close();
 
-            // 更新 UI
+            // show three-dots button; click to expand vertical capsule menu
             const now = new Date();
             const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
             const sizeMB = (jsonString.length / (1024 * 1024)).toFixed(2);
@@ -5884,7 +6310,7 @@
     let backupModeType = 'action'; // 'action', 'interval', 'scheduled'
 
     function triggerAutoLocalBackup() {
-        // 只有开启了自动备份，且模式为“每次修改时(action)”才触发
+            // show three-dots button; click to expand vertical capsule menu
         if (localDriveHandle && localDriveMode && autoBackupEnabled && backupModeType === 'action') {
             performLocalBackup(true);
         }
@@ -5909,7 +6335,7 @@
         const mode = document.getElementById('autoBackupMode').value;
         backupModeType = mode;
         
-        // 动态显示/隐藏对应的设置行
+            // show three-dots button; click to expand vertical capsule menu
         document.getElementById('intervalSettingsRow').style.display = mode === 'interval' ? 'flex' : 'none';
         document.getElementById('scheduledSettingsRow').style.display = mode === 'scheduled' ? 'flex' : 'none';
         
@@ -5974,13 +6400,13 @@
             return;
         }
         try {
-            // 拦截失效的 Handle 对象
+            // show three-dots button; click to expand vertical capsule menu
             if (typeof localDriveHandle.queryPermission !== 'function') {
                 showCustomAlert("提示", "文件夹授权已失效，请重新点击【文件夹模式】选择目标文件夹。");
                 return;
             }
 
-            // 检查读取权限
+            // show three-dots button; click to expand vertical capsule menu
             if (await localDriveHandle.queryPermission({ mode: 'read' }) !== 'granted') {
                 if (await localDriveHandle.requestPermission({ mode: 'read' }) !== 'granted') {
                     showCustomAlert("提示", "未获得读取权限。");
@@ -5991,7 +6417,7 @@
             let newestFileHandle = null;
             let newestTime = 0;
 
-            // 遍历文件夹寻找最新的 .json 文件
+            // show three-dots button; click to expand vertical capsule menu
             for await (const entry of localDriveHandle.values()) {
                 if (entry.kind === 'file' && entry.name.endsWith('.json')) {
                     const file = await entry.getFile();
@@ -6014,7 +6440,7 @@
             const file = await newestFileHandle.getFile();
             const text = await file.text();
             
-            // 复用你之前写好的 JSON 导入恢复逻辑
+            // show three-dots button; click to expand vertical capsule menu
             processJsonImport(text);
 
         } catch (err) {
@@ -6040,6 +6466,314 @@
             }
         });
     }
+            // show three-dots button; click to expand vertical capsule menu
+    (function () {
+        const widgetTrack = document.getElementById('widgetTrack');
+        const widgetPagination = document.getElementById('widgetPagination');
+        const widgetListContainer = document.getElementById('widgetList');
+        const widgetEmptyState = document.getElementById('widgetEmptyState');
+        const widgetContentArea = document.getElementById('widgetContentArea');
+        const widgetSegmentBtns = document.querySelectorAll('#widgetAppGrid .widget-segment-btn');
+        const widgetIndicator = document.getElementById('widgetSegmentIndicator');
+        const widgetAppGrid = document.getElementById('widgetAppGrid');
+        const themeAppUI = document.getElementById('themeAppUI');
+
+        const officialWidgets = [];
+        const customWidgets = [];
+        let currentWidgets = officialWidgets;
+
+        let widgetViewMode = 'carousel';     // 'carousel' | 'list'
+        let isWidgetEditing = false;
+        let currentProgress = 0, targetProgress = 0;
+        let isDragging = false, startX = 0, startProgress = 0;
+        let activeWidgetIndex = -1;
+
+            // show three-dots button; click to expand vertical capsule menu
+        window.renderWidgetViews = renderWidgetViews;
+
+        function hideWidgetChrome() {
+            const wg = document.getElementById('widgetAppGrid'); if (wg) wg.style.display = 'none';
+            const vb = document.getElementById('widgetViewBtn'); if (vb) vb.style.display = 'none';
+            const wgc = document.getElementById('widgetToolbarMenu'); if (wgc) wgc.style.display = 'none';
+            const dots = document.getElementById('menuIconDots'); if (dots) dots.style.display = 'none';
+            const list = document.getElementById('menuIconList'); if (list) list.style.display = 'block';
+            exitWidgetEditMode(true);
+        }
+        window.hideWidgetChrome = hideWidgetChrome;
+
+        function closeWidgetMenus() {
+            const dd = document.getElementById('themeDropdownMenu'); if (dd) dd.classList.remove('show');
+            const tbm = document.getElementById('widgetToolbarMenu'); if (tbm) tbm.classList.remove('show');
+            const cm = document.getElementById('widgetContextMenu'); if (cm) cm.classList.remove('show');
+            const dots = document.getElementById('menuIconDots'); if (dots) dots.style.display = 'block';
+            const chev = document.getElementById('menuIconChevron'); if (chev) chev.style.display = 'none';
+            const overlay = document.getElementById('widgetOverlay');
+            const editor = document.getElementById('widgetEditorModal');
+            if (editor && editor.classList.contains('show')) {
+                if (overlay) overlay.style.zIndex = '250';
+            } else if (overlay) {
+                overlay.style.display = 'none';
+                overlay.style.zIndex = '105';
+            }
+        }
+        window.closeWidgetMenus = closeWidgetMenus;
+
+            // show three-dots button; click to expand vertical capsule menu
+        const originalToggleThemeMenu = window.toggleThemeMenu;
+        window.toggleThemeMenu = function () {
+            if (currentActiveTab === "widget") {
+                const m = document.getElementById("widgetToolbarMenu");
+                const ov = document.getElementById("widgetOverlay");
+                if (!m.classList.contains("show")) {
+                    m.classList.add("show");
+                    if (ov) { ov.style.display = "block"; ov.style.zIndex = "240"; }
+                    const d = document.getElementById("menuIconDots"); if (d) d.style.display = "none";
+                    const c = document.getElementById("menuIconChevron"); if (c) c.style.display = "block";
+                } else {
+                    closeWidgetMenus();
+                }
+                return;
+            } else if (typeof originalToggleThemeMenu === "function") { originalToggleThemeMenu(); }
+        };
+
+        function openWidgetContextMenu(index, event) {
+            event.stopPropagation(); activeWidgetIndex = index;
+            const menu = document.getElementById('widgetContextMenu');
+            const overlay = document.getElementById('widgetOverlay');
+            const rect = event.currentTarget.getBoundingClientRect();
+            const hostRect = (themeAppUI || document.body).getBoundingClientRect();
+            let top = rect.bottom - hostRect.top + 10;
+            let left = rect.right - hostRect.left - 140;
+            if (top + 200 > hostRect.height) top = rect.top - hostRect.top - 190;
+            if (left < 16) left = 16;
+            menu.style.top = top + 'px'; menu.style.left = left + 'px';
+            menu.classList.add('show');
+            overlay.style.display = 'block'; overlay.style.zIndex = '350';
+        }
+        window.openWidgetContextMenu = openWidgetContextMenu;
+
+        function widgetCtxAction(action) {
+            closeWidgetMenus();
+            if (activeWidgetIndex === -1) return;
+            if (action === 'preview') { targetProgress = activeWidgetIndex; currentProgress = activeWidgetIndex; toggleWidgetViewMode('carousel'); }
+            else if (action === 'edit') { openWidgetEditor(activeWidgetIndex); }
+        else if (action === 'export') { 
+            const widgetToExport = currentWidgets[activeWidgetIndex];
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(widgetToExport, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", widgetToExport.name + ".json");
+            document.body.appendChild(dlAnchorElem);
+            dlAnchorElem.click();
+            document.body.removeChild(dlAnchorElem);
+            closeWidgetMenus();
+        }
+        }
+        window.widgetCtxAction = widgetCtxAction;
+
+        function toggleWidgetViewMode(forceMode) {
+            widgetViewMode = forceMode ? forceMode : (widgetViewMode === 'carousel' ? 'list' : 'carousel');
+            const iL = document.getElementById('widgetIconList');
+            const iC = document.getElementById('widgetIconCard');
+            if (iL) iL.style.display = widgetViewMode === 'carousel' ? 'block' : 'none';
+            if (iC) iC.style.display = widgetViewMode === 'list' ? 'block' : 'none';
+            if (widgetViewMode === 'list') widgetContentArea.classList.add('show-list');
+            else { widgetContentArea.classList.remove('show-list'); updateWidgetCardsContinuous(); }
+        }
+        window.toggleWidgetViewMode = toggleWidgetViewMode;
+
+        function enterWidgetEditMode() {
+            closeWidgetMenus(); isWidgetEditing = true;
+            if (themeAppUI) themeAppUI.classList.add('is-widget-editing');
+            toggleWidgetViewMode('list');
+            document.getElementById('topBarTitle').innerText = '管理组件';
+            const wgc1 = document.getElementById('widgetToolbarMenu'); if (wgc1) { wgc1.style.display = 'none'; wgc1.classList.remove('show'); }
+        }
+        window.enterWidgetEditMode = enterWidgetEditMode;
+
+        function exitWidgetEditMode(silent) {
+            isWidgetEditing = false;
+            if (themeAppUI) themeAppUI.classList.remove('is-widget-editing');
+            if (!silent && currentActiveTab === 'widget') {
+                document.getElementById('topBarTitle').innerText = 'Widgets';
+                const wgc2 = document.getElementById('widgetToolbarMenu'); if (wgc2) { wgc2.style.display = 'flex'; wgc2.classList.remove('show'); }
+            }
+        }
+        window.exitWidgetEditMode = exitWidgetEditMode;
+
+        function deleteWidget(index, event) {
+            event.stopPropagation();
+            if (confirm('确定要删除 "' + currentWidgets[index].name + '" 吗？')) {
+                currentWidgets.splice(index, 1);
+                if (activeWidgetIndex >= currentWidgets.length) activeWidgetIndex = currentWidgets.length - 1;
+                renderWidgetViews();
+            }
+        }
+        window.deleteWidget = deleteWidget;
+
+
+        // import widgets from a .json file (single object or array). Fields: name, preview, content.
+        function handleWidgetJsonImport(event) {
+            closeWidgetMenus();
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                try {
+                    let parsed = JSON.parse(ev.target.result);
+                    if (!Array.isArray(parsed)) parsed = [parsed];
+                    let added = 0;
+                    parsed.forEach(function (w) {
+                        if (!w || typeof w !== 'object') return;
+                        customWidgets.push({
+                            name: w.name || ('widget ' + (customWidgets.length + 1)),
+                            preview: w.preview || 'linear-gradient(135deg,#a1c4fd 0%,#c2e9fb 100%)',
+                            content: w.content || w.html || ''
+                        });
+                        added++;
+                    });
+                    // switch to custom tab so the user sees imports immediately
+                    if (typeof switchWidgetTab === 'function') switchWidgetTab(1);
+                    else { currentWidgets = customWidgets; renderWidgetViews(); }
+                    alert('imported ' + added + ' widget(s)');
+                } catch (err) { alert('JSON parse failed: ' + err.message); }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+        window.handleWidgetJsonImport = handleWidgetJsonImport;
+
+        function openWidgetEditor(index) {
+            activeWidgetIndex = index; const widget = currentWidgets[index];
+            document.getElementById('widgetEditName').value = widget.name;
+            document.getElementById('widgetEditContent').value = widget.content || '';
+            document.getElementById('widgetEditorModal').classList.add('show');
+            const overlay = document.getElementById('widgetOverlay');
+            overlay.style.display = 'block'; overlay.style.zIndex = '250';
+        }
+        window.openWidgetEditor = openWidgetEditor;
+
+        function closeWidgetEditor() {
+            document.getElementById('widgetEditorModal').classList.remove('show');
+            const overlay = document.getElementById('widgetOverlay');
+            overlay.style.display = 'none'; overlay.style.zIndex = '105';
+            activeWidgetIndex = -1;
+        }
+        window.closeWidgetEditor = closeWidgetEditor;
+
+        function saveWidgetEditor() {
+            if (activeWidgetIndex > -1) {
+                const widget = currentWidgets[activeWidgetIndex];
+                widget.name = document.getElementById('widgetEditName').value.trim() || '未命名组件';
+                widget.content = document.getElementById('widgetEditContent').value;
+                renderWidgetViews();
+            }
+            closeWidgetEditor();
+        }
+        window.saveWidgetEditor = saveWidgetEditor;
+
+        function switchWidgetTab(index) {
+            if (isWidgetEditing) return;
+            widgetSegmentBtns.forEach((btn, i) => btn.classList.toggle('active', i === index));
+            if (widgetIndicator) widgetIndicator.style.transform = 'translateX(' + (index * 100) + '%)';
+            currentWidgets = index === 0 ? officialWidgets : customWidgets;
+            currentProgress = 0; targetProgress = 0;
+            renderWidgetViews();
+        }
+        window.switchWidgetTab = switchWidgetTab;
+
+        function handleAddWidget() {
+            closeWidgetMenus();
+            currentWidgets.push({
+                name: '自定义组件 ' + (currentWidgets.length + 1),
+                content: ''
+            });
+            targetProgress = currentWidgets.length - 1;
+            renderWidgetViews();
+        }
+        window.handleAddWidget = handleAddWidget;
+
+        function renderWidgetViews() {
+            widgetTrack.innerHTML = ''; widgetPagination.innerHTML = ''; widgetListContainer.innerHTML = '';
+            if (currentWidgets.length === 0) {
+                widgetEmptyState.style.display = 'block';
+                widgetContentArea.style.display = 'none';
+                return;
+            }
+            widgetEmptyState.style.display = 'none';
+            widgetContentArea.style.display = 'flex';
+
+            currentWidgets.forEach((widget, i) => {
+                const card = document.createElement('div'); card.className = 'widget-card';
+                card.innerHTML = '<div class="widget-card-more-btn" onclick="openWidgetContextMenu(' + i + ', event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></div><div class="widget-card-preview">' + (widget.content || '') + '</div><div class="widget-card-name">' + widget.name + '</div>';
+                widgetTrack.appendChild(card);
+
+                const dot = document.createElement('div'); dot.className = 'widget-dot'; widgetPagination.appendChild(dot);
+
+                const listItem = document.createElement('div'); listItem.className = 'widget-list-item';
+                listItem.onclick = function () {
+                    if (isWidgetEditing) openWidgetEditor(i);
+                    else { targetProgress = i; currentProgress = i; toggleWidgetViewMode('carousel'); }
+                };
+                listItem.innerHTML = '<div class="widget-delete-btn-left" onclick="deleteWidget(' + i + ', event)"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg></div><div class="widget-list-item-icon">' + (widget.content || '') + '</div><div class="widget-list-item-info"><div class="widget-title-wrapper"><div class="widget-list-item-title">' + widget.name + '</div><svg class="widget-edit-pencil" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></div><div class="widget-list-item-sub">Widget</div></div><div class="widget-list-action-trigger" onclick="openWidgetContextMenu(' + i + ', event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="#c7c7cc" stroke="none"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg></div>';
+                widgetListContainer.appendChild(listItem);
+            });
+            updateWidgetCardsContinuous();
+        }
+
+
+        function updateWidgetCardsContinuous() {
+            if (currentWidgets.length === 0 || widgetViewMode === 'list') return;
+            const cards = document.querySelectorAll('#widgetAppGrid .widget-card');
+            const dots = document.querySelectorAll('#widgetPagination .widget-dot');
+            cards.forEach((card, i) => {
+                const rel = i - currentProgress; const absRel = Math.abs(rel);
+                const translateX = rel * 110; const rotateY = -rel * 45; const translateZ = -absRel * 100;
+                const scale = Math.max(0.8, 1 - absRel * 0.1); const opacity = Math.max(0, 1 - absRel * 0.6);
+                card.style.transform = 'translateX(' + translateX + '%) translateZ(' + translateZ + 'px) rotateY(' + rotateY + 'deg) scale(' + scale + ')';
+                card.style.opacity = opacity; card.style.zIndex = 100 - Math.round(absRel * 100);
+            });
+            dots.forEach((dot, i) => {
+                dot.style.opacity = Math.max(0.3, 1 - Math.abs(i - currentProgress));
+                dot.classList.toggle('active', Math.round(currentProgress) === i);
+            });
+        }
+
+            // show three-dots button; click to expand vertical capsule menu
+        const wCarouselArea = document.getElementById('widgetCarousel');
+        if (wCarouselArea) {
+            wCarouselArea.addEventListener('touchstart', function (e) {
+                if (currentWidgets.length <= 1 || widgetViewMode === 'list') return;
+                isDragging = true; startX = e.touches[0].clientX; startProgress = currentProgress;
+            }, { passive: true });
+            wCarouselArea.addEventListener('touchmove', function (e) {
+                if (!isDragging || widgetViewMode === 'list') return;
+                e.preventDefault();
+                let newProgress = startProgress - ((e.touches[0].clientX - startX) / window.innerWidth) * 1.8;
+                if (newProgress < 0) newProgress *= 0.3;
+                else if (newProgress > currentWidgets.length - 1) newProgress = (currentWidgets.length - 1) + (newProgress - (currentWidgets.length - 1)) * 0.3;
+                currentProgress = newProgress; updateWidgetCardsContinuous();
+            }, { passive: false });
+            wCarouselArea.addEventListener('touchend', function () {
+                if (!isDragging || widgetViewMode === 'list') return;
+                isDragging = false; targetProgress = Math.round(currentProgress);
+                if (targetProgress < 0) targetProgress = 0;
+                if (targetProgress > currentWidgets.length - 1) targetProgress = currentWidgets.length - 1;
+            });
+        }
+
+            // show three-dots button; click to expand vertical capsule menu
+        function animateWidget() {
+            if (!isDragging && widgetViewMode === 'carousel') {
+                currentProgress += (targetProgress - currentProgress) * 0.15;
+                if (Math.abs(targetProgress - currentProgress) < 0.001) currentProgress = targetProgress;
+                updateWidgetCardsContinuous();
+            }
+            requestAnimationFrame(animateWidget);
+        }
+        animateWidget();
+    })();
+            // show three-dots button; click to expand vertical capsule menu
 </script>
 </body>
 </html>
