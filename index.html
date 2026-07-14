@@ -1,22 +1,22 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>童话机</title>
+    <title>绔ヨ瘽鏈?/title>
     
-    <!-- 基本配置 -->
-    <!-- 【关键修改】：删除写死的 theme-color，让 iOS 自动穿透显示你的壁纸 -->
+    <!-- 鍩烘湰閰嶇疆 -->
+    <!-- 銆愬叧閿慨鏀广€戯細鍒犻櫎鍐欐鐨?theme-color锛岃 iOS 鑷姩绌块€忔樉绀轰綘鐨勫绾?-->
     
-    <!-- iOS全屏配置 -->
+    <!-- iOS鍏ㄥ睆閰嶇疆 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Theme Studio">
-    <!-- 新增：PWA 主题色 -->
+    <meta name="apple-mobile-web-app-title" content="童话机">
+    <!-- 鏂板锛歅WA 涓婚鑹?-->
     <meta name="theme-color" content="#FFFFFF">
     
-    <!-- 优化视口配置：viewport-fit=cover 是延伸到刘海和底部的核心 -->
+    <!-- 浼樺寲瑙嗗彛閰嶇疆锛歷iewport-fit=cover 鏄欢浼稿埌鍒樻捣鍜屽簳閮ㄧ殑鏍稿績 -->
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    <!-- 图标配置 -->
+    <!-- 鍥炬爣閰嶇疆 -->
     <link rel="apple-touch-icon" href="https://zkaicc.huilan.com/aicc/api/aicc-file/miniofile/preViewPicture/aicc/4XfHp9js_1783997766723.png">
     <link rel="icon" type="image/jpeg" href="https://zkaicc.huilan.com/aicc/api/aicc-file/miniofile/preViewPicture/aicc/4XfHp9js_1783997766723.png">
         
@@ -33,11 +33,11 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            /* 全局使用 Geomini，并加入优质中文字体回退链 */
+            /* 鍏ㄥ眬浣跨敤 Geomini锛屽苟鍔犲叆浼樿川涓枃瀛椾綋鍥為€€閾?*/
             font-family: "Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif !important;
             font-optical-sizing: auto;
             font-style: normal;
-            font-weight: 600; /* 新增：全局默认半粗体，实现所有地方一点加粗 */
+            font-weight: 600; /* 鏂板锛氬叏灞€榛樿鍗婄矖浣擄紝瀹炵幇鎵€鏈夊湴鏂逛竴鐐瑰姞绮?*/
             user-select: none;
             -webkit-user-select: none;
         }
@@ -51,7 +51,7 @@
             overflow: hidden;
         }
 
-        /* 手机外壳模拟 */
+        /* 鎵嬫満澶栧３妯℃嫙 */
         .iphone {
             width: 375px;
             height: 812px;
@@ -63,7 +63,7 @@
             border: 8px solid #f0f0f0;
         }
 
-        /* 状态栏 */
+        /* 鐘舵€佹爮 */
         .status-bar {
             display: flex;
             justify-content: space-between;
@@ -110,7 +110,7 @@
             justify-content: center;
         }
 
-        /* 电池UI */
+        /* 鐢垫睜UI */
         .battery-wrapper {
             display: flex;
             align-items: center;
@@ -142,7 +142,7 @@
             background-color: rgba(0, 0, 0, 0.4);
             border-radius: 0 1.5px 1.5px 0;
         }
-        /* 编辑模式 UI */
+        /* 缂栬緫妯″紡 UI */
         .edit-ui {
             position: absolute;
             top: 18px;
@@ -173,7 +173,7 @@
             color: #333;
         }
 
-        /* 桌面 4x7 网格 */
+        /* 妗岄潰 4x7 缃戞牸 */
         .desktop-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -186,7 +186,7 @@
             z-index: 5;
         }
 
-        /* 桌面格子占位符 */
+        /* 妗岄潰鏍煎瓙鍗犱綅绗?*/
         .desktop-slot {
             width: 100%;
             height: 100%;
@@ -198,13 +198,13 @@
             border: 1px solid transparent;
         }
 
-        /* 编辑模式下显示格子 */
+        /* 缂栬緫妯″紡涓嬫樉绀烘牸瀛?*/
         .desktop-slot.show-grid {
             background-color: rgba(255, 255, 255, 0.2);
             border: 1px dashed rgba(0, 0, 0, 0.15);
         }
 
-        /* APP 图标容器 */
+        /* APP 鍥炬爣瀹瑰櫒 */
         .app-item {
             display: flex;
             flex-direction: column;
@@ -249,7 +249,7 @@
             pointer-events: none;
         }
 
-        /* 搜索按钮 */
+        /* 鎼滅储鎸夐挳 */
         .search-bar {
             position: absolute;
             bottom: 115px;
@@ -269,7 +269,7 @@
             z-index: 5;
         }
 
-        /* 底部程序坞 (Dock) */
+        /* 搴曢儴绋嬪簭鍧?(Dock) */
         .dock {
             position: absolute;
             bottom: 15px;
@@ -302,7 +302,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
-        /* 编辑模式抖动动画 */
+        /* 缂栬緫妯″紡鎶栧姩鍔ㄧ敾 */
         @keyframes jiggle {
             0% { transform: rotate(-1.5deg); }
             50% { transform: rotate(1.5deg); }
@@ -319,25 +319,25 @@
             cursor: grabbing;
         }
 
-        /* 隐藏自定义图标时的默认占位方块 */
+        /* 闅愯棌鑷畾涔夊浘鏍囨椂鐨勯粯璁ゅ崰浣嶆柟鍧?*/
         .app-icon.has-custom-icon::before {
             display: none;
         }
         
-        /* 去除自定义图标的白色背景和阴影，完美适配透明底图片 */
+        /* 鍘婚櫎鑷畾涔夊浘鏍囩殑鐧借壊鑳屾櫙鍜岄槾褰憋紝瀹岀編閫傞厤閫忔槑搴曞浘鐗?*/
         .app-icon.has-custom-icon {
             background-color: transparent !important;
             box-shadow: none !important;
         }
 
-        /* --- 主题 APP UI 样式 --- */
+        /* --- 涓婚 APP UI 鏍峰紡 --- */
         .theme-app-container {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #fafafa; /* 低饱和素白色 */
+            background-color: #fafafa; /* 浣庨ケ鍜岀礌鐧借壊 */
             z-index: 100;
             display: none;
             flex-direction: column;
@@ -347,7 +347,7 @@
         .theme-app-container.show {
             transform: translateY(0);
         }
-        /* 顶部导航栏 */
+        /* 椤堕儴瀵艰埅鏍?*/
         .ios-top-bar {
             position: absolute;
             top: 0;
@@ -359,8 +359,8 @@
             justify-content: space-between;
             align-items: center;
             z-index: 110;
-            background-color: #fafafa; /* 低饱和素白色 */
-            border-bottom: none; /* 确保没有横线 */
+            background-color: #fafafa; /* 浣庨ケ鍜岀礌鐧借壊 */
+            border-bottom: none; /* 纭繚娌℃湁妯嚎 */
         }
         .ios-top-title {
             position: absolute;
@@ -472,7 +472,7 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
         
-        /* 底部导航栏外层容器 */
+        /* 搴曢儴瀵艰埅鏍忓灞傚鍣?*/
         .bottom-nav-wrapper {
             position: absolute;
             bottom: 25px;
@@ -486,7 +486,7 @@
             gap: 12px;
         }
         
-        /* 左侧主胶囊 */
+        /* 宸︿晶涓昏兌鍥?*/
         .nav-capsule-main {
             flex: 1;
             height: 64px;
@@ -501,7 +501,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.06);
         }
 
-        /* 右侧独立按钮 */
+        /* 鍙充晶鐙珛鎸夐挳 */
         .nav-capsule-standalone {
             width: 64px;
             height: 64px;
@@ -563,13 +563,13 @@
             border-radius: 50%;
         }
         
-        /* 内容区适配上下栏 */
+        /* 鍐呭鍖洪€傞厤涓婁笅鏍?*/
         .theme-content-area {
             flex: 1;
             overflow-y: auto;
-            padding-bottom: 90px; /* 为底部栏留出空间 */
-            padding-top: 90px; /* 为顶部栏留出空间 */
-            background-color: #fafafa; /* 低饱和素白色 */
+            padding-bottom: 90px; /* 涓哄簳閮ㄦ爮鐣欏嚭绌洪棿 */
+            padding-top: 90px; /* 涓洪《閮ㄦ爮鐣欏嚭绌洪棿 */
+            background-color: #fafafa; /* 浣庨ケ鍜岀礌鐧借壊 */
         }
 
         .theme-grid-container {
@@ -663,14 +663,14 @@
         }
         .theme-app-name-input:focus { border-bottom-color: #d1d1d6; }
 
-        /* --- 壁纸 UI 样式 --- */
+        /* --- 澹佺焊 UI 鏍峰紡 --- */
         .wallpaper-carousel-container {
-            display: none; /* 默认隐藏，点击Tab后显示 */
+            display: none; /* 榛樿闅愯棌锛岀偣鍑籘ab鍚庢樉绀?*/
             flex-direction: column;
             align-items: center;
             height: 100%;
             position: relative;
-            background-color: #fafafa; /* 低饱和素白色 */
+            background-color: #fafafa; /* 浣庨ケ鍜岀礌鐧借壊 */
         }
         .carousel-scroll {
             display: flex;
@@ -792,7 +792,7 @@
             font-weight: bold;
         }
 
-        /* --- 字体 UI 样式 --- */
+        /* --- 瀛椾綋 UI 鏍峰紡 --- */
         .font-app-container {
             display: none;
             flex-direction: column;
@@ -923,7 +923,7 @@
         .font-edit-mode .delete-font-btn { display: flex; }
         .font-edit-mode .font-checkmark { display: none !important; }
 
-        /* 字体左滑操作样式 */
+        /* 瀛椾綋宸︽粦鎿嶄綔鏍峰紡 */
         #fontListContainer .font-list-item { padding: 0; overflow: hidden; touch-action: pan-y; }
         .font-item-inner {
             display: flex; align-items: center; padding: 12px 16px;
@@ -935,7 +935,7 @@
             position: absolute; top: 0; right: 0; height: 100%; display: flex; z-index: 1;
         }
 
-        /* iOS 悬浮胶囊提示 */
+        /* iOS 鎮诞鑳跺泭鎻愮ず */
         .ios-toast-capsule {
             position: absolute;
             top: 60px;
@@ -968,7 +968,7 @@
         .font-swipe-edit { background-color: #ff9500; }
         .font-swipe-delete { background-color: #ff3b30; }
 
-        /* --- 图标操作菜单 UI 样式 --- */
+        /* --- 鍥炬爣鎿嶄綔鑿滃崟 UI 鏍峰紡 --- */
         .icon-menu-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -981,14 +981,14 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            /* 降低模糊度至 10px，让背后图像透得更清晰；提高饱和度保持色彩 */
+            /* 闄嶄綆妯＄硦搴﹁嚦 10px锛岃鑳屽悗鍥惧儚閫忓緱鏇存竻鏅帮紱鎻愰珮楗卞拰搴︿繚鎸佽壊褰?*/
             backdrop-filter: blur(10px) saturate(180%);
             -webkit-backdrop-filter: blur(10px) saturate(180%);
-            /* 将白色背景透明度降至极低 (0.02)，几乎完全透明 */
+            /* 灏嗙櫧鑹茶儗鏅€忔槑搴﹂檷鑷虫瀬浣?(0.02)锛屽嚑涔庡畬鍏ㄩ€忔槑 */
             background: rgba(255, 255, 255, 0.02);
-            /* 保持阴影和边缘高光，维持玻璃的物理边缘感 */
+            /* 淇濇寔闃村奖鍜岃竟缂橀珮鍏夛紝缁存寔鐜荤拑鐨勭墿鐞嗚竟缂樻劅 */
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-            /* 增加圆角大小，从 28px 增加到 34px */
+            /* 澧炲姞鍦嗚澶у皬锛屼粠 28px 澧炲姞鍒?34px */
             border-radius: 34px;
             padding: 8px 0;
             transform-origin: top left;
@@ -1025,7 +1025,7 @@
             background-color: rgba(0, 0, 0, 0.06);
         }
 
-        /* --- 预设库 UI 样式 --- */
+        /* --- 棰勮搴?UI 鏍峰紡 --- */
         .preset-container {
             display: none;
             flex-direction: column;
@@ -1083,7 +1083,7 @@
             text-overflow: ellipsis;
         }
         
-        /* 预设封面锁屏时间 */
+        /* 棰勮灏侀潰閿佸睆鏃堕棿 */
         .preset-lock-time {
             position: absolute;
             top: 12%;
@@ -1102,7 +1102,7 @@
             text-shadow: 0 1px 5px rgba(0,0,0,0.4);
         }
 
-        /* 多选打勾样式 */
+        /* 澶氶€夋墦鍕炬牱寮?*/
         .preset-check-circle {
             position: absolute;
             bottom: 8px;
@@ -1132,7 +1132,7 @@
             margin-bottom: 2px;
         }
 
-        /* 空提示 */
+        /* 绌烘彁绀?*/
         .preset-empty-hint {
             text-align: center;
             color: #8e8e93;
@@ -1140,7 +1140,7 @@
             font-size: 14px;
             display: none;
         }
-        /* 导入导出按钮组 */
+        /* 瀵煎叆瀵煎嚭鎸夐挳缁?*/
         .preset-action-group {
             display: flex;
             gap: 10px;
@@ -1161,7 +1161,7 @@
         .preset-action-btn:active {
             background-color: #d1d1d6;
         }
-        /* 详情页编辑名称 */
+        /* 璇︽儏椤电紪杈戝悕绉?*/
         .info-name-wrapper {
             display: flex;
             align-items: center;
@@ -1178,7 +1178,7 @@
             align-items: center;
         }
 
-        /* 固定底部按钮区域 */
+        /* 鍥哄畾搴曢儴鎸夐挳鍖哄煙 */
         .preset-bottom-fixed {
             padding: 10px 20px 20px 20px;
             background: linear-gradient(to top, #fafafa 80%, rgba(250,250,250,0));
@@ -1203,7 +1203,7 @@
             color: #fff;
         }
 
-        /* --- 保存预设名称弹窗样式 --- */
+        /* --- 淇濆瓨棰勮鍚嶇О寮圭獥鏍峰紡 --- */
         .preset-modal-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -1270,7 +1270,7 @@
         .preset-m1-btn-cancel { background: rgba(0,0,0,0.05); color: #666; }
         .preset-m1-btn-save { background: #007aff; color: #fff; }
 
-        /* --- 预设详情页样式 --- */
+        /* --- 棰勮璇︽儏椤垫牱寮?--- */
         #presetDetailPage {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -1314,16 +1314,16 @@
         .detail-content::-webkit-scrollbar { display: none; }
         .preview-carousel {
             display: flex; justify-content: center;
-            padding: 40px 30px 20px 30px; /* 修改：增加顶部 padding 将手机往下移 */
+            padding: 40px 30px 20px 30px; /* 淇敼锛氬鍔犻《閮?padding 灏嗘墜鏈哄線涓嬬Щ */
         }
         .preview-phone-mockup {
             width: 220px; height: 476px; background-color: #fff;
             border-radius: 32px; border: 6px solid #e5e5ea;
             box-shadow: 0 15px 35px rgba(0,0,0,0.1);
             position: relative; overflow: hidden;
-            box-sizing: content-box; /* 新增：防止边框向内挤压导致内容偏移 */
+            box-sizing: content-box; /* 鏂板锛氶槻姝㈣竟妗嗗悜鍐呮尋鍘嬪鑷村唴瀹瑰亸绉?*/
         }
-        /* 1:1 缩放容器，将 375x812 的桌面等比缩小放入 220x476 的模型中 */
+        /* 1:1 缂╂斁瀹瑰櫒锛屽皢 375x812 鐨勬闈㈢瓑姣旂缉灏忔斁鍏?220x476 鐨勬ā鍨嬩腑 */
         .preview-scale-container {
             width: 375px; height: 812px;
             transform: scale(0.5866); transform-origin: top left;
@@ -1349,7 +1349,7 @@
         }
         .apply-btn:active { transform: scale(0.98); }
 
-        /* --- 自定义现代悬浮毛玻璃弹窗样式 --- */
+        /* --- 鑷畾涔夌幇浠ｆ偓娴瘺鐜荤拑寮圭獥鏍峰紡 --- */
         .custom-dialog-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -1438,7 +1438,7 @@
             background-color: #0062cc;
         }
 
-        /* --- 设置 APP UI 样式 --- */
+        /* --- 璁剧疆 APP UI 鏍峰紡 --- */
         .settings-app-container {
             position: absolute;
             top: 0;
@@ -1451,7 +1451,7 @@
             flex-direction: column;
             transform: translateX(100%);
             transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            overflow: hidden; /* 新增：防止整个页面被水平拖动 */
+            overflow: hidden; /* 鏂板锛氶槻姝㈡暣涓〉闈㈣姘村钩鎷栧姩 */
         }
         .settings-top-bar {
             padding: 45px 20px 0 20px;
@@ -1463,7 +1463,7 @@
         .settings-scroll-area {
             flex: 1;
             overflow-y: auto;
-            overflow-x: hidden; /* 新增：防止内部元素撑开导致水平滑动 */
+            overflow-x: hidden; /* 鏂板锛氶槻姝㈠唴閮ㄥ厓绱犳拺寮€瀵艰嚧姘村钩婊戝姩 */
             padding-bottom: 40px;
             scrollbar-width: none;
         }
@@ -1507,7 +1507,7 @@
         .set-bg-gray { background-color: #8e8e93; }
         .set-bg-black { background-color: #000000; }
 
-        /* --- Apple ID 页面 UI 样式 --- */
+        /* --- Apple ID 椤甸潰 UI 鏍峰紡 --- */
         .apple-id-container {
             position: absolute;
             top: 0;
@@ -1515,7 +1515,7 @@
             width: 100%;
             height: 100%;
             background-color: #f2f2f7;
-            z-index: 160; /* 层级比设置页面高 */
+            z-index: 160; /* 灞傜骇姣旇缃〉闈㈤珮 */
             display: none;
             flex-direction: column;
             transform: translateX(100%);
@@ -1594,7 +1594,7 @@
         }
         .apple-id-card {
             background-color: #ffffff;
-            border-radius: 20px; /* 增加圆角，从 16px 改为 20px */
+            border-radius: 20px; /* 澧炲姞鍦嗚锛屼粠 16px 鏀逛负 20px */
             margin: 0 16px 16px;
             overflow: hidden;
         }
@@ -1640,7 +1640,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 12px 16px 12px 0;
-            border-bottom: none; /* 去除列表项之间的横线 */
+            border-bottom: none; /* 鍘婚櫎鍒楄〃椤逛箣闂寸殑妯嚎 */
             font-size: 16px;
         }
         .apple-id-list-item:last-child .apple-id-item-content {
@@ -1677,7 +1677,7 @@
             background-color: #e5e5ea;
         }
 
-        /* --- API 连接页面 UI 样式 --- */
+        /* --- API 杩炴帴椤甸潰 UI 鏍峰紡 --- */
         .api-app-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; z-index: 160; display: none; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden; }
         .api-app-container.show { transform: translateX(0); }
         .api-page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; display: flex; flex-direction: column; transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); }
@@ -1685,7 +1685,7 @@
         .api-page.slide-left { transform: translateX(-30%); opacity: 0.8; }
         .api-page.active { transform: translateX(0); opacity: 1; z-index: 10; }
         
-        /* 导航栏与磨砂按钮 */
+        /* 瀵艰埅鏍忎笌纾ㄧ爞鎸夐挳 */
         .api-nav-bar { height: 90px; padding: 45px 20px 10px 20px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 20; }
         .api-nav-btn-circle { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: flex; justify-content: center; align-items: center; cursor: pointer; color: #000; font-size: 15px; font-weight: 600; }
         .api-nav-btn-circle svg { width: 20px; height: 20px; stroke: #000; }
@@ -1717,7 +1717,7 @@
         .api-toggle.off { background-color: #e9e9eb; }
         .api-toggle.off::after { transform: translateX(-20px); }
         
-        /* 抽屉样式 */
+        /* 鎶藉眽鏍峰紡 */
         .api-drawer-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 100; }
         .api-drawer-overlay.show { opacity: 1; pointer-events: auto; }
         .api-drawer { position: absolute; bottom: 0; left: 0; width: 100%; height: 88%; background: #f2f2f7; border-radius: 20px 20px 0 0; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); z-index: 101; display: flex; flex-direction: column; overflow: hidden; }
@@ -1726,7 +1726,7 @@
         .api-drawer-handle { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 36px; height: 5px; background: #c7c7cc; border-radius: 3px; }
         .api-drawer-title { font-size: 17px; font-weight: 700; position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; }
         
-        /* 新增：图1风格表单样式 (卡片包裹) */
+        /* 鏂板锛氬浘1椋庢牸琛ㄥ崟鏍峰紡 (鍗＄墖鍖呰９) */
         .api-form-card { background-color: #fff; border-radius: 20px; padding: 20px 16px; margin: 0 16px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
         .api-form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px; }
         .api-form-title { font-size: 15px; font-weight: 700; color: #333; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -1742,7 +1742,7 @@
         .api-form-btn:active { opacity: 0.8; }
         .api-form-btn.danger { background-color: #ff3b30; }
 
-        /* --- 全局搜索抽屉 UI 样式 --- */
+        /* --- 鍏ㄥ眬鎼滅储鎶藉眽 UI 鏍峰紡 --- */
         .search-drawer-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
@@ -1750,16 +1750,16 @@
         }
         .search-drawer-overlay.show { opacity: 1; pointer-events: auto; }
         .search-drawer {
-            position: absolute; bottom: 0; left: 0; right: 0; height: 85%; /* 改为 left:0; right:0; 强制吸附两侧 */
+            position: absolute; bottom: 0; left: 0; right: 0; height: 85%; /* 鏀逛负 left:0; right:0; 寮哄埗鍚搁檮涓や晶 */
             background: #f2f2f7; border-radius: 24px 24px 0 0;
             transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
             z-index: 9001; display: flex; flex-direction: column; overflow: hidden;
-            box-sizing: border-box; /* 增加盒模型保险 */
+            box-sizing: border-box; /* 澧炲姞鐩掓ā鍨嬩繚闄?*/
         }
         .search-drawer.show { transform: translateY(0); }
         .search-drawer-header {
             padding: 16px 20px 10px; display: flex; flex-direction: column;
-            box-sizing: border-box; width: 100%; /* 移除 align-items: center，增加 100% 宽度 */
+            box-sizing: border-box; width: 100%; /* 绉婚櫎 align-items: center锛屽鍔?100% 瀹藉害 */
         }
         .search-drawer-handle {
             width: 36px; height: 5px; background: #c7c7cc; border-radius: 3px; margin-bottom: 16px;
@@ -1767,16 +1767,16 @@
         .search-input-container {
             width: 100%; background: #e3e3e8; border-radius: 12px; height: 40px;
             display: flex; align-items: center; padding: 0 12px;
-            box-sizing: border-box; /* 增加盒模型保险 */
+            box-sizing: border-box; /* 澧炲姞鐩掓ā鍨嬩繚闄?*/
         }
-        .search-input-container svg { width: 18px; height: 18px; fill: #8e8e93; margin-right: 8px; flex-shrink: 0; } /* 防止图标被挤压 */
+        .search-input-container svg { width: 18px; height: 18px; fill: #8e8e93; margin-right: 8px; flex-shrink: 0; } /* 闃叉鍥炬爣琚尋鍘?*/
         .search-input-container input {
             flex: 1; border: none; background: transparent; outline: none;
-            font-size: 16px; color: #000; font-weight: 500; min-width: 0; /* 关键修复：防止 input 隐式撑宽父容器 */
+            font-size: 16px; color: #000; font-weight: 500; min-width: 0; /* 鍏抽敭淇锛氶槻姝?input 闅愬紡鎾戝鐖跺鍣?*/
         }
         .search-results-area {
             flex: 1; overflow-y: auto; padding: 10px 20px 40px; scrollbar-width: none;
-            box-sizing: border-box; width: 100%; /* 增加盒模型保险 */
+            box-sizing: border-box; width: 100%; /* 澧炲姞鐩掓ā鍨嬩繚闄?*/
         }
         .search-results-area::-webkit-scrollbar { display: none; }
         .search-result-card {
@@ -1795,7 +1795,7 @@
         .search-result-text { flex: 1; font-size: 16px; font-weight: 500; color: #000; }
         .search-result-arrow { width: 16px; height: 16px; stroke: #c7c7cc; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
-        /* --- iCloud 页面 UI 样式 --- */
+        /* --- iCloud 椤甸潰 UI 鏍峰紡 --- */
         .icloud-app-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; z-index: 170; display: none; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden; }
         .icloud-app-container.show { transform: translateX(0); }
         .ic-page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; display: block; transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
@@ -1859,7 +1859,7 @@
         .ic-chevron { width: 8px; height: 13px; stroke: #c5c5c7; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
         .ic-custom-icon { width: 100%; height: 100%; background-size: cover; background-position: center; border-radius: 10px; }
 
-        /* --- 显示与亮度 页面 UI 样式 --- */
+        /* --- 鏄剧ず涓庝寒搴?椤甸潰 UI 鏍峰紡 --- */
         .display-settings-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; z-index: 160; display: none; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden; }
         .display-settings-container.show { transform: translateX(0); }
         .ds-nav-bar { height: 90px; padding: 45px 20px 10px 20px; display: flex; align-items: center; justify-content: center; position: relative; background-color: #f2f2f7; z-index: 10; }
@@ -1894,7 +1894,7 @@
         .ds-slider { flex: 1; margin: 0 15px; -webkit-appearance: none; height: 4px; border-radius: 2px; outline: none; background: linear-gradient(to right, #007aff 30%, #e5e5ea 30%); }
         .ds-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 3px 8px rgba(0,0,0,0.15); cursor: pointer; }
 
-        /* --- 真正的全局深色模式覆盖 (极简优化版) --- */
+        /* --- 鐪熸鐨勫叏灞€娣辫壊妯″紡瑕嗙洊 (鏋佺畝浼樺寲鐗? --- */
         .iphone.dark-mode, .iphone.dark-mode .preview-scale-container { background: linear-gradient(135deg, #1c1c1e 0%, #000000 100%); }
         .iphone.dark-mode .dock { background: rgba(0,0,0,0.5); }
         .iphone.dark-mode .app-name { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
@@ -1906,24 +1906,24 @@
         .iphone.dark-mode .battery-nub { background-color: rgba(255,255,255,0.4); }
         .iphone.dark-mode .preset-bg.default-bg { background-color: #1c1c1e; }
         
-        /* 容器与顶栏深色 */
+        /* 瀹瑰櫒涓庨《鏍忔繁鑹?*/
         .iphone.dark-mode .settings-app-container, .iphone.dark-mode .display-settings-container, .iphone.dark-mode .apple-id-container, .iphone.dark-mode .api-app-container, .iphone.dark-mode .icloud-app-container, .iphone.dark-mode .api-page, .iphone.dark-mode .ic-page, .iphone.dark-mode .theme-app-container, .iphone.dark-mode .theme-content-area, .iphone.dark-mode .wallpaper-carousel-container, .iphone.dark-mode #presetDetailPage, .iphone.dark-mode .settings-top-bar, .iphone.dark-mode .ds-nav-bar, .iphone.dark-mode .apple-id-nav-bar, .iphone.dark-mode .api-nav-bar, .iphone.dark-mode .ic-header-area, .iphone.dark-mode .ios-top-bar, .iphone.dark-mode .detail-header { background-color: #000000; }
         
-        /* 卡片与列表深色 */
+        /* 鍗＄墖涓庡垪琛ㄦ繁鑹?*/
         .iphone.dark-mode .set-card, .iphone.dark-mode .ds-card-group, .iphone.dark-mode .apple-id-card, .iphone.dark-mode .api-hero-card, .iphone.dark-mode .api-list-group, .iphone.dark-mode .api-form-card, .iphone.dark-mode .ic-card, .iphone.dark-mode .ic-list-card, .iphone.dark-mode .theme-app-card, .iphone.dark-mode .wallpaper-card, .iphone.dark-mode .font-ios-card, .iphone.dark-mode .font-list-item, .iphone.dark-mode .font-item-inner, .iphone.dark-mode .search-result-card, .iphone.dark-mode .set-list-item, .iphone.dark-mode .ds-list-item, .iphone.dark-mode .apple-id-list-item, .iphone.dark-mode .api-row, .iphone.dark-mode .ic-list-item, .iphone.dark-mode .ic-app-list-item, .iphone.dark-mode .search-result-item { background-color: #1c1c1e; color: #ffffff; }
         
-        /* 全局文字浅色覆盖 */
+        /* 鍏ㄥ眬鏂囧瓧娴呰壊瑕嗙洊 */
         .iphone.dark-mode .set-page-title, .iphone.dark-mode .ds-nav-title, .iphone.dark-mode .apple-id-nav-title, .iphone.dark-mode .api-nav-title, .iphone.dark-mode .ic-header-title, .iphone.dark-mode .ic-nav-title-detail, .iphone.dark-mode .ios-top-title, .iphone.dark-mode .detail-title, .iphone.dark-mode .info-name, .iphone.dark-mode .theme-app-name-input, .iphone.dark-mode .set-profile-name, .iphone.dark-mode .apple-id-name, .iphone.dark-mode .font-item-title, .iphone.dark-mode .font-name-text, .iphone.dark-mode .api-hero-title, .iphone.dark-mode .api-row-title-text, .iphone.dark-mode .ic-list-item-title, .iphone.dark-mode .ic-app-list-name, .iphone.dark-mode .ic-storage-label, .iphone.dark-mode .ic-storage-detail-title, .iphone.dark-mode .ds-appearance-option, .iphone.dark-mode .custom-dialog-title, .iphone.dark-mode .preset-m-header-text, .iphone.dark-mode .search-result-text, .iphone.dark-mode .ic-item-name, .iphone.dark-mode .ic-card-title, .iphone.dark-mode .ic-legend-item, .iphone.dark-mode .ic-card-action, .iphone.dark-mode .preset-lock-time:not(.has-bg), .iphone.dark-mode .set-item-content, .iphone.dark-mode .apple-id-item-content, .iphone.dark-mode .api-drawer-title, .iphone.dark-mode .search-drawer-header input, .iphone.dark-mode .api-drawer-header .text-btn, .iphone.dark-mode .save-preset-btn, .iphone.dark-mode .font-preview-text { color: #ffffff; }
         
-        /* 强制覆盖内联样式的文字与图标 */
+        /* 寮哄埗瑕嗙洊鍐呰仈鏍峰紡鐨勬枃瀛椾笌鍥炬爣 */
         .iphone.dark-mode .ic-storage-detail-size, .iphone.dark-mode #ic-main-size, .iphone.dark-mode #ic-detail-size, .iphone.dark-mode #ld-current-mode, .iphone.dark-mode #ld-target-name, .iphone.dark-mode #ld-file-name, .iphone.dark-mode #ld-last-time, .iphone.dark-mode #ld-last-size { color: #ffffff !important; }
         .iphone.dark-mode .api-icon-lock path, .iphone.dark-mode .api-icon-wifi path { fill: #ffffff !important; }
         
-        /* 分割线深色 */
+        /* 鍒嗗壊绾挎繁鑹?*/
         .iphone.dark-mode .set-list-item:not(:last-child) .set-item-content, .iphone.dark-mode .apple-id-list-item:not(:last-child) .apple-id-item-content, .iphone.dark-mode .api-row:not(:last-child), .iphone.dark-mode .ic-list-item:not(:last-child), .iphone.dark-mode .ic-app-list-item:not(:last-child), .iphone.dark-mode .search-result-item:not(:last-child) { border-bottom-color: #38383a; }
         .iphone.dark-mode .ds-list-item:not(:last-child)::after, .iphone.dark-mode .ds-appearance-selector::after, .iphone.dark-mode .ds-brightness-container::after { background-color: #38383a; }
         
-        /* 按钮、输入框、弹窗等杂项 */
+        /* 鎸夐挳銆佽緭鍏ユ銆佸脊绐楃瓑鏉傞」 */
         .iphone.dark-mode .ios-back-btn, .iphone.dark-mode .ios-save-btn, .iphone.dark-mode .ios-menu-btn, .iphone.dark-mode .detail-back-btn, .iphone.dark-mode .detail-export-btn, .iphone.dark-mode .api-nav-btn-circle, .iphone.dark-mode .ic-back-btn, .iphone.dark-mode .ds-back-btn, .iphone.dark-mode .set-search-bar, .iphone.dark-mode .search-input-container, .iphone.dark-mode .preset-m1-input, .iphone.dark-mode .api-form-input-wrapper, .iphone.dark-mode .ic-grid-item { background-color: #2c2c2e; color: #fff; }
         .iphone.dark-mode .ios-back-btn svg, .iphone.dark-mode .ios-menu-btn svg, .iphone.dark-mode .detail-back-btn svg, .iphone.dark-mode .detail-export-btn svg, .iphone.dark-mode .api-nav-btn-circle svg, .iphone.dark-mode .ic-back-btn svg, .iphone.dark-mode .ds-back-btn svg { stroke: #fff; }
         .iphone.dark-mode .nav-capsule-main, .iphone.dark-mode .nav-capsule-standalone, .iphone.dark-mode .theme-dropdown-menu .dropdown-btn, .iphone.dark-mode .detail-dropdown-menu .dropdown-btn, .iphone.dark-mode .icon-menu { background-color: rgba(44, 44, 46, 0.85); color: #fff; }
@@ -1939,32 +1939,32 @@
         .iphone.dark-mode .custom-dialog-btn { background-color: rgba(255,255,255,0.05); }
         .iphone.dark-mode .custom-dialog-btn.bold, .iphone.dark-mode .preset-m1-btn-save { background-color: #0a84ff; color: #fff; }
         .iphone.dark-mode .preset-m1-btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
-        /* ===== Widget 小组件库 (作用域: #themeAppUI 内, 前缀隔离) ===== */
+        /* ===== Widget 灏忕粍浠跺簱 (浣滅敤鍩? #themeAppUI 鍐? 鍓嶇紑闅旂) ===== */
         #themeAppUI .widget-app-container { flex: 1; display: flex; flex-direction: column; position: relative; height: 100%; padding-bottom: 90px; }
         #themeAppUI .widget-content-area { flex: 1; position: relative; overflow: hidden; }
-        /* 分段控件 */
+        /* 鍒嗘鎺т欢 */
         #themeAppUI .widget-segment-control { position: relative; display: flex; background: rgba(118,118,128,0.12); border-radius: 9px; padding: 2px; margin: 16px 20px 12px; height: 32px; flex-shrink: 0; }
         #themeAppUI .widget-segment-indicator { position: absolute; top: 2px; left: 2px; width: calc(50% - 2px); height: calc(100% - 4px); background: #fff; border-radius: 7px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 1; }
         #themeAppUI .widget-segment-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #000; z-index: 2; cursor: pointer; transition: opacity 0.2s; background: none; border: none; }
         #themeAppUI .widget-segment-btn:not(.active) { opacity: 0.55; }
-        /* 空状态 */
+        /* 绌虹姸鎬?*/
         #themeAppUI .widget-empty-state { color: #8e8e93; text-align: center; padding: 80px 20px; display: none; }
         #themeAppUI .widget-empty-state svg { display: block; margin: 0 auto 12px; width: 44px; height: 44px; stroke: #c7c7cc; stroke-width: 1.5; fill: none; }
         #themeAppUI .widget-empty-state p { font-size: 14px; line-height: 1.6; margin: 0; }
-        /* 3D 轮播容器/轨道 */
+        /* 3D 杞挱瀹瑰櫒/杞ㄩ亾 */
         #themeAppUI .widget-carousel-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s; touch-action: pan-y; }
         #themeAppUI .widget-carousel-track { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; perspective: 1000px; }
-        /* 液态玻璃卡片 */
+        /* 娑叉€佺幓鐠冨崱鐗?*/
         #themeAppUI .widget-card { position: absolute; width: 260px; height: 380px; left: 50%; top: 50%; margin-left: -130px; margin-top: -190px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.5) 100%); backdrop-filter: blur(25px) saturate(150%); -webkit-backdrop-filter: blur(25px) saturate(150%); border-radius: 32px; border: 1px solid #fff; box-shadow: 0 15px 35px rgba(0,0,0,0.08), inset 0 2px 10px rgba(255,255,255,0.8); display: flex; flex-direction: column; align-items: center; padding: 20px; will-change: transform, opacity; }
         #themeAppUI .widget-card-more-btn { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; background: rgba(255,255,255,0.8); border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; z-index: 10; transition: transform 0.2s; }
         #themeAppUI .widget-card-more-btn:active { transform: scale(0.9); }
         #themeAppUI .widget-card-preview { width: 100%; flex: 1; border-radius: 20px; background-color: #fff; margin-bottom: 16px; margin-top: 36px; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; }
         #themeAppUI .widget-card-name { font-size: 16px; font-weight: 600; color: #000; margin-bottom: 4px; }
-        /* 分页点 */
+        /* 鍒嗛〉鐐?*/
         #themeAppUI .widget-pagination { display: flex; justify-content: center; gap: 8px; padding-bottom: 20px; position: absolute; bottom: 0; left: 0; width: 100%; }
         #themeAppUI .widget-pagination .widget-dot { width: 6px; height: 6px; border-radius: 50%; background-color: #d1d1d6; transition: background-color 0.3s; }
         #themeAppUI .widget-pagination .widget-dot.active { background-color: #000; }
-        /* 垂直列表 */
+        /* 鍨傜洿鍒楄〃 */
         #themeAppUI .widget-list-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; padding: 0 20px 20px; display: flex; flex-direction: column; gap: 12px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         #themeAppUI .widget-list-container::-webkit-scrollbar { display: none; }
         #themeAppUI .widget-list-item { background: #fff; border-radius: 20px; padding: 16px; display: flex; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); transition: transform 0.2s; position: relative; overflow: hidden; }
@@ -1978,57 +1978,57 @@
         #themeAppUI .widget-edit-pencil { display: none; width: 12px; height: 12px; stroke: #8e8e93; }
         #themeAppUI .widget-list-item-sub { font-size: 12px; color: #8e8e93; font-weight: 500; }
         #themeAppUI .widget-list-action-trigger { width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 50%; transition: background 0.2s; }
-        /* 视图切换: 列表/轮播互斥 */
+        /* 瑙嗗浘鍒囨崲: 鍒楄〃/杞挱浜掓枼 */
         #themeAppUI .widget-content-area.show-list .widget-carousel-container { opacity: 0; pointer-events: none; }
         #themeAppUI .widget-content-area.show-list .widget-list-container { opacity: 1; pointer-events: auto; }
-        /* 编辑模式态 */
+        /* 缂栬緫妯″紡鎬?*/
         #themeAppUI.is-widget-editing .widget-delete-btn-left { width: 22px; opacity: 1; margin-right: 12px; }
         #themeAppUI.is-widget-editing .widget-edit-pencil { display: block; }
         #themeAppUI.is-widget-editing .widget-list-action-trigger { opacity: 0; pointer-events: none; }
         #themeAppUI.is-widget-editing .widget-segment-control { opacity: 0.5; pointer-events: none; }
-        /* 顶部新增按钮 */
+        /* 椤堕儴鏂板鎸夐挳 */
         #themeAppUI .widget-view-btn { display: none; margin-right: 8px; background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
         #themeAppUI .widget-done-btn { display: none; padding: 8px 16px; border-radius: 20px; background: #000; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; align-self: center; }
-        /* 遮罩层 */
+        /* 閬僵灞?*/
         #themeAppUI .widget-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 105; display: none; background: rgba(0,0,0,0.1); }
-        /* 高级毛玻璃悬浮菜单 */
+        /* 楂樼骇姣涚幓鐠冩偓娴彍鍗?*/
         #themeAppUI .widget-context-menu { position: absolute; width: 140px; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%); border-radius: 28px; padding: 8px 0; box-shadow: 0 15px 40px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.6); display: flex; flex-direction: column; z-index: 400; opacity: 0; pointer-events: none; transform: scale(0.9); transform-origin: top right; transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); }
         #themeAppUI .widget-context-menu.show { opacity: 1; pointer-events: auto; transform: scale(1); }
         #themeAppUI .widget-ctx-item { display: flex; align-items: center; padding: 14px 24px; gap: 16px; cursor: pointer; transition: background 0.2s; }
         #themeAppUI .widget-ctx-item:active { background: rgba(0,0,0,0.08); }
         #themeAppUI .widget-ctx-item svg { width: 22px; height: 22px; stroke: #1d1d1f; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
         #themeAppUI .widget-ctx-text { font-size: 17px; font-weight: 500; color: #1d1d1f; letter-spacing: 0.5px; }
-        /* 底部代码编辑器 */
+        /* 搴曢儴浠ｇ爜缂栬緫鍣?*/
         #themeAppUI .widget-editor-modal { position: absolute; bottom: 0; left: 0; width: 100%; height: 85%; background: #f2f2f7; border-radius: 24px 24px 0 0; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); z-index: 300; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); }
         #themeAppUI .widget-editor-modal.show { transform: translateY(0); }
-        /* 顶部右侧按钮分组：紧凑靠右排列 */
-        /* Widget 竖向分离式胶囊菜单（点击三个点展开）*/
+        /* 椤堕儴鍙充晶鎸夐挳鍒嗙粍锛氱揣鍑戦潬鍙虫帓鍒?*/
+        /* Widget 绔栧悜鍒嗙寮忚兌鍥婅彍鍗曪紙鐐瑰嚮涓変釜鐐瑰睍寮€锛?/
         #themeAppUI .widget-toolbar-cluster { position: absolute; top: 100px; right: 16px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; z-index: 260; opacity: 0; pointer-events: none; transform: scale(0.9) translateY(-8px); transform-origin: top right; transition: all 0.28s cubic-bezier(0.25,0.8,0.25,1); }
         #themeAppUI .widget-toolbar-cluster.show { opacity: 1; pointer-events: auto; transform: scale(1) translateY(0); }
         #themeAppUI .widget-cap { display: flex; align-items: center; gap: 9px; padding: 12px 18px; border-radius: 28px; cursor: pointer; background: rgba(255,255,255,0.55); backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%); border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 10px 28px rgba(0,0,0,0.16), inset 0 1px 1px rgba(255,255,255,0.9); transition: transform 0.18s cubic-bezier(0.25,0.8,0.25,1), box-shadow 0.18s, background 0.18s; }
         #themeAppUI .widget-cap:active { transform: scale(0.94); background: rgba(255,255,255,0.78); }
         #themeAppUI .widget-cap svg { width: 20px; height: 20px; stroke: rgba(0,0,0,0.8); stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
         #themeAppUI .widget-cap-text { font-size: 15px; font-weight: 600; color: rgba(0,0,0,0.82); letter-spacing: 0.2px; white-space: nowrap; }
-        /* 全局图片上传兜底：点击组件预览图换图 */
+        /* 鍏ㄥ眬鍥剧墖涓婁紶鍏滃簳锛氱偣鍑荤粍浠堕瑙堝浘鎹㈠浘 */
     </style>
 
 </head>
 <body>
 
 <div class="iphone">
-    <!-- 全局亮度遮罩 -->
+    <!-- 鍏ㄥ眬浜害閬僵 -->
     <div id="brightnessOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0); pointer-events: none; z-index: 9998; transition: background-color 0.1s;"></div>
 
-    <!-- 编辑模式 UI -->
+    <!-- 缂栬緫妯″紡 UI -->
     <div class="edit-ui edit-plus" id="editPlus">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
     </div>
-    <div class="edit-ui edit-done" id="editDone">完成</div>
+    <div class="edit-ui edit-done" id="editDone">瀹屾垚</div>
 
-        <!-- 顶部状态栏 -->
+        <!-- 椤堕儴鐘舵€佹爮 -->
     <div class="status-bar" id="statusBar">
         <div class="status-left">
             <div class="time" id="clock">00:00</div>
@@ -2057,24 +2057,24 @@
             </div>
         </div>
     </div>
-<!-- 桌面 4x7 网格区域 -->
+<!-- 妗岄潰 4x7 缃戞牸鍖哄煙 -->
     <div class="desktop-grid" id="desktopGrid"></div>
 
-    <!-- 搜索按钮 -->
+    <!-- 鎼滅储鎸夐挳 -->
     <div class="search-bar" onclick="openSearchDrawer()" style="cursor: pointer;">
         <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        搜索
+        鎼滅储
     </div>
 
-    <!-- 底部程序坞 -->
+    <!-- 搴曢儴绋嬪簭鍧?-->
     <div class="dock" id="dock"></div>
 
-    <!-- 主题 APP UI 容器 -->
+    <!-- 涓婚 APP UI 瀹瑰櫒 -->
     <div class="theme-app-container" id="themeAppUI">
-        <!-- 顶部导航栏 -->
+        <!-- 椤堕儴瀵艰埅鏍?-->
         <div class="ios-top-bar">
             <div class="ios-back-btn" onclick="closeThemeApp()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -2082,7 +2082,7 @@
             <div class="ios-top-title" id="topBarTitle">Themes</div>
             <div class="ios-top-right-group">
                 <div class="ios-save-btn" id="topRightBtn" onclick="handleTopRightBtn()">Save</div>
-                <div class="widget-done-btn" id="widgetDoneBtn" onclick="exitWidgetEditMode()">完成</div>
+                <div class="widget-done-btn" id="widgetDoneBtn" onclick="exitWidgetEditMode()">瀹屾垚</div>
                 <div class="ios-menu-btn widget-view-btn" id="widgetViewBtn" onclick="toggleWidgetViewMode()" style="display: none;" title="toggle list / carousel view">
                     <svg id="widgetIconList" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
                     <svg id="widgetIconCard" style="display:none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3" ry="3"></rect><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -2103,29 +2103,29 @@
             
             <input type="file" accept="application/json,.json" id="widgetJsonInput" onchange="handleWidgetJsonImport(event)" style="display: none;">
         </div>
-        <!-- 下拉菜单 -->
+        <!-- 涓嬫媺鑿滃崟 -->
         <div class="theme-dropdown-menu" id="themeDropdownMenu">
             <div class="dropdown-btn" onclick="togglePresetEditMode(); toggleThemeMenu();">
                 <div class="dropdown-icon-circle">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 </div>
-                <span>编辑</span>
+                <span>缂栬緫</span>
             </div>
             <div class="dropdown-btn" onclick="openExportCurrentThemeModal(); toggleThemeMenu();">
                 <div class="dropdown-icon-circle">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 </div>
-                <span>导出</span>
+                <span>瀵煎嚭</span>
             </div>
             <div class="dropdown-btn" onclick="document.getElementById('importPresetInput').click(); toggleThemeMenu();">
                 <div class="dropdown-icon-circle">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                 </div>
-                <span>导入</span>
+                <span>瀵煎叆</span>
             </div>
         </div>
 
-        <!-- 底部 iOS 风格导航栏 -->
+        <!-- 搴曢儴 iOS 椋庢牸瀵艰埅鏍?-->
         <div class="bottom-nav-wrapper" id="themeTopTabs">
             <div class="nav-capsule-main">
                 <div class="theme-tab-item active" onclick="switchThemeTab('theme', this)">
@@ -2155,45 +2155,45 @@
 
         <div class="theme-content-area">
 
-            <!-- 主题网格 -->
+            <!-- 涓婚缃戞牸 -->
             <div class="theme-grid-container" id="themeAppGrid"></div>
             
-            <!-- 预设库区域 -->
+            <!-- 棰勮搴撳尯鍩?-->
             <div class="preset-container" id="presetAppGrid" style="display: none;">
                 <div class="preset-scroll-area">
-                    <div class="preset-empty-hint" id="presetEmptyHint">当前暂无可用主题</div>
+                    <div class="preset-empty-hint" id="presetEmptyHint">褰撳墠鏆傛棤鍙敤涓婚</div>
                     <div class="preset-grid" id="presetGridContent"></div>
                 </div>
                 <div class="preset-bottom-fixed">
                     <input type="file" id="importPresetInput" accept=".json" style="display: none;" onchange="importPreset(event)">
-                    <div class="save-preset-btn" id="presetActionBtn" onclick="handlePresetAction()">+ 保存主题为预设</div>
+                    <div class="save-preset-btn" id="presetActionBtn" onclick="handlePresetAction()">+ 淇濆瓨涓婚涓洪璁?/div>
                 </div>
             </div>
 
-            <!-- 壁纸区域 -->
+            <!-- 澹佺焊鍖哄煙 -->
             <div class="wallpaper-carousel-container" id="wallpaperAppGrid">
                 <div class="carousel-scroll" id="carouselScroll" onscroll="updatePagination()">
-                    <!-- 卡片将通过 JS 动态渲染 -->
+                    <!-- 鍗＄墖灏嗛€氳繃 JS 鍔ㄦ€佹覆鏌?-->
                 </div>
                 <div class="pagination" id="pagination"></div>
                 <div class="info-card">
                     <div class="info-text">
-                        <div class="info-title">从锁定屏幕更改墙纸</div>
-                        <div class="info-desc">按住锁定屏幕添加、编辑墙纸和小组件，或在不同墙纸和小组件之间切换。</div>
+                        <div class="info-title">浠庨攣瀹氬睆骞曟洿鏀瑰绾?/div>
+                        <div class="info-desc">鎸変綇閿佸畾灞忓箷娣诲姞銆佺紪杈戝绾稿拰灏忕粍浠讹紝鎴栧湪涓嶅悓澧欑焊鍜屽皬缁勪欢涔嬮棿鍒囨崲銆?/div>
                     </div>
                     <div class="info-img" id="infoClock">00:00</div>
                 </div>
                 <input type="file" id="wallpaperFileInput" accept="image/*" style="display:none;" onchange="handleWallpaperUpload(event)">
             </div>
 
-            <!-- 字体区域 -->
+            <!-- 瀛椾綋鍖哄煙 -->
             <div class="font-app-container" id="fontAppGrid">
                 <div class="font-section-title">PREVIEW</div>
                 <div class="font-ios-card">
                     <div class="font-preview-box" id="globalFontPreview">
                         <div class="font-preview-text" id="fontPreviewText">
                             The quick brown fox jumps over the lazy dog.<br>
-                            探索宇宙的奥秘，感受科技的魅力。
+                            鎺㈢储瀹囧畽鐨勫ゥ绉橈紝鎰熷彈绉戞妧鐨勯瓍鍔涖€?
                         </div>
                     </div>
                 </div>
@@ -2214,8 +2214,8 @@
                             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                         </div>
                         <div class="font-item-content">
-                            <div class="font-item-title">从本地文件导入</div>
-                            <div class="font-item-subtitle">支持 .ttf, .otf 格式</div>
+                            <div class="font-item-title">浠庢湰鍦版枃浠跺鍏?/div>
+                            <div class="font-item-subtitle">鏀寔 .ttf, .otf 鏍煎紡</div>
                         </div>
                         <input type="file" id="fontFileInput" accept=".ttf,.otf,.woff,.woff2" style="display: none;" onchange="handleLocalFont(event)">
                     </div>
@@ -2224,8 +2224,8 @@
                             <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                         </div>
                         <div class="font-item-content">
-                            <div class="font-item-title">通过 URL 安装</div>
-                            <div class="font-item-subtitle">输入直链下载并应用字体</div>
+                            <div class="font-item-title">閫氳繃 URL 瀹夎</div>
+                            <div class="font-item-subtitle">杈撳叆鐩撮摼涓嬭浇骞跺簲鐢ㄥ瓧浣?/div>
                         </div>
                     </div>
                 </div>
@@ -2235,8 +2235,8 @@
                     <div class="font-list-item font-item-padding active" data-font="default" onclick="selectFont('default', this)">
                         <div class="font-item-inner">
                             <div class="font-item-content">
-                                <div class="font-name-text">系统默认 (Geomini)</div>
-                                <div class="font-preview-subtext">The quick brown fox / 探索宇宙</div>
+                                <div class="font-name-text">绯荤粺榛樿 (Geomini)</div>
+                                <div class="font-preview-subtext">The quick brown fox / 鎺㈢储瀹囧畽</div>
                             </div>
                             <div class="font-checkmark">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -2245,16 +2245,16 @@
                     </div>
                 </div>
             </div>
-            <!-- 小组件区域 (Widget) -->
+            <!-- 灏忕粍浠跺尯鍩?(Widget) -->
             <div class="widget-app-container" id="widgetAppGrid" style="display: none;">
                 <div class="widget-segment-control">
                     <div class="widget-segment-indicator" id="widgetSegmentIndicator"></div>
-                    <button class="widget-segment-btn active" onclick="switchWidgetTab(0)">推荐/官方</button>
-                    <button class="widget-segment-btn" onclick="switchWidgetTab(1)">自定义组件</button>
+                    <button class="widget-segment-btn active" onclick="switchWidgetTab(0)">鎺ㄨ崘/瀹樻柟</button>
+                    <button class="widget-segment-btn" onclick="switchWidgetTab(1)">鑷畾涔夌粍浠?/button>
                 </div>
                 <div class="widget-empty-state" id="widgetEmptyState">
                     <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4" ry="4"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>
-                    <p>此目录暂无组件<br>请点击右上角菜单添加</p>
+                    <p>姝ょ洰褰曟殏鏃犵粍浠?br>璇风偣鍑诲彸涓婅鑿滃崟娣诲姞</p>
                 </div>
                 <div class="widget-content-area" id="widgetContentArea">
                     <div class="widget-carousel-container" id="widgetCarousel">
@@ -2266,54 +2266,54 @@
             </div>
         </div>
 
-        <!-- 预设详情页 -->
+        <!-- 棰勮璇︽儏椤?-->
         <div id="presetDetailPage">
             <div class="detail-header">
                 <div class="detail-back-btn" onclick="closePresetDetail()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </div>
-                <div class="detail-title">主题详情</div>
+                <div class="detail-title">涓婚璇︽儏</div>
                 <div class="detail-export-btn" onclick="toggleDetailMenu()">
                     <svg id="detailMenuIconList" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
                     <svg id="detailMenuIconChevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
             </div>
             
-            <!-- 详情页下拉菜单 -->
+            <!-- 璇︽儏椤典笅鎷夎彍鍗?-->
             <div class="detail-dropdown-menu" id="detailDropdownMenu">
                 <div class="dropdown-btn" onclick="editPresetName(); toggleDetailMenu();">
                     <div class="dropdown-icon-circle">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     </div>
-                    <span>编辑</span>
+                    <span>缂栬緫</span>
                 </div>
                 <div class="dropdown-btn" onclick="compressPreset(); toggleDetailMenu();">
                     <div class="dropdown-icon-circle">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
                     </div>
-                    <span>压缩</span>
+                    <span>鍘嬬缉</span>
                 </div>
                 <div class="dropdown-btn" onclick="openExportModal(); toggleDetailMenu();">
                     <div class="dropdown-icon-circle">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     </div>
-                    <span>导出</span>
+                    <span>瀵煎嚭</span>
                 </div>
             </div>
 
             <div class="detail-content">
                 <div class="preview-carousel">
                     <div class="preview-phone-mockup">
-                        <!-- 1:1 桌面还原容器 -->
+                        <!-- 1:1 妗岄潰杩樺師瀹瑰櫒 -->
                         <div class="preview-scale-container" id="previewScaleContainer"></div>
                     </div>
                 </div>
                 <div class="preset-info-box">
                     <div class="info-name-wrapper">
-                        <div class="info-name" id="detailName">主题名称</div>
+                        <div class="info-name" id="detailName">涓婚鍚嶇О</div>
                     </div>
                     <div class="info-meta">
-                        <div class="info-date" id="detailDate">创建于：--</div>
+                        <div class="info-date" id="detailDate">鍒涘缓浜庯細--</div>
                         <div class="info-size-box">
                             <div class="info-size" id="detailSize">0.00 MB</div>
                         </div>
@@ -2321,43 +2321,43 @@
                 </div>
             </div>
             <div class="detail-bottom-bar">
-                <button class="apply-btn" onclick="applyCurrentDetailTheme()">应用该预设主题</button>
+                <button class="apply-btn" onclick="applyCurrentDetailTheme()">搴旂敤璇ラ璁句富棰?/button>
             </div>
         </div>
-        <!-- Widget 全局弹窗 -->
+        <!-- Widget 鍏ㄥ眬寮圭獥 -->
         <div class="widget-overlay" id="widgetOverlay" onclick="closeWidgetMenus()"></div>
         <div class="widget-context-menu" id="widgetContextMenu">
-            <div class="widget-ctx-item" onclick="widgetCtxAction('preview')"><svg viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="14" height="14" rx="2" ry="2"></rect><path d="M7 3h12a2 2 0 0 1 2 2v12"></path><circle cx="8.5" cy="11.5" r="1.5"></circle><polyline points="17 15 13 11 7 17"></polyline></svg><span class="widget-ctx-text">预览</span></div>
-            <div class="widget-ctx-item" onclick="widgetCtxAction('edit')"><svg viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg><span class="widget-ctx-text">编辑</span></div>
-            <div class="widget-ctx-item" onclick="widgetCtxAction('export')"><svg viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg><span class="widget-ctx-text">导出</span></div>
+            <div class="widget-ctx-item" onclick="widgetCtxAction('preview')"><svg viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="14" height="14" rx="2" ry="2"></rect><path d="M7 3h12a2 2 0 0 1 2 2v12"></path><circle cx="8.5" cy="11.5" r="1.5"></circle><polyline points="17 15 13 11 7 17"></polyline></svg><span class="widget-ctx-text">棰勮</span></div>
+            <div class="widget-ctx-item" onclick="widgetCtxAction('edit')"><svg viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg><span class="widget-ctx-text">缂栬緫</span></div>
+            <div class="widget-ctx-item" onclick="widgetCtxAction('export')"><svg viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg><span class="widget-ctx-text">瀵煎嚭</span></div>
         </div>
         <div class="widget-editor-modal" id="widgetEditorModal">
             <div class="ios-top-bar" style="height:60px; padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); background:#f2f2f7; border-radius: 24px 24px 0 0;">
-                <div style="font-size: 15px; color: #007aff; cursor: pointer;" onclick="closeWidgetEditor()">取消</div>
-                <div style="font-size: 16px; font-weight: 600; color: #000;">编辑组件</div>
-                <div style="font-size: 15px; color: #007aff; font-weight: 600; cursor: pointer;" onclick="saveWidgetEditor()">保存</div>
+                <div style="font-size: 15px; color: #007aff; cursor: pointer;" onclick="closeWidgetEditor()">鍙栨秷</div>
+                <div style="font-size: 16px; font-weight: 600; color: #000;">缂栬緫缁勪欢</div>
+                <div style="font-size: 15px; color: #007aff; font-weight: 600; cursor: pointer;" onclick="saveWidgetEditor()">淇濆瓨</div>
             </div>
             <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px; flex: 1; overflow-y: auto;">
                 <div>
-                    <div style="font-size: 12px; color: #8e8e93; margin-left: 8px; font-weight: 600; margin-bottom: 6px;">组件名称</div>
-                    <input type="text" id="widgetEditName" placeholder="输入组件名称" style="width: 100%; background: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; outline: none;">
+                    <div style="font-size: 12px; color: #8e8e93; margin-left: 8px; font-weight: 600; margin-bottom: 6px;">缁勪欢鍚嶇О</div>
+                    <input type="text" id="widgetEditName" placeholder="杈撳叆缁勪欢鍚嶇О" style="width: 100%; background: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; outline: none;">
                 </div>
                 <div style="flex:1; display:flex; flex-direction:column;">
-                    <div style="font-size: 12px; color: #8e8e93; margin-left: 8px; font-weight: 600; margin-bottom: 6px;">HTML / CSS 代码</div>
+                    <div style="font-size: 12px; color: #8e8e93; margin-left: 8px; font-weight: 600; margin-bottom: 6px;">HTML / CSS 浠ｇ爜</div>
                     <textarea id="widgetEditContent" placeholder="&lt;style&gt;...&lt;/style&gt;&#10;&lt;div class='widget'&gt;...&lt;/div&gt;" style="width: 100%; flex: 1; min-height: 260px; background: #1e1e1e; border: none; border-radius: 12px; padding: 14px; font-size: 13px; color: #d4d4d4; font-family: monospace; outline: none; resize: none;"></textarea>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 设置 APP UI 容器 -->
+    <!-- 璁剧疆 APP UI 瀹瑰櫒 -->
     <div class="settings-app-container" id="settingsAppUI">
         <div class="settings-scroll-area" style="padding-top: 45px;">
-            <div class="set-page-title" onclick="closeSettingsApp()">设置</div>
+            <div class="set-page-title" onclick="closeSettingsApp()">璁剧疆</div>
             <div class="set-search-container">
                 <div class="set-search-bar">
                     <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                    <input type="text" placeholder="搜索">
+                    <input type="text" placeholder="鎼滅储">
                     <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                 </div>
             </div>
@@ -2372,36 +2372,36 @@
                 </div>
                 <div class="set-profile-info">
                     <div class="set-profile-name">@uu</div>
-                    <div class="set-profile-sub">账户、云端等</div>
+                    <div class="set-profile-sub">璐︽埛銆佷簯绔瓑</div>
                 </div>
                 <svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
             </div>
             <div class="set-card">
                 <div class="set-list-item">
                     <div class="set-item-icon set-bg-orange" style="animation-delay: 0s;"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5L21 16z"/></svg></div>
-                    <div class="set-item-content"><span>飞行模式</span><div class="set-toggle"></div></div>
+                    <div class="set-item-content"><span>椋炶妯″紡</span><div class="set-toggle"></div></div>
                 </div>
                 <div class="set-list-item" onclick="openApiApp()" style="cursor: pointer;">
                     <div class="set-item-icon set-bg-blue" style="animation-delay: 0.2s;">
                         <svg viewBox="0 0 24 24"><path fill="white" d="m6.35 15.35l-2.1-2.15q1.475-1.475 3.463-2.337T12 10q2.3 0 4.288.875t3.462 2.375l-2.1 2.1q-1.1-1.1-2.55-1.725T12 13q-1.65 0-3.1.625T6.35 15.35ZM2.1 11.1L0 9q2.3-2.35 5.375-3.675T12 4q3.55 0 6.625 1.325T24 9l-2.1 2.1q-1.925-1.925-4.463-3.013T12 7Q9.1 7 6.562 8.088T2.1 11.1ZM12 21l3.525-3.55q-.675-.675-1.575-1.063T12 16q-1.05 0-1.95.388T8.475 17.45L12 21Z"/></svg>
                     </div>
-                    <div class="set-item-content"><span>API连接</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                    <div class="set-item-content"><span>API杩炴帴</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
                 <div class="set-list-item">
                     <div class="set-item-icon set-bg-blue" style="animation-delay: 0.4s;"><svg viewBox="0 0 24 24"><path d="M17.71 7.71L12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm1.88 10.46L13 18.17v-3.76l1.88 1.88z"/></svg></div>
-                    <div class="set-item-content"><span>蓝牙</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                    <div class="set-item-content"><span>钃濈墮</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
                 <div class="set-list-item">
                     <div class="set-item-icon set-bg-green" style="animation-delay: 0.6s;"><svg viewBox="0 0 24 24"><path d="M12 11c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 2c0-3.31-2.69-6-6-6s-6 2.69-6 6c0 2.22 1.21 4.15 3 5.19l1-1.74c-1.19-.7-2-1.97-2-3.45 0-2.21 1.79-4 4-4s4 1.79 4 4c0 1.48-.81 2.75-2 3.45l1 1.74c1.79-1.04 3-2.97 3-5.19zM12 3C6.48 3 2 7.48 2 13c0 3.7 2.01 6.92 4.99 8.65l1-1.73C5.61 18.53 4 15.96 4 13c0-4.42 3.58-8 8-8s8 3.58 8 8c0 2.96-1.61 5.53-4 6.92l1 1.73c2.99-1.73 5-4.95 5-8.65 0-5.52-4.48-10-10-10z"/></svg></div>
-                    <div class="set-item-content"><span>蜂窝网络</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                    <div class="set-item-content"><span>铚傜獫缃戠粶</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
                 <div class="set-list-item">
                     <div class="set-item-icon set-bg-green" style="animation-delay: 0.8s;"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="fill: none !important; stroke: white; width: 18px; height: 18px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></div>
-                    <div class="set-item-content"><span>个人热点</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                    <div class="set-item-content"><span>涓汉鐑偣</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
                 <div class="set-list-item">
                     <div class="set-item-icon set-bg-green" style="animation-delay: 1.0s;"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2" fill="none" stroke="white" stroke-width="2"/><rect x="4" y="9" width="10" height="6" rx="1"/><path d="M22 10v4" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div>
-                    <div class="set-item-content"><span>电池</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                    <div class="set-item-content"><span>鐢垫睜</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
                 <div class="set-list-item">
                     <div class="set-item-icon set-bg-blue" style="animation-delay: 1.2s;"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div>
@@ -2411,34 +2411,34 @@
             <div class="set-card">
                 <div class="set-list-item">
                     <div class="set-item-icon set-bg-gray" style="animation-delay: 1.4s;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.004 10.407c.138.435-.216.842-.672.842h-3.465a.75.75 0 0 1-.65-.375l-1.732-3c-.229-.396-.053-.907.393-1.004a5.252 5.252 0 0 1 6.126 3.537ZM8.12 8.464c.307-.338.838-.235 1.066.16l1.732 3a.75.75 0 0 1 0 .75l-1.732 3c-.229.397-.76.5-1.067.161A5.23 5.23 0 0 1 6.75 12a5.23 5.23 0 0 1 1.37-3.536ZM10.878 17.13c-.447-.098-.623-.608-.394-1.004l1.733-3.002a.75.75 0 0 1 .65-.375h3.465c.457 0 .81.407.672.842a5.252 5.252 0 0 1-6.126 3.539Z" /><path fill-rule="evenodd" d="M21 12.75a.75.75 0 1 0 0-1.5h-.783a8.22 8.22 0 0 0-.237-1.357l.734-.267a.75.75 0 1 0-.513-1.41l-.735.268a8.24 8.24 0 0 0-.689-1.192l.6-.503a.75.75 0 1 0-.964-1.149l-.6.504a8.3 8.3 0 0 0-1.054-.885l.391-.678a.75.75 0 1 0-1.299-.75l-.39.676a8.188 8.188 0 0 0-1.295-.47l.136-.77a.75.75 0 0 0-1.477-.26l-.136.77a8.36 8.36 0 0 0-1.377 0l-.136-.77a.75.75 0 1 0-1.477.26l.136.77c-.448.121-.88.28-1.294.47l-.39-.676a.75.75 0 0 0-1.3.75l.392.678a8.29 8.29 0 0 0-1.054.885l-.6-.504a.75.75 0 1 0-.965 1.149l.6.503a8.243 8.243 0 0 0-.689 1.192L3.8 8.216a.75.75 0 1 0-.513 1.41l.735.267a8.222 8.222 0 0 0-.238 1.356h-.783a.75.75 0 0 0 0 1.5h.783c.042.464.122.917.238 1.356l-.735.268a.75.75 0 0 0 .513 1.41l.735-.268c.197.417.428.816.69 1.191l-.6.504a.75.75 0 0 0 .963 1.15l.601-.505c.326.323.679.62 1.054.885l-.392.68a.75.75 0 0 0 1.3.75l.39-.679c.414.192.847.35 1.294.471l-.136.77a.75.75 0 0 0 1.477.261l.137-.772a8.332 8.332 0 0 0 1.376 0l.136.772a.75.75 0 1 0 1.477-.26l-.136-.771a8.19 8.19 0 0 0 1.294-.47l.391.677a.75.75 0 0 0 1.3-.75l-.393-.679a8.29 8.29 0 0 0 1.054-.885l.601.504a.75.75 0 0 0 .964-1.15l-.6-.503c.261-.375.492-.774.69-1.191l.735.267a.75.75 0 1 0 .512-1.41l-.734-.267c.115-.439.195-.892.237-1.356h.784Zm-2.657-3.06a6.744 6.744 0 0 0-1.19-2.053 6.784 6.784 0 0 0-1.82-1.51A6.705 6.705 0 0 0 12 5.25a6.8 6.8 0 0 0-1.225.11 6.7 6.7 0 0 0-2.15.793 6.784 6.784 0 0 0-2.952 3.489.76.76 0 0 1-.036.098A6.74 6.74 0 0 0 5.251 12a6.74 6.74 0 0 0 3.366 5.842l.009.005a6.704 6.704 0 0 0 2.18.798l.022.003a6.792 6.792 0 0 0 2.368-.004 6.704 6.704 0 0 0 2.205-.811 6.785 6.785 0 0 0 1.762-1.484l.009-.01.009-.01a6.743 6.743 0 0 0 1.18-2.066c.253-.707.39-1.469.39-2.263a6.74 6.74 0 0 0-.408-2.309Z" clip-rule="evenodd" /></svg></div>
-                    <div class="set-item-content"><span>通用</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                    <div class="set-item-content"><span>閫氱敤</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
                 <div class="set-list-item" onclick="openDisplaySettingsApp()" style="cursor: pointer;">
                     <div class="set-item-icon set-bg-blue" style="animation-delay: 1.5s;"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></div>
-                    <div class="set-item-content"><span>显示与亮度</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                    <div class="set-item-content"><span>鏄剧ず涓庝寒搴?/span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
                 <div class="set-list-item">
                     <div class="set-item-icon set-bg-blue" style="animation-delay: 1.6s;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="white" stroke-width="2"/><path d="M12 6a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-3 4h6v2h-2v5h-2v-5H9v-2z"/></svg></div>
-                    <div class="set-item-content"><span>辅助功能</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                    <div class="set-item-content"><span>杈呭姪鍔熻兘</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
                 <div class="set-list-item">
                     <div class="set-item-icon set-bg-black" style="animation-delay: 1.8s;"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="3" fill="none" stroke="white" stroke-width="2"/><circle cx="8" cy="12" r="2" fill="white"/><rect x="13" y="11" width="6" height="2" fill="white"/></svg></div>
-                    <div class="set-item-content"><span>待机显示</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                    <div class="set-item-content"><span>寰呮満鏄剧ず</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 显示与亮度 页面容器 -->
+    <!-- 鏄剧ず涓庝寒搴?椤甸潰瀹瑰櫒 -->
     <div class="display-settings-container" id="displaySettingsUI">
         <div class="ds-nav-bar">
             <div class="ds-back-btn" onclick="closeDisplaySettingsApp()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </div>
-            <div class="ds-nav-title">显示与亮度</div>
+            <div class="ds-nav-title">鏄剧ず涓庝寒搴?/div>
         </div>
         <div class="ds-content">
-            <div class="ds-section-title">外观</div>
+            <div class="ds-section-title">澶栬</div>
             <div class="ds-card-group">
                 <div class="ds-appearance-selector">
                     <div class="ds-appearance-option active" id="dsLightOption" onclick="toggleDsAppearance('light')">
@@ -2449,7 +2449,7 @@
                                 <div class="ds-mockup-widget"></div>
                             </div>
                         </div>
-                        <div>浅色</div>
+                        <div>娴呰壊</div>
                         <div class="ds-radio-circle"></div>
                     </div>
                     <div class="ds-appearance-option" id="dsDarkOption" onclick="toggleDsAppearance('dark')">
@@ -2460,13 +2460,13 @@
                                 <div class="ds-mockup-widget"></div>
                             </div>
                         </div>
-                        <div>深色</div>
+                        <div>娣辫壊</div>
                         <div class="ds-radio-circle"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="ds-section-title">亮度</div>
+            <div class="ds-section-title">浜害</div>
             <div class="ds-card-group">
                 <div class="ds-brightness-container">
                     <svg class="ds-sun-icon small" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2494,27 +2494,27 @@
                     </svg>
                 </div>
                 <div class="ds-list-item">
-                    <div>原彩显示</div>
+                    <div>鍘熷僵鏄剧ず</div>
                     <div class="ds-toggle on" onclick="this.classList.toggle('on')"></div>
                 </div>
             </div>
-            <div class="ds-section-footer">根据环境光线条件自动调整手机屏幕以在不同环境下保持色彩显示一致。</div>
+            <div class="ds-section-footer">鏍规嵁鐜鍏夌嚎鏉′欢鑷姩璋冩暣鎵嬫満灞忓箷浠ュ湪涓嶅悓鐜涓嬩繚鎸佽壊褰╂樉绀轰竴鑷淬€?/div>
         </div>
     </div>
 
-    <!-- Apple ID 页面容器 -->
+    <!-- Apple ID 椤甸潰瀹瑰櫒 -->
     <div class="apple-id-container" id="appleIdUI">
-        <!-- 导航栏 -->
+        <!-- 瀵艰埅鏍?-->
         <div class="apple-id-nav-bar">
             <div class="apple-id-back-btn" onclick="closeAppleIdApp()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </div>
-            <div class="apple-id-nav-title">账户</div>
+            <div class="apple-id-nav-title">璐︽埛</div>
         </div>
 
-        <!-- 内容区 -->
+        <!-- 鍐呭鍖?-->
         <div class="apple-id-content">
-            <!-- 头像与名字 -->
+            <!-- 澶村儚涓庡悕瀛?-->
             <div class="apple-id-profile-header">
                 <div class="apple-id-avatar" id="appleIdAvatarPreview" onclick="openIconMenu(event, 'appleIdAvatar')" style="cursor: pointer;">
                     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
@@ -2529,7 +2529,7 @@
                 </div>
             </div>
 
-            <!-- 第一组卡片 -->
+            <!-- 绗竴缁勫崱鐗?-->
             <div class="apple-id-card">
                 <div class="apple-id-list-item">
                     <div class="apple-id-item-icon apple-id-icon-gray-3d">
@@ -2539,7 +2539,7 @@
                         </svg>
                     </div>
                     <div class="apple-id-item-content">
-                        <span>个人信息</span>
+                        <span>涓汉淇℃伅</span>
                         <div class="apple-id-item-right"><svg class="apple-id-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                     </div>
                 </div>
@@ -2551,7 +2551,7 @@
                         </svg>
                     </div>
                     <div class="apple-id-item-content">
-                        <span>登录与安全性</span>
+                        <span>鐧诲綍涓庡畨鍏ㄦ€?/span>
                         <div class="apple-id-item-right"><svg class="apple-id-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                     </div>
                 </div>
@@ -2562,9 +2562,9 @@
                         </svg>
                     </div>
                     <div class="apple-id-item-content">
-                        <span>付款与配送</span>
+                        <span>浠樻涓庨厤閫?/span>
                         <div class="apple-id-item-right">
-                            <span class="apple-id-item-value">支付宝 Alipay</span>
+                            <span class="apple-id-item-value">鏀粯瀹?Alipay</span>
                             <svg class="apple-id-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
                         </div>
                     </div>
@@ -2574,13 +2574,13 @@
                         <svg viewBox="0 0 24 24" style="stroke: #fff;"><circle cx="12" cy="12" r="10" fill="none" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="16" stroke-width="2"/><line x1="8" y1="12" x2="16" y2="12" stroke-width="2"/></svg>
                     </div>
                     <div class="apple-id-item-content">
-                        <span>订阅</span>
+                        <span>璁㈤槄</span>
                         <div class="apple-id-item-right"><svg class="apple-id-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                     </div>
                 </div>
             </div>
 
-            <!-- 第二组卡片 -->
+            <!-- 绗簩缁勫崱鐗?-->
             <div class="apple-id-card">
                 <div class="apple-id-list-item" onclick="openIcloudApp()" style="cursor: pointer;">
                     <div class="apple-id-item-icon apple-id-icon-transparent">
@@ -2589,9 +2589,9 @@
                         </svg>
                     </div>
                     <div class="apple-id-item-content">
-                        <span>云端</span>
+                        <span>浜戠</span>
                         <div class="apple-id-item-right">
-                            <span class="apple-id-item-value">设置</span>
+                            <span class="apple-id-item-value">璁剧疆</span>
                             <svg class="apple-id-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
                         </div>
                     </div>
@@ -2603,48 +2603,48 @@
                         </svg>
                     </div>
                     <div class="apple-id-item-content">
-                        <span>媒体与购买项目</span>
+                        <span>濯掍綋涓庤喘涔伴」鐩?/span>
                         <div class="apple-id-item-right"><svg class="apple-id-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                     </div>
                 </div>
             </div>
 
-            <!-- 退出登录卡片 -->
+            <!-- 閫€鍑虹櫥褰曞崱鐗?-->
             <div class="apple-id-card">
-                <div class="apple-id-logout-btn">退出登录</div>
+                <div class="apple-id-logout-btn">閫€鍑虹櫥褰?/div>
             </div>
         </div>
     </div>
 
-    <!-- iCloud 页面容器 -->
+    <!-- iCloud 椤甸潰瀹瑰櫒 -->
     <div class="icloud-app-container" id="icloudAppUI">
-        <!-- 主页面 -->
+        <!-- 涓婚〉闈?-->
         <div class="ic-page active" id="ic-main-page">
             <div class="ic-header-area">
                 <div class="ic-back-btn" onclick="closeIcloudApp()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </div>
                 <div class="ic-header-title-row">
-                    <div class="ic-header-title">数据管理中心</div>
+                    <div class="ic-header-title">鏁版嵁绠＄悊涓績</div>
                 </div>
             </div>
             <div class="ic-card" style="padding: 18px 16px;" onclick="openIcStoragePage()">
                 <div class="ic-storage-row">
                     <div class="ic-storage-left">
-                        <span class="ic-storage-label">储存空间</span>
+                        <span class="ic-storage-label">鍌ㄥ瓨绌洪棿</span>
                         <div class="ic-progress-bar-bg">
                             <div class="ic-progress-bar-fill" id="ic-main-progress" style="width: 0%; transition: width 0.5s ease;"></div>
                         </div>
                     </div>
                     <div class="ic-card-action" id="ic-main-size" style="font-weight: 800; color: #000;">
-                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                        璁＄畻涓?.. <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
                     </div>
                 </div>
             </div>
             <div class="ic-card">
                 <div class="ic-card-header">
-                    <div class="ic-card-title"><div class="ic-dot"></div>已存至云端</div>
-                    <div class="ic-card-action">查看全部 <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                    <div class="ic-card-title"><div class="ic-dot"></div>宸插瓨鑷充簯绔?/div>
+                    <div class="ic-card-action">鏌ョ湅鍏ㄩ儴 <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
                 <div class="ic-grid-container">
                     <div class="ic-grid-item">
@@ -2652,8 +2652,8 @@
                             <div class="ic-custom-icon" style="background-image: url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png');"></div>
                         </div>
                         <div class="ic-item-info">
-                            <div class="ic-item-name">主题</div>
-                            <div class="ic-item-desc" id="ic-cloud-theme-size">计算中...</div>
+                            <div class="ic-item-name">涓婚</div>
+                            <div class="ic-item-desc" id="ic-cloud-theme-size">璁＄畻涓?..</div>
                         </div>
                     </div>
                     <div class="ic-grid-item">
@@ -2661,8 +2661,8 @@
                             <div class="ic-custom-icon" style="background-image: url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png');"></div>
                         </div>
                         <div class="ic-item-info">
-                            <div class="ic-item-name">世界书</div>
-                            <div class="ic-item-desc" id="ic-cloud-worldbook-size">计算中...</div>
+                            <div class="ic-item-name">涓栫晫涔?/div>
+                            <div class="ic-item-desc" id="ic-cloud-worldbook-size">璁＄畻涓?..</div>
                         </div>
                     </div>
                     <div class="ic-grid-item">
@@ -2670,8 +2670,8 @@
                             <div class="ic-custom-icon" style="background-image: url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png');"></div>
                         </div>
                         <div class="ic-item-info">
-                            <div class="ic-item-name">微信</div>
-                            <div class="ic-item-desc" id="ic-cloud-wechat-size">计算中...</div>
+                            <div class="ic-item-name">寰俊</div>
+                            <div class="ic-item-desc" id="ic-cloud-wechat-size">璁＄畻涓?..</div>
                         </div>
                     </div>
                     <div class="ic-grid-item">
@@ -2680,7 +2680,7 @@
                         </div>
                         <div class="ic-item-info">
                             <div class="ic-item-name">Contacts</div>
-                            <div class="ic-item-desc" id="ic-cloud-contacts-size">计算中...</div>
+                            <div class="ic-item-desc" id="ic-cloud-contacts-size">璁＄畻涓?..</div>
                         </div>
                     </div>
                 </div>
@@ -2688,22 +2688,22 @@
             <div class="ic-card" style="padding: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <div class="ic-card-title"><div class="ic-dot"></div> 云备份 </div>
-                        <div class="ic-item-desc" style="margin-left: 16px; margin-top: 4px;">当前设备</div>
+                        <div class="ic-card-title"><div class="ic-dot"></div> 浜戝浠?</div>
+                        <div class="ic-item-desc" style="margin-left: 16px; margin-top: 4px;">褰撳墠璁惧</div>
                     </div>
-                    <div class="ic-card-action">23分钟前 <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                    <div class="ic-card-action">23鍒嗛挓鍓?<svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
             </div>
             <div class="ic-card" style="padding: 16px 16px 8px;">
-                <div class="ic-card-title" style="margin-bottom: 16px;">数据管理功能</div>
+                <div class="ic-card-title" style="margin-bottom: 16px;">鏁版嵁绠＄悊鍔熻兘</div>
                 <div class="ic-grid-container">
                     <div class="ic-grid-item" onclick="exportAllDataJson()" style="cursor: pointer;">
                         <div class="ic-app-icon-wrapper" style="background: transparent; box-shadow: none; border: none;">
                             <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#007AFF" opacity="0.1"/><path d="M20 12v12m0 0l-4-4m4 4l4-4m-8 8h8" stroke="#007AFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
                         </div>
                         <div class="ic-item-info">
-                            <div class="ic-item-name">数据备份</div>
-                            <div class="ic-item-desc">导出 JSON</div>
+                            <div class="ic-item-name">鏁版嵁澶囦唤</div>
+                            <div class="ic-item-desc">瀵煎嚭 JSON</div>
                         </div>
                     </div>
                     <div class="ic-grid-item" onclick="importAllDataJson()" style="cursor: pointer;">
@@ -2711,8 +2711,8 @@
                             <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#34C759" opacity="0.1"/><path d="M20 28V16m0 0l-4 4m4-4l4 4m-8-8h8" stroke="#34C759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
                         </div>
                         <div class="ic-item-info">
-                            <div class="ic-item-name">恢复数据</div>
-                            <div class="ic-item-desc">导入 JSON</div>
+                            <div class="ic-item-name">鎭㈠鏁版嵁</div>
+                            <div class="ic-item-desc">瀵煎叆 JSON</div>
                         </div>
                     </div>
                     <div class="ic-grid-item" onclick="exportAllDataZip()" style="cursor: pointer;">
@@ -2720,8 +2720,8 @@
                             <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#FF9500" opacity="0.1"/><rect x="14" y="14" width="12" height="14" rx="2" stroke="#FF9500" stroke-width="2" fill="none"/><line x1="20" y1="14" x2="20" y2="20" stroke="#FF9500" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="22" r="1" fill="#FF9500"/></svg>
                         </div>
                         <div class="ic-item-info">
-                            <div class="ic-item-name">zip备份</div>
-                            <div class="ic-item-desc">导出 ZIP</div>
+                            <div class="ic-item-name">zip澶囦唤</div>
+                            <div class="ic-item-desc">瀵煎嚭 ZIP</div>
                         </div>
                     </div>
                     <div class="ic-grid-item" onclick="syncToLocalDrive()" style="cursor: pointer;">
@@ -2729,7 +2729,7 @@
                             <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#5AC8FA" opacity="0.1"/><path d="M12 16h16v10a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V16z" stroke="#5AC8FA" stroke-width="2" fill="none"/><path d="M16 16v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#5AC8FA" stroke-width="2" fill="none"/><line x1="16" y1="22" x2="24" y2="22" stroke="#5AC8FA" stroke-width="2" stroke-linecap="round"/></svg>
                         </div>
                         <div class="ic-item-info">
-                            <div class="ic-item-name">本地硬盘</div>
+                            <div class="ic-item-name">鏈湴纭洏</div>
                             <div class="ic-item-desc">File System</div>
                         </div>
                     </div>
@@ -2739,29 +2739,29 @@
             <div class="ic-list-card">
                 <div class="ic-list-item" onclick="requestPersistentStorage()" style="cursor: pointer;">
                     <div class="ic-list-item-left">
-                        <div class="ic-list-item-title">数据持久化储存</div>
+                        <div class="ic-list-item-title">鏁版嵁鎸佷箙鍖栧偍瀛?/div>
                     </div>
                     <div class="ic-list-item-right" id="ic-persist-status" style="font-weight: 600;">
-                        检测中 <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                        妫€娴嬩腑 <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
                     </div>
                 </div>
             </div>
             <div style="height: 40px;"></div>
         </div>
 
-        <!-- 储存空间详情页 -->
+        <!-- 鍌ㄥ瓨绌洪棿璇︽儏椤?-->
         <div class="ic-page slide-right" id="ic-storage-page">
             <div class="ic-nav-bar-detail" style="padding-top: 45px;">
                 <div class="ic-back-btn" onclick="closeIcStoragePage()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </div>
-                <div class="ic-nav-title-detail">储存空间</div>
+                <div class="ic-nav-title-detail">鍌ㄥ瓨绌洪棿</div>
                 <div style="width: 36px;"></div>
             </div>
             <div class="ic-card">
                 <div class="ic-storage-detail-header">
-                    <div class="ic-storage-detail-title">当前设备</div>
-                    <div class="ic-storage-detail-size" id="ic-detail-size" style="font-weight: 700; color: #000;">已使用 计算中...</div>
+                    <div class="ic-storage-detail-title">褰撳墠璁惧</div>
+                    <div class="ic-storage-detail-size" id="ic-detail-size" style="font-weight: 700; color: #000;">宸蹭娇鐢?璁＄畻涓?..</div>
                 </div>
                 <div class="ic-multi-progress-bar">
                     <div class="ic-segment red" id="ic-seg-red" style="width: 0%; transition: width 0.5s ease;"></div>
@@ -2770,14 +2770,14 @@
                     <div class="ic-segment light-gray" id="ic-seg-light" style="width: 0%; transition: width 0.5s ease;"></div>
                 </div>
                 <div class="ic-legend-container">
-                    <div class="ic-legend-item"><span class="ic-dot red"></span><span id="ic-legend-photo">照片</span></div>
-                    <div class="ic-legend-item"><span class="ic-dot orange"></span><span id="ic-legend-apps">应用程序</span></div>
-                    <div class="ic-legend-item"><span class="ic-dot gray"></span><span id="ic-legend-chat">聊天数据</span></div>
-                    <div class="ic-legend-item"><span class="ic-dot light-gray"></span><span id="ic-legend-system">系统数据</span></div>
+                    <div class="ic-legend-item"><span class="ic-dot red"></span><span id="ic-legend-photo">鐓х墖</span></div>
+                    <div class="ic-legend-item"><span class="ic-dot orange"></span><span id="ic-legend-apps">搴旂敤绋嬪簭</span></div>
+                    <div class="ic-legend-item"><span class="ic-dot gray"></span><span id="ic-legend-chat">鑱婂ぉ鏁版嵁</span></div>
+                    <div class="ic-legend-item"><span class="ic-dot light-gray"></span><span id="ic-legend-system">绯荤粺鏁版嵁</span></div>
                 </div>
             </div>
             <div class="ic-sort-row">
-                <span style="font-weight: bold;">大小</span> 
+                <span style="font-weight: bold;">澶у皬</span> 
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 15 12 20 17 15"></polyline><polyline points="7 9 12 4 17 9"></polyline></svg>
             </div>
             <div class="ic-list-card">
@@ -2787,12 +2787,12 @@
                             <div class="ic-custom-icon" style="background-image: url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg');"></div>
                         </div>
                         <div class="ic-app-list-info">
-                            <div class="ic-app-list-name">设置</div>
-                            <div class="ic-app-list-date">上次使用：今天</div>
+                            <div class="ic-app-list-name">璁剧疆</div>
+                            <div class="ic-app-list-date">涓婃浣跨敤锛氫粖澶?/div>
                         </div>
                     </div>
                     <div class="ic-app-list-right" id="ic-detail-settings-size">
-                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                        璁＄畻涓?.. <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
                     </div>
                 </div>
                 <div class="ic-app-list-item">
@@ -2801,12 +2801,12 @@
                             <div class="ic-custom-icon" style="background-image: url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png');"></div>
                         </div>
                         <div class="ic-app-list-info">
-                            <div class="ic-app-list-name">主题</div>
-                            <div class="ic-app-list-date">上次使用：今天</div>
+                            <div class="ic-app-list-name">涓婚</div>
+                            <div class="ic-app-list-date">涓婃浣跨敤锛氫粖澶?/div>
                         </div>
                     </div>
                     <div class="ic-app-list-right" id="ic-detail-theme-size">
-                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                        璁＄畻涓?.. <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
                     </div>
                 </div>
                 <div class="ic-app-list-item">
@@ -2815,12 +2815,12 @@
                             <div class="ic-custom-icon" style="background-image: url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png');"></div>
                         </div>
                         <div class="ic-app-list-info">
-                            <div class="ic-app-list-name">世界书</div>
-                            <div class="ic-app-list-date">上次使用：今天</div>
+                            <div class="ic-app-list-name">涓栫晫涔?/div>
+                            <div class="ic-app-list-date">涓婃浣跨敤锛氫粖澶?/div>
                         </div>
                     </div>
                     <div class="ic-app-list-right" id="ic-detail-worldbook-size">
-                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                        璁＄畻涓?.. <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
                     </div>
                 </div>
                 <div class="ic-app-list-item">
@@ -2830,11 +2830,11 @@
                         </div>
                         <div class="ic-app-list-info">
                             <div class="ic-app-list-name">Contacts</div>
-                            <div class="ic-app-list-date">上次使用：2026/5/7</div>
+                            <div class="ic-app-list-date">涓婃浣跨敤锛?026/5/7</div>
                         </div>
                     </div>
                     <div class="ic-app-list-right" id="ic-detail-contacts-size">
-                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                        璁＄畻涓?.. <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
                     </div>
                 </div>
                 <div class="ic-app-list-item">
@@ -2843,12 +2843,12 @@
                             <div class="ic-custom-icon" style="background-image: url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png');"></div>
                         </div>
                         <div class="ic-app-list-info">
-                            <div class="ic-app-list-name">微信</div>
-                            <div class="ic-app-list-date">上次使用：昨天</div>
+                            <div class="ic-app-list-name">寰俊</div>
+                            <div class="ic-app-list-date">涓婃浣跨敤锛氭槰澶?/div>
                         </div>
                     </div>
                     <div class="ic-app-list-right" id="ic-detail-wechat-size">
-                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                        璁＄畻涓?.. <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
                     </div>
                 </div>
                 <div class="ic-app-list-item">
@@ -2857,12 +2857,12 @@
                             <div class="ic-custom-icon" style="background-image: url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png');"></div>
                         </div>
                         <div class="ic-app-list-info">
-                            <div class="ic-app-list-name">电话</div>
-                            <div class="ic-app-list-date">上次使用：10月30日</div>
+                            <div class="ic-app-list-name">鐢佃瘽</div>
+                            <div class="ic-app-list-date">涓婃浣跨敤锛?0鏈?0鏃?/div>
                         </div>
                     </div>
                     <div class="ic-app-list-right" id="ic-detail-phone-size">
-                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                        璁＄畻涓?.. <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
                     </div>
                 </div>
                 <div class="ic-app-list-item">
@@ -2871,62 +2871,62 @@
                             <div class="ic-custom-icon" style="background-image: url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png');"></div>
                         </div>
                         <div class="ic-app-list-info">
-                            <div class="ic-app-list-name">信息</div>
-                            <div class="ic-app-list-date">上次使用：10月29日</div>
+                            <div class="ic-app-list-name">淇℃伅</div>
+                            <div class="ic-app-list-date">涓婃浣跨敤锛?0鏈?9鏃?/div>
                         </div>
                     </div>
                     <div class="ic-app-list-right" id="ic-detail-message-size">
-                        计算中... <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                        璁＄畻涓?.. <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
                     </div>
                 </div>
             </div>
             <div style="height: 40px;"></div>
         </div>
 
-        <!-- 本地硬盘备份页 -->
+        <!-- 鏈湴纭洏澶囦唤椤?-->
         <div class="ic-page slide-right" id="ic-local-drive-page">
             <div class="ic-nav-bar-detail" style="padding-top: 45px;">
                 <div class="ic-back-btn" onclick="closeLocalDrivePage()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </div>
-                <div class="ic-nav-title-detail">本地硬盘备份</div>
+                <div class="ic-nav-title-detail">鏈湴纭洏澶囦唤</div>
                 <div style="width: 36px;"></div>
             </div>
             
             <div class="ic-card">
-                <div class="ic-card-title" style="margin-bottom: 16px;">备份状态</div>
+                <div class="ic-card-title" style="margin-bottom: 16px;">澶囦唤鐘舵€?/div>
                 <div class="ic-list-item" style="padding: 8px 0; min-height: auto; border: none;">
-                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">当前模式</div>
-                    <div class="ic-list-item-right" id="ld-current-mode" style="color: #000;">未设置</div>
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">褰撳墠妯″紡</div>
+                    <div class="ic-list-item-right" id="ld-current-mode" style="color: #000;">鏈缃?/div>
                 </div>
                 <div class="ic-list-item" style="padding: 8px 0; min-height: auto; border: none;">
-                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">目标位置</div>
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">鐩爣浣嶇疆</div>
                     <div class="ic-list-item-right" id="ld-target-name" style="color: #000; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">--</div>
                 </div>
                 <div class="ic-list-item" style="padding: 8px 0; min-height: auto; border: none;">
-                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">文件名称</div>
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">鏂囦欢鍚嶇О</div>
                     <div class="ic-list-item-right" id="ld-file-name" style="color: #000; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">--</div>
                 </div>
                 <div class="ic-list-item" style="padding: 8px 0; min-height: auto; border: none;">
-                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">上次备份</div>
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">涓婃澶囦唤</div>
                     <div class="ic-list-item-right" id="ld-last-time" style="color: #000;">--</div>
                 </div>
                 <div class="ic-list-item" style="padding: 8px 0; min-height: auto; border: none;">
-                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">备份大小</div>
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93;">澶囦唤澶у皬</div>
                     <div class="ic-list-item-right" id="ld-last-size" style="color: #000;">--</div>
                 </div>
             </div>
 
             <div class="ic-card" style="padding: 16px 16px 8px;">
-                <div class="ic-card-title" style="margin-bottom: 16px;">选择模式</div>
+                <div class="ic-card-title" style="margin-bottom: 16px;">閫夋嫨妯″紡</div>
                 <div class="ic-grid-container">
                     <div class="ic-grid-item" onclick="setupFolderMode()" style="cursor: pointer;">
                         <div class="ic-app-icon-wrapper" style="background: transparent; box-shadow: none; border: none;">
                             <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#007AFF" opacity="0.1"/><path d="M12 16h16v10a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V16z" stroke="#007AFF" stroke-width="2" fill="none"/><path d="M16 16v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#007AFF" stroke-width="2" fill="none"/></svg>
                         </div>
                         <div class="ic-item-info">
-                            <div class="ic-item-name">文件夹模式</div>
-                            <div class="ic-item-desc">自动覆盖保存</div>
+                            <div class="ic-item-name">鏂囦欢澶规ā寮?/div>
+                            <div class="ic-item-desc">鑷姩瑕嗙洊淇濆瓨</div>
                         </div>
                     </div>
                     <div class="ic-grid-item" onclick="setupFileMode()" style="cursor: pointer;">
@@ -2934,8 +2934,8 @@
                             <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#34C759" opacity="0.1"/><path d="M14 12h8l6 6v10a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V14a2 2 0 0 1 2-2z" stroke="#34C759" stroke-width="2" fill="none"/><polyline points="22 12 22 18 28 18" stroke="#34C759" stroke-width="2" fill="none"/></svg>
                         </div>
                         <div class="ic-item-info">
-                            <div class="ic-item-name">单文件模式</div>
-                            <div class="ic-item-desc">保存为单文件</div>
+                            <div class="ic-item-name">鍗曟枃浠舵ā寮?/div>
+                            <div class="ic-item-desc">淇濆瓨涓哄崟鏂囦欢</div>
                         </div>
                     </div>
                 </div>
@@ -2943,53 +2943,53 @@
 
             <div class="ic-card" style="padding: 0;">
                 <div class="ic-list-item" style="padding: 12px 16px;">
-                    <div class="ic-list-item-title">自动备份</div>
+                    <div class="ic-list-item-title">鑷姩澶囦唤</div>
                     <div class="api-toggle off" id="autoBackupToggle" onclick="toggleAutoBackup()"></div>
                 </div>
                 <div class="ic-list-item" style="padding: 12px 16px; border-bottom: 1px solid #f2f2f7;">
-                    <div class="ic-list-item-title">备份模式</div>
+                    <div class="ic-list-item-title">澶囦唤妯″紡</div>
                     <select id="autoBackupMode" onchange="changeBackupMode()" style="border: none; background: transparent; font-size: 16px; color: #8e8e93; outline: none; text-align: right; direction: rtl; cursor: pointer;">
-                        <option value="action">每次修改时</option>
-                        <option value="interval">间隔时间备份</option>
-                        <option value="scheduled">定时备份</option>
+                        <option value="action">姣忔淇敼鏃?/option>
+                        <option value="interval">闂撮殧鏃堕棿澶囦唤</option>
+                        <option value="scheduled">瀹氭椂澶囦唤</option>
                     </select>
                 </div>
                 <div class="ic-list-item" id="intervalSettingsRow" style="padding: 12px 16px; display: none; border-bottom: 1px solid #f2f2f7;">
-                    <div class="ic-list-item-title">间隔时间</div>
+                    <div class="ic-list-item-title">闂撮殧鏃堕棿</div>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <input type="number" id="backupIntervalValue" value="30" onchange="updateBackupSettings()" style="width: 50px; text-align: right; border: none; background: transparent; font-size: 16px; color: #007aff; outline: none;">
                         <select id="backupIntervalUnit" onchange="updateBackupSettings()" style="border: none; background: transparent; font-size: 16px; color: #8e8e93; outline: none; cursor: pointer;">
-                            <option value="60000">分钟</option>
-                            <option value="3600000">小时</option>
+                            <option value="60000">鍒嗛挓</option>
+                            <option value="3600000">灏忔椂</option>
                         </select>
                     </div>
                 </div>
                 <div class="ic-list-item" id="scheduledSettingsRow" style="padding: 12px 16px; display: none;">
-                    <div class="ic-list-item-title">定时时间</div>
+                    <div class="ic-list-item-title">瀹氭椂鏃堕棿</div>
                     <input type="time" id="backupScheduledTime" value="02:00" onchange="updateBackupSettings()" style="border: none; background: transparent; font-size: 16px; color: #007aff; outline: none; text-align: right;">
                 </div>
             </div>
 
             <div style="display: flex; gap: 12px; padding: 0 16px 24px 16px;">
                 <div onclick="performLocalBackup()" style="flex: 1; background-color: #007aff; color: #fff; border-radius: 14px; padding: 14px 0; text-align: center; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0,122,255,0.3);">
-                    立即备份
+                    绔嬪嵆澶囦唤
                 </div>
                 <div onclick="restoreFromLocalFolder()" style="flex: 1; background-color: #34c759; color: #fff; border-radius: 14px; padding: 14px 0; text-align: center; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(52,199,89,0.3);">
-                    恢复数据
+                    鎭㈠鏁版嵁
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- API 连接页面容器 -->
+    <!-- API 杩炴帴椤甸潰瀹瑰櫒 -->
     <div class="api-app-container" id="apiAppUI">
-        <!-- 主页面 -->
+        <!-- 涓婚〉闈?-->
         <div id="api-page-main" class="api-page active">
             <div class="api-nav-bar">
                 <div class="api-nav-btn-circle" onclick="closeApiApp()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </div>
-                <div class="api-nav-btn-circle text-btn">编辑</div>
+                <div class="api-nav-btn-circle text-btn">缂栬緫</div>
             </div>
             <div class="api-content">
                 <div class="api-hero-card">
@@ -2998,69 +2998,69 @@
                             <path fill="#ffffff" d="M2.06 10.06c.51.51 1.32.56 1.87.1c4.67-3.84 11.45-3.84 16.13-.01c.56.46 1.38.42 1.89-.09c.59-.59.55-1.57-.1-2.1c-5.71-4.67-13.97-4.67-19.69 0c-.65.52-.7 1.5-.1 2.1zm7.76 7.76l1.47 1.47c.39.39 1.02.39 1.41 0l1.47-1.47c.47-.47.37-1.28-.23-1.59a4.28 4.28 0 0 0-3.91 0c-.57.31-.68 1.12-.21 1.59zm-3.73-3.73c.49.49 1.26.54 1.83.13a7.064 7.064 0 0 1 8.16 0c.57.4 1.34.36 1.83-.13l.01-.01c.6-.6.56-1.62-.13-2.11c-3.44-2.49-8.13-2.49-11.58 0c-.69.5-.73 1.51-.12 2.12z"/>
                         </svg>
                     </div>
-                    <div class="api-hero-title">API 连接</div>
-                    <div class="api-hero-desc">接入 API、查看可用模型，并管理加入API预设设置。<span>进一步了解...</span></div>
+                    <div class="api-hero-title">API 杩炴帴</div>
+                    <div class="api-hero-desc">鎺ュ叆 API銆佹煡鐪嬪彲鐢ㄦā鍨嬶紝骞剁鐞嗗姞鍏PI棰勮璁剧疆銆?span>杩涗竴姝ヤ簡瑙?..</span></div>
                     <div style="width: 100%; border-top: 0.5px solid #c6c6c8;">
                         <div class="api-row">
                             <div class="api-row-left"></div>
-                            <div class="api-row-text"><div class="api-row-title-text">流式输出</div></div>
+                            <div class="api-row-text"><div class="api-row-title-text">娴佸紡杈撳嚭</div></div>
                             <div class="api-toggle" onclick="this.classList.toggle('off')"></div>
                         </div>
                     </div>
                     <div style="width: 100%;" id="api-connected-container"></div>
                 </div>
-                <div class="api-list-title">预设</div>
+                <div class="api-list-title">棰勮</div>
                 <div class="api-list-group" id="api-preset-container"></div>
                 <div class="api-list-group" style="margin-top: 24px;">
                     <div class="api-row clickable">
-                        <div class="api-row-text"><div class="api-row-title-text">使用 API 与本地模型的 App</div></div>
+                        <div class="api-row-text"><div class="api-row-title-text">浣跨敤 API 涓庢湰鍦版ā鍨嬬殑 App</div></div>
                         <svg style="width: 8px; height: 13px; stroke: #c5c5c7; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; fill: none;" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 添加 API 页面 -->
+        <!-- 娣诲姞 API 椤甸潰 -->
         <div id="api-page-add" class="api-page slide-right">
             <div class="api-nav-bar">
                 <div class="api-nav-btn-circle" onclick="closeApiAddPage()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </div>
-                <div class="api-nav-title">添加 API</div>
-                <div class="api-nav-btn-circle text-btn" onclick="saveNewApi()">保存</div>
+                <div class="api-nav-title">娣诲姞 API</div>
+                <div class="api-nav-btn-circle text-btn" onclick="saveNewApi()">淇濆瓨</div>
             </div>
             <div class="api-content" style="padding-top: 20px;">
                 
-                <!-- 预设名称独立卡片 -->
+                <!-- 棰勮鍚嶇О鐙珛鍗＄墖 -->
                 <div class="api-form-card" style="padding: 12px 16px; margin-bottom: 16px;">
                     <div class="api-form-input-wrapper" style="background: transparent; padding: 0;">
-                        <input type="text" class="api-form-input" id="api-add-name" placeholder="预设名称 (例如：GPT-4 官方接口)">
+                        <input type="text" class="api-form-input" id="api-add-name" placeholder="棰勮鍚嶇О (渚嬪锛欸PT-4 瀹樻柟鎺ュ彛)">
                     </div>
                 </div>
 
-                <!-- API 配置卡片 -->
+                <!-- API 閰嶇疆鍗＄墖 -->
                 <div class="api-form-card">
                     <div class="api-form-group">
-                        <div class="api-form-label">URL (接口地址)</div>
+                        <div class="api-form-label">URL (鎺ュ彛鍦板潃)</div>
                         <div class="api-form-input-wrapper">
                             <input type="text" class="api-form-input" id="api-add-url" placeholder="https://api.openai.com/v1">
                         </div>
                     </div>
                     <div class="api-form-group">
-                        <div class="api-form-label">KEY (接口密钥)</div>
+                        <div class="api-form-label">KEY (鎺ュ彛瀵嗛挜)</div>
                         <div class="api-form-input-wrapper">
                             <input type="password" class="api-form-input" id="api-add-key" placeholder="sk-...">
                         </div>
                     </div>
                     
-                    <!-- 恢复原来的拉取模型大按钮 -->
-                    <div class="api-form-btn" onclick="fetchApiModels('add')" style="margin: 24px 0;">拉取模型</div>
+                    <!-- 鎭㈠鍘熸潵鐨勬媺鍙栨ā鍨嬪ぇ鎸夐挳 -->
+                    <div class="api-form-btn" onclick="fetchApiModels('add')" style="margin: 24px 0;">鎷夊彇妯″瀷</div>
                     
                     <div class="api-form-group" style="margin-bottom: 0;">
-                        <div class="api-form-label">MODEL (模型)</div>
+                        <div class="api-form-label">MODEL (妯″瀷)</div>
                         <div class="api-form-input-wrapper">
                             <select class="api-form-select" id="api-add-model">
-                                <option value="" disabled selected>请先拉取模型</option>
+                                <option value="" disabled selected>璇峰厛鎷夊彇妯″瀷</option>
                             </select>
                             <svg style="width: 12px; height: 12px; stroke: #8e8e93; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; margin-left: 10px;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </div>
@@ -3069,109 +3069,109 @@
             </div>
         </div>
 
-        <!-- 底部抽屉 -->
+        <!-- 搴曢儴鎶藉眽 -->
         <div class="api-drawer-overlay" id="apiDrawerOverlay" onclick="closeApiDrawer()"></div>
         <div class="api-drawer" id="apiDrawer">
             <div class="api-drawer-header">
                 <div class="api-drawer-handle"></div>
-                <div class="api-nav-btn-circle text-btn" onclick="closeApiDrawer()" style="font-weight: 400; background: rgba(0,0,0,0.05); box-shadow: none;">取消</div>
-                <div class="api-drawer-title">编辑 API</div>
-                <div class="api-nav-btn-circle text-btn" onclick="saveApiDrawer()" style="background: rgba(0,0,0,0.05); box-shadow: none;">保存</div>
+                <div class="api-nav-btn-circle text-btn" onclick="closeApiDrawer()" style="font-weight: 400; background: rgba(0,0,0,0.05); box-shadow: none;">鍙栨秷</div>
+                <div class="api-drawer-title">缂栬緫 API</div>
+                <div class="api-nav-btn-circle text-btn" onclick="saveApiDrawer()" style="background: rgba(0,0,0,0.05); box-shadow: none;">淇濆瓨</div>
             </div>
             <div class="api-content" style="padding-top: 20px;">
                 
-                <!-- 预设名称独立卡片 -->
+                <!-- 棰勮鍚嶇О鐙珛鍗＄墖 -->
                 <div class="api-form-card" style="padding: 12px 16px; margin-bottom: 16px;">
                     <div class="api-form-input-wrapper" style="background: transparent; padding: 0;">
-                        <input type="text" class="api-form-input" id="api-edit-name" placeholder="预设名称">
+                        <input type="text" class="api-form-input" id="api-edit-name" placeholder="棰勮鍚嶇О">
                     </div>
                 </div>
 
-                <!-- API 配置卡片 -->
+                <!-- API 閰嶇疆鍗＄墖 -->
                 <div class="api-form-card">
                     <div class="api-form-group">
-                        <div class="api-form-label">URL (接口地址)</div>
+                        <div class="api-form-label">URL (鎺ュ彛鍦板潃)</div>
                         <div class="api-form-input-wrapper">
                             <input type="text" class="api-form-input" id="api-edit-url" placeholder="https://api.openai.com/v1">
                         </div>
                     </div>
                     <div class="api-form-group">
-                        <div class="api-form-label">KEY (接口密钥)</div>
+                        <div class="api-form-label">KEY (鎺ュ彛瀵嗛挜)</div>
                         <div class="api-form-input-wrapper">
                             <input type="password" class="api-form-input" id="api-edit-key" placeholder="sk-...">
                         </div>
                     </div>
                     
-                    <!-- 恢复原来的拉取模型大按钮 -->
-                    <div class="api-form-btn" onclick="fetchApiModels('edit')" style="margin: 24px 0;">拉取模型</div>
+                    <!-- 鎭㈠鍘熸潵鐨勬媺鍙栨ā鍨嬪ぇ鎸夐挳 -->
+                    <div class="api-form-btn" onclick="fetchApiModels('edit')" style="margin: 24px 0;">鎷夊彇妯″瀷</div>
                     
                     <div class="api-form-group" style="margin-bottom: 0;">
-                        <div class="api-form-label">MODEL (模型)</div>
+                        <div class="api-form-label">MODEL (妯″瀷)</div>
                         <div class="api-form-input-wrapper">
                             <select class="api-form-select" id="api-edit-model">
-                                <option value="" disabled selected>请先拉取模型</option>
+                                <option value="" disabled selected>璇峰厛鎷夊彇妯″瀷</option>
                             </select>
                             <svg style="width: 12px; height: 12px; stroke: #8e8e93; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; margin-left: 10px;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </div>
                     </div>
                 </div>
                 
-                <div class="api-form-btn danger" onclick="deleteApiDrawer()">删除此 API</div>
+                <div class="api-form-btn danger" onclick="deleteApiDrawer()">鍒犻櫎姝?API</div>
             </div>
         </div>
     </div>
 
-    <!-- 图标操作菜单 -->
+    <!-- 鍥炬爣鎿嶄綔鑿滃崟 -->
     <div class="icon-menu-overlay" id="iconMenuOverlay" onclick="closeIconMenu()">
         <div class="icon-menu" id="iconMenu" onclick="event.stopPropagation()">
             <div class="icon-menu-item" onclick="document.getElementById('iconFileInput').click()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16V6a2 2 0 0 1 2-2h10"></path><rect x="8" y="8" width="14" height="14" rx="2" ry="2"></rect><circle cx="13.5" cy="13.5" r="1.5"></circle><path d="M8 18l4-4 2 2 3-3 5 5"></path></svg>
-                <span>照片图库</span>
+                <span>鐓х墖鍥惧簱</span>
             </div>
             <div class="icon-menu-item" onclick="openIconUrlModal()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                <span>使用 URL</span>
+                <span>浣跨敤 URL</span>
             </div>
         </div>
     </div>
     <input type="file" id="iconFileInput" accept="image/*" style="display: none;" onchange="handleIconLocalUpload(event)">
 
- <!-- 壁纸操作菜单 -->
+ <!-- 澹佺焊鎿嶄綔鑿滃崟 -->
     <div class="icon-menu-overlay" id="wallpaperMenuOverlay" onclick="closeWallpaperMenu()">
         <div class="icon-menu" id="wallpaperMenu" onclick="event.stopPropagation()">
             <div class="icon-menu-item" onclick="document.getElementById('wallpaperFileInput').click(); closeWallpaperMenu();">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16V6a2 2 0 0 1 2-2h10"></path><rect x="8" y="8" width="14" height="14" rx="2" ry="2"></rect><circle cx="13.5" cy="13.5" r="1.5"></circle><path d="M8 18l4-4 2 2 3-3 5 5"></path></svg>
-                <span>照片图库</span>
+                <span>鐓х墖鍥惧簱</span>
             </div>
             <div class="icon-menu-item" onclick="openWallpaperUrlModal()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                <span>使用 URL</span>
+                <span>浣跨敤 URL</span>
             </div>
         </div>
     </div>
 
-    <!-- 自定义高级感弹窗容器 -->
+    <!-- 鑷畾涔夐珮绾ф劅寮圭獥瀹瑰櫒 -->
     <div class="custom-dialog-overlay" id="customDialogOverlay">
         <div class="custom-dialog" id="customDialog">
-            <!-- 内容由 JS 动态生成 -->
+            <!-- 鍐呭鐢?JS 鍔ㄦ€佺敓鎴?-->
         </div>
     </div>
 
-    <!-- 全局搜索抽屉 -->
+    <!-- 鍏ㄥ眬鎼滅储鎶藉眽 -->
     <div class="search-drawer-overlay" id="searchDrawerOverlay" onclick="closeSearchDrawer()"></div>
     <div class="search-drawer" id="searchDrawer">
         <div class="search-drawer-header">
-            <!-- 新增包裹层：增加点击区域并绑定收回事件 -->
+            <!-- 鏂板鍖呰９灞傦細澧炲姞鐐瑰嚮鍖哄煙骞剁粦瀹氭敹鍥炰簨浠?-->
             <div style="width: 100%; display: flex; justify-content: center; padding-bottom: 16px; cursor: pointer;" onclick="closeSearchDrawer()">
                 <div class="search-drawer-handle" style="margin-bottom: 0;"></div>
             </div>
             <div class="search-input-container">
                 <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                <input type="text" id="globalSearchInput" placeholder="搜索应用或功能..." oninput="handleGlobalSearch()">
+                <input type="text" id="globalSearchInput" placeholder="鎼滅储搴旂敤鎴栧姛鑳?.." oninput="handleGlobalSearch()">
             </div>
         </div>
         <div class="search-results-area" id="searchResultsArea">
-            <!-- 搜索结果动态渲染 -->
+            <!-- 鎼滅储缁撴灉鍔ㄦ€佹覆鏌?-->
         </div>
     </div>
 </div>
@@ -3190,7 +3190,7 @@
                     <div class="custom-dialog-message">${message}</div>
                 </div>
                 <div class="custom-dialog-btns">
-                    <button class="custom-dialog-btn bold" id="customAlertBtn">好</button>
+                    <button class="custom-dialog-btn bold" id="customAlertBtn">濂?/button>
                 </div>
             `;
             
@@ -3203,7 +3203,7 @@
         });
     }
 
-    function showCustomConfirm(title, message, confirmText = '确定', isDanger = false) {
+    function showCustomConfirm(title, message, confirmText = '纭畾', isDanger = false) {
         return new Promise(resolve => {
             const overlay = document.getElementById('customDialogOverlay');
             const dialog = document.getElementById('customDialog');
@@ -3216,7 +3216,7 @@
                     <div class="custom-dialog-message">${message}</div>
                 </div>
                 <div class="custom-dialog-btns">
-                    <button class="custom-dialog-btn" id="customConfirmCancel">取消</button>
+                    <button class="custom-dialog-btn" id="customConfirmCancel">鍙栨秷</button>
                     <button class="custom-dialog-btn ${dangerClass}" id="customConfirmOk">${confirmText}</button>
                 </div>
             `;
@@ -3236,7 +3236,7 @@
     }
 
             // show three-dots button; click to expand vertical capsule menu
-    function showCustomPrompt(title, inputs, confirmText = '确定') {
+    function showCustomPrompt(title, inputs, confirmText = '纭畾') {
         return new Promise(resolve => {
             let overlay = document.getElementById('customPromptOverlay');
             if (!overlay) {
@@ -3273,7 +3273,7 @@
                         ${inputsHtml}
                     </div>
                     <div class="preset-m1-footer">
-                        <button class="preset-m1-btn preset-m1-btn-cancel" id="customPromptCancel">取消</button>
+                        <button class="preset-m1-btn preset-m1-btn-cancel" id="customPromptCancel">鍙栨秷</button>
                         <button class="preset-m1-btn preset-m1-btn-save" id="customPromptOk">${confirmText}</button>
                     </div>
                 </div>
@@ -3327,12 +3327,12 @@
 
             // show three-dots button; click to expand vertical capsule menu
     window.alert = function(message) {
-        return showCustomAlert('提示', message);
+        return showCustomAlert('鎻愮ず', message);
     };
 
     window.confirm = function(message) {
             // show three-dots button; click to expand vertical capsule menu
-        return showCustomConfirm('请确认', message);
+        return showCustomConfirm('璇风‘璁?, message);
     };
 
             // show three-dots button; click to expand vertical capsule menu
@@ -3408,7 +3408,7 @@
 
         request.onerror = (e) => {
             console.error("IndexedDB error:", e);
-            renderDefaultLayout(); // 发生错误时降级显示默认布局
+            renderDefaultLayout(); // 鍙戠敓閿欒鏃堕檷绾ф樉绀洪粯璁ゅ竷灞€
         };
     }
 
@@ -3492,24 +3492,24 @@
             if (!hasDefault) {
                 const defaultPreset = {
                     id: "default_theme_001",
-                    name: "默认主题",
-                    date: "系统内置",
+                    name: "榛樿涓婚",
+                    date: "绯荤粺鍐呯疆",
                     wallpaper: null,
                     sizeMB: 0.01,
                     desktop: [
-                        { index: 0, name: '设置', appId: 'settings', icon: "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')" }, 
+                        { index: 0, name: '璁剧疆', appId: 'settings', icon: "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')" }, 
                         { index: 1, name: 'wechat', icon: "url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png')" },
                         { index: 2, name: 'Contacts', icon: "url('https://file.zhuyitai.com/feedback/202607/13/21b50befb04dae331997fec05eaa0d25.png')" }, 
-                        { index: 3, name: '世界书', icon: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')" }
+                        { index: 3, name: '涓栫晫涔?, icon: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')" }
                     ],
                     dock: [
-                        { index: 0, name: '电话', icon: "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')" }, 
-                        { index: 1, name: '信息', icon: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')" }, 
-                        { index: 2, name: '主题', appId: 'theme', icon: "url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png')" }
+                        { index: 0, name: '鐢佃瘽', icon: "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')" }, 
+                        { index: 1, name: '淇℃伅', icon: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')" }, 
+                        { index: 2, name: '涓婚', appId: 'theme', icon: "url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png')" }
                     ]
                 };
-                presets.unshift(defaultPreset); // 插入到最前面
-                savePresetData(); // 保存到数据库
+                presets.unshift(defaultPreset); // 鎻掑叆鍒版渶鍓嶉潰
+                savePresetData(); // 淇濆瓨鍒版暟鎹簱
             }
         };
 
@@ -3571,7 +3571,7 @@
                 backupModeType = ldData.backupMode;
                 
             // show three-dots button; click to expand vertical capsule menu
-                document.getElementById('ld-current-mode').innerText = ldData.mode === 'folder' ? '文件夹模式' : (ldData.mode === 'file' ? '单文件模式' : '未设置');
+                document.getElementById('ld-current-mode').innerText = ldData.mode === 'folder' ? '鏂囦欢澶规ā寮? : (ldData.mode === 'file' ? '鍗曟枃浠舵ā寮? : '鏈缃?);
                 document.getElementById('ld-target-name').innerText = ldData.targetName || '--';
                 document.getElementById('ld-file-name').innerText = ldData.fileName || '--';
                 document.getElementById('ld-last-time').innerText = ldData.lastTime || '--';
@@ -3623,31 +3623,31 @@
             iphoneEl.style.backgroundSize = 'cover';
             iphoneEl.style.backgroundPosition = 'center';
         } else {
-            iphoneEl.style.backgroundImage = ''; // 清空内联样式，让 CSS 类接管深浅色渐变
+            iphoneEl.style.backgroundImage = ''; // 娓呯┖鍐呰仈鏍峰紡锛岃 CSS 绫绘帴绠℃繁娴呰壊娓愬彉
         }
     }
 
     function renderDefaultLayout() {
         const iconMap = {
-            '设置': "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')",
+            '璁剧疆': "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')",
             'wechat': "url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png')",
             'Contacts': "url('https://file.zhuyitai.com/feedback/202607/13/21b50befb04dae331997fec05eaa0d25.png')",
-            '世界书': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')",
-            '电话': "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')",
-            '信息': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')",
-            '主题': "url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png')"
+            '涓栫晫涔?: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')",
+            '鐢佃瘽': "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')",
+            '淇℃伅': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')",
+            '涓婚': "url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png')"
         };
 
         const defaultDesktop = [
-            { index: 0, name: '设置', appId: 'settings', icon: iconMap['设置'] }, 
+            { index: 0, name: '璁剧疆', appId: 'settings', icon: iconMap['璁剧疆'] }, 
             { index: 1, name: 'wechat', icon: iconMap['wechat'] },
             { index: 2, name: 'Contacts', icon: iconMap['Contacts'] }, 
-            { index: 3, name: '世界书', icon: iconMap['世界书'] }
+            { index: 3, name: '涓栫晫涔?, icon: iconMap['涓栫晫涔?] }
         ];
         const defaultDock = [
-            { index: 0, name: '电话', icon: iconMap['电话'] }, 
-            { index: 1, name: '信息', icon: iconMap['信息'] }, 
-            { index: 2, name: '主题', appId: 'theme', icon: iconMap['主题'] }
+            { index: 0, name: '鐢佃瘽', icon: iconMap['鐢佃瘽'] }, 
+            { index: 1, name: '淇℃伅', icon: iconMap['淇℃伅'] }, 
+            { index: 2, name: '涓婚', appId: 'theme', icon: iconMap['涓婚'] }
         ];
         renderLayout(defaultDesktop, defaultDock);
         saveLayout();
@@ -3684,11 +3684,11 @@
             if (app.appId === 'theme') hasTheme = true;
             // show three-dots button; click to expand vertical capsule menu
             if (!app.appId) {
-                if (app.name === '设置' || (app.icon && app.icon.includes('5b0f2ceab564421096b8a761f125b9f8'))) {
+                if (app.name === '璁剧疆' || (app.icon && app.icon.includes('5b0f2ceab564421096b8a761f125b9f8'))) {
                     app.appId = 'settings';
                     hasSettings = true;
                 }
-                if (app.name === '主题' || (app.icon && app.icon.includes('6a54a036dfcc02hklfme5i6442'))) {
+                if (app.name === '涓婚' || (app.icon && app.icon.includes('6a54a036dfcc02hklfme5i6442'))) {
                     app.appId = 'theme';
                     hasTheme = true;
                 }
@@ -3913,7 +3913,7 @@
         allApps.forEach((appEl, index) => {
             const nameEl = appEl.querySelector('.app-name');
             const iconEl = appEl.querySelector('.app-icon');
-            if (!nameEl) return; // 排除可能异常的节点
+            if (!nameEl) return; // 鎺掗櫎鍙兘寮傚父鐨勮妭鐐?
             
             const appName = nameEl.innerText;
             const appIcon = iconEl.style.backgroundImage;
@@ -3944,7 +3944,7 @@
 
         card.innerHTML = `
             <div class="theme-original-name">${name}</div>
-            <div class="theme-reset-btn" onclick="resetThemeApp(${index})" title="恢复默认">${resetSvg}</div>
+            <div class="theme-reset-btn" onclick="resetThemeApp(${index})" title="鎭㈠榛樿">${resetSvg}</div>
             <div class="theme-icon-wrapper">
                 <div class="theme-app-icon" id="theme-icon-${index}" style="${iconStyle}" onclick="openIconMenu(event, ${index})"></div>
             </div>
@@ -4032,7 +4032,7 @@
 
     function openIconUrlModal() {
         closeIconMenu();
-        showCustomPrompt('使用 URL 上传图标', 'https://...', '确定').then(url => {
+        showCustomPrompt('浣跨敤 URL 涓婁紶鍥炬爣', 'https://...', '纭畾').then(url => {
             if (url && url.trim()) applyIconToApp(url.trim());
         });
     }
@@ -4046,13 +4046,13 @@
             const settingsAvatar = document.getElementById('settingsAvatarPreview');
             
             if (appleIdAvatar) {
-                appleIdAvatar.innerHTML = ''; // 清空默认的 SVG
+                appleIdAvatar.innerHTML = ''; // 娓呯┖榛樿鐨?SVG
                 appleIdAvatar.style.backgroundImage = `url('${url}')`;
                 appleIdAvatar.style.backgroundSize = 'cover';
                 appleIdAvatar.style.backgroundPosition = 'center';
             }
             if (settingsAvatar) {
-                settingsAvatar.innerHTML = ''; // 同步清空设置页面的 SVG
+                settingsAvatar.innerHTML = ''; // 鍚屾娓呯┖璁剧疆椤甸潰鐨?SVG
                 settingsAvatar.style.backgroundImage = `url('${url}')`;
                 settingsAvatar.style.backgroundSize = 'cover';
                 settingsAvatar.style.backgroundPosition = 'center';
@@ -4078,13 +4078,13 @@
         
             // show three-dots button; click to expand vertical capsule menu
         const iconMap = {
-            '设置': "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')",
+            '璁剧疆': "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')",
             'wechat': "url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png')",
             'Contacts': "url('https://file.zhuyitai.com/feedback/202607/13/21b50befb04dae331997fec05eaa0d25.png')",
-            '世界书': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')",
-            '电话': "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')",
-            '信息': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')",
-            '主题': "url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png')"
+            '涓栫晫涔?: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')",
+            '鐢佃瘽': "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')",
+            '淇℃伅': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')",
+            '涓婚': "url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png')"
         };
 
         const defaultIcon = iconMap[appData.originalName];
@@ -4118,7 +4118,7 @@
                     iconEl.classList.add('has-custom-icon');
                 } else {
                     iconEl.style.backgroundImage = 'none';
-                    iconEl.style.backgroundColor = ''; // 恢复默认 CSS 样式
+                    iconEl.style.backgroundColor = ''; // 鎭㈠榛樿 CSS 鏍峰紡
                     iconEl.classList.remove('has-custom-icon');
                 }
             }
@@ -4132,7 +4132,7 @@
     }
 
             // show three-dots button; click to expand vertical capsule menu
-    let currentActiveTab = 'theme'; // 记录当前所在的 Tab
+    let currentActiveTab = 'theme'; // 璁板綍褰撳墠鎵€鍦ㄧ殑 Tab
 
     function switchThemeTab(tabName, element) {
         currentActiveTab = tabName;
@@ -4172,7 +4172,7 @@
             hideWidgetChrome();
         } else if (tabName === 'wallpaper') {
             topBarTitle.innerText = 'Wallpapers';
-            topRightBtn.style.display = 'none'; // 壁纸页不需要右上角按钮
+            topRightBtn.style.display = 'none'; // 澹佺焊椤典笉闇€瑕佸彸涓婅鎸夐挳
             document.getElementById('themeMenuBtn').style.display = 'none';
             themeGrid.style.display = 'none';
             wallpaperGrid.style.display = 'flex';
@@ -4242,7 +4242,7 @@
 
             if (wp.isAdd) {
                 card.innerHTML = `
-                    <div class="card-title">新墙纸</div>
+                    <div class="card-title">鏂板绾?/div>
                     <div class="screens-container">
                         <div class="screen-preview">
                             <div class="add-btn" onclick="openWallpaperMenu(event)">
@@ -4258,7 +4258,7 @@
                     <div class="delete-btn" onclick="deleteWallpaper('${wp.id}')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </div>
-                    <div class="card-title">已存墙纸</div>
+                    <div class="card-title">宸插瓨澧欑焊</div>
                     <div class="screens-container">
                         <div class="screen-preview ${isSelected}" style="background-image: url('${wp.src}')" onclick="setDesktopWallpaper('${wp.src}')"></div>
                         <div class="screen-preview ${isSelected}" style="background-image: url('${wp.src}')" onclick="setDesktopWallpaper('${wp.src}')"></div>
@@ -4313,7 +4313,7 @@
                         isAdd: false,
                         src: base64Url
                     };
-                    wallpapers.splice(1, 0, newWallpaper); // 插入到添加按钮后面
+                    wallpapers.splice(1, 0, newWallpaper); // 鎻掑叆鍒版坊鍔犳寜閽悗闈?
                     renderWallpapers();
                     saveWallpaperData();
                     
@@ -4338,7 +4338,7 @@
             // show three-dots button; click to expand vertical capsule menu
         const rect = event.target.closest('.add-btn').getBoundingClientRect();
         let top = rect.bottom + 10;
-        let left = rect.left - 100; // 稍微往左偏移一点，避免超出屏幕
+        let left = rect.left - 100; // 绋嶅井寰€宸﹀亸绉讳竴鐐癸紝閬垮厤瓒呭嚭灞忓箷
         
         if (left + 240 > window.innerWidth) {
             left = window.innerWidth - 250;
@@ -4357,7 +4357,7 @@
 
     function openWallpaperUrlModal() {
         closeWallpaperMenu();
-        showCustomPrompt('使用 URL 上传壁纸', 'https://...', '确定').then(url => {
+        showCustomPrompt('浣跨敤 URL 涓婁紶澹佺焊', 'https://...', '纭畾').then(url => {
             if (url && url.trim()) {
                 const newWallpaper = { id: Date.now().toString(), isAdd: false, src: url.trim() };
                 wallpapers.splice(1, 0, newWallpaper);
@@ -4370,7 +4370,7 @@
     }
 
     function deleteWallpaper(id) {
-        showCustomConfirm('删除墙纸', '确定要删除这张壁纸吗？', '删除', true).then(confirmed => {
+        showCustomConfirm('鍒犻櫎澧欑焊', '纭畾瑕佸垹闄よ繖寮犲绾稿悧锛?, '鍒犻櫎', true).then(confirmed => {
             if(confirmed) {
                 const wpToDelete = wallpapers.find(wp => wp.id === id);
                 wallpapers = wallpapers.filter(wp => wp.id !== id);
@@ -4388,7 +4388,7 @@
 
     function setDesktopWallpaper(src) {
         applyWallpaperToDesktop(src);
-        renderWallpapers(); // 重新渲染以更新选中状态边框
+        renderWallpapers(); // 閲嶆柊娓叉煋浠ユ洿鏂伴€変腑鐘舵€佽竟妗?
         saveWallpaperData();
     }
 
@@ -4436,11 +4436,11 @@
             // show three-dots button; click to expand vertical capsule menu
     function handleTopRightBtn() {
         if (currentActiveTab === 'theme') {
-            saveThemeChanges(); // 在 Icons 页面，执行保存
+            saveThemeChanges(); // 鍦?Icons 椤甸潰锛屾墽琛屼繚瀛?
         } else if (currentActiveTab === 'preset') {
-            togglePresetEditMode(); // 在 Themes 页面，切换编辑模式
+            togglePresetEditMode(); // 鍦?Themes 椤甸潰锛屽垏鎹㈢紪杈戞ā寮?
         } else if (currentActiveTab === 'font') {
-            toggleFontEditMode(); // 在 Fonts 页面，切换编辑模式
+            toggleFontEditMode(); // 鍦?Fonts 椤甸潰锛屽垏鎹㈢紪杈戞ā寮?
         }
     }
 
@@ -4465,7 +4465,7 @@
             // show three-dots button; click to expand vertical capsule menu
     function togglePresetEditMode() {
         isPresetEditMode = !isPresetEditMode;
-        selectedPresets.clear(); // 清空选中状态
+        selectedPresets.clear(); // 娓呯┖閫変腑鐘舵€?
         
         const topRightBtn = document.getElementById('topRightBtn');
         const menuBtn = document.getElementById('themeMenuBtn');
@@ -4475,12 +4475,12 @@
             topRightBtn.innerText = 'Cancel';
             topRightBtn.style.display = 'block';
             menuBtn.style.display = 'none';
-            actionBtn.innerText = '删除所选预设';
+            actionBtn.innerText = '鍒犻櫎鎵€閫夐璁?;
             actionBtn.classList.add('delete-mode');
         } else {
             topRightBtn.style.display = 'none';
             menuBtn.style.display = 'flex';
-            actionBtn.innerText = '+ 保存主题为预设';
+            actionBtn.innerText = '+ 淇濆瓨涓婚涓洪璁?;
             actionBtn.classList.remove('delete-mode');
         }
         renderPresets();
@@ -4491,11 +4491,11 @@
         if (isPresetEditMode) {
             // show three-dots button; click to expand vertical capsule menu
             if (selectedPresets.size === 0) return;
-            showCustomConfirm('删除预设', `确定要删除选中的 ${selectedPresets.size} 个预设吗？`, '删除', true).then(confirmed => {
+            showCustomConfirm('鍒犻櫎棰勮', `纭畾瑕佸垹闄ら€変腑鐨?${selectedPresets.size} 涓璁惧悧锛焋, '鍒犻櫎', true).then(confirmed => {
                 if (confirmed) {
                     presets = presets.filter(p => !selectedPresets.has(p.id));
                     savePresetData();
-                    togglePresetEditMode(); // 删除后退出编辑模式
+                    togglePresetEditMode(); // 鍒犻櫎鍚庨€€鍑虹紪杈戞ā寮?
                 }
             });
         } else {
@@ -4542,7 +4542,7 @@
                     }
             // show three-dots button; click to expand vertical capsule menu
                     const actionBtn = document.getElementById('presetActionBtn');
-                    actionBtn.innerText = selectedPresets.size > 0 ? `删除所选预设 (${selectedPresets.size})` : '删除所选预设';
+                    actionBtn.innerText = selectedPresets.size > 0 ? `鍒犻櫎鎵€閫夐璁?(${selectedPresets.size})` : '鍒犻櫎鎵€閫夐璁?;
                 } else {
             // show three-dots button; click to expand vertical capsule menu
                     openPresetDetail(preset.id);
@@ -4553,7 +4553,7 @@
             const bgStyle = hasWallpaper ? `background-image: url('${preset.wallpaper}')` : '';
             const bgClass = hasWallpaper ? 'preset-bg' : 'preset-bg default-bg';
             const timeClass = hasWallpaper ? 'preset-lock-time has-bg' : 'preset-lock-time';
-            const timeStr = "09:41"; // 模拟 iOS 经典锁屏时间
+            const timeStr = "09:41"; // 妯℃嫙 iOS 缁忓吀閿佸睆鏃堕棿
 
             card.innerHTML = `
                 <div class="preset-img-wrapper">
@@ -4568,10 +4568,10 @@
     }
 
     function openPresetModal() {
-        showCustomPrompt('主题预设', '输入预设名称...', '保存').then(inputVal => {
+        showCustomPrompt('涓婚棰勮', '杈撳叆棰勮鍚嶇О...', '淇濆瓨').then(inputVal => {
             if (inputVal === null) return;
             if (!inputVal.trim()) {
-                showCustomAlert("提示", "请输入预设名称！");
+                showCustomAlert("鎻愮ず", "璇疯緭鍏ラ璁惧悕绉帮紒");
                 return;
             }
             saveCurrentAsPreset(inputVal.trim());
@@ -4611,7 +4611,7 @@
         });
 
         const now = new Date();
-        const dateStr = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日`;
+        const dateStr = `${now.getFullYear()}骞?{String(now.getMonth() + 1).padStart(2, '0')}鏈?{String(now.getDate()).padStart(2, '0')}鏃;
 
         const newPreset = {
             id: Date.now(),
@@ -4644,7 +4644,7 @@
         currentDetailPresetId = id;
         
         document.getElementById('detailName').innerText = preset.name;
-        document.getElementById('detailDate').innerText = '创建于：' + (preset.date || '未知时间');
+        document.getElementById('detailDate').innerText = '鍒涘缓浜庯細' + (preset.date || '鏈煡鏃堕棿');
         
             // show three-dots button; click to expand vertical capsule menu
         let sizeMB = preset.sizeMB || 15.0;
@@ -4652,7 +4652,7 @@
         document.getElementById('detailSize').innerText = sizeKB < 1024 ? sizeKB.toFixed(2) + ' KB' : sizeMB.toFixed(2) + ' MB';
         
         const container = document.getElementById('previewScaleContainer');
-        container.style.backgroundImage = preset.wallpaper ? `url('${preset.wallpaper}')` : ''; // 清空内联样式，跟随 CSS 深浅色
+        container.style.backgroundImage = preset.wallpaper ? `url('${preset.wallpaper}')` : ''; // 娓呯┖鍐呰仈鏍峰紡锛岃窡闅?CSS 娣辨祬鑹?
         
             // show three-dots button; click to expand vertical capsule menu
         let desktopHTML = '<div class="desktop-grid" style="height: calc(100% - 180px);">';
@@ -4711,7 +4711,7 @@
 
     function closePresetDetail() {
         const detailPage = document.getElementById('presetDetailPage');
-        document.getElementById('detailDropdownMenu').classList.remove('show'); // 关闭时隐藏菜单
+        document.getElementById('detailDropdownMenu').classList.remove('show'); // 鍏抽棴鏃堕殣钘忚彍鍗?
         
             // show three-dots button; click to expand vertical capsule menu
         const iconList = document.getElementById('detailMenuIconList');
@@ -4732,9 +4732,9 @@
 
     function openExportCurrentThemeModal() {
         isExportingCurrentTheme = true;
-        showCustomPrompt('导出主题', { placeholder: '输入导出文件名称...', value: '当前主题' }, '导出').then(fileName => {
+        showCustomPrompt('瀵煎嚭涓婚', { placeholder: '杈撳叆瀵煎嚭鏂囦欢鍚嶇О...', value: '褰撳墠涓婚' }, '瀵煎嚭').then(fileName => {
             if (fileName === null) return;
-            exportCurrentUsingTheme(fileName.trim() || '当前主题');
+            exportCurrentUsingTheme(fileName.trim() || '褰撳墠涓婚');
         });
     }
 
@@ -4744,7 +4744,7 @@
         const preset = presets.find(p => p.id === currentDetailPresetId);
         if (!preset) return;
         
-        showCustomPrompt('导出主题', { placeholder: '输入导出文件名称...', value: preset.name }, '导出').then(fileName => {
+        showCustomPrompt('瀵煎嚭涓婚', { placeholder: '杈撳叆瀵煎嚭鏂囦欢鍚嶇О...', value: preset.name }, '瀵煎嚭').then(fileName => {
             if (fileName === null) return;
             exportCurrentPreset(fileName.trim() || preset.name);
         });
@@ -4809,7 +4809,7 @@
         if (!preset) return;
 
         const sizeEl = document.getElementById('detailSize');
-        sizeEl.innerText = '压缩中...';
+        sizeEl.innerText = '鍘嬬缉涓?..';
 
         let tasks = [];
 
@@ -4867,7 +4867,7 @@
             
             savePresetData();
             
-            showToast('压缩完成');
+            showToast('鍘嬬缉瀹屾垚');
         });
     }
 
@@ -4897,7 +4897,7 @@
             loadAppsIntoThemeUI();
         }
         
-        showToast("已应用预设主题！");
+        showToast("宸插簲鐢ㄩ璁句富棰橈紒");
     }
 
     function importPreset(event) {
@@ -4908,19 +4908,19 @@
             try {
                 const importedData = JSON.parse(e.target.result);
                 if (importedData && importedData.name && (importedData.desktop || importedData.dock)) {
-                    importedData.id = Date.now(); // 重新分配ID避免冲突
+                    importedData.id = Date.now(); // 閲嶆柊鍒嗛厤ID閬垮厤鍐茬獊
                     const now = new Date();
-                    importedData.date = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日`;
+                    importedData.date = `${now.getFullYear()}骞?{String(now.getMonth() + 1).padStart(2, '0')}鏈?{String(now.getDate()).padStart(2, '0')}鏃;
                     importedData.sizeMB = calculatePresetSize(importedData);
                     presets.push(importedData);
                     savePresetData();
                     renderPresets();
-                    showToast('导入成功！');
+                    showToast('瀵煎叆鎴愬姛锛?);
                 } else {
-                    showCustomAlert('错误', '无效的主题文件！');
+                    showCustomAlert('閿欒', '鏃犳晥鐨勪富棰樻枃浠讹紒');
                 }
             } catch (err) {
-                showCustomAlert('错误', '解析文件失败！');
+                showCustomAlert('閿欒', '瑙ｆ瀽鏂囦欢澶辫触锛?);
             }
         };
         reader.readAsText(file);
@@ -4982,7 +4982,7 @@
         const preset = presets.find(p => p.id === currentDetailPresetId);
         if (!preset) return;
         
-        showCustomPrompt('编辑主题名称', { placeholder: '输入新的主题名称...', value: preset.name }, '保存').then(newName => {
+        showCustomPrompt('缂栬緫涓婚鍚嶇О', { placeholder: '杈撳叆鏂扮殑涓婚鍚嶇О...', value: preset.name }, '淇濆瓨').then(newName => {
             if (newName === null) return;
             if (newName.trim() !== "") {
                 preset.name = newName.trim();
@@ -4990,7 +4990,7 @@
                 savePresetData();
                 renderPresets();
             } else {
-                showCustomAlert("提示", "名称不能为空！");
+                showCustomAlert("鎻愮ず", "鍚嶇О涓嶈兘涓虹┖锛?);
             }
         });
     }
@@ -4998,8 +4998,8 @@
             // show three-dots button; click to expand vertical capsule menu
     let customFontCount = 0;
     let isFontEditMode = false;
-    let customFonts = []; // 存储字体数据
-    let currentSelectedFont = 'default'; // 当前选中的字体
+    let customFonts = []; // 瀛樺偍瀛椾綋鏁版嵁
+    let currentSelectedFont = 'default'; // 褰撳墠閫変腑鐨勫瓧浣?
 
             // show three-dots button; click to expand vertical capsule menu
     function saveFontData() {
@@ -5028,7 +5028,7 @@
             // show three-dots button; click to expand vertical capsule menu
                 addFontToList(font.name, font.id, true);
             } catch (err) {
-                console.error("恢复字体失败:", font.name, err);
+                console.error("鎭㈠瀛椾綋澶辫触:", font.name, err);
             }
         }
         
@@ -5047,7 +5047,7 @@
             const fData = e.target.result;
             if (fData && fData.size) {
                 document.getElementById('fontSizeSlider').value = fData.size;
-                updateFontSize(true); // 传入 true 表示是恢复阶段，不触发重复保存
+                updateFontSize(true); // 浼犲叆 true 琛ㄧず鏄仮澶嶉樁娈碉紝涓嶈Е鍙戦噸澶嶄繚瀛?
             }
         };
     }
@@ -5103,7 +5103,7 @@
         `;
 
         if (!isRestore) {
-            saveFontData(); // 拖动滑块时保存数据
+            saveFontData(); // 鎷栧姩婊戝潡鏃朵繚瀛樻暟鎹?
         }
     }
 
@@ -5114,7 +5114,7 @@
         if (element) element.classList.add('active');
 
         currentSelectedFont = fontFamily;
-        if (!isRestore) saveFontData(); // 如果不是恢复阶段，则保存状态
+        if (!isRestore) saveFontData(); // 濡傛灉涓嶆槸鎭㈠闃舵锛屽垯淇濆瓨鐘舵€?
 
         const previewBox = document.getElementById('globalFontPreview');
         
@@ -5152,13 +5152,13 @@
         
         newItem.innerHTML = `
             <div class="font-swipe-actions">
-                <div class="font-swipe-btn font-swipe-edit" onclick="openEditFontModal('${fontFamily}')">编辑</div>
-                <div class="font-swipe-btn font-swipe-delete" onclick="deleteFont(this, '${fontFamily}')">删除</div>
+                <div class="font-swipe-btn font-swipe-edit" onclick="openEditFontModal('${fontFamily}')">缂栬緫</div>
+                <div class="font-swipe-btn font-swipe-delete" onclick="deleteFont(this, '${fontFamily}')">鍒犻櫎</div>
             </div>
             <div class="font-item-inner">
                 <div class="font-item-content">
                     <div class="font-name-text" style="font-family: '${fontFamily}', 'Geomini', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif">${fontName}</div>
-                    <div class="font-preview-subtext" style="font-family: '${fontFamily}', 'Geomini', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif">The quick brown fox / 探索宇宙</div>
+                    <div class="font-preview-subtext" style="font-family: '${fontFamily}', 'Geomini', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif">The quick brown fox / 鎺㈢储瀹囧畽</div>
                 </div>
                 <div class="font-checkmark">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -5211,7 +5211,7 @@
                 
                 addFontToList(fontName, fontFamily);
             }).catch(function(error) {
-                showCustomAlert('错误', '字体加载失败，请检查文件格式！');
+                showCustomAlert('閿欒', '瀛椾綋鍔犺浇澶辫触锛岃妫€鏌ユ枃浠舵牸寮忥紒');
                 console.error(error);
             });
         };
@@ -5220,22 +5220,22 @@
     }
 
     function openUrlFontModal() {
-        showCustomPrompt('导入字体', [
-            { placeholder: '输入字体名称 (选填)' },
+        showCustomPrompt('瀵煎叆瀛椾綋', [
+            { placeholder: '杈撳叆瀛椾綋鍚嶇О (閫夊～)' },
             { placeholder: 'https://...' }
-        ], '安装').then(res => {
+        ], '瀹夎').then(res => {
             if (res === null) return;
             let fontName = res[0].trim();
             const url = res[1].trim();
 
             if (!url) {
-                showCustomAlert('提示', '请输入字体 URL！');
+                showCustomAlert('鎻愮ず', '璇疯緭鍏ュ瓧浣?URL锛?);
                 return;
             }
 
             customFontCount++;
             const fontFamily = `UrlFont_${customFontCount}`;
-            if (!fontName) fontName = `网络字体 ${customFontCount}`;
+            if (!fontName) fontName = `缃戠粶瀛椾綋 ${customFontCount}`;
 
             const newFont = new FontFace(fontFamily, `url(${url})`);
             newFont.load().then(function(loadedFont) {
@@ -5244,7 +5244,7 @@
                 saveFontData();
                 addFontToList(fontName, fontFamily);
             }).catch(function(error) {
-                showCustomAlert('错误', '字体加载失败，请确保 URL 直接指向字体文件且允许跨域访问！');
+                showCustomAlert('閿欒', '瀛椾綋鍔犺浇澶辫触锛岃纭繚 URL 鐩存帴鎸囧悜瀛椾綋鏂囦欢涓斿厑璁歌法鍩熻闂紒');
                 console.error(error);
             });
         });
@@ -5277,12 +5277,12 @@
         if (item && !isFontEditMode && item.getAttribute('data-font') !== 'default') {
             const touchCurrentX = e.touches[0].clientX;
             const diff = touchCurrentX - fontTouchStartX;
-            if (diff < -30) { // 左滑展开
+            if (diff < -30) { // 宸︽粦灞曞紑
                 if (e.cancelable) e.preventDefault();
                 item.querySelector('.font-item-inner').style.transform = 'translateX(-130px)';
                 item.classList.add('swiped');
                 currentFontSwipeItem = item;
-            } else if (diff > 30 && currentFontSwipeItem === item) { // 右滑收起
+            } else if (diff > 30 && currentFontSwipeItem === item) { // 鍙虫粦鏀惰捣
                 if (e.cancelable) e.preventDefault();
                 item.querySelector('.font-item-inner').style.transform = 'translateX(0)';
                 item.classList.remove('swiped');
@@ -5306,7 +5306,7 @@
             currentFontSwipeItem = null;
         }
 
-        showCustomPrompt('编辑字体名称', { placeholder: '输入新的字体名称...', value: fontData.name }, '保存').then(newName => {
+        showCustomPrompt('缂栬緫瀛椾綋鍚嶇О', { placeholder: '杈撳叆鏂扮殑瀛椾綋鍚嶇О...', value: fontData.name }, '淇濆瓨').then(newName => {
             if (newName === null) {
                 currentEditFontId = null;
                 return;
@@ -5321,7 +5321,7 @@
                 }
                 currentEditFontId = null;
             } else {
-                showCustomAlert("提示", "名称不能为空！");
+                showCustomAlert("鎻愮ず", "鍚嶇О涓嶈兘涓虹┖锛?);
                 currentEditFontId = null;
             }
         });
@@ -5395,7 +5395,7 @@
             // show three-dots button; click to expand vertical capsule menu
         const overlay = document.getElementById('brightnessOverlay');
         if (overlay) {
-            const opacity = 0.7 - (percentage / 100) * 0.7; // 最大暗度为 0.7
+            const opacity = 0.7 - (percentage / 100) * 0.7; // 鏈€澶ф殫搴︿负 0.7
             overlay.style.backgroundColor = `rgba(0, 0, 0, ${opacity})`;
         }
 
@@ -5417,7 +5417,7 @@
             if (savedBrightness !== null) {
                 slider.value = savedBrightness;
             } else {
-                slider.value = 100; // 默认最亮
+                slider.value = 100; // 榛樿鏈€浜?
             }
             updateDsSlider(slider);
         }
@@ -5460,12 +5460,12 @@
         const selectEl = document.getElementById(mode === 'add' ? 'api-add-model' : 'api-edit-model');
 
         if (!urlInput || !keyInput) {
-            showCustomAlert('提示', '请先填写 URL 和 Key');
+            showCustomAlert('鎻愮ず', '璇峰厛濉啓 URL 鍜?Key');
             return;
         }
 
         try {
-            showToast('正在拉取模型...');
+            showToast('姝ｅ湪鎷夊彇妯″瀷...');
             const baseUrl = urlInput.endsWith('/') ? urlInput.slice(0, -1) : urlInput;
             
             // show three-dots button; click to expand vertical capsule menu
@@ -5478,17 +5478,17 @@
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP 错误: ${response.status}`);
+                throw new Error(`HTTP 閿欒: ${response.status}`);
             }
             
             const data = await response.json();
 
             if (data && data.data && Array.isArray(data.data)) {
-                selectEl.innerHTML = ''; // 清空旧选项
+                selectEl.innerHTML = ''; // 娓呯┖鏃ч€夐」
                 
                 if (data.data.length === 0) {
-                    selectEl.innerHTML = '<option value="" disabled selected>未找到可用模型</option>';
-                    showToast('未找到可用模型');
+                    selectEl.innerHTML = '<option value="" disabled selected>鏈壘鍒板彲鐢ㄦā鍨?/option>';
+                    showToast('鏈壘鍒板彲鐢ㄦā鍨?);
                     return;
                 }
 
@@ -5496,16 +5496,16 @@
                     const option = document.createElement('option');
                     option.value = model.id;
                     option.textContent = model.id;
-                    if (index === 0) option.selected = true; // 默认选中第一个
+                    if (index === 0) option.selected = true; // 榛樿閫変腑绗竴涓?
                     selectEl.appendChild(option);
                 });
-                showToast('模型拉取成功');
+                showToast('妯″瀷鎷夊彇鎴愬姛');
             } else {
-                throw new Error('接口返回的数据格式不符合 OpenAI 标准');
+                throw new Error('鎺ュ彛杩斿洖鐨勬暟鎹牸寮忎笉绗﹀悎 OpenAI 鏍囧噯');
             }
         } catch (error) {
-            console.error("拉取模型失败:", error);
-            showCustomAlert('拉取失败', `请检查 URL 和 Key 是否正确，或目标服务器是否存在跨域(CORS)限制。\n\n错误信息: ${error.message}`);
+            console.error("鎷夊彇妯″瀷澶辫触:", error);
+            showCustomAlert('鎷夊彇澶辫触', `璇锋鏌?URL 鍜?Key 鏄惁姝ｇ‘锛屾垨鐩爣鏈嶅姟鍣ㄦ槸鍚﹀瓨鍦ㄨ法鍩?CORS)闄愬埗銆俓n\n閿欒淇℃伅: ${error.message}`);
         }
     }
 
@@ -5516,7 +5516,7 @@
         const model = document.getElementById('api-add-model').value;
 
         if (!name || !url || !key) {
-            showCustomAlert('提示', '请填写完整信息');
+            showCustomAlert('鎻愮ず', '璇峰～鍐欏畬鏁翠俊鎭?);
             return;
         }
 
@@ -5526,7 +5526,7 @@
         };
 
         apiDataList.push(newApi);
-        if (!apiConnectedId) apiConnectedId = newApi.id; // 如果是第一个，自动连接
+        if (!apiConnectedId) apiConnectedId = newApi.id; // 濡傛灉鏄涓€涓紝鑷姩杩炴帴
         saveApiData();
         renderApiList();
         closeApiAddPage();
@@ -5535,12 +5535,12 @@
         document.getElementById('api-add-name').value = '';
         document.getElementById('api-add-url').value = '';
         document.getElementById('api-add-key').value = '';
-        document.getElementById('api-add-model').innerHTML = '<option value="" disabled selected>请先拉取模型</option>';
+        document.getElementById('api-add-model').innerHTML = '<option value="" disabled selected>璇峰厛鎷夊彇妯″瀷</option>';
     }
 
     function deleteApiDrawer() {
         if (!apiEditingId) return;
-        showCustomConfirm('删除 API', '确定要删除这个 API 预设吗？', '删除', true).then(confirmed => {
+        showCustomConfirm('鍒犻櫎 API', '纭畾瑕佸垹闄よ繖涓?API 棰勮鍚楋紵', '鍒犻櫎', true).then(confirmed => {
             if (confirmed) {
                 apiDataList = apiDataList.filter(a => a.id !== apiEditingId);
                 if (apiConnectedId === apiEditingId) {
@@ -5587,7 +5587,7 @@
                     </div>
                     <div class="api-row-text">
                         <div class="api-row-title-text">${api.name}</div>
-                        ${isConnected ? '<div class="api-row-subtitle-text">已连接</div>' : ''}
+                        ${isConnected ? '<div class="api-row-subtitle-text">宸茶繛鎺?/div>' : ''}
                     </div>
                     <div class="api-row-right">
                         <svg class="api-icon-lock" viewBox="0 0 24 24"><path d="M17 10H7V7c0-2.76 2.24-5 5-5s5 2.24 5 5v3zm-2 0V7c0-1.65-1.35-3-3-3S9 5.35 9 7v3h6zM5 12v8c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-8c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2z"/></svg>
@@ -5611,7 +5611,7 @@
         presetContainer.innerHTML += `
             <div class="api-row clickable" onclick="openApiAddPage()">
                 <div class="api-row-left"></div>
-                <div class="api-row-text"><div class="api-row-title-text" style="color: #007aff;">+ 添加API</div></div>
+                <div class="api-row-text"><div class="api-row-title-text" style="color: #007aff;">+ 娣诲姞API</div></div>
             </div>
         `;
     }
@@ -5632,7 +5632,7 @@
         
             // show three-dots button; click to expand vertical capsule menu
         const selectEl = document.getElementById('api-edit-model');
-        selectEl.innerHTML = `<option value="${api.model}" selected>${api.model || '未选择模型'}</option>`;
+        selectEl.innerHTML = `<option value="${api.model}" selected>${api.model || '鏈€夋嫨妯″瀷'}</option>`;
         
         document.getElementById('apiDrawerOverlay').classList.add('show');
         document.getElementById('apiDrawer').classList.add('show');
@@ -5673,10 +5673,10 @@
 
             // show three-dots button; click to expand vertical capsule menu
     const searchableItems = [
-        { name: '设置', desc: '系统设置、网络、通用', iconBg: '#8e8e93', actionKey: 'settings' },
-        { name: '主题', desc: '壁纸、图标、字体、预设', iconBg: '#ff9500', actionKey: 'theme' },
-        { name: '账户信息', desc: '云端、登陆管理', iconBg: '#007aff', actionKey: 'appleId' },
-        { name: 'API连接', desc: '模型配置、流式输出', iconBg: '#34c759', actionKey: 'api' }
+        { name: '璁剧疆', desc: '绯荤粺璁剧疆銆佺綉缁溿€侀€氱敤', iconBg: '#8e8e93', actionKey: 'settings' },
+        { name: '涓婚', desc: '澹佺焊銆佸浘鏍囥€佸瓧浣撱€侀璁?, iconBg: '#ff9500', actionKey: 'theme' },
+        { name: '璐︽埛淇℃伅', desc: '浜戠銆佺櫥闄嗙鐞?, iconBg: '#007aff', actionKey: 'appleId' },
+        { name: 'API杩炴帴', desc: '妯″瀷閰嶇疆銆佹祦寮忚緭鍑?, iconBg: '#34c759', actionKey: 'api' }
     ];
 
     const searchActions = {
@@ -5690,7 +5690,7 @@
         document.getElementById('searchDrawerOverlay').classList.add('show');
         document.getElementById('searchDrawer').classList.add('show');
         document.getElementById('globalSearchInput').value = '';
-        renderSearchResults(''); // 默认显示全部推荐
+        renderSearchResults(''); // 榛樿鏄剧ず鍏ㄩ儴鎺ㄨ崘
         setTimeout(() => {
             document.getElementById('globalSearchInput').focus();
         }, 300);
@@ -5717,7 +5717,7 @@
         );
 
         if (filtered.length === 0) {
-            area.innerHTML = '<div style="text-align:center; color:#8e8e93; margin-top:40px; font-size:14px;">无结果</div>';
+            area.innerHTML = '<div style="text-align:center; color:#8e8e93; margin-top:40px; font-size:14px;">鏃犵粨鏋?/div>';
             return;
         }
 
@@ -5746,14 +5746,14 @@
             if (searchActions[actionKey]) {
                 searchActions[actionKey]();
             }
-        }, 300); // 等待抽屉收起动画完成后再打开对应页面
+        }, 300); // 绛夊緟鎶藉眽鏀惰捣鍔ㄧ敾瀹屾垚鍚庡啀鎵撳紑瀵瑰簲椤甸潰
     }
 
             // show three-dots button; click to expand vertical capsule menu
     function openIcloudApp() {
         const icloudUI = document.getElementById('icloudAppUI');
         icloudUI.style.display = 'flex';
-        updateRealStorage(); // 触发真实储存计算与持久化检测
+        updateRealStorage(); // 瑙﹀彂鐪熷疄鍌ㄥ瓨璁＄畻涓庢寔涔呭寲妫€娴?
         setTimeout(() => {
             icloudUI.classList.add('show');
         }, 10);
@@ -5805,8 +5805,8 @@
             const isPersisted = await navigator.storage.persisted();
             const persistStatusEl = document.getElementById('ic-persist-status');
             if(persistStatusEl) {
-                persistStatusEl.innerHTML = `${isPersisted ? '已开启' : '未开启'} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
-                if(isPersisted) persistStatusEl.style.color = '#34c759'; // 开启显示绿色
+                persistStatusEl.innerHTML = `${isPersisted ? '宸插紑鍚? : '鏈紑鍚?} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+                if(isPersisted) persistStatusEl.style.color = '#34c759'; // 寮€鍚樉绀虹豢鑹?
             }
         }
 
@@ -5844,10 +5844,10 @@
         const apiSize = await getStoreSize("apiData");
 
             // show three-dots button; click to expand vertical capsule menu
-        const photoSize = wallpaperSize; // 壁纸归为照片
-        const appsSize = presetSize + layoutSize; // 预设和桌面布局归为应用程序
-        const chatSize = 0; // 聊天数据暂无，显示0
-        const systemSize = fontSize + profileSize + apiSize; // 字体、配置等归为系统数据
+        const photoSize = wallpaperSize; // 澹佺焊褰掍负鐓х墖
+        const appsSize = presetSize + layoutSize; // 棰勮鍜屾闈㈠竷灞€褰掍负搴旂敤绋嬪簭
+        const chatSize = 0; // 鑱婂ぉ鏁版嵁鏆傛棤锛屾樉绀?
+        const systemSize = fontSize + profileSize + apiSize; // 瀛椾綋銆侀厤缃瓑褰掍负绯荤粺鏁版嵁
 
         const themeSize = presetSize + wallpaperSize + fontSize;
         const settingsSize = profileSize + apiSize + layoutSize;
@@ -5871,20 +5871,20 @@
         if(mainSizeEl) mainSizeEl.innerHTML = `${totalMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
         
         const detailSizeEl = document.getElementById('ic-detail-size');
-        if(detailSizeEl) detailSizeEl.innerText = `已使用 ${totalMB}`;
+        if(detailSizeEl) detailSizeEl.innerText = `宸蹭娇鐢?${totalMB}`;
 
             // show three-dots button; click to expand vertical capsule menu
         const legendPhoto = document.getElementById('ic-legend-photo');
-        if(legendPhoto) legendPhoto.innerText = `照片 ${formatSizeStr(photoSize)}`;
+        if(legendPhoto) legendPhoto.innerText = `鐓х墖 ${formatSizeStr(photoSize)}`;
         
         const legendApps = document.getElementById('ic-legend-apps');
-        if(legendApps) legendApps.innerText = `应用程序 ${formatSizeStr(appsSize)}`;
+        if(legendApps) legendApps.innerText = `搴旂敤绋嬪簭 ${formatSizeStr(appsSize)}`;
         
         const legendChat = document.getElementById('ic-legend-chat');
-        if(legendChat) legendChat.innerText = `聊天数据 ${formatSizeStr(chatSize)}`;
+        if(legendChat) legendChat.innerText = `鑱婂ぉ鏁版嵁 ${formatSizeStr(chatSize)}`;
         
         const legendSystem = document.getElementById('ic-legend-system');
-        if(legendSystem) legendSystem.innerText = `系统数据 ${formatSizeStr(systemSize)}`;
+        if(legendSystem) legendSystem.innerText = `绯荤粺鏁版嵁 ${formatSizeStr(systemSize)}`;
 
             // show three-dots button; click to expand vertical capsule menu
         const getPercent = (part, total) => total === 0 ? 0 : (part / total * 100).toFixed(1);
@@ -5939,18 +5939,18 @@
         if (navigator.storage && navigator.storage.persist) {
             const isPersisted = await navigator.storage.persisted();
             if (isPersisted) {
-                showToast("数据持久化已开启，数据安全");
+                showToast("鏁版嵁鎸佷箙鍖栧凡寮€鍚紝鏁版嵁瀹夊叏");
                 return;
             }
             const granted = await navigator.storage.persist();
             if (granted) {
-                showToast("成功开启数据持久化储存！");
+                showToast("鎴愬姛寮€鍚暟鎹寔涔呭寲鍌ㄥ瓨锛?);
             } else {
-                showCustomAlert("提示", "浏览器拒绝了持久化请求。建议：\n1. 将本网页添加到主屏幕\n2. 经常与网页互动\n3. 检查浏览器设置");
+                showCustomAlert("鎻愮ず", "娴忚鍣ㄦ嫆缁濅簡鎸佷箙鍖栬姹傘€傚缓璁細\n1. 灏嗘湰缃戦〉娣诲姞鍒颁富灞忓箷\n2. 缁忓父涓庣綉椤典簰鍔╘n3. 妫€鏌ユ祻瑙堝櫒璁剧疆");
             }
             updateRealStorage();
         } else {
-            showCustomAlert("提示", "当前浏览器不支持数据持久化 API。");
+            showCustomAlert("鎻愮ず", "褰撳墠娴忚鍣ㄤ笉鏀寔鏁版嵁鎸佷箙鍖?API銆?);
         }
     }
 
@@ -5976,10 +5976,10 @@
 
             // show three-dots button; click to expand vertical capsule menu
     async function exportAllDataJson() {
-        const fileName = await showCustomPrompt('导出 JSON 备份', { placeholder: '输入文件名', value: `童话机` }, '导出');
+        const fileName = await showCustomPrompt('瀵煎嚭 JSON 澶囦唤', { placeholder: '杈撳叆鏂囦欢鍚?, value: `绔ヨ瘽鏈篳 }, '瀵煎嚭');
         if (!fileName) return;
         
-        showToast("正在打包数据...");
+        showToast("姝ｅ湪鎵撳寘鏁版嵁...");
         const data = await getAllDataFromDB();
         const jsonString = JSON.stringify(data, null, 2);
         const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
@@ -5991,7 +5991,7 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showToast("导出 JSON 成功");
+        showToast("瀵煎嚭 JSON 鎴愬姛");
     }
 
             // show three-dots button; click to expand vertical capsule menu
@@ -6006,12 +6006,12 @@
         const fileName = file.name.toLowerCase();
 
         if (fileName.endsWith('.zip')) {
-            showToast("正在读取 ZIP 文件...");
+            showToast("姝ｅ湪璇诲彇 ZIP 鏂囦欢...");
             if (typeof JSZip === 'undefined') {
                 const script = document.createElement('script');
                 script.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
                 script.onload = () => processZipImport(file);
-                script.onerror = () => showCustomAlert("错误", "无法加载 ZIP 库，请检查网络连接。");
+                script.onerror = () => showCustomAlert("閿欒", "鏃犳硶鍔犺浇 ZIP 搴擄紝璇锋鏌ョ綉缁滆繛鎺ャ€?);
                 document.head.appendChild(script);
             } else {
                 processZipImport(file);
@@ -6043,14 +6043,14 @@
                 }
 
                 if (!jsonFile) {
-                    showCustomAlert("错误", "ZIP 文件中未找到 JSON 备份数据！");
+                    showCustomAlert("閿欒", "ZIP 鏂囦欢涓湭鎵惧埌 JSON 澶囦唤鏁版嵁锛?);
                     return;
                 }
 
                 const content = await jsonFile.async("string");
                 processJsonImport(content);
             } catch (err) {
-                showCustomAlert("错误", "解析 ZIP 文件失败: " + err.message);
+                showCustomAlert("閿欒", "瑙ｆ瀽 ZIP 鏂囦欢澶辫触: " + err.message);
             }
         };
         reader.readAsArrayBuffer(file);
@@ -6092,25 +6092,25 @@
             });
             
             transaction.oncomplete = () => {
-                showToast("恢复数据成功，即将刷新应用");
+                showToast("鎭㈠鏁版嵁鎴愬姛锛屽嵆灏嗗埛鏂板簲鐢?);
                 setTimeout(() => location.reload(), 1500);
             };
         } catch (err) {
-            showCustomAlert("错误", "解析备份文件失败，请确保文件格式正确！");
+            showCustomAlert("閿欒", "瑙ｆ瀽澶囦唤鏂囦欢澶辫触锛岃纭繚鏂囦欢鏍煎紡姝ｇ‘锛?);
         }
     }
 
             // show three-dots button; click to expand vertical capsule menu
     async function exportAllDataZip() {
-        const fileName = await showCustomPrompt('导出 ZIP 备份', { placeholder: '输入文件名', value: `童话机` }, '导出');
+        const fileName = await showCustomPrompt('瀵煎嚭 ZIP 澶囦唤', { placeholder: '杈撳叆鏂囦欢鍚?, value: `绔ヨ瘽鏈篳 }, '瀵煎嚭');
         if (!fileName) return;
 
-        showToast("正在生成 ZIP...");
+        showToast("姝ｅ湪鐢熸垚 ZIP...");
         if (typeof JSZip === 'undefined') {
             const script = document.createElement('script');
             script.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
             script.onload = () => doZipExport(fileName);
-            script.onerror = () => showCustomAlert("错误", "无法加载 ZIP 库，请检查网络连接。");
+            script.onerror = () => showCustomAlert("閿欒", "鏃犳硶鍔犺浇 ZIP 搴擄紝璇锋鏌ョ綉缁滆繛鎺ャ€?);
             document.head.appendChild(script);
         } else {
             doZipExport(fileName);
@@ -6132,18 +6132,18 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            showToast("导出 ZIP 成功");
+            showToast("瀵煎嚭 ZIP 鎴愬姛");
         } catch (err) {
-            showCustomAlert("错误", "生成 ZIP 失败: " + err.message);
+            showCustomAlert("閿欒", "鐢熸垚 ZIP 澶辫触: " + err.message);
         }
     }
 
             // show three-dots button; click to expand vertical capsule menu
     let localDriveHandle = null;
-    let localDriveMode = null; // 'folder' 或 'file'
-    let localDriveFileName = '童话机备份.json';
+    let localDriveMode = null; // 'folder' 鎴?'file'
+    let localDriveFileName = '绔ヨ瘽鏈哄浠?json';
     let autoBackupEnabled = false;
-    let autoBackupInterval = 0; // 0 表示每次修改时触发
+    let autoBackupInterval = 0; // 0 琛ㄧず姣忔淇敼鏃惰Е鍙?
     let autoBackupTimerId = null;
 
     function saveLocalDriveSettings() {
@@ -6194,7 +6194,7 @@
 
     async function setupFolderMode() {
         if (!('showDirectoryPicker' in window)) {
-            showCustomAlert("提示", "您的浏览器不支持文件夹选择，请使用最新版桌面端 Chrome/Edge。");
+            showCustomAlert("鎻愮ず", "鎮ㄧ殑娴忚鍣ㄤ笉鏀寔鏂囦欢澶归€夋嫨锛岃浣跨敤鏈€鏂扮増妗岄潰绔?Chrome/Edge銆?);
             return;
         }
         try {
@@ -6205,33 +6205,33 @@
             localDriveMode = 'folder';
             
             // show three-dots button; click to expand vertical capsule menu
-            const fileName = await showCustomPrompt('设置备份文件名', { placeholder: '输入文件名', value: `童话机备份.json` }, '确定');
+            const fileName = await showCustomPrompt('璁剧疆澶囦唤鏂囦欢鍚?, { placeholder: '杈撳叆鏂囦欢鍚?, value: `绔ヨ瘽鏈哄浠?json` }, '纭畾');
             if (fileName) {
                 localDriveFileName = fileName.endsWith('.json') ? fileName : fileName + '.json';
             }
             
             // show three-dots button; click to expand vertical capsule menu
-            document.getElementById('ld-current-mode').innerText = '文件夹模式';
-            document.getElementById('ld-target-name').innerText = dirHandle.name; // 仅显示文件夹名
-            document.getElementById('ld-file-name').innerText = localDriveFileName; // 显示文件名
+            document.getElementById('ld-current-mode').innerText = '鏂囦欢澶规ā寮?;
+            document.getElementById('ld-target-name').innerText = dirHandle.name; // 浠呮樉绀烘枃浠跺す鍚?
+            document.getElementById('ld-file-name').innerText = localDriveFileName; // 鏄剧ず鏂囦欢鍚?
             
             await performLocalBackup();
             saveLocalDriveSettings();
         } catch (err) {
-            if (err.name !== 'AbortError') showCustomAlert("错误", "设置文件夹失败: " + err.message);
+            if (err.name !== 'AbortError') showCustomAlert("閿欒", "璁剧疆鏂囦欢澶瑰け璐? " + err.message);
         }
     }
 
     async function setupFileMode() {
         if (!('showSaveFilePicker' in window)) {
-            showCustomAlert("提示", "您的浏览器不支持单文件保存，请使用最新版桌面端 Chrome/Edge。");
+            showCustomAlert("鎻愮ず", "鎮ㄧ殑娴忚鍣ㄤ笉鏀寔鍗曟枃浠朵繚瀛橈紝璇蜂娇鐢ㄦ渶鏂扮増妗岄潰绔?Chrome/Edge銆?);
             return;
         }
         try {
             const fileHandle = await window.showSaveFilePicker({
-                suggestedName: '童话机备份.json',
+                suggestedName: '绔ヨ瘽鏈哄浠?json',
                 types: [{
-                    description: 'JSON 备份文件',
+                    description: 'JSON 澶囦唤鏂囦欢',
                     accept: { 'application/json': ['.json'] }
                 }]
             });
@@ -6239,20 +6239,20 @@
             localDriveMode = 'file';
             localDriveFileName = fileHandle.name;
             
-            document.getElementById('ld-current-mode').innerText = '单文件模式';
-            document.getElementById('ld-target-name').innerText = '本地指定路径';
+            document.getElementById('ld-current-mode').innerText = '鍗曟枃浠舵ā寮?;
+            document.getElementById('ld-target-name').innerText = '鏈湴鎸囧畾璺緞';
             document.getElementById('ld-file-name').innerText = fileHandle.name;
             
             await performLocalBackup();
             saveLocalDriveSettings();
         } catch (err) {
-            if (err.name !== 'AbortError') showCustomAlert("错误", "设置文件失败: " + err.message);
+            if (err.name !== 'AbortError') showCustomAlert("閿欒", "璁剧疆鏂囦欢澶辫触: " + err.message);
         }
     }
 
     async function performLocalBackup(isAuto = false) {
         if (!localDriveHandle || !localDriveMode) {
-            if (!isAuto) showCustomAlert("提示", "请先选择文件夹模式或单文件模式。");
+            if (!isAuto) showCustomAlert("鎻愮ず", "璇峰厛閫夋嫨鏂囦欢澶规ā寮忔垨鍗曟枃浠舵ā寮忋€?);
             return;
         }
         
@@ -6260,7 +6260,7 @@
             // show three-dots button; click to expand vertical capsule menu
             if (typeof localDriveHandle.queryPermission !== 'function') {
                 if (isAuto) return;
-                showCustomAlert("提示", "授权已失效，请重新点击【文件夹模式】或【单文件模式】选择路径。");
+                showCustomAlert("鎻愮ず", "鎺堟潈宸插け鏁堬紝璇烽噸鏂扮偣鍑汇€愭枃浠跺す妯″紡銆戞垨銆愬崟鏂囦欢妯″紡銆戦€夋嫨璺緞銆?);
                 return;
             }
 
@@ -6268,12 +6268,12 @@
             const permission = await localDriveHandle.queryPermission({ mode: 'readwrite' });
             if (permission !== 'granted') {
                 if (isAuto) {
-                    console.warn("自动备份被拦截：浏览器要求用户手动授权。");
-                    return; // 自动备份不能触发授权弹窗
+                    console.warn("鑷姩澶囦唤琚嫤鎴細娴忚鍣ㄨ姹傜敤鎴锋墜鍔ㄦ巿鏉冦€?);
+                    return; // 鑷姩澶囦唤涓嶈兘瑙﹀彂鎺堟潈寮圭獥
                 }
                 const request = await localDriveHandle.requestPermission({ mode: 'readwrite' });
                 if (request !== 'granted') {
-                    showCustomAlert("提示", "未获得读写权限，无法备份。");
+                    showCustomAlert("鎻愮ず", "鏈幏寰楄鍐欐潈闄愶紝鏃犳硶澶囦唤銆?);
                     return;
                 }
             }
@@ -6296,14 +6296,14 @@
             const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
             const sizeMB = (jsonString.length / (1024 * 1024)).toFixed(2);
 
-            document.getElementById('ld-last-time').innerText = timeStr + (isAuto ? ' (自动)' : ' (手动)');
+            document.getElementById('ld-last-time').innerText = timeStr + (isAuto ? ' (鑷姩)' : ' (鎵嬪姩)');
             document.getElementById('ld-last-size').innerText = sizeMB + ' MB';
 
-            if (!isAuto) showToast("备份成功！");
+            if (!isAuto) showToast("澶囦唤鎴愬姛锛?);
             saveLocalDriveSettings();
         } catch (err) {
             console.error("Local backup failed:", err);
-            if (!isAuto) showCustomAlert("错误", "备份失败: " + err.message);
+            if (!isAuto) showCustomAlert("閿欒", "澶囦唤澶辫触: " + err.message);
         }
     }
 
@@ -6322,11 +6322,11 @@
         if (autoBackupEnabled) {
             toggleBtn.classList.remove('off');
             startAutoBackupTimer();
-            showToast("自动备份已开启");
+            showToast("鑷姩澶囦唤宸插紑鍚?);
         } else {
             toggleBtn.classList.add('off');
             stopAutoBackupTimer();
-            showToast("自动备份已关闭");
+            showToast("鑷姩澶囦唤宸插叧闂?);
         }
         saveLocalDriveSettings();
     }
@@ -6364,7 +6364,7 @@
             autoBackupTimerId = setInterval(() => {
                 performLocalBackup(true);
             }, intervalMs);
-            showToast(`已设置为每 ${val} ${unit === 60000 ? '分钟' : '小时'} 自动备份`);
+            showToast(`宸茶缃负姣?${val} ${unit === 60000 ? '鍒嗛挓' : '灏忔椂'} 鑷姩澶囦唤`);
             
         } else if (backupModeType === 'scheduled') {
             const timeStr = document.getElementById('backupScheduledTime').value || "02:00";
@@ -6374,15 +6374,15 @@
             const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
             
             if (now > target) {
-                target.setDate(target.getDate() + 1); // 如果今天的时间已过，设定为明天
+                target.setDate(target.getDate() + 1); // 濡傛灉浠婂ぉ鐨勬椂闂村凡杩囷紝璁惧畾涓烘槑澶?
             }
             
             const delay = target.getTime() - now.getTime();
             autoBackupTimerId = setTimeout(() => {
                 performLocalBackup(true);
-                startAutoBackupTimer(); // 触发后重新设置第二天的定时器
+                startAutoBackupTimer(); // 瑙﹀彂鍚庨噸鏂拌缃浜屽ぉ鐨勫畾鏃跺櫒
             }, delay);
-            showToast(`已设置为每天 ${timeStr} 自动备份`);
+            showToast(`宸茶缃负姣忓ぉ ${timeStr} 鑷姩澶囦唤`);
         }
     }
 
@@ -6396,20 +6396,20 @@
 
     async function restoreFromLocalFolder() {
         if (localDriveMode !== 'folder' || !localDriveHandle) {
-            showCustomAlert("提示", "请先设置并授权【文件夹模式】。");
+            showCustomAlert("鎻愮ず", "璇峰厛璁剧疆骞舵巿鏉冦€愭枃浠跺す妯″紡銆戙€?);
             return;
         }
         try {
             // show three-dots button; click to expand vertical capsule menu
             if (typeof localDriveHandle.queryPermission !== 'function') {
-                showCustomAlert("提示", "文件夹授权已失效，请重新点击【文件夹模式】选择目标文件夹。");
+                showCustomAlert("鎻愮ず", "鏂囦欢澶规巿鏉冨凡澶辨晥锛岃閲嶆柊鐐瑰嚮銆愭枃浠跺す妯″紡銆戦€夋嫨鐩爣鏂囦欢澶广€?);
                 return;
             }
 
             // show three-dots button; click to expand vertical capsule menu
             if (await localDriveHandle.queryPermission({ mode: 'read' }) !== 'granted') {
                 if (await localDriveHandle.requestPermission({ mode: 'read' }) !== 'granted') {
-                    showCustomAlert("提示", "未获得读取权限。");
+                    showCustomAlert("鎻愮ず", "鏈幏寰楄鍙栨潈闄愩€?);
                     return;
                 }
             }
@@ -6429,14 +6429,14 @@
             }
 
             if (!newestFileHandle) {
-                showCustomAlert("提示", "该文件夹中没有找到任何 JSON 备份文件。");
+                showCustomAlert("鎻愮ず", "璇ユ枃浠跺す涓病鏈夋壘鍒颁换浣?JSON 澶囦唤鏂囦欢銆?);
                 return;
             }
 
-            const confirmed = await showCustomConfirm("恢复数据", `找到最新备份文件：\n${newestFileHandle.name}\n\n确定要覆盖当前所有数据吗？`, "恢复", true);
+            const confirmed = await showCustomConfirm("鎭㈠鏁版嵁", `鎵惧埌鏈€鏂板浠芥枃浠讹細\n${newestFileHandle.name}\n\n纭畾瑕佽鐩栧綋鍓嶆墍鏈夋暟鎹悧锛焋, "鎭㈠", true);
             if (!confirmed) return;
 
-            showToast("正在读取备份文件...");
+            showToast("姝ｅ湪璇诲彇澶囦唤鏂囦欢...");
             const file = await newestFileHandle.getFile();
             const text = await file.text();
             
@@ -6445,7 +6445,7 @@
 
         } catch (err) {
             console.error("Restore failed:", err);
-            showCustomAlert("错误", "恢复失败: " + err.message);
+            showCustomAlert("閿欒", "鎭㈠澶辫触: " + err.message);
         }
     }
 </script>
@@ -6586,7 +6586,7 @@
             closeWidgetMenus(); isWidgetEditing = true;
             if (themeAppUI) themeAppUI.classList.add('is-widget-editing');
             toggleWidgetViewMode('list');
-            document.getElementById('topBarTitle').innerText = '管理组件';
+            document.getElementById('topBarTitle').innerText = '绠＄悊缁勪欢';
             const wgc1 = document.getElementById('widgetToolbarMenu'); if (wgc1) { wgc1.style.display = 'none'; wgc1.classList.remove('show'); }
         }
         window.enterWidgetEditMode = enterWidgetEditMode;
@@ -6603,7 +6603,7 @@
 
         function deleteWidget(index, event) {
             event.stopPropagation();
-            if (confirm('确定要删除 "' + currentWidgets[index].name + '" 吗？')) {
+            if (confirm('纭畾瑕佸垹闄?"' + currentWidgets[index].name + '" 鍚楋紵')) {
                 currentWidgets.splice(index, 1);
                 if (activeWidgetIndex >= currentWidgets.length) activeWidgetIndex = currentWidgets.length - 1;
                 renderWidgetViews();
@@ -6664,7 +6664,7 @@
         function saveWidgetEditor() {
             if (activeWidgetIndex > -1) {
                 const widget = currentWidgets[activeWidgetIndex];
-                widget.name = document.getElementById('widgetEditName').value.trim() || '未命名组件';
+                widget.name = document.getElementById('widgetEditName').value.trim() || '鏈懡鍚嶇粍浠?;
                 widget.content = document.getElementById('widgetEditContent').value;
                 renderWidgetViews();
             }
@@ -6685,7 +6685,7 @@
         function handleAddWidget() {
             closeWidgetMenus();
             currentWidgets.push({
-                name: '自定义组件 ' + (currentWidgets.length + 1),
+                name: '鑷畾涔夌粍浠?' + (currentWidgets.length + 1),
                 content: ''
             });
             targetProgress = currentWidgets.length - 1;
@@ -6777,3 +6777,4 @@
 </script>
 </body>
 </html>
+
