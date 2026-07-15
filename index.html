@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -301,6 +301,106 @@
             background-color: #fff;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
+
+                .app-delete-btn {
+            display: none;
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #ff3b30;
+            border-radius: 50%;
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            line-height: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-family: Arial, sans-serif;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .app-item.is-widget.jiggling .app-delete-btn {
+            display: flex;
+        }
+        .is-widget .app-icon::before {
+            display: none;
+        }
+        .dock .app-delete-btn { display: none !important; }
+
+                .widget-size-preset {
+            position: relative;
+            cursor: pointer;
+        }
+        .widget-size-preset input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .widget-size-preset span {
+            display: block;
+            padding: 8px 14px;
+            background: #f2f2f7;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #000;
+            font-weight: 500;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .widget-size-preset input:checked + span {
+            background: #007aff;
+            color: #fff;
+            border-color: #007aff;
+        }
+        .widget-size-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .widget-size-preset {
+            flex: 0 0 auto;
+        }
+
+        /* ?????????? */
+        .widget-custom-size-picker {
+            position: fixed; left: 0; bottom: 0; width: 100%; max-height: 70%;
+            background: #f2f2f7; border-radius: 24px 24px 0 0;
+            transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+            z-index: 400; display: flex; flex-direction: column;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.12);
+        }
+        .widget-custom-size-picker.show { transform: translateY(0); }
+        .widget-custom-size-picker .picker-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-radius: 24px 24px 0 0; background: #f2f2f7;
+        }
+        .widget-custom-size-picker .picker-title { font-size: 16px; font-weight: 600; color: #000; }
+        .widget-custom-size-picker .picker-body {
+            padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto;
+        }
+        .widget-custom-size-picker .picker-row {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #fff; border-radius: 14px; padding: 14px 16px;
+        }
+        .widget-custom-size-picker .picker-label { font-size: 15px; color: #000; font-weight: 500; }
+        .widget-custom-size-picker .picker-stepper { display: flex; align-items: center; gap: 14px; }
+        .widget-custom-size-picker .stepper-btn {
+            width: 32px; height: 32px; border-radius: 50%; border: none;
+            background: #f2f2f7; font-size: 20px; color: #007aff; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: background 0.15s;
+        }
+        .widget-custom-size-picker .stepper-btn:active { background: #e0e0e8; }
+        .widget-custom-size-picker .stepper-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .widget-custom-size-picker .stepper-val { font-size: 16px; font-weight: 600; color: #000; min-width: 24px; text-align: center; }
+
 
         /* 编辑模式抖动动画 */
         @keyframes jiggle {
@@ -1203,7 +1303,21 @@
             color: #fff;
         }
 
-        /* --- 保存预设名称弹窗样式 --- */
+                .widget-card-size {
+            position: absolute;
+            bottom: 6px;
+            right: 8px;
+            background: rgba(0,122,255,0.15);
+            color: #007aff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+        }
+        .widget-card { position: relative; }
+
+/* --- 保存预设名称弹窗样式 --- */
         .preset-modal-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -1752,11 +1866,17 @@
         .search-drawer {
             position: absolute; bottom: 0; left: 0; right: 0; height: 85%; /* 改为 left:0; right:0; 强制吸附两侧 */
             background: #f2f2f7; border-radius: 24px 24px 0 0;
-            transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            transform: translateY(100%); 
+            visibility: hidden; /* 核心修复：彻底隐藏，脱离浏览器焦点顺序，防止被回车选中或滚动露出 */
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s linear 0.35s;
             z-index: 9001; display: flex; flex-direction: column; overflow: hidden;
             box-sizing: border-box; /* 增加盒模型保险 */
         }
-        .search-drawer.show { transform: translateY(0); }
+        .search-drawer.show { 
+            transform: translateY(0); 
+            visibility: visible; /* 核心修复：展开时恢复可见 */
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s linear 0s;
+        }
         .search-drawer-header {
             padding: 16px 20px 10px; display: flex; flex-direction: column;
             box-sizing: border-box; width: 100%; /* 移除 align-items: center，增加 100% 宽度 */
@@ -1939,6 +2059,18 @@
         .iphone.dark-mode .custom-dialog-btn { background-color: rgba(255,255,255,0.05); }
         .iphone.dark-mode .custom-dialog-btn.bold, .iphone.dark-mode .preset-m1-btn-save { background-color: #0a84ff; color: #fff; }
         .iphone.dark-mode .preset-m1-btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
+        
+        /* --- 强制深色模式修复 (提权覆盖内联和遗漏) --- */
+        .iphone.dark-mode .save-preset-btn, .iphone.dark-mode .font-preview-text, .iphone.dark-mode .widget-segment-btn, .iphone.dark-mode .widget-card-name, .iphone.dark-mode .widget-list-item-title, .iphone.dark-mode .set-page-title, .iphone.dark-mode .set-item-content span, .iphone.dark-mode .set-profile-name { color: #ffffff !important; }
+        .iphone.dark-mode .settings-app-container, .iphone.dark-mode .settings-top-bar { background-color: #000000 !important; }
+        .iphone.dark-mode .set-card, .iphone.dark-mode .set-list-item, .iphone.dark-mode .widget-card-preview, .iphone.dark-mode .widget-list-item, .iphone.dark-mode .widget-list-item-icon, .iphone.dark-mode .set-search-bar { background-color: #1c1c1e !important; border-color: #38383a !important; }
+        .iphone.dark-mode .widget-card { background: linear-gradient(135deg, rgba(44, 44, 46, 0.9) 0%, rgba(28, 28, 30, 0.5) 100%) !important; border-color: #38383a !important; }
+        .iphone.dark-mode .ios-menu-btn { background: rgba(44, 44, 46, 0.85) !important; }
+        .iphone.dark-mode .ios-menu-btn svg { stroke: #ffffff !important; }
+        .iphone.dark-mode .widget-segment-control { background: rgba(255,255,255,0.12) !important; }
+        .iphone.dark-mode .widget-segment-indicator { background: #3a3a3c !important; }
+        .iphone.dark-mode .set-search-bar input { color: #ffffff !important; }
+
         /* ===== Widget 小组件库 (作用域: #themeAppUI 内, 前缀隔离) ===== */
         #themeAppUI .widget-app-container { flex: 1; display: flex; flex-direction: column; position: relative; height: 100%; padding-bottom: 90px; }
         #themeAppUI .widget-content-area { flex: 1; position: relative; overflow: hidden; }
@@ -2010,6 +2142,199 @@
         #themeAppUI .widget-cap svg { width: 20px; height: 20px; stroke: rgba(0,0,0,0.8); stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
         #themeAppUI .widget-cap-text { font-size: 15px; font-weight: 600; color: rgba(0,0,0,0.82); letter-spacing: 0.2px; white-space: nowrap; }
         /* 全局图片上传兜底：点击组件预览图换图 */
+
+        /* --- 世界书 APP UI 样式 --- */
+        .wb-app-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; z-index: 160; display: none; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden; }
+        .wb-app-container.show { transform: translateX(0); }
+        .wb-page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; display: flex; flex-direction: column; transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .wb-page.slide-right { transform: translateX(100%); }
+        .wb-page.slide-left { transform: translateX(-30%); opacity: 0.8; }
+        .wb-page.active { transform: translateX(0); opacity: 1; z-index: 10; }
+        .wb-scroll-area { flex: 1; overflow-y: auto; padding-bottom: 100px; scrollbar-width: none; }
+        .wb-scroll-area::-webkit-scrollbar { display: none; }
+        .wb-main-header { padding: 54px 20px 16px; }
+        .wb-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .wb-header-bottom { display: flex; flex-direction: column; gap: 6px; padding-left: 4px; }
+        .wb-nav-btn-circle { width: 36px; height: 36px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .wb-nav-btn-circle svg { width: 20px; height: 20px; stroke: #000; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .wb-header-right { display: flex; gap: 10px; align-items: center; }
+        .wb-float-btn { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 20px; height: 36px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s; }
+        .wb-float-btn:active { transform: scale(0.95); }
+        .wb-float-btn.icon-only { width: 46px; }
+        .wb-float-btn.text-only { padding: 0 16px; font-size: 16px; font-weight: 600; color: #000; }
+        .wb-float-btn svg { width: 22px; height: 22px; stroke: #000; stroke-width: 1.5; fill: none; }
+        .wb-header-title { font-size: 34px; font-weight: 800; letter-spacing: 0.5px; color: #000; }
+        .wb-header-subtitle { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; color: #e4af0a; font-weight: 600; cursor: pointer; align-self: flex-start; padding: 4px 8px 4px 0; border-radius: 8px; transition: opacity 0.2s; }
+        .wb-header-subtitle:active { opacity: 0.6; }
+        .wb-header-subtitle svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .wb-list-card { background-color: #ffffff; border-radius: 16px; margin: 0 16px 20px; padding: 8px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .wb-list-item { display: flex; align-items: center; padding: 10px 16px; cursor: pointer; transition: background-color 0.2s, transform 0.2s; }
+        .wb-list-item:active { background-color: rgba(0,0,0,0.04); }
+        .wb-list-item.pressing { transform: scale(0.98); background-color: rgba(0,0,0,0.06); }
+        .wb-delete-btn { width: 0; overflow: hidden; display: flex; justify-content: flex-start; align-items: center; transition: width 0.3s ease; opacity: 0; }
+        .wb-edit-mode .wb-delete-btn { width: 36px; opacity: 1; }
+        .wb-delete-btn svg { width: 22px; height: 22px; fill: #ff3b30; }
+        .wb-item-icon { width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; margin-right: 14px; flex-shrink: 0; }
+        .wb-item-icon svg { width: 26px; height: 22px; fill: none; stroke: #e5b53c; stroke-width: 2; stroke-linejoin: round; }
+        .wb-item-content { flex: 1; display: flex; justify-content: space-between; align-items: center; }
+        .wb-item-title { font-size: 17px; font-weight: 500; color: #000; }
+        .wb-item-right { display: flex; align-items: center; gap: 8px; color: #c5c5c7; transition: opacity 0.2s; }
+        .wb-edit-mode .wb-item-right { opacity: 0; pointer-events: none; }
+        .wb-item-count { font-size: 16px; color: #8e8e93; }
+        .wb-chevron { width: 8px; height: 13px; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+        .wb-nav-bar { height: 44px; margin-top: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; position: relative; z-index: 50; }
+        .wb-nav-back { display: flex; align-items: center; color: #e4af0a; font-size: 17px; cursor: pointer; z-index: 2; }
+        .wb-nav-back svg { width: 20px; height: 20px; stroke: currentColor; margin-right: 4px; }
+        .wb-nav-title { position: absolute; left: 0; width: 100%; text-align: center; font-size: 17px; font-weight: 600; z-index: 1; pointer-events: none; color: #000; }
+        .wb-nav-right { display: flex; gap: 16px; align-items: center; color: #e4af0a; cursor: pointer; z-index: 2; }
+        .wb-nav-right svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; fill: none; }
+        .wb-notes-container { padding: 20px 16px 100px; }
+        .wb-view-list { display: block; }
+        .wb-doc-list-card { background-color: #ffffff; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); overflow: hidden; }
+        .wb-doc-list-item { display: flex; align-items: center; padding: 14px 16px; border-bottom: 0.5px solid #c6c6c8; cursor: pointer; transition: background-color 0.2s, transform 0.2s; }
+        .wb-doc-list-item:last-child { border-bottom: none; }
+        .wb-doc-list-item:active { background-color: rgba(0,0,0,0.04); }
+        .wb-doc-list-item.pressing { transform: scale(0.98); background-color: rgba(0,0,0,0.06); }
+        .wb-doc-thumbnail { width: 38px; height: 52px; border: 1px solid #e5e5ea; border-radius: 4px; margin-right: 14px; padding: 5px; display: flex; flex-direction: column; gap: 3px; background: #fff; flex-shrink: 0; }
+        .wb-doc-line { height: 2px; background: #d1d1d6; border-radius: 1px; width: 100%; }
+        .wb-doc-line.short { width: 60%; }
+        .wb-doc-line.medium { width: 80%; }
+        .wb-doc-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .wb-doc-title { font-size: 17px; font-weight: 600; color: #000; margin-bottom: 4px; }
+        .wb-doc-sub { font-size: 14px; color: #8e8e93; }
+        .wb-doc-action-text { color: #e4af0a; font-size: 15px; font-weight: 600; cursor: pointer; padding: 4px 8px; }
+        .wb-view-grid { display: none; grid-template-columns: repeat(3, 1fr); gap: 20px 12px; }
+        .wb-grid-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s; }
+        .wb-grid-item:active .wb-grid-preview-box { transform: scale(0.95); }
+        .wb-grid-item.pressing { transform: scale(0.95); }
+        .wb-grid-preview-box { width: 100%; aspect-ratio: 1; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 8px; overflow: hidden; display: flex; flex-direction: column; }
+        .wb-mock-text-line { height: 4px; background: #e5e5ea; border-radius: 2px; margin-bottom: 6px; width: 100%; filter: blur(0.5px); }
+        .wb-mock-text-line.short { width: 60%; }
+        .wb-mock-text-line.medium { width: 80%; }
+        .wb-grid-title { font-size: 13px; font-weight: 600; color: #000; text-align: center; margin-top: 8px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .wb-editor-page { background-color: #ffffff; }
+        .wb-editor-nav { height: 44px; margin-top: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+        .wb-editor-nav-right { display: flex; gap: 10px; align-items: center; }
+        .wb-nav-capsule { height: 36px; background-color: #f2f2f7; border-radius: 18px; display: flex; align-items: center; padding: 0 12px; gap: 12px; }
+        .wb-nav-capsule svg { width: 20px; height: 20px; stroke: #000; stroke-width: 2; fill: none; cursor: pointer; }
+        .wb-nav-btn-circle.yellow { background-color: #e4af0a; }
+        .wb-nav-btn-circle.yellow svg { stroke: #fff; }
+        .wb-editor-content-area { padding: 10px 20px 40px; display: flex; flex-direction: column; height: 100%; }
+        .wb-editor-title-input { font-size: 32px; font-weight: 700; border: none; outline: none; width: 100%; margin-bottom: 8px; color: #000; background: transparent; }
+        .wb-editor-title-input::placeholder { color: #c7c7cc; }
+        .wb-editor-key-container { display: flex; align-items: center; gap: 6px; padding-bottom: 12px; border-bottom: 0.5px solid #c6c6c8; margin-bottom: 16px; }
+        .wb-editor-key-container svg { width: 18px; height: 18px; stroke: #e4af0a; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .wb-editor-key-input { flex: 1; border: none; outline: none; font-size: 16px; color: #e4af0a; font-weight: 500; background: transparent; }
+        .wb-editor-key-input::placeholder { color: #c7c7cc; font-weight: 400; }
+        .wb-editor-textarea { flex: 1; width: 100%; border: none; outline: none; font-size: 17px; line-height: 1.5; color: #000; resize: none; background: transparent; min-height: 200px; }
+        .wb-editor-textarea::placeholder { color: #c7c7cc; }
+        .wb-settings-group-title { font-size: 13px; color: #8e8e93; text-transform: uppercase; margin: 30px 0 8px 16px; font-weight: 600; }
+        .wb-settings-card { background-color: #f2f2f7; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+        .wb-settings-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: none; min-height: 48px; }
+        .wb-settings-row:last-child { border-bottom: none; }
+        .wb-settings-row.clickable { cursor: pointer; }
+        .wb-settings-row.clickable:active { background-color: #e5e5ea; }
+        .wb-settings-label { font-size: 16px; color: #000; }
+        .wb-settings-value-with-arrow { display: flex; align-items: center; gap: 8px; color: #8e8e93; font-size: 16px; }
+        .wb-settings-input { text-align: right; border: none; background: transparent; font-size: 16px; color: #8e8e93; outline: none; width: 100px; }
+        .wb-settings-select { border: none; background: transparent; font-size: 16px; color: #8e8e93; outline: none; appearance: none; text-align: right; direction: rtl; }
+        .wb-ios-switch { position: relative; width: 51px; height: 31px; background-color: #d1d1d6; border-radius: 15.5px; cursor: pointer; transition: background-color 0.3s; }
+        .wb-ios-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; background-color: #fff; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.3s; }
+        .wb-ios-switch.active { background-color: #34c759; }
+        .wb-ios-switch.active::after { transform: translateX(20px); }
+        .wb-bottom-float-bar { position: absolute; bottom: 20px; left: 20px; right: 20px; display: flex; gap: 12px; z-index: 50; }
+        .wb-search-pill { flex: 1; height: 50px; background-color: #ffffff; border-radius: 25px; display: flex; align-items: center; padding: 0 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); cursor: text; }
+        .wb-search-pill svg.search-icon { width: 20px; height: 20px; stroke: #000; stroke-width: 2.5; fill: none; margin-right: 8px; }
+        .wb-search-pill .placeholder { font-size: 17px; color: #8e8e93; font-weight: 500; flex: 1; }
+        .wb-search-pill svg.mic-icon { width: 18px; height: 22px; stroke: #000; stroke-width: 2; fill: none; }
+        .wb-compose-btn { width: 50px; height: 50px; background-color: #ffffff; border-radius: 18px; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 24px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.2s; flex-shrink: 0; }
+        .wb-compose-btn:active { transform: scale(0.92); }
+        .wb-compose-btn svg { width: 22px; height: 22px; stroke: #000; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .wb-bottom-sheet-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 3000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .wb-bottom-sheet-overlay.show { opacity: 1; pointer-events: auto; }
+        .wb-bottom-sheet { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: #f2f2f7; border-radius: 20px 20px 0 0; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); display: flex; flex-direction: column; }
+        .wb-bottom-sheet-overlay.show .wb-bottom-sheet { transform: translateY(0); }
+        .wb-sheet-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.5px solid #c6c6c8; }
+        .wb-sheet-title { font-size: 17px; font-weight: 600; color: #000; }
+        .wb-sheet-close { width: 30px; height: 30px; background: #e5e5ea; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .wb-sheet-close svg { width: 16px; height: 16px; stroke: #8e8e93; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .wb-sheet-content { flex: 1; overflow-y: auto; padding: 10px 16px; }
+        .wb-sheet-list-card { background: #fff; border-radius: 12px; overflow: hidden; }
+        .wb-sheet-list-item { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.5px solid #c6c6c8; font-size: 17px; color: #000; cursor: pointer; }
+        .wb-sheet-list-item:last-child { border-bottom: none; }
+        .wb-sheet-list-item:active { background: #e5e5ea; }
+        .wb-sheet-list-item svg { width: 20px; height: 20px; stroke: #e4af0a; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; display: none; }
+        .wb-sheet-list-item.selected svg { display: block; }
+        .wb-empty-state { text-align: center; color: #8e8e93; padding: 40px 20px; font-size: 15px; font-weight: 500; display: none; }
+        /* --- 世界书 搜索覆盖层修复 --- */
+        .wb-search-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 200; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column; box-sizing: border-box; overflow: hidden; }
+        .wb-search-overlay.show { transform: translateY(0); }
+        .wb-search-header { padding: 54px 16px 10px; display: flex; gap: 10px; align-items: center; background: #f2f2f7; box-sizing: border-box; width: 100%; flex-shrink: 0; }
+        .wb-search-input-box { flex: 1; height: 36px; background: #e3e3e8; border-radius: 10px; display: flex; align-items: center; padding: 0 8px; box-sizing: border-box; min-width: 0; }
+        .wb-search-input-box svg { width: 16px; height: 16px; stroke: #8e8e93; stroke-width: 2.5; fill: none; margin-right: 6px; flex-shrink: 0; }
+        .wb-search-input-box input { flex: 1; width: 100%; border: none; background: transparent; outline: none; font-size: 17px; color: #000; min-width: 0; box-sizing: border-box; }
+        .wb-search-cancel { color: #e4af0a; font-size: 17px; cursor: pointer; flex-shrink: 0; white-space: nowrap; }
+        .wb-search-results { flex: 1; padding: 20px; color: #8e8e93; text-align: center; font-size: 15px; box-sizing: border-box; width: 100%; overflow-y: auto; }
+
+        /* 世界书深色模式 */
+        .iphone.dark-mode .wb-app-container, .iphone.dark-mode .wb-page { background-color: #000000; }
+        .iphone.dark-mode .wb-list-card, .iphone.dark-mode .wb-doc-list-card, .iphone.dark-mode .wb-grid-preview-box, .iphone.dark-mode .wb-settings-card, .iphone.dark-mode .wb-sheet-list-card { background-color: #1c1c1e; }
+        .iphone.dark-mode .wb-list-item, .iphone.dark-mode .wb-doc-list-item, .iphone.dark-mode .wb-settings-row, .iphone.dark-mode .wb-sheet-list-item { border-bottom-color: #38383a; }
+        .iphone.dark-mode .wb-header-title, .iphone.dark-mode .wb-item-title, .iphone.dark-mode .wb-doc-title, .iphone.dark-mode .wb-grid-title, .iphone.dark-mode .wb-editor-title-input, .iphone.dark-mode .wb-editor-textarea, .iphone.dark-mode .wb-settings-label, .iphone.dark-mode .wb-nav-title, .iphone.dark-mode .wb-sheet-title, .iphone.dark-mode .wb-sheet-list-item { color: #ffffff; }
+        .iphone.dark-mode .wb-nav-btn-circle, .iphone.dark-mode .wb-float-btn, .iphone.dark-mode .wb-search-pill, .iphone.dark-mode .wb-compose-btn, .iphone.dark-mode .wb-nav-capsule, .iphone.dark-mode .wb-sheet-close { background-color: #2c2c2e; color: #fff; }
+        .iphone.dark-mode .wb-nav-btn-circle svg, .iphone.dark-mode .wb-float-btn svg, .iphone.dark-mode .wb-search-pill svg.search-icon, .iphone.dark-mode .wb-search-pill svg.mic-icon, .iphone.dark-mode .wb-compose-btn svg, .iphone.dark-mode .wb-nav-capsule svg { stroke: #fff; }
+        .iphone.dark-mode .wb-bottom-float-bar { background: linear-gradient(to top, #000 80%, rgba(0,0,0,0)); }
+        .iphone.dark-mode .wb-editor-page { background-color: #000000; }
+        .iphone.dark-mode .wb-bottom-sheet { background-color: #1c1c1e; }
+        .iphone.dark-mode .wb-sheet-header { border-bottom-color: #38383a; }
+        .iphone.dark-mode .wb-ios-switch { background-color: #39393d; }
+        .iphone.dark-mode .wb-search-overlay, .iphone.dark-mode .wb-search-header { background-color: #000000; }
+        .iphone.dark-mode .wb-search-input-box { background-color: #1c1c1e; }
+        .iphone.dark-mode .wb-search-input-box input { color: #ffffff; }
+              /* --- 世界书 弹窗与覆盖层修复 --- */
+        .wb-search-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 200; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; flex-direction: column; }
+        .wb-search-overlay.show { transform: translateY(0); }
+        .wb-search-header { padding: 54px 16px 10px; display: flex; gap: 10px; align-items: center; background: #f2f2f7; }
+        .wb-search-input-box { flex: 1; height: 36px; background: #e3e3e8; border-radius: 10px; display: flex; align-items: center; padding: 0 8px; }
+        .wb-search-input-box svg { width: 16px; height: 16px; stroke: #8e8e93; stroke-width: 2.5; fill: none; margin-right: 6px; }
+        .wb-search-input-box input { flex: 1; border: none; background: transparent; outline: none; font-size: 17px; color: #000; }
+        .wb-search-cancel { color: #e4af0a; font-size: 17px; cursor: pointer; }
+        .wb-search-results { flex: 1; padding: 20px; color: #8e8e93; text-align: center; font-size: 15px; }
+
+        .wb-modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+        .wb-modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .wb-ios-modal { width: 270px; background: rgba(242, 242, 247, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 14px; display: flex; flex-direction: column; align-items: center; transform: scale(1.1); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .wb-modal-overlay.show .wb-ios-modal { transform: scale(1); }
+        .wb-modal-title { font-size: 17px; font-weight: 600; margin: 20px 0 6px; color: #000; }
+        .wb-modal-desc { font-size: 13px; color: #000; margin-bottom: 16px; }
+        .wb-modal-input-wrapper { width: 100%; padding: 0 16px 20px; }
+        .wb-modal-input { width: 100%; background: #fff; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 6px; padding: 6px 8px; font-size: 14px; outline: none; color: #000; }
+        .wb-modal-btns { width: 100%; display: flex; border-top: 0.5px solid rgba(0,0,0,0.2); }
+        .wb-modal-btn { flex: 1; padding: 12px 0; font-size: 17px; color: #007aff; text-align: center; cursor: pointer; }
+        .wb-modal-btn:active { background: rgba(0,0,0,0.05); }
+        .wb-modal-btn.cancel { border-right: 0.5px solid rgba(0,0,0,0.2); font-weight: 400; }
+        .wb-modal-btn.confirm { font-weight: 600; }
+        .wb-context-menu-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; display: none; }
+        .wb-context-menu { position: absolute; width: 220px; background: rgba(250, 250, 250, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden; transform-origin: top left; transform: scale(0.9); opacity: 0; transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.2s; }
+        .wb-context-menu.show { transform: scale(1); opacity: 1; }
+        .wb-context-menu-item { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 16px; color: #000; border-bottom: 0.5px solid rgba(0,0,0,0.1); cursor: pointer; }
+        .wb-context-menu-item:last-child { border-bottom: none; }
+        .wb-context-menu-item:active { background: rgba(0,0,0,0.1); }
+        .wb-context-menu-item.danger { color: #ff3b30; }
+        .wb-context-menu-item svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* 世界书深色模式补充 */
+        .iphone.dark-mode .wb-search-overlay, .iphone.dark-mode .wb-search-header { background-color: #000000; }
+        .iphone.dark-mode .wb-search-input-box { background-color: #1c1c1e; }
+        .iphone.dark-mode .wb-search-input-box input { color: #ffffff; }
+        .iphone.dark-mode .wb-ios-modal { background-color: rgba(30, 30, 30, 0.85); }
+        .iphone.dark-mode .wb-modal-title, .iphone.dark-mode .wb-modal-desc { color: #ffffff; }
+        .iphone.dark-mode .wb-modal-input { background-color: #1c1c1e; color: #ffffff; border-color: #38383a; }
+        .iphone.dark-mode .wb-modal-btns { border-top-color: #38383a; }
+        .iphone.dark-mode .wb-modal-btn.cancel { border-right-color: #38383a; }
+        .iphone.dark-mode .wb-context-menu { background-color: rgba(44, 44, 46, 0.85); }
+        .iphone.dark-mode .wb-context-menu-item { color: #ffffff; border-bottom-color: #38383a; }
+
     </style>
 
 </head>
@@ -2061,7 +2386,7 @@
     <div class="desktop-grid" id="desktopGrid"></div>
 
     <!-- 搜索按钮 -->
-    <div class="search-bar" onclick="openSearchDrawer()" style="cursor: pointer;">
+    <div class="search-bar" id="desktopSearchBar" style="cursor: pointer;">
         <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -2096,10 +2421,25 @@
         </div>
 
         <!-- Widget vertical capsule menu (click 3-dots to expand) -->
-        <div class="widget-toolbar-cluster" id="widgetToolbarMenu" style="display:none;">
-            <div class="widget-cap" onclick="enterWidgetEditMode()"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg><span class="widget-cap-text">&#x7F16;&#x8F91;</span></div>
-            <div class="widget-cap" onclick="handleAddWidget()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg><span class="widget-cap-text">&#x6DFB;&#x52A0;</span></div>
-            <div class="widget-cap" onclick="document.getElementById('widgetJsonInput').click()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><span class="widget-cap-text">&#x5BFC;&#x5165;</span></div>
+        <div class="theme-dropdown-menu" id="widgetToolbarMenu" style="display:none; z-index: 260;">
+            <div class="dropdown-btn" onclick="enterWidgetEditMode(); closeWidgetMenus();">
+                <div class="dropdown-icon-circle">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </div>
+                <span>编辑</span>
+            </div>
+            <div class="dropdown-btn" onclick="handleAddWidget(); closeWidgetMenus();">
+                <div class="dropdown-icon-circle">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </div>
+                <span>添加</span>
+            </div>
+            <div class="dropdown-btn" onclick="document.getElementById('widgetJsonInput').click(); closeWidgetMenus();">
+                <div class="dropdown-icon-circle">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                </div>
+                <span>导入</span>
+            </div>
             
             <input type="file" accept="application/json,.json" id="widgetJsonInput" onchange="handleWidgetJsonImport(event)" style="display: none;">
         </div>
@@ -2112,6 +2452,12 @@
                 <span>编辑</span>
             </div>
             <div class="dropdown-btn" onclick="openExportCurrentThemeModal(); toggleThemeMenu();">
+                <div class="dropdown-icon-circle">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </div>
+                <span>导出</span>
+            </div>
+            <div class="dropdown-btn" onclick="document.getElementById('importPresetInput').click(); toggleThemeMenu();">
                 <div class="dropdown-icon-circle">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                 </div>
@@ -2243,7 +2589,7 @@
             <div class="widget-app-container" id="widgetAppGrid" style="display: none;">
                 <div class="widget-segment-control">
                     <div class="widget-segment-indicator" id="widgetSegmentIndicator"></div>
-                    <button class="widget-segment-btn active" onclick="switchWidgetTab(0)">推荐/官方</button>
+                    <button class="widget-segment-btn active" onclick="switchWidgetTab(0)">推荐</button>
                     <button class="widget-segment-btn" onclick="switchWidgetTab(1)">自定义组件</button>
                 </div>
                 <div class="widget-empty-state" id="widgetEmptyState">
@@ -2282,6 +2628,12 @@
                     <span>编辑</span>
                 </div>
                 <div class="dropdown-btn" onclick="compressPreset(); toggleDetailMenu();">
+                    <div class="dropdown-icon-circle">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                    </div>
+                    <span>压缩</span>
+                </div>
+                <div class="dropdown-btn" onclick="openExportModal(); toggleDetailMenu();">
                     <div class="dropdown-icon-circle">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     </div>
@@ -2324,10 +2676,43 @@
                 <div style="font-size: 16px; font-weight: 600; color: #000;">编辑组件</div>
                 <div style="font-size: 15px; color: #007aff; font-weight: 600; cursor: pointer;" onclick="saveWidgetEditor()">保存</div>
             </div>
-            <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px; flex: 1; overflow-y: auto;">
+            <div style="padding: 80px 20px 20px; display: flex; flex-direction: column; gap: 16px; flex: 1; overflow-y: auto; overflow-x: hidden;">
                 <div>
                     <div style="font-size: 12px; color: #8e8e93; margin-left: 8px; font-weight: 600; margin-bottom: 6px;">组件名称</div>
-                    <input type="text" id="widgetEditName" placeholder="输入组件名称" style="width: 100%; background: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; outline: none;">
+                    <input type="text" id="widgetEditName" placeholder="输入组件名称" style="width: 100%; background: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; outline: none;; box-sizing: border-box;">
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #8e8e93; margin-left: 8px; font-weight: 600; margin-bottom: 6px;">尺寸设置（二选一）</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+                        <label class="widget-size-preset">
+                            <input type="radio" name="widgetPresetSize" value="2x2" onchange="handleWidgetPresetChange(this)">
+                            <span>2×2</span>
+                        </label>
+                        <label class="widget-size-preset">
+                            <input type="radio" name="widgetPresetSize" value="4x2" onchange="handleWidgetPresetChange(this)">
+                            <span>4×2</span>
+                        </label>
+                        <label class="widget-size-preset">
+                            <input type="radio" name="widgetPresetSize" value="4x4" onchange="handleWidgetPresetChange(this)">
+                            <span>4×4</span>
+                        </label>
+                        <label class="widget-size-preset">
+                            <input type="radio" name="widgetPresetSize" value="1x2" onchange="handleWidgetPresetChange(this)">
+                            <span>1×2</span>
+                        </label>
+                        <label class="widget-size-preset">
+                            <input type="radio" name="widgetPresetSize" value="2x1" onchange="handleWidgetPresetChange(this)">
+                            <span>2×1</span>
+                        </label>
+                        <label class="widget-size-preset">
+                            <input type="radio" name="widgetPresetSize" value="4x1" onchange="handleWidgetPresetChange(this)">
+                            <span>4×1</span>
+                        </label>
+                    </div>
+                    <div id="widgetCustomSizeBtn" onclick="openCustomSizePicker()" style="width: 100%; background: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; color: #8e8e93; outline: none; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+                        <span id="widgetCustomSizeLabel">自定义大小</span>
+                        <span style="font-size: 18px; color: #c7c7cc;">›</span>
+                    </div>
                 </div>
                 <div style="flex:1; display:flex; flex-direction:column;">
                     <div style="font-size: 12px; color: #8e8e93; margin-left: 8px; font-weight: 600; margin-bottom: 6px;">HTML / CSS 代码</div>
@@ -2336,6 +2721,34 @@
             </div>
         </div>
     </div>
+
+        <!-- 自定义尺寸选择弹窗 -->
+        <div class="widget-custom-size-picker" id="customSizePicker">
+            <div class="picker-header">
+                <div style="font-size:15px;color:#007aff;cursor:pointer;" onclick="closeCustomSizePicker()">取消</div>
+                <div class="picker-title">自定义尺寸</div>
+                <div style="font-size:15px;color:#007aff;font-weight:600;cursor:pointer;" onclick="confirmCustomSize()">完成</div>
+            </div>
+            <div class="picker-body">
+                <div class="picker-row">
+                    <div class="picker-label">宽（列）</div>
+                    <div class="picker-stepper">
+                        <button class="stepper-btn" onclick="stepCustomSize('w', -1)">−</button>
+                        <span class="stepper-val" id="customW">1</span>
+                        <button class="stepper-btn" onclick="stepCustomSize('w', 1)">＋</button>
+                    </div>
+                </div>
+                <div class="picker-row">
+                    <div class="picker-label">高（行）</div>
+                    <div class="picker-stepper">
+                        <button class="stepper-btn" onclick="stepCustomSize('h', -1)">−</button>
+                        <span class="stepper-val" id="customH">1</span>
+                        <button class="stepper-btn" onclick="stepCustomSize('h', 1)">＋</button>
+                    </div>
+                </div>
+                <div style="font-size:12px;color:#8e8e93;text-align:center;">1 列 = 约 80px，1 行 = 约 80px，最大 4 列 × 7 行</div>
+            </div>
+        </div>
 
     <!-- 设置 APP UI 容器 -->
     <div class="settings-app-container" id="settingsAppUI">
@@ -2636,7 +3049,7 @@
                 <div class="ic-grid-container">
                     <div class="ic-grid-item">
                         <div class="ic-app-icon-wrapper">
-                            <div class="ic-custom-icon" style="background-image: url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png');"></div>
+                            <div class="ic-custom-icon" style="background-image: url('https://nos.netease.com/ysf/edecff66f1f78185763da92dcc2bd617.png');"></div>
                         </div>
                         <div class="ic-item-info">
                             <div class="ic-item-name">主题</div>
@@ -2663,7 +3076,7 @@
                     </div>
                     <div class="ic-grid-item">
                         <div class="ic-app-icon-wrapper">
-                            <div class="ic-custom-icon" style="background-image: url('https://file.zhuyitai.com/feedback/202607/13/21b50befb04dae331997fec05eaa0d25.png');"></div>
+                            <div class="ic-custom-icon" style="background-image: url('https://nos.netease.com/ysf/1390642a446f8db21a89e22b6cc5dc97.png');"></div>
                         </div>
                         <div class="ic-item-info">
                             <div class="ic-item-name">Contacts</div>
@@ -2785,7 +3198,7 @@
                 <div class="ic-app-list-item">
                     <div class="ic-app-list-left">
                         <div class="ic-app-icon-wrapper">
-                            <div class="ic-custom-icon" style="background-image: url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png');"></div>
+                            <div class="ic-custom-icon" style="background-image: url('https://nos.netease.com/ysf/edecff66f1f78185763da92dcc2bd617.png');"></div>
                         </div>
                         <div class="ic-app-list-info">
                             <div class="ic-app-list-name">主题</div>
@@ -2813,7 +3226,7 @@
                 <div class="ic-app-list-item">
                     <div class="ic-app-list-left">
                         <div class="ic-app-icon-wrapper">
-                            <div class="ic-custom-icon" style="background-image: url('https://file.zhuyitai.com/feedback/202607/13/21b50befb04dae331997fec05eaa0d25.png');"></div>
+                            <div class="ic-custom-icon" style="background-image: url('https://nos.netease.com/ysf/1390642a446f8db21a89e22b6cc5dc97.png');"></div>
                         </div>
                         <div class="ic-app-list-info">
                             <div class="ic-app-list-name">Contacts</div>
@@ -3104,6 +3517,208 @@
                 </div>
                 
                 <div class="api-form-btn danger" onclick="deleteApiDrawer()">删除此 API</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 世界书 APP 容器 -->
+    <div class="wb-app-container" id="worldbookAppUI">
+        <!-- 1. 主页面：世界书分组列表 -->
+        <div class="wb-page active" id="wbMainPage">
+            <div class="wb-scroll-area">
+                <div class="wb-main-header">
+                    <div class="wb-header-top">
+                        <div class="wb-nav-btn-circle" onclick="closeWorldbookApp()">
+                            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </div>
+                        <div class="wb-header-right">
+                            <div class="wb-float-btn icon-only" onclick="wbOpenCreateGroupModal()">
+                                <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="9" y1="13" x2="15" y2="13"/></svg>
+                            </div>
+                            <div class="wb-float-btn text-only" id="wbEditBtn" onclick="wbToggleEditMode()">编辑</div>
+                        </div>
+                    </div>
+                    <div class="wb-header-bottom">
+                        <div class="wb-header-title">世界书</div>
+                        <div class="wb-header-subtitle" onclick="wbOpenFilterMenu(event)">
+                            <span id="wbCurrentFilterText">全部世界书</span>
+                            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 视图 1：全部分组 -->
+                <div id="wb-view-all-groups" style="display: block;">
+                    <div class="wb-list-card" id="wbGroupList">
+                        <svg style="display:none;">
+                            <defs>
+                                <g id="wb-folder-icon"><path d="M3 19V6a2 2 0 0 1 2-2h4.5c.4 0 .8.2 1 .5l1 1.5c.2.3.6.5 1 .5H21a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></g>
+                                <g id="wb-delete-icon"><circle cx="12" cy="12" r="10"/><rect x="7" y="11" width="10" height="2" fill="#fff"/></g>
+                            </defs>
+                        </svg>
+                        <div class="wb-empty-state" id="wbGroupEmptyState">请先添加世界书</div>
+                    </div>
+                </div>
+
+                <!-- 视图 2：全局世界书条目 -->
+                <div id="wb-view-global-entries" style="display: none; padding: 0 16px;">
+                    <div class="wb-doc-list-card" id="wbGlobalEntriesList">
+                        <!-- 占位数据已彻底清空 -->
+                    </div>
+                </div>
+
+                <!-- 视图 3：最近删除 -->
+                <div id="wb-view-deleted-entries" style="display: none; padding: 0 16px;">
+                    <div class="wb-doc-list-card" id="wbDeletedEntriesList">
+                        <!-- 占位数据已彻底清空 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 二级页面：分组详情页 -->
+        <div class="wb-page slide-right" id="wbGroupPage">
+            <div class="wb-nav-bar">
+                <div class="wb-nav-back" onclick="wbCloseGroup()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    世界书
+                </div>
+                <div class="wb-nav-title" id="wbGroupTitle">未命名分组</div>
+                <div class="wb-nav-right">
+                    <svg id="wbViewToggleBtn" onclick="wbToggleViewMode()" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="wb-scroll-area wb-notes-container">
+                <!-- 列表视图 -->
+                <div id="wbListView" class="wb-view-list">
+                    <div class="wb-doc-list-card" id="wbGroupEntriesList">
+                        <div class="wb-empty-state" id="wbEntryEmptyState">请先添加世界书</div>
+                    </div>
+                </div>
+
+                <!-- 网格视图 -->
+                <div id="wbGridView" class="wb-view-grid">
+                    <!-- 占位数据已彻底清空 -->
+                </div>
+            </div>
+        </div>
+        <!-- 3. 三级页面：世界书编辑页 -->
+        <div class="wb-page slide-right wb-editor-page" id="wbEditorPage">
+            <div class="wb-editor-nav">
+                <div class="wb-nav-btn-circle" onclick="wbCloseEditor()">
+                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </div>
+                <div class="wb-editor-nav-right">
+                    <div class="wb-nav-capsule">
+                        <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5" fill="currentColor"></circle><circle cx="19" cy="12" r="1.5" fill="currentColor"></circle><circle cx="5" cy="12" r="1.5" fill="currentColor"></circle></svg>
+                    </div>
+                    <div class="wb-nav-btn-circle yellow" onclick="wbSaveEntry()">
+                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="wb-scroll-area wb-editor-content-area">
+                <input type="text" class="wb-editor-title-input" id="wbEntryTitle" placeholder="条目名称">
+                <div class="wb-editor-key-container">
+                    <svg viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                    <input type="text" class="wb-editor-key-input" placeholder="添加触发词 (逗号分隔)...">
+                </div>
+                <textarea class="wb-editor-textarea" placeholder="在这里输入世界书内容..."></textarea>
+
+                <div class="wb-settings-group-title">条目设置</div>
+                <div class="wb-settings-card">
+                    <div class="wb-settings-row clickable" onclick="wbOpenGroupSelectSheet()">
+                        <div class="wb-settings-label">所属分组</div>
+                        <div class="wb-settings-value-with-arrow">
+                            <span id="wbSelectedGroupName">未分类</span>
+                            <svg class="wb-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                        </div>
+                    </div>
+                    <div class="wb-settings-row">
+                        <div class="wb-settings-label">全局激活 (Global)</div>
+                        <div class="wb-ios-switch" onclick="this.classList.toggle('active')"></div>
+                    </div>
+                    <div class="wb-settings-row">
+                        <div class="wb-settings-label">注入位置</div>
+                        <select class="wb-settings-select">
+                            <option>前置 (Before)</option>
+                            <option selected>后置 (After)</option>
+                            <option>作者注释 (Author's Note)</option>
+                        </select>
+                    </div>
+                    <div class="wb-settings-row">
+                        <div class="wb-settings-label">注入深度</div>
+                        <input type="number" class="wb-settings-input" value="4">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部悬浮工具栏 -->
+        <div class="wb-bottom-float-bar" id="wbBottomBar">
+            <div class="wb-search-pill" onclick="wbOpenSearch()">
+                <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <span class="placeholder">搜索世界书条目</span>
+                <svg class="mic-icon" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+            </div>
+            <div class="wb-compose-btn" onclick="wbOpenEditor('')">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </div>
+        </div>
+
+        <!-- 搜索覆盖层 -->
+        <div class="wb-search-overlay" id="wbSearchOverlay" onclick="event.stopPropagation();">
+            <div class="wb-search-header">
+                <div class="wb-search-input-box">
+                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" placeholder="搜索世界书条目" id="wbSearchInput" oninput="wbHandleSearch()" onclick="event.stopPropagation();">
+                </div>
+                <div class="wb-search-cancel" onclick="wbCloseSearch()">取消</div>
+            </div>
+            <div class="wb-search-results">输入关键字以搜索条目内容、Key 或标题...</div>
+        </div>
+
+        <!-- 下拉菜单 (Filter Menu) 复用高级毛玻璃菜单 UI -->
+        <div class="icon-menu-overlay" id="wbFilterMenuOverlay" onclick="wbCloseFilterMenu()" style="z-index: 2000;">
+            <div class="icon-menu" id="wbFilterMenu" onclick="event.stopPropagation()">
+                <div class="icon-menu-item" onclick="wbSwitchMainView('all', '全部世界书')">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
+                    <span>全部世界书</span>
+                </div>
+                <div class="icon-menu-item" onclick="wbSwitchMainView('global', '全局世界书条目')">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    <span>全局世界书条目</span>
+                </div>
+                <div class="icon-menu-item" onclick="wbSwitchMainView('deleted', '最近删除')">
+                    <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    <span>最近删除</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 长按菜单 (Context Menu) 复用高级毛玻璃菜单 UI -->
+        <div class="icon-menu-overlay" id="wbContextMenuOverlay" onclick="wbCloseContextMenu()" style="z-index: 2000;">
+            <div class="icon-menu" id="wbContextMenu" onclick="event.stopPropagation()"></div>
+        </div>
+
+        <!-- 底部抽屉 (选择分组) -->
+        <div class="wb-bottom-sheet-overlay" id="wbGroupSelectSheetOverlay" onclick="wbCloseGroupSelectSheet()">
+            <div class="wb-bottom-sheet" id="wbGroupSelectSheet" onclick="event.stopPropagation()">
+                <div class="wb-sheet-header">
+                    <div class="wb-sheet-cancel" onclick="wbCloseGroupSelectSheet()" style="color: #8e8e93; font-size: 16px; cursor: pointer;">取消</div>
+                    <div class="wb-sheet-title">选择分组</div>
+                    <div class="wb-sheet-confirm" onclick="wbConfirmGroupSelect()" style="color: #e4af0a; font-size: 16px; font-weight: 600; cursor: pointer;">确认</div>
+                </div>
+                <div class="wb-sheet-content">
+                    <div class="wb-sheet-list-card" id="wbGroupSelectList">
+                        <!-- 占位数据已彻底清空 -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -3399,6 +4014,136 @@
         };
     }
 
+                function getWidgetDimensions(widgetData) {
+            const SLOT_SIZE = 140;
+            const width = parseInt(widgetData.width, 10);
+            const height = parseInt(widgetData.height, 10);
+            if (width > 0 && height > 0) {
+                return { width, height };
+            }
+            if (widgetData.presetSize) {
+                const parts = widgetData.presetSize.split('x').map(Number);
+                if (parts.length === 2 && parts[0] > 0 && parts[1] > 0) {
+                    return { width: parts[0] * SLOT_SIZE, height: parts[1] * SLOT_SIZE };
+                }
+            }
+            return { width: SLOT_SIZE, height: SLOT_SIZE };
+        }
+        window.getWidgetDimensions = getWidgetDimensions;
+        function formatWidgetSizeLabel(widget) {
+            if (widget.width && widget.height) {
+                return widget.width + '×' + widget.height;
+            }
+            if (widget.presetSize) {
+                return widget.presetSize;
+            }
+            return '1×1';
+        }
+        window.formatWidgetSizeLabel = formatWidgetSizeLabel;
+
+        function handleWidgetPresetChange(radio) {
+            if (radio.checked) {
+                document.getElementById('widgetCustomSizeLabel').innerText = '自定义大小';
+                document.getElementById('widgetCustomSizeLabel').style.color = '#8e8e93';
+            }
+        }
+        window.handleWidgetPresetChange = handleWidgetPresetChange;
+
+        function openCustomSizePicker() {
+            document.getElementById('customSizePicker').classList.add('show');
+            const overlay = document.getElementById('widgetOverlay');
+            overlay.style.display = 'block';
+            overlay.style.zIndex = '350';
+            const radios = document.querySelectorAll('input[name="widgetPresetSize"]');
+            radios.forEach(r => { r.checked = false; });
+        }
+        window.openCustomSizePicker = openCustomSizePicker;
+
+        function closeCustomSizePicker() {
+            document.getElementById('customSizePicker').classList.remove('show');
+            const editor = document.getElementById('widgetEditorModal');
+            if (editor && editor.classList.contains('show')) {
+                document.getElementById('widgetOverlay').style.zIndex = '250';
+            } else {
+                document.getElementById('widgetOverlay').style.display = 'none';
+            }
+        }
+        window.closeCustomSizePicker = closeCustomSizePicker;
+
+        function stepCustomSize(type, delta) {
+            const el = document.getElementById(type === 'w' ? 'customW' : 'customH');
+            let val = parseInt(el.innerText, 10) + delta;
+            
+            // ??????????????????????
+            let maxCols = 4;
+            let maxRows = 7;
+            const grid = document.getElementById('desktopGrid');
+            if (grid) {
+                // ?? desktopGrid ????????? (????80+15px = 95px)
+                const gridH = grid.clientHeight;
+                if (gridH > 100) {
+                    maxRows = Math.floor(gridH / 95) || 7;
+                }
+            }
+            if (type === 'w' && val > maxCols) val = maxCols;
+            if (type === 'w' && val < 1) val = 1;
+            if (type === 'h' && val > maxRows) val = maxRows;
+            if (type === 'h' && val < 1) val = 1;
+            el.innerText = val;
+        }
+        window.stepCustomSize = stepCustomSize;
+
+        function confirmCustomSize() {
+            const w = document.getElementById('customW').innerText;
+            const h = document.getElementById('customH').innerText;
+            const label = document.getElementById('widgetCustomSizeLabel');
+            label.innerText = w + ' × ' + h;
+            label.style.color = '#000';
+            closeCustomSizePicker();
+        }
+        window.confirmCustomSize = confirmCustomSize;
+
+        function handleWidgetCustomSizeChange() {
+            const radios = document.querySelectorAll('input[name="widgetPresetSize"]');
+            radios.forEach(r => { r.checked = false; });
+        }
+        window.handleWidgetCustomSizeChange = handleWidgetCustomSizeChange;
+
+        function addDesktopWidget(widgetData) {
+        const slots = document.querySelectorAll('#desktopGrid .desktop-slot');
+        let emptySlot = null;
+        for (let i = 0; i < slots.length; i++) {
+            if (!slots[i].querySelector('.app-item')) {
+                emptySlot = slots[i];
+                break;
+            }
+        }
+        
+        if (emptySlot) {
+            const app = document.createElement('div');
+            app.className = 'app-item is-widget';
+            app.setAttribute('data-app-id', 'widget-' + Date.now());
+            app.setAttribute('data-widget-content', encodeURIComponent(widgetData.content || ''));
+            app.setAttribute('data-widget-width', widgetData.width || '');
+            app.setAttribute('data-widget-height', widgetData.height || '');
+            app.setAttribute('data-widget-preset-size', widgetData.presetSize || '');
+            
+            const dims1 = getWidgetDimensions(widgetData);
+            app.style.width = dims1.width + 'px';
+            app.style.height = dims1.height + 'px';
+            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims1.width}px; height: ${dims1.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${widgetData.content}</div><div class="app-name" style="display:none;">${widgetData.name || "组件"}</div>`;
+            
+            if (isEditMode) {
+                app.classList.add('jiggling');
+            }
+            
+            emptySlot.appendChild(app);
+            saveLayout();
+        } else {
+            alert('桌面空间不足，请先清理或更换位置');
+        }
+    }
+
     function saveLayout() {
         if (!db) return;
         const desktopApps = [];
@@ -3408,12 +4153,21 @@
                 const iconEl = app.querySelector('.app-icon');
                 const iconBg = iconEl.style.backgroundImage;
                 const appId = app.getAttribute('data-app-id');
-                desktopApps.push({ 
+                const isWidget = app.classList.contains('is-widget');
+                const appData = { 
                     index, 
                     name: app.querySelector('.app-name').innerText,
                     icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
-                    appId: appId
-                });
+                    appId: appId,
+                    isWidget: isWidget
+                };
+                if (isWidget) {
+                    appData.widgetContent = app.getAttribute('data-widget-content') || '';
+                    appData.width = app.getAttribute('data-widget-width') || '';
+                    appData.height = app.getAttribute('data-widget-height') || '';
+                    appData.presetSize = app.getAttribute('data-widget-preset-size') || '';
+                }
+                desktopApps.push(appData);
             }
         });
 
@@ -3422,12 +4176,21 @@
             const iconEl = app.querySelector('.app-icon');
             const iconBg = iconEl.style.backgroundImage;
             const appId = app.getAttribute('data-app-id');
-            dockApps.push({ 
+            const isDockWidget = app.classList.contains('is-widget');
+            const dockAppData = { 
                 index, 
                 name: app.querySelector('.app-name').innerText,
                 icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
-                appId: appId
-            });
+                appId: appId,
+                isWidget: isDockWidget
+            };
+            if (isDockWidget) {
+                dockAppData.widgetContent = app.getAttribute('data-widget-content') || '';
+                dockAppData.width = app.getAttribute('data-widget-width') || '';
+                dockAppData.height = app.getAttribute('data-widget-height') || '';
+                dockAppData.presetSize = app.getAttribute('data-widget-preset-size') || '';
+            }
+            dockApps.push(dockAppData);
         });
 
         const transaction = db.transaction([storeName], "readwrite");
@@ -3486,13 +4249,13 @@
                     desktop: [
                         { index: 0, name: '设置', appId: 'settings', icon: "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')" }, 
                         { index: 1, name: 'wechat', icon: "url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png')" },
-                        { index: 2, name: 'Contacts', icon: "url('https://file.zhuyitai.com/feedback/202607/13/21b50befb04dae331997fec05eaa0d25.png')" }, 
-                        { index: 3, name: '世界书', icon: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')" }
+                        { index: 2, name: 'Contacts', icon: "url('https://nos.netease.com/ysf/1390642a446f8db21a89e22b6cc5dc97.png')" }, 
+                        { index: 3, name: '世界书', appId: 'worldbook', icon: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')" }
                     ],
                     dock: [
                         { index: 0, name: '电话', icon: "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')" }, 
                         { index: 1, name: '信息', icon: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')" }, 
-                        { index: 2, name: '主题', appId: 'theme', icon: "url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png')" }
+                        { index: 2, name: '主题', appId: 'theme', icon: "url('https://nos.netease.com/ysf/edecff66f1f78185763da92dcc2bd617.png')" }
                     ]
                 };
                 presets.unshift(defaultPreset); // 插入到最前面
@@ -3580,6 +4343,20 @@
                 changeBackupMode(); 
             }
         };
+
+        // --- 新增：加载世界书数据 ---
+        const wbRequest = store.get("worldbookData");
+        wbRequest.onsuccess = (e) => {
+            const wbData = e.target.result;
+            if (wbData) {
+                wbGroups = wbData.groups || [];
+                wbEntries = wbData.entries || [];
+            } else {
+                // 默认初始化一个未分类分组
+                wbGroups = [{ id: 'default_unclassified', name: '未分类', isPinned: false }];
+                wbEntries = [];
+            }
+        };
     }
 
     let currentWallpaperSrc = null;
@@ -3618,18 +4395,18 @@
         const iconMap = {
             '设置': "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')",
             'wechat': "url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png')",
-            'Contacts': "url('https://file.zhuyitai.com/feedback/202607/13/21b50befb04dae331997fec05eaa0d25.png')",
+            'Contacts': "url('https://nos.netease.com/ysf/1390642a446f8db21a89e22b6cc5dc97.png')",
             '世界书': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')",
             '电话': "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')",
             '信息': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')",
-            '主题': "url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png')"
+            '主题': "url('https://nos.netease.com/ysf/edecff66f1f78185763da92dcc2bd617.png')"
         };
 
         const defaultDesktop = [
             { index: 0, name: '设置', appId: 'settings', icon: iconMap['设置'] }, 
             { index: 1, name: 'wechat', icon: iconMap['wechat'] },
             { index: 2, name: 'Contacts', icon: iconMap['Contacts'] }, 
-            { index: 3, name: '世界书', icon: iconMap['世界书'] }
+            { index: 3, name: '世界书', appId: 'worldbook', icon: iconMap['世界书'] }
         ];
         const defaultDock = [
             { index: 0, name: '电话', icon: iconMap['电话'] }, 
@@ -3640,18 +4417,30 @@
         saveLayout();
     }
 
-    function createAppElement(name, icon, appId) {
+        function createAppElement(name, icon, appId, isWidget=false, widgetContent='', width='', height='', presetSize='') {
         const app = document.createElement('div');
-        app.className = 'app-item';
+        app.className = isWidget ? 'app-item is-widget' : 'app-item';
         if (appId) {
             app.setAttribute('data-app-id', appId);
         }
-        app.innerHTML = `<div class="app-icon"></div><div class="app-name">${name}</div>`;
-        if (icon) {
-            const iconEl = app.querySelector('.app-icon');
-            iconEl.style.backgroundImage = icon;
-            iconEl.style.backgroundColor = 'transparent';
-            iconEl.classList.add('has-custom-icon');
+        
+        if (isWidget) {
+            app.setAttribute('data-widget-content', encodeURIComponent(widgetContent));
+            app.setAttribute('data-widget-width', width || '');
+            app.setAttribute('data-widget-height', height || '');
+            app.setAttribute('data-widget-preset-size', presetSize || '');
+            const dims2 = getWidgetDimensions({ width, height, presetSize });
+            app.style.width = dims2.width + 'px';
+            app.style.height = dims2.height + 'px';
+            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims2.width}px; height: ${dims2.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${widgetContent}</div><div class="app-name" style="display:none;">组件</div>`;
+        } else {
+            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon"></div><div class="app-name">${name}</div>`;
+            if (icon) {
+                const iconEl = app.querySelector('.app-icon');
+                iconEl.style.backgroundImage = icon;
+                iconEl.style.backgroundColor = 'transparent';
+                iconEl.classList.add('has-custom-icon');
+            }
         }
         return app;
     }
@@ -3679,6 +4468,9 @@
                     app.appId = 'theme';
                     hasTheme = true;
                 }
+                if (app.name === '世界书' || (app.icon && app.icon.includes('1L7mKgmQ7qzXUq1S34ehFM_20260713082207'))) {
+                    app.appId = 'worldbook';
+                }
             }
         };
 
@@ -3700,7 +4492,11 @@
             slot.className = 'desktop-slot';
             const appData = desktopData.find(d => d.index === i);
             if (appData) {
+                            if (appData.isWidget || appData.widgetContent) {
+                slot.appendChild(createAppElement(appData.name, appData.icon, appData.appId, true, appData.widgetContent, appData.width, appData.height, appData.presetSize));
+            } else {
                 slot.appendChild(createAppElement(appData.name, appData.icon, appData.appId));
+            }
             }
             desktopGrid.appendChild(slot);
         }
@@ -3740,6 +4536,18 @@
         document.querySelectorAll('.app-item').forEach(app => app.classList.add('jiggling'));
     }
 
+            window.deleteDesktopApp = function(btn, e) {
+            e.stopPropagation();
+            e.preventDefault();
+            const appItem = btn.closest('.app-item');
+            if (appItem) {
+                appItem.remove();
+                if (typeof window.saveLayout === 'function') {
+                    window.saveLayout();
+                }
+            }
+        };
+
     function exitEditMode() {
         isEditMode = false;
         statusBar.style.opacity = '1';
@@ -3756,6 +4564,47 @@
     }
 
     editDone.addEventListener('click', exitEditMode);
+    editPlus.addEventListener('click', () => {
+        const modal = document.getElementById('widgetPickerModal');
+        const list = document.getElementById('widgetPickerList');
+        list.innerHTML = '';
+        
+        const allWidgets = [...officialWidgets, ...customWidgets];
+        
+        if (allWidgets.length === 0) {
+            list.innerHTML = '<div style="color: white; text-align: center; margin-top: 40px;">暂无小组件</div>';
+        } else {
+            allWidgets.forEach((widget, index) => {
+                const item = document.createElement('div');
+                item.style.cssText = "background: rgba(255,255,255,0.8); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 16px; cursor: pointer; backdrop-filter: blur(10px);";
+                
+                const preview = document.createElement('div');
+                preview.style.cssText = "width: 60px; height: 60px; border-radius: 12px; background: " + (widget.preview || '#ccc') + "; flex-shrink: 0;";
+                
+                const name = document.createElement('div');
+                name.style.cssText = "flex: 1; font-weight: bold; color: black; font-size: 16px;";
+                name.innerText = widget.name || '未命名组件';
+                
+                const sizeLabel = document.createElement('div');
+                sizeLabel.style.cssText = "background: rgba(0,122,255,0.15); color: #007aff; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 12px;";
+                sizeLabel.innerText = formatWidgetSizeLabel(widget);
+                
+                item.appendChild(preview);
+                item.appendChild(name);
+                item.appendChild(sizeLabel);
+                
+                item.onclick = () => {
+                    modal.style.display = 'none';
+                    addDesktopWidget(widget);
+                };
+                
+                list.appendChild(item);
+            });
+        }
+        
+        modal.style.display = 'flex';
+    });
+
 
     document.addEventListener('pointerdown', (e) => {
         const app = e.target.closest('.app-item');
@@ -3822,6 +4671,8 @@
                     openThemeApp();
                 } else if (appId === 'settings') {
                     openSettingsApp();
+                } else if (appId === 'worldbook') {
+                    openWorldbookApp();
                 }
             }
         }
@@ -4067,11 +4918,11 @@
         const iconMap = {
             '设置': "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')",
             'wechat': "url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png')",
-            'Contacts': "url('https://file.zhuyitai.com/feedback/202607/13/21b50befb04dae331997fec05eaa0d25.png')",
+            'Contacts': "url('https://nos.netease.com/ysf/1390642a446f8db21a89e22b6cc5dc97.png')",
             '世界书': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')",
             '电话': "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')",
             '信息': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')",
-            '主题': "url('https://xiuxiu-pro-new.meitudata.com/bizshoot/6a54a036dfcc02hklfme5i6442.png')"
+            '主题': "url('https://nos.netease.com/ysf/edecff66f1f78185763da92dcc2bd617.png')"
         };
 
         const defaultIcon = iconMap[appData.originalName];
@@ -4574,12 +5425,21 @@
                 const iconEl = app.querySelector('.app-icon');
                 const iconBg = iconEl.style.backgroundImage;
                 const appId = app.getAttribute('data-app-id');
-                desktopApps.push({ 
+                const isWidget = app.classList.contains('is-widget');
+                const appData = { 
                     index, 
                     name: app.querySelector('.app-name').innerText,
                     icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
-                    appId: appId
-                });
+                    appId: appId,
+                    isWidget: isWidget
+                };
+                if (isWidget) {
+                    appData.widgetContent = app.getAttribute('data-widget-content') || '';
+                    appData.width = app.getAttribute('data-widget-width') || '';
+                    appData.height = app.getAttribute('data-widget-height') || '';
+                    appData.presetSize = app.getAttribute('data-widget-preset-size') || '';
+                }
+                desktopApps.push(appData);
             }
         });
 
@@ -4589,12 +5449,21 @@
             const iconEl = app.querySelector('.app-icon');
             const iconBg = iconEl.style.backgroundImage;
             const appId = app.getAttribute('data-app-id');
-            dockApps.push({ 
+            const isDockWidget = app.classList.contains('is-widget');
+            const dockAppData = { 
                 index, 
                 name: app.querySelector('.app-name').innerText,
                 icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
-                appId: appId
-            });
+                appId: appId,
+                isWidget: isDockWidget
+            };
+            if (isDockWidget) {
+                dockAppData.widgetContent = app.getAttribute('data-widget-content') || '';
+                dockAppData.width = app.getAttribute('data-widget-width') || '';
+                dockAppData.height = app.getAttribute('data-widget-height') || '';
+                dockAppData.presetSize = app.getAttribute('data-widget-preset-size') || '';
+            }
+            dockApps.push(dockAppData);
         });
 
         const now = new Date();
@@ -4650,7 +5519,7 @@
                 const safeIcon = appData.icon ? appData.icon.replace(/"/g, "'") : '';
                 const iconStyle = safeIcon ? `background-image: ${safeIcon};` : '';
                 const customClass = appData.icon ? 'has-custom-icon' : '';
-                desktopHTML += `<div class="desktop-slot"><div class="app-item"><div class="app-icon ${customClass}" style="${iconStyle}"></div><div class="app-name">${appData.name}</div></div></div>`;
+                desktopHTML += `<div class="desktop-slot"><div class="app-item"><div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon ${customClass}" style="${iconStyle}"></div><div class="app-name">${appData.name}</div></div></div>`;
             } else {
                 desktopHTML += `<div class="desktop-slot"></div>`;
             }
@@ -4922,12 +5791,21 @@
                 const iconEl = app.querySelector('.app-icon');
                 const iconBg = iconEl.style.backgroundImage;
                 const appId = app.getAttribute('data-app-id');
-                desktopApps.push({ 
+                const isWidget = app.classList.contains('is-widget');
+                const appData = { 
                     index, 
                     name: app.querySelector('.app-name').innerText,
                     icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
-                    appId: appId
-                });
+                    appId: appId,
+                    isWidget: isWidget
+                };
+                if (isWidget) {
+                    appData.widgetContent = app.getAttribute('data-widget-content') || '';
+                    appData.width = app.getAttribute('data-widget-width') || '';
+                    appData.height = app.getAttribute('data-widget-height') || '';
+                    appData.presetSize = app.getAttribute('data-widget-preset-size') || '';
+                }
+                desktopApps.push(appData);
             }
         });
 
@@ -4936,12 +5814,21 @@
             const iconEl = app.querySelector('.app-icon');
             const iconBg = iconEl.style.backgroundImage;
             const appId = app.getAttribute('data-app-id');
-            dockApps.push({ 
+            const isDockWidget = app.classList.contains('is-widget');
+            const dockAppData = { 
                 index, 
                 name: app.querySelector('.app-name').innerText,
                 icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
-                appId: appId
-            });
+                appId: appId,
+                isWidget: isDockWidget
+            };
+            if (isDockWidget) {
+                dockAppData.widgetContent = app.getAttribute('data-widget-content') || '';
+                dockAppData.width = app.getAttribute('data-widget-width') || '';
+                dockAppData.height = app.getAttribute('data-widget-height') || '';
+                dockAppData.presetSize = app.getAttribute('data-widget-preset-size') || '';
+            }
+            dockApps.push(dockAppData);
         });
 
         const currentTheme = {
@@ -5331,6 +6218,28 @@
         }, 300);
     }
 
+    function openWorldbookApp() {
+        const worldbookUI = document.getElementById('worldbookAppUI');
+        if (worldbookUI) {
+            worldbookUI.style.display = 'flex';
+            setTimeout(() => {
+                worldbookUI.classList.add('show');
+            }, 10);
+        } else {
+            showCustomAlert('提示', '世界书模块尚未加载');
+        }
+    }
+
+    function closeWorldbookApp() {
+        const worldbookUI = document.getElementById('worldbookAppUI');
+        if (worldbookUI) {
+            worldbookUI.classList.remove('show');
+            setTimeout(() => {
+                worldbookUI.style.display = 'none';
+            }, 300);
+        }
+    }
+
             // show three-dots button; click to expand vertical capsule menu
     function openDisplaySettingsApp() {
         const displayUI = document.getElementById('displaySettingsUI');
@@ -5425,6 +6334,703 @@
         setTimeout(() => {
             appleIdUI.style.display = 'none';
         }, 300);
+    }
+
+    // --- 世界书 APP 逻辑 (数据驱动版) ---
+    let wbGroups = [];
+    let wbEntries = [];
+    let wbCurrentGroupId = null;
+    let wbCurrentEntryId = null;
+    let wbIsGridView = false;
+    let wbIsEditMode = false;
+
+    function saveWorldbookData() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "worldbookData", groups: wbGroups, entries: wbEntries });
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+    }
+
+    function wbCleanUpDeletedEntries() {
+        const now = Date.now();
+        const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+        let changed = false;
+        wbEntries = wbEntries.filter(e => {
+            if (e.isDeleted && e.deleteTime) {
+                if (now - e.deleteTime > THREE_DAYS_MS) {
+                    changed = true;
+                    return false; // 超过3天，彻底删除
+                }
+            }
+            return true;
+        });
+        if (changed) {
+            saveWorldbookData();
+        }
+    }
+
+    function openWorldbookApp() {
+        wbCleanUpDeletedEntries(); // 打开时自动清理过期条目
+        const worldbookUI = document.getElementById('worldbookAppUI');
+        worldbookUI.style.display = 'flex';
+        wbRenderAll();
+        setTimeout(() => { worldbookUI.classList.add('show'); }, 10);
+    }
+
+    function closeWorldbookApp() {
+        const worldbookUI = document.getElementById('worldbookAppUI');
+        worldbookUI.classList.remove('show');
+        setTimeout(() => { worldbookUI.style.display = 'none'; }, 300);
+    }
+
+    function wbRenderAll() {
+        wbRenderGroups();
+        if (wbCurrentGroupId) wbRenderEntries(wbCurrentGroupId);
+        wbRenderGlobalEntries();
+        wbRenderDeletedEntries();
+        wbRenderGroupSelectSheet();
+    }
+
+    function wbRenderGroups() {
+        const list = document.getElementById('wbGroupList');
+        if (!list) return;
+        
+        // 保留 SVG defs
+        const defs = `<svg style="display:none;"><defs><g id="wb-folder-icon"><path d="M3 19V6a2 2 0 0 1 2-2h4.5c.4 0 .8.2 1 .5l1 1.5c.2.3.6.5 1 .5H21a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></g><g id="wb-delete-icon"><circle cx="12" cy="12" r="10"/><rect x="7" y="11" width="10" height="2" fill="#fff"/></g></defs></svg>`;
+        
+        if (wbGroups.length === 0) {
+            list.innerHTML = defs + `<div class="wb-empty-state" style="display:block;">请先添加世界书</div>`;
+            list.style.background = 'transparent';
+            list.style.boxShadow = 'none';
+            return;
+        }
+
+        list.style.background = '';
+        list.style.boxShadow = '';
+        
+        // 排序：置顶的在前
+        const sortedGroups = [...wbGroups].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+        
+        let html = defs;
+        sortedGroups.forEach(g => {
+            const count = wbEntries.filter(e => e.groupId === g.id && !e.isDeleted).length;
+            html += `
+                <div class="wb-list-item" onpointerdown="wbHandlePointerDown(event, 'group', '${g.id}', this)" onpointermove="wbHandlePointerMove()" onpointerup="wbHandlePointerUp(event, 'group', '${g.id}', this)" onpointercancel="wbHandlePointerMove()">
+                    <div class="wb-delete-btn" onclick="wbDeleteGroup(event, '${g.id}')"><svg><use href="#wb-delete-icon"/></svg></div>
+                    <div class="wb-item-icon"><svg><use href="#wb-folder-icon"/></svg></div>
+                    <div class="wb-item-content">
+                        <div class="wb-item-title">${g.name} ${g.isPinned ? '📌' : ''}</div>
+                        <div class="wb-item-right"><span class="wb-item-count">${count}</span><svg class="wb-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                    </div>
+                </div>
+            `;
+        });
+        list.innerHTML = html;
+    }
+
+    function wbRenderEntries(groupId) {
+        const group = wbGroups.find(g => g.id === groupId);
+        if (group) document.getElementById('wbGroupTitle').innerText = group.name;
+
+        const listContainer = document.getElementById('wbGroupEntriesList');
+        const gridContainer = document.getElementById('wbGridView');
+        if (!listContainer || !gridContainer) return;
+
+        const entries = wbEntries.filter(e => e.groupId === groupId && !e.isDeleted)
+                                 .sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || b.updateTime - a.updateTime);
+
+        if (entries.length === 0) {
+            listContainer.innerHTML = `<div class="wb-empty-state" style="display:block;">此分组暂无条目</div>`;
+            listContainer.style.background = 'transparent';
+            listContainer.style.boxShadow = 'none';
+            gridContainer.innerHTML = '';
+            return;
+        }
+
+        listContainer.style.background = '';
+        listContainer.style.boxShadow = '';
+
+        let listHtml = '';
+        let gridHtml = '';
+
+        entries.forEach(e => {
+            const sizeKB = (e.content.length / 1024).toFixed(1);
+            const titleDisplay = e.title + (e.isPinned ? ' 📌' : '');
+            
+            // List View
+            listHtml += `
+                <div class="wb-doc-list-item" onpointerdown="wbHandlePointerDown(event, 'entry', '${e.id}', this)" onpointermove="wbHandlePointerMove()" onpointerup="wbHandlePointerUp(event, 'entry', '${e.id}', this)" onpointercancel="wbHandlePointerMove()">
+                    <div class="wb-doc-thumbnail"><div class="wb-doc-line"></div><div class="wb-doc-line medium"></div><div class="wb-doc-line"></div><div class="wb-doc-line short"></div></div>
+                    <div class="wb-doc-info">
+                        <div class="wb-doc-title">${titleDisplay}</div>
+                        <div class="wb-doc-sub">${sizeKB} KB</div>
+                    </div>
+                </div>
+            `;
+            
+            // Grid View
+            gridHtml += `
+                <div class="wb-grid-item" onpointerdown="wbHandlePointerDown(event, 'entry', '${e.id}', this)" onpointermove="wbHandlePointerMove()" onpointerup="wbHandlePointerUp(event, 'entry', '${e.id}', this)" onpointercancel="wbHandlePointerMove()">
+                    <div class="wb-grid-preview-box"><div class="wb-mock-text-line"></div><div class="wb-mock-text-line medium"></div><div class="wb-mock-text-line"></div><div class="wb-mock-text-line short"></div><div class="wb-mock-text-line"></div></div>
+                    <div class="wb-grid-title">${titleDisplay}</div>
+                </div>
+            `;
+        });
+
+        listContainer.innerHTML = listHtml;
+        gridContainer.innerHTML = gridHtml;
+    }
+
+    function wbRenderGlobalEntries() {
+        const container = document.getElementById('wbGlobalEntriesList');
+        if (!container) return;
+        const globals = wbEntries.filter(e => e.isGlobal && !e.isDeleted);
+        
+        if (globals.length === 0) {
+            container.innerHTML = `<div class="wb-empty-state" style="display:block;">暂无全局激活的条目</div>`;
+            container.style.background = 'transparent';
+            container.style.boxShadow = 'none';
+            return;
+        }
+        
+        container.style.background = '';
+        container.style.boxShadow = '';
+        let html = '';
+        globals.forEach(e => {
+            const sizeKB = (e.content.length / 1024).toFixed(1);
+            html += `
+                <div class="wb-doc-list-item" onpointerdown="wbHandlePointerDown(event, 'entry', '${e.id}', this)" onpointermove="wbHandlePointerMove()" onpointerup="wbHandlePointerUp(event, 'entry', '${e.id}', this)" onpointercancel="wbHandlePointerMove()">
+                    <div class="wb-doc-thumbnail"><div class="wb-doc-line"></div><div class="wb-doc-line medium"></div><div class="wb-doc-line"></div><div class="wb-doc-line short"></div></div>
+                    <div class="wb-doc-info">
+                        <div class="wb-doc-title">${e.title}</div>
+                        <div class="wb-doc-sub">${sizeKB} KB</div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function wbRenderDeletedEntries() {
+        const container = document.getElementById('wbDeletedEntriesList');
+        if (!container) return;
+        const deleted = wbEntries.filter(e => e.isDeleted);
+        
+        if (deleted.length === 0) {
+            container.innerHTML = `<div class="wb-empty-state" style="display:block;">暂无最近删除的条目</div>`;
+            container.style.background = 'transparent';
+            container.style.boxShadow = 'none';
+            return;
+        }
+        
+        container.style.background = '';
+        container.style.boxShadow = '';
+        let html = '';
+        deleted.forEach(e => {
+            const sizeKB = (e.content.length / 1024).toFixed(1);
+            html += `
+                <div class="wb-doc-list-item">
+                    <div class="wb-doc-thumbnail"><div class="wb-doc-line"></div><div class="wb-doc-line short"></div><div class="wb-doc-line medium"></div><div class="wb-doc-line"></div></div>
+                    <div class="wb-doc-info">
+                        <div class="wb-doc-title" style="color: #8e8e93;">${e.title}</div>
+                        <div class="wb-doc-sub">${sizeKB} KB</div>
+                    </div>
+                    <div class="wb-doc-action-text" onclick="wbRestoreEntry('${e.id}', event)">恢复</div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    let tempSelectedGroupId = null;
+    let entryToChangeGroup = null;
+
+    function wbRenderGroupSelectSheet() {
+        const sheetList = document.getElementById('wbGroupSelectList');
+        if (!sheetList) return;
+        let html = '';
+        wbGroups.forEach(g => {
+            const isSelected = g.id === tempSelectedGroupId ? 'selected' : '';
+            html += `
+                <div class="wb-sheet-list-item ${isSelected}" onclick="wbSelectGroup('${g.id}', this)">
+                    <span>${g.name}</span><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+            `;
+        });
+        sheetList.innerHTML = html;
+    }
+
+    function wbOpenGroupSelectSheet() { 
+        entryToChangeGroup = null;
+        tempSelectedGroupId = document.getElementById('wbSelectedGroupName').getAttribute('data-id');
+        wbRenderGroupSelectSheet();
+        document.getElementById('wbGroupSelectSheetOverlay').classList.add('show'); 
+    }
+    
+    function wbCloseGroupSelectSheet() { 
+        document.getElementById('wbGroupSelectSheetOverlay').classList.remove('show'); 
+        entryToChangeGroup = null;
+    }
+    
+    function wbSelectGroup(id, element) {
+        document.querySelectorAll('.wb-sheet-list-item').forEach(el => el.classList.remove('selected'));
+        element.classList.add('selected');
+        tempSelectedGroupId = id;
+    }
+
+    function wbConfirmGroupSelect() {
+        if (tempSelectedGroupId) {
+            if (entryToChangeGroup) {
+                const entry = wbEntries.find(e => e.id === entryToChangeGroup);
+                if (entry) {
+                    entry.groupId = tempSelectedGroupId;
+                    entry.updateTime = Date.now();
+                    saveWorldbookData();
+                    wbRenderAll();
+                    if (typeof showToast === 'function') showToast('已更换分组');
+                }
+                entryToChangeGroup = null;
+            } else {
+                const group = wbGroups.find(g => g.id === tempSelectedGroupId);
+                if (group) {
+                    document.getElementById('wbSelectedGroupName').innerText = group.name;
+                    document.getElementById('wbSelectedGroupName').setAttribute('data-id', group.id);
+                }
+            }
+        }
+        wbCloseGroupSelectSheet();
+    }
+
+    function wbChangeEntryGroup(id) {
+        entryToChangeGroup = id;
+        const entry = wbEntries.find(e => e.id === id);
+        if (entry) {
+            tempSelectedGroupId = entry.groupId;
+            wbRenderGroupSelectSheet();
+            document.getElementById('wbGroupSelectSheetOverlay').classList.add('show');
+        }
+    }
+
+    function wbHandleSearch() {
+        const query = document.getElementById('wbSearchInput').value.trim().toLowerCase();
+        const resultsContainer = document.querySelector('.wb-search-results');
+        
+        if (!query) {
+            resultsContainer.innerHTML = '输入关键字以搜索条目内容、Key 或标题...';
+            return;
+        }
+
+        const results = wbEntries.filter(e => !e.isDeleted && (
+            e.title.toLowerCase().includes(query) || 
+            (e.key && e.key.toLowerCase().includes(query)) || 
+            (e.content && e.content.toLowerCase().includes(query))
+        ));
+
+        if (results.length === 0) {
+            resultsContainer.innerHTML = '<div style="text-align:center; margin-top: 20px;">无匹配结果</div>';
+            return;
+        }
+
+        let html = '<div class="wb-doc-list-card" style="text-align: left;">';
+        results.forEach(e => {
+            const sizeKB = (e.content.length / 1024).toFixed(1);
+            html += `
+                <div class="wb-doc-list-item" onclick="wbOpenEditor('${e.id}'); wbCloseSearch();">
+                    <div class="wb-doc-thumbnail"><div class="wb-doc-line"></div><div class="wb-doc-line medium"></div><div class="wb-doc-line"></div><div class="wb-doc-line short"></div></div>
+                    <div class="wb-doc-info">
+                        <div class="wb-doc-title">${e.title}</div>
+                        <div class="wb-doc-sub">${sizeKB} KB</div>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        resultsContainer.innerHTML = html;
+    }
+
+    function wbHandleItemClick(element, id) {
+        if (document.getElementById('wbGroupList').classList.contains('wb-edit-mode')) return;
+        wbCurrentGroupId = id;
+        wbRenderEntries(id);
+        
+        // 同步更新编辑页默认选中的分组
+        const group = wbGroups.find(g => g.id === id);
+        if (group) {
+            document.getElementById('wbSelectedGroupName').innerText = group.name;
+            document.getElementById('wbSelectedGroupName').setAttribute('data-id', group.id);
+            document.querySelectorAll('.wb-sheet-list-item').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.wb-sheet-list-item span').forEach(span => {
+                if(span.innerText === group.name) span.parentElement.classList.add('selected');
+            });
+        }
+
+        document.getElementById('wbMainPage').classList.remove('active');
+        document.getElementById('wbMainPage').classList.add('slide-left');
+        document.getElementById('wbGroupPage').classList.remove('slide-right');
+        document.getElementById('wbGroupPage').classList.add('active');
+    }
+
+    function wbCloseGroup() {
+        wbCurrentGroupId = null;
+        wbRenderGroups(); // 刷新主页计数
+        document.getElementById('wbGroupPage').classList.remove('active'); 
+        document.getElementById('wbGroupPage').classList.add('slide-right');
+        document.getElementById('wbMainPage').classList.remove('slide-left'); 
+        document.getElementById('wbMainPage').classList.add('active');
+    }
+
+    function wbOpenEditor(entryId = null) {
+        wbCurrentEntryId = entryId;
+        const titleInput = document.getElementById('wbEntryTitle');
+        const keyInput = document.querySelector('.wb-editor-key-input');
+        const contentInput = document.querySelector('.wb-editor-textarea');
+        const globalSwitch = document.querySelector('.wb-ios-switch');
+        const posSelect = document.querySelector('.wb-settings-select');
+        const depthInput = document.querySelector('.wb-settings-input');
+        const groupNameSpan = document.getElementById('wbSelectedGroupName');
+
+        if (entryId) {
+            const entry = wbEntries.find(e => e.id === entryId);
+            if (entry) {
+                titleInput.value = entry.title;
+                keyInput.value = entry.key || '';
+                contentInput.value = entry.content || '';
+                if (entry.isGlobal) globalSwitch.classList.add('active');
+                else globalSwitch.classList.remove('active');
+                posSelect.value = entry.position || '后置 (After)';
+                depthInput.value = entry.depth || 4;
+                
+                const group = wbGroups.find(g => g.id === entry.groupId);
+                if (group) {
+                    groupNameSpan.innerText = group.name;
+                    groupNameSpan.setAttribute('data-id', group.id);
+                }
+            }
+        } else {
+            // 新建清空
+            titleInput.value = '';
+            keyInput.value = '';
+            contentInput.value = '';
+            globalSwitch.classList.remove('active');
+            posSelect.value = '后置 (After)';
+            depthInput.value = 4;
+            
+            // 如果没有选中分组，默认选未分类
+            if (!groupNameSpan.getAttribute('data-id')) {
+                let unclass = wbGroups.find(g => g.name === '未分类');
+                if (!unclass) {
+                    unclass = { id: 'default_unclassified', name: '未分类', isPinned: false };
+                    wbGroups.push(unclass);
+                }
+                groupNameSpan.innerText = unclass.name;
+                groupNameSpan.setAttribute('data-id', unclass.id);
+            }
+        }
+
+        document.getElementById('wbBottomBar').style.display = 'none';
+        if (document.getElementById('wbGroupPage').classList.contains('active')) {
+            document.getElementById('wbGroupPage').classList.remove('active'); 
+            document.getElementById('wbGroupPage').classList.add('slide-left');
+        } else {
+            document.getElementById('wbMainPage').classList.remove('active'); 
+            document.getElementById('wbMainPage').classList.add('slide-left');
+        }
+        document.getElementById('wbEditorPage').classList.remove('slide-right'); 
+        document.getElementById('wbEditorPage').classList.add('active');
+    }
+
+    function wbSaveEntry() {
+        const title = document.getElementById('wbEntryTitle').value.trim() || '未命名条目';
+        const key = document.querySelector('.wb-editor-key-input').value.trim();
+        const content = document.querySelector('.wb-editor-textarea').value;
+        const isGlobal = document.querySelector('.wb-ios-switch').classList.contains('active');
+        const position = document.querySelector('.wb-settings-select').value;
+        const depth = document.querySelector('.wb-settings-input').value;
+        
+        let groupId = document.getElementById('wbSelectedGroupName').getAttribute('data-id');
+        
+        // 确保分组存在
+        if (!wbGroups.find(g => g.id === groupId)) {
+            let unclass = wbGroups.find(g => g.name === '未分类');
+            if (!unclass) {
+                unclass = { id: 'default_unclassified', name: '未分类', isPinned: false };
+                wbGroups.push(unclass);
+            }
+            groupId = unclass.id;
+        }
+
+        if (wbCurrentEntryId) {
+            const entry = wbEntries.find(e => e.id === wbCurrentEntryId);
+            if (entry) {
+                entry.title = title;
+                entry.key = key;
+                entry.content = content;
+                entry.isGlobal = isGlobal;
+                entry.position = position;
+                entry.depth = depth;
+                entry.groupId = groupId;
+                entry.updateTime = Date.now();
+            }
+        } else {
+            wbEntries.push({
+                id: 'e_' + Date.now(),
+                groupId: groupId,
+                title: title,
+                key: key,
+                content: content,
+                isGlobal: isGlobal,
+                position: position,
+                depth: depth,
+                isPinned: false,
+                isDeleted: false,
+                updateTime: Date.now()
+            });
+        }
+
+        saveWorldbookData();
+        wbRenderAll();
+        wbCloseEditor();
+        if (typeof showToast === 'function') showToast('保存成功');
+    }
+
+    function wbCloseEditor() {
+        document.getElementById('wbEditorPage').classList.remove('active'); 
+        document.getElementById('wbEditorPage').classList.add('slide-right');
+        document.getElementById('wbBottomBar').style.display = 'flex';
+        if (document.getElementById('wbGroupPage').classList.contains('slide-left')) {
+            document.getElementById('wbGroupPage').classList.remove('slide-left'); 
+            document.getElementById('wbGroupPage').classList.add('active');
+        } else {
+            document.getElementById('wbMainPage').classList.remove('slide-left'); 
+            document.getElementById('wbMainPage').classList.add('active');
+        }
+        wbCurrentEntryId = null;
+    }
+    function wbOpenFilterMenu(e) {
+        const overlay = document.getElementById('wbFilterMenuOverlay');
+        const menu = document.getElementById('wbFilterMenu');
+        overlay.style.display = 'block';
+        const rect = e.currentTarget.getBoundingClientRect();
+        menu.style.top = (rect.bottom + 10) + 'px'; menu.style.left = rect.left + 'px';
+        menu.style.animation = 'none'; menu.offsetHeight; menu.style.animation = null;
+    }
+    function wbCloseFilterMenu() {
+        document.getElementById('wbFilterMenuOverlay').style.display = 'none';
+    }
+    function wbSwitchMainView(viewId, text) {
+        document.getElementById('wbCurrentFilterText').innerText = text;
+        document.getElementById('wb-view-all-groups').style.display = 'none';
+        document.getElementById('wb-view-global-entries').style.display = 'none';
+        document.getElementById('wb-view-deleted-entries').style.display = 'none';
+        if (viewId === 'all') document.getElementById('wb-view-all-groups').style.display = 'block';
+        if (viewId === 'global') document.getElementById('wb-view-global-entries').style.display = 'block';
+        if (viewId === 'deleted') document.getElementById('wb-view-deleted-entries').style.display = 'block';
+        wbCloseFilterMenu();
+    }
+
+    function wbRestoreEntry(entryId, event) {
+        event.stopPropagation();
+        const entry = wbEntries.find(e => e.id === entryId);
+        if (entry) {
+            entry.isDeleted = false;
+            entry.deleteTime = null; // 清除删除时间
+            
+            // 如果恢复时原分组已被删除，则移至未分类
+            if (!wbGroups.find(g => g.id === entry.groupId)) {
+                let unclass = wbGroups.find(g => g.name === '未分类');
+                if (!unclass) {
+                    unclass = { id: 'default_unclassified', name: '未分类', isPinned: false };
+                    wbGroups.push(unclass);
+                }
+                entry.groupId = unclass.id;
+            }
+            
+            saveWorldbookData();
+            wbRenderAll();
+            if (typeof showToast === 'function') showToast('条目已恢复');
+        }
+    }
+
+    function wbToggleViewMode() {
+        wbIsGridView = !wbIsGridView;
+        const listView = document.getElementById('wbListView');
+        const gridView = document.getElementById('wbGridView');
+        const viewToggleBtn = document.getElementById('wbViewToggleBtn');
+        if (wbIsGridView) {
+            listView.style.display = 'none'; gridView.style.display = 'grid';
+            viewToggleBtn.innerHTML = `<line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line>`;
+        } else {
+            listView.style.display = 'block'; gridView.style.display = 'none';
+            viewToggleBtn.innerHTML = `<rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect>`;
+        }
+    }
+
+    let wbPressTimer; let wbIsDragging = false; let wbLongPressTriggered = false;
+    function wbHandlePointerDown(e, type, id, element) {
+        wbIsDragging = false; wbLongPressTriggered = false; element.classList.add('pressing');
+        wbPressTimer = setTimeout(() => { wbLongPressTriggered = true; wbShowContextMenu(e, type, id, element); }, 500);
+    }
+    function wbHandlePointerMove() {
+        wbIsDragging = true; clearTimeout(wbPressTimer);
+        document.querySelectorAll('.pressing').forEach(el => el.classList.remove('pressing'));
+    }
+    function wbHandlePointerUp(e, type, id, element) {
+        clearTimeout(wbPressTimer); element.classList.remove('pressing');
+        if (!wbIsDragging && !wbLongPressTriggered && document.getElementById('wbContextMenuOverlay').style.display !== 'block') {
+            if (type === 'group') wbHandleItemClick(element, id);
+            else if (type === 'entry') wbOpenEditor(id);
+        }
+    }
+
+    function wbShowContextMenu(e, type, id, el) {
+        if (navigator.vibrate) navigator.vibrate(50);
+        const overlay = document.getElementById('wbContextMenuOverlay');
+        const menu = document.getElementById('wbContextMenu');
+        
+        if (type === 'group') {
+            const group = wbGroups.find(g => g.id === id);
+            if (!group) return;
+            menu.innerHTML = `
+                <div class="icon-menu-item" onclick="wbTogglePinGroup('${id}'); wbCloseContextMenu();">
+                    <svg viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.68V6a3 3 0 0 0-3-3h0a3 3 0 0 0-3 3v4.68a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
+                    <span>${group.isPinned ? '取消置顶' : '置顶分组'}</span>
+                </div>
+                <div class="icon-menu-item" onclick="wbEditGroupName('${id}'); wbCloseContextMenu();">
+                    <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    <span>编辑名称</span>
+                </div>
+                <div class="icon-menu-item" style="color: #ff3b30;" onclick="wbDeleteGroup(event, '${id}'); wbCloseContextMenu();">
+                    <svg style="stroke: #ff3b30;" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    <span>删除分组</span>
+                </div>
+            `;
+        } else {
+            const entry = wbEntries.find(e => e.id === id);
+            if (!entry) return;
+            menu.innerHTML = `
+                <div class="icon-menu-item" onclick="wbTogglePinEntry('${id}'); wbCloseContextMenu();">
+                    <svg viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.68V6a3 3 0 0 0-3-3h0a3 3 0 0 0-3 3v4.68a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
+                    <span>${entry.isPinned ? '取消置顶' : '置顶条目'}</span>
+                </div>
+                <div class="icon-menu-item" onclick="wbChangeEntryGroup('${id}'); wbCloseContextMenu();">
+                    <svg viewBox="0 0 24 24"><path d="M3 19V6a2 2 0 0 1 2-2h4.5c.4 0 .8.2 1 .5l1 1.5c.2.3.6.5 1 .5H21a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                    <span>更换分组</span>
+                </div>
+                <div class="icon-menu-item" style="color: #ff3b30;" onclick="wbDeleteEntry('${id}'); wbCloseContextMenu();">
+                    <svg style="stroke: #ff3b30;" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    <span>删除条目</span>
+                </div>
+            `;
+        }
+        overlay.style.display = 'block';
+        const rect = el.getBoundingClientRect();
+        let top = rect.top + 20; let left = e.clientX || rect.left + 20;
+        if (top + 160 > window.innerHeight) top = window.innerHeight - 180;
+        if (left + 240 > window.innerWidth) left = window.innerWidth - 250;
+        menu.style.top = top + 'px'; menu.style.left = left + 'px';
+        menu.style.animation = 'none'; menu.offsetHeight; menu.style.animation = null;
+    }
+
+    function wbCloseContextMenu() {
+        document.getElementById('wbContextMenuOverlay').style.display = 'none';
+    }
+
+    function wbTogglePinGroup(id) {
+        const group = wbGroups.find(g => g.id === id);
+        if (group) {
+            group.isPinned = !group.isPinned;
+            saveWorldbookData();
+            wbRenderAll();
+        }
+    }
+
+    function wbEditGroupName(id) {
+        const group = wbGroups.find(g => g.id === id);
+        if (!group) return;
+        showCustomPrompt('编辑分组名称', { placeholder: '输入新名称', value: group.name }, '保存').then(newName => {
+            if (newName && newName.trim() !== '') {
+                group.name = newName.trim();
+                saveWorldbookData();
+                wbRenderAll();
+            }
+        });
+    }
+
+    function wbTogglePinEntry(id) {
+        const entry = wbEntries.find(e => e.id === id);
+        if (entry) {
+            entry.isPinned = !entry.isPinned;
+            saveWorldbookData();
+            wbRenderAll();
+        }
+    }
+
+    function wbDeleteEntry(id) {
+        const entry = wbEntries.find(e => e.id === id);
+        if (entry) {
+            entry.isDeleted = true;
+            entry.deleteTime = Date.now(); // 记录删除时间
+            saveWorldbookData();
+            wbRenderAll();
+            if (typeof showToast === 'function') showToast('已移至最近删除');
+        }
+    }
+
+    function wbToggleEditMode() {
+        wbIsEditMode = !wbIsEditMode;
+        const editBtn = document.getElementById('wbEditBtn');
+        const groupList = document.getElementById('wbGroupList');
+        if (wbIsEditMode) {
+            editBtn.innerText = '完成'; 
+            editBtn.style.color = '#e4af0a'; 
+            groupList.classList.add('wb-edit-mode');
+        } else {
+            editBtn.innerText = '编辑'; 
+            editBtn.style.color = ''; 
+            groupList.classList.remove('wb-edit-mode');
+        }
+    }
+
+    function wbDeleteGroup(event, id) {
+        if (event) event.stopPropagation(); 
+        showCustomConfirm('删除分组', '确定要删除此分组及其包含的所有条目吗？', '删除', true).then(confirmed => {
+            if (confirmed) {
+                const now = Date.now();
+                wbEntries.forEach(e => {
+                    if (e.groupId === id) {
+                        e.isDeleted = true;
+                        e.deleteTime = now; // 连带删除并记录时间
+                    }
+                });
+                wbGroups = wbGroups.filter(g => g.id !== id);
+                saveWorldbookData();
+                wbRenderAll();
+                if (typeof showToast === 'function') showToast('分组及条目已移至最近删除');
+            }
+        });
+    }
+
+    function wbOpenCreateGroupModal() {
+        showCustomPrompt('新建文件夹', { placeholder: '请输入此世界书分组的名称。', value: '' }, '存储').then(groupName => {
+            if (groupName === null) return;
+            if (groupName.trim() !== '') {
+                wbGroups.push({ id: 'g_' + Date.now(), name: groupName.trim(), isPinned: false });
+                saveWorldbookData();
+                wbRenderAll();
+            } else {
+                showCustomAlert("提示", "名称不能为空！");
+            }
+        });
+    }
+
+    function wbOpenSearch() {
+        document.getElementById('wbSearchOverlay').classList.add('show');
+        setTimeout(() => document.getElementById('wbSearchInput').focus(), 300);
+    }
+    function wbCloseSearch() {
+        document.getElementById('wbSearchOverlay').classList.remove('show');
+        document.getElementById('wbSearchInput').blur();
     }
 
             // show three-dots button; click to expand vertical capsule menu
@@ -5674,6 +7280,19 @@
     };
 
     function openSearchDrawer() {
+        // 终极防御：确保只有在纯桌面状态下才能呼出搜索抽屉
+        const appContainers = [
+            'themeAppUI', 'settingsAppUI', 'appleIdUI', 
+            'icloudAppUI', 'displaySettingsUI', 'apiAppUI', 'worldbookAppUI'
+        ];
+        for (let id of appContainers) {
+            const el = document.getElementById(id);
+            // 使用 getComputedStyle 获取真实的渲染状态，防止动画延迟导致的误判
+            if (el && window.getComputedStyle(el).display !== 'none') {
+                return; // 如果有任何APP处于显示状态，直接拦截
+            }
+        }
+
         document.getElementById('searchDrawerOverlay').classList.add('show');
         document.getElementById('searchDrawer').classList.add('show');
         document.getElementById('globalSearchInput').value = '';
@@ -5682,6 +7301,14 @@
             document.getElementById('globalSearchInput').focus();
         }, 300);
     }
+
+    // 修复 WebView 幽灵点击 Bug：使用 JS 绑定事件，避开浏览器的错误启发式扫描
+    setTimeout(() => {
+        const desktopSearchBar = document.getElementById('desktopSearchBar');
+        if (desktopSearchBar) {
+            desktopSearchBar.addEventListener('click', openSearchDrawer);
+        }
+    }, 0);
 
     function closeSearchDrawer() {
         document.getElementById('searchDrawerOverlay').classList.remove('show');
@@ -5829,10 +7456,11 @@
         const fontSize = await getStoreSize("fontData");
         const profileSize = await getStoreSize("profileData");
         const apiSize = await getStoreSize("apiData");
+        const worldbookSize = await getStoreSize("worldbookData"); // 新增：获取世界书数据大小
 
             // show three-dots button; click to expand vertical capsule menu
         const photoSize = wallpaperSize; // 壁纸归为照片
-        const appsSize = presetSize + layoutSize; // 预设和桌面布局归为应用程序
+        const appsSize = presetSize + layoutSize + worldbookSize; // 新增：世界书归为应用程序
         const chatSize = 0; // 聊天数据暂无，显示0
         const systemSize = fontSize + profileSize + apiSize; // 字体、配置等归为系统数据
 
@@ -5851,6 +7479,7 @@
 
         const themeMB = formatMB(themeSize);
         const settingsMB = formatMB(settingsSize);
+        const worldbookMB = formatMB(worldbookSize); // 新增：格式化世界书大小
         const zeroMB = '0 MB';
 
             // show three-dots button; click to expand vertical capsule menu
@@ -5891,7 +7520,7 @@
         if (cloudTheme) cloudTheme.innerText = themeMB;
         
         const cloudWorldBook = document.getElementById('ic-cloud-worldbook-size');
-        if (cloudWorldBook) cloudWorldBook.innerText = zeroMB;
+        if (cloudWorldBook) cloudWorldBook.innerText = worldbookMB; // 替换为真实世界书大小
 
         const cloudWechat = document.getElementById('ic-cloud-wechat-size');
         if (cloudWechat) cloudWechat.innerText = zeroMB;
@@ -5907,7 +7536,7 @@
         if (detailTheme) detailTheme.innerHTML = `${themeMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
 
         const detailWorldBook = document.getElementById('ic-detail-worldbook-size');
-        if (detailWorldBook) detailWorldBook.innerHTML = `${zeroMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+        if (detailWorldBook) detailWorldBook.innerHTML = `${worldbookMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`; // 替换为真实世界书大小
 
         const detailContacts = document.getElementById('ic-detail-contacts-size');
         if (detailContacts) detailContacts.innerHTML = `${zeroMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
@@ -6465,8 +8094,10 @@
         const widgetAppGrid = document.getElementById('widgetAppGrid');
         const themeAppUI = document.getElementById('themeAppUI');
 
-        const officialWidgets = [];
-        const customWidgets = [];
+        const officialWidgets = window.officialWidgets || [];
+        const customWidgets = window.customWidgets || [];
+        window.officialWidgets = officialWidgets;
+        window.customWidgets = customWidgets;
         let currentWidgets = officialWidgets;
 
         let widgetViewMode = 'carousel';     // 'carousel' | 'list'
@@ -6543,7 +8174,36 @@
             closeWidgetMenus();
             if (activeWidgetIndex === -1) return;
 
-            else if (action === 'edit') { openWidgetEditor(activeWidgetIndex); }
+            if (action === 'edit') { openWidgetEditor(activeWidgetIndex); }
+            else if (action === 'addToDesktop') {
+                const widget = currentWidgets[activeWidgetIndex];
+                if (typeof window.addAppToDesktop === 'function') {
+                    window.addAppToDesktop(widget.name, null, true, widget);
+                    if (typeof window.showToast === 'function') {
+                        window.showToast("已添加到桌面");
+                    }
+                } else if (typeof window.appData !== 'undefined') {
+                     const emptySlot = Array.from(document.querySelectorAll('.app-item.empty-slot')).find(slot => slot.style.display !== 'none');
+                     if (emptySlot) {
+                         const app = document.createElement('div');
+                         app.className = 'app-item is-widget';
+                         app.setAttribute('data-app-id', 'widget-' + Date.now());
+                         app.setAttribute('data-widget-content', encodeURIComponent(widget.content));
+                         const dims3 = getWidgetDimensions(widget); app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims3.width}px; height: ${dims3.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${widget.content}</div><div class="app-name" style="display:none;">${widget.name || "组件"}</div>`;
+                         emptySlot.appendChild(app);
+                         if (typeof window.saveLayout === 'function') window.saveLayout();
+                         if (typeof window.showToast === 'function') {
+                             window.showToast("已添加到桌面");
+                         }
+                     } else {
+                         if (typeof window.showToast === 'function') {
+                             window.showToast("桌面没有足够空间");
+                         } else {
+                             alert("桌面没有足够空间");
+                         }
+                     }
+                }
+            }
             else if (action === 'export') {
                 const widget = currentWidgets[activeWidgetIndex];
                 const fileName = (widget.name || 'widget') + '.json';
@@ -6619,7 +8279,10 @@
                         customWidgets.push({
                             name: w.name || ('widget ' + (customWidgets.length + 1)),
                             preview: w.preview || 'linear-gradient(135deg,#a1c4fd 0%,#c2e9fb 100%)',
-                            content: w.content || w.html || ''
+                            content: w.content || w.html || '',
+                            width: w.width || '',
+                            height: w.height || '',
+                            presetSize: w.presetSize || ''
                         });
                         added++;
                     });
@@ -6638,7 +8301,7 @@
         function exportWidgetJson() {
             closeWidgetMenus();
             const all = officialWidgets.concat(customWidgets).map(function (w) {
-                return { name: w.name || '', preview: w.preview || '', content: w.content || '' };
+                return { name: w.name || '', preview: w.preview || '', content: w.content || '', width: w.width || '', height: w.height || '', presetSize: w.presetSize || '' };
             });
             const blob = new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -6653,6 +8316,21 @@
             activeWidgetIndex = index; const widget = currentWidgets[index];
             document.getElementById('widgetEditName').value = widget.name;
             document.getElementById('widgetEditContent').value = widget.content || '';
+            if (widget.width && widget.height) {
+                const cw = Math.round(widget.width / 140) || 1;
+                const ch = Math.round(widget.height / 140) || 1;
+                document.getElementById('customW').innerText = cw;
+                document.getElementById('customH').innerText = ch;
+                document.getElementById('widgetCustomSizeLabel').innerText = cw + ' × ' + ch;
+                document.getElementById('widgetCustomSizeLabel').style.color = '#000';
+            } else {
+                document.getElementById('customW').innerText = '1';
+                document.getElementById('customH').innerText = '1';
+                document.getElementById('widgetCustomSizeLabel').innerText = '自定义大小';
+                document.getElementById('widgetCustomSizeLabel').style.color = '#8e8e93';
+            }
+            const radios = document.querySelectorAll('input[name="widgetPresetSize"]');
+            radios.forEach(r => { r.checked = (widget.presetSize && r.value === widget.presetSize); });
             document.getElementById('widgetEditorModal').classList.add('show');
             const overlay = document.getElementById('widgetOverlay');
             overlay.style.display = 'block'; overlay.style.zIndex = '250';
@@ -6667,11 +8345,56 @@
         }
         window.closeWidgetEditor = closeWidgetEditor;
 
+        (function() {
+            const topBar = document.querySelector('#widgetEditorModal .ios-top-bar');
+            const modal = document.getElementById('widgetEditorModal');
+            let startY = 0;
+            let currentY = 0;
+            if (topBar && modal) {
+                topBar.addEventListener('touchstart', (e) => {
+                    startY = e.touches[0].clientY;
+                    modal.style.transition = 'none';
+                }, { passive: true });
+                topBar.addEventListener('touchmove', (e) => {
+                    currentY = e.touches[0].clientY;
+                    const delta = currentY - startY;
+                    if (delta > 0) {
+                        modal.style.transform = `translateY(${delta}px)`;
+                    }
+                }, { passive: true });
+                topBar.addEventListener('touchend', () => {
+                    const delta = currentY - startY;
+                    modal.style.transition = '';
+                    modal.style.transform = '';
+                    if (delta > 80) {
+                        closeWidgetEditor();
+                    }
+                });
+            }
+        })();
+
         function saveWidgetEditor() {
             if (activeWidgetIndex > -1) {
                 const widget = currentWidgets[activeWidgetIndex];
                 widget.name = document.getElementById('widgetEditName').value.trim() || '未命名组件';
                 widget.content = document.getElementById('widgetEditContent').value;
+                const lbl = document.getElementById('widgetCustomSizeLabel').innerText;
+                const widthVal = lbl !== '自定义大小' ? parseInt(document.getElementById('customW').innerText, 10) * 140 : null;
+                const heightVal = lbl !== '自定义大小' ? parseInt(document.getElementById('customH').innerText, 10) * 140 : null;
+                const checkedPreset = document.querySelector('input[name="widgetPresetSize"]:checked');
+                if (widthVal && heightVal) {
+                    widget.width = widthVal;
+                    widget.height = heightVal;
+                    widget.presetSize = '';
+                } else if (checkedPreset) {
+                    widget.width = '';
+                    widget.height = '';
+                    widget.presetSize = checkedPreset.value;
+                } else {
+                    widget.width = '';
+                    widget.height = '';
+                    widget.presetSize = '';
+                }
                 renderWidgetViews();
             }
             closeWidgetEditor();
@@ -6692,10 +8415,14 @@
             closeWidgetMenus();
             currentWidgets.push({
                 name: '自定义组件 ' + (currentWidgets.length + 1),
-                content: ''
+                content: '',
+                width: '',
+                height: '',
+                presetSize: ''
             });
             targetProgress = currentWidgets.length - 1;
             renderWidgetViews();
+            openWidgetEditor(targetProgress);
         }
         window.handleAddWidget = handleAddWidget;
 
@@ -6711,7 +8438,7 @@
 
             currentWidgets.forEach((widget, i) => {
                 const card = document.createElement('div'); card.className = 'widget-card';
-                card.innerHTML = '<div class="widget-card-more-btn" onclick="openWidgetContextMenu(' + i + ', event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></div><div class="widget-card-preview">' + (widget.content || '') + '</div><div class="widget-card-name">' + widget.name + '</div>';
+                card.innerHTML = '<div class="widget-card-more-btn" onclick="openWidgetContextMenu(' + i + ', event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></div><div class="widget-card-preview">' + (widget.content || '') + '</div><div class="widget-card-name">' + widget.name + '</div><div class="widget-card-size">' + formatWidgetSizeLabel(widget) + '</div>';
                 widgetTrack.appendChild(card);
 
                 const dot = document.createElement('div'); dot.className = 'widget-dot'; widgetPagination.appendChild(dot);
@@ -6781,7 +8508,22 @@
     })();
             // show three-dots button; click to expand vertical capsule menu
 </script>
+    <!-- Widget Picker Modal -->
+    <div id="widgetPickerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 9999; flex-direction: column;">
+        <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-top: 50px;">
+            <div style="font-size: 18px; font-weight: bold; color: white;">添加小组件</div>
+            <div onclick="document.getElementById('widgetPickerModal').style.display='none';" style="width: 30px; height: 30px; background: rgba(255, 255, 255, 0.2); border-radius: 15px; display: flex; justify-content: center; align-items: center; cursor: pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
+        </div>
+        <div id="widgetPickerList" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; padding-bottom: 50px;">
+        </div>
+    </div>
 </body>
 </html>
+
+
+
+
 
 
