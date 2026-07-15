@@ -19,6 +19,7 @@
     "lang":  "zh-CN",
     "description":  "童话机 Web App",
     "theme_color":  "#fdfbfb",
+    "display_override":  ["fullscreen", "standalone"],
     "display":  "fullscreen",
     "name":  "童话机",
     "scope":  "./",

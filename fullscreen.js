@@ -1,28 +1,62 @@
-﻿/**
- * 安卓全屏兜底：点击屏幕进入全屏模式（iOS 不支持此 API，会自动忽略）。
- * 在 PWA standalone/fullscreen 模式下跳过，避免重复请求全屏。
+/**
+ * Mobile fullscreen compatibility layer.
+ * Browsers retain control over OS status/gesture bars, so this combines PWA
+ * detection, visual viewport sizing, and the Fullscreen API where supported.
  */
 document.addEventListener('DOMContentLoaded', () => {
-    // 已经是独立 PWA 窗口（standalone / fullscreen / iOS standalone），无需再请求全屏
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         window.matchMedia('(display-mode: fullscreen)').matches || 
-                         window.navigator.standalone === true;
-    if (isStandalone) return;
+    const root = document.documentElement;
+    const isMobile = window.matchMedia('(max-width: 1024px) and (hover: none)').matches;
+    const isIosStandalone = window.navigator.standalone === true;
+    const isDisplayModeApp = ['fullscreen', 'standalone', 'minimal-ui', 'window-controls-overlay']
+        .some(mode => window.matchMedia(`(display-mode: ${mode})`).matches);
+    const isAndroid = /Android/i.test(navigator.userAgent);
 
-    const isMobile = window.matchMedia("(max-width: 768px) and (hover: none) and (pointer: coarse)").matches;
-    if (!isMobile) return;
+    function syncViewport() {
+        const viewport = window.visualViewport;
+        const viewportHeight = viewport ? viewport.height : window.innerHeight;
+        const viewportOffsetTop = viewport ? viewport.offsetTop : 0;
 
-    function tryFullscreen() {
-        const doc = document.documentElement;
-        if (document.fullscreenElement || document.webkitCurrentFullScreenElement) return;
+        root.style.setProperty('--app-height', `${Math.ceil(viewportHeight)}px`);
+        root.style.setProperty('--viewport-offset-top', `${Math.max(0, Math.floor(viewportOffsetTop))}px`);
+        root.classList.toggle('app-installed', isIosStandalone || isDisplayModeApp);
+    }
 
-        if (doc.requestFullscreen) {
-            doc.requestFullscreen().catch(() => {});
-        } else if (doc.webkitRequestFullscreen) { /* Safari */
-            doc.webkitRequestFullscreen();
+    syncViewport();
+    window.addEventListener('resize', syncViewport, { passive: true });
+    window.addEventListener('orientationchange', syncViewport, { passive: true });
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', syncViewport, { passive: true });
+        window.visualViewport.addEventListener('scroll', syncViewport, { passive: true });
+    }
+
+    if (!isMobile || !isAndroid) return;
+
+    function isActualFullscreen() {
+        return Boolean(
+            document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            window.matchMedia('(display-mode: fullscreen)').matches
+        );
+    }
+
+    async function tryFullscreen() {
+        if (isActualFullscreen()) return;
+
+        const request = root.requestFullscreen || root.webkitRequestFullscreen;
+        if (!request) return;
+
+        try {
+            await request.call(root, { navigationUI: 'hide' });
+            syncViewport();
+        } catch (_) {
+            // Some browsers reject options or disallow fullscreen in installed PWAs.
+            try {
+                await request.call(root);
+                syncViewport();
+            } catch (_) {}
         }
     }
 
-    // 每次点击都尝试进入全屏（退出后可重新进入）
-    document.addEventListener("click", tryFullscreen);
+    document.addEventListener('pointerup', tryFullscreen, { once: true, passive: true });
+    document.addEventListener('touchend', tryFullscreen, { once: true, passive: true });
 });
