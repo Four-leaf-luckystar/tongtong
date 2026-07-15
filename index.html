@@ -176,7 +176,7 @@
         /* 桌面 4x7 网格 */
         .desktop-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             grid-template-rows: repeat(7, 80px);
             gap: 15px 10px;
             padding: 25px 20px;
@@ -400,6 +400,9 @@
         .widget-custom-size-picker .stepper-btn:active { background: #e0e0e8; }
         .widget-custom-size-picker .stepper-btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .widget-custom-size-picker .stepper-val { font-size: 16px; font-weight: 600; color: #000; min-width: 24px; text-align: center; }
+        #themeAppUI .widget-code-preview { display: none; }
+        #themeAppUI .widget-code-preview-stage { position: relative; width: 100%; overflow: hidden; border-radius: 12px; background: #d9d9de; }
+        #themeAppUI .widget-code-preview-frame { position: absolute; top: 0; left: 0; border: 0; background: #fff; transform-origin: top left; }
 
 
         /* 编辑模式抖动动画 */
@@ -2104,6 +2107,7 @@
         #themeAppUI .widget-delete-btn-left { width: 0; opacity: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
         #themeAppUI .widget-delete-btn-left svg { width: 22px; height: 22px; fill: #ff3b30; cursor: pointer; }
         #themeAppUI .widget-list-item-icon { width: 48px; height: 48px; border-radius: 12px; background-color: #fff; margin-right: 14px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; }
+        #themeAppUI .widget-list-preview-frame { position: absolute; border: 0; background: #fff; transform-origin: top left; pointer-events: none; }
         #themeAppUI .widget-list-item-info { flex: 1; min-width: 0; }
         #themeAppUI .widget-title-wrapper { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
         #themeAppUI .widget-list-item-title { font-size: 15px; font-weight: 600; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -2715,8 +2719,17 @@
                     </div>
                 </div>
                 <div style="flex:1; display:flex; flex-direction:column;">
-                    <div style="font-size: 12px; color: #8e8e93; margin-left: 8px; font-weight: 600; margin-bottom: 6px;">HTML / CSS 代码</div>
-                    <textarea id="widgetEditContent" placeholder="&lt;style&gt;...&lt;/style&gt;&#10;&lt;div class='widget'&gt;...&lt;/div&gt;" style="width: 100%; flex: 1; min-height: 260px; background: #1e1e1e; border: none; border-radius: 12px; padding: 14px; font-size: 13px; color: #d4d4d4; font-family: monospace; outline: none; resize: none;"></textarea>
+                    <div class="widget-code-preview" id="widgetCodePreview">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin:0 8px 6px;">
+                            <div style="font-size:12px; color:#8e8e93; font-weight:600;">实时预览</div>
+                            <div id="widgetCodePreviewSize" style="font-size:12px; color:#8e8e93;">1 × 1</div>
+                        </div>
+                        <div class="widget-code-preview-stage" id="widgetCodePreviewStage">
+                            <iframe class="widget-code-preview-frame" id="widgetCodePreviewFrame" sandbox="allow-scripts" title="组件实时预览"></iframe>
+                        </div>
+                    </div>
+                    <div style="font-size: 12px; color: #8e8e93; margin-left: 8px; margin-top: 16px; font-weight: 600; margin-bottom: 6px;">HTML / CSS / JS 代码</div>
+                    <textarea id="widgetEditContent" oninput="updateWidgetCodePreview()" placeholder="&lt;style&gt;...&lt;/style&gt;&#10;&lt;div class='widget'&gt;...&lt;/div&gt;" style="width: 100%; flex: 1; min-height: 260px; background: #1e1e1e; border: none; border-radius: 12px; padding: 14px; font-size: 13px; color: #d4d4d4; font-family: monospace; outline: none; resize: none;"></textarea>
                 </div>
             </div>
         </div>
@@ -4015,19 +4028,37 @@
     }
 
                 function getWidgetDimensions(widgetData) {
-            const SLOT_SIZE = 140;
-            const width = parseInt(widgetData.width, 10);
-            const height = parseInt(widgetData.height, 10);
-            if (width > 0 && height > 0) {
-                return { width, height };
-            }
-            if (widgetData.presetSize) {
+            const LEGACY_SLOT_SIZE = 140;
+            const COLUMN_GAP = 10;
+            const ROW_HEIGHT = 80;
+            const ROW_GAP = 15;
+            const grid = document.getElementById('desktopGrid');
+            const gridStyle = grid ? window.getComputedStyle(grid) : null;
+            const horizontalPadding = gridStyle ? parseFloat(gridStyle.paddingLeft) + parseFloat(gridStyle.paddingRight) : 0;
+            const gridWidth = grid ? grid.clientWidth - horizontalPadding : 0;
+            const columnWidth = gridWidth > 0 ? (gridWidth - COLUMN_GAP * 3) / 4 : 80;
+
+            let columns = 1;
+            let rows = 1;
+            const legacyWidth = parseInt(widgetData.width, 10);
+            const legacyHeight = parseInt(widgetData.height, 10);
+            if (legacyWidth > 0 && legacyHeight > 0) {
+                columns = Math.max(1, Math.round(legacyWidth / LEGACY_SLOT_SIZE));
+                rows = Math.max(1, Math.round(legacyHeight / LEGACY_SLOT_SIZE));
+            } else if (widgetData.presetSize) {
                 const parts = widgetData.presetSize.split('x').map(Number);
                 if (parts.length === 2 && parts[0] > 0 && parts[1] > 0) {
-                    return { width: parts[0] * SLOT_SIZE, height: parts[1] * SLOT_SIZE };
+                    columns = parts[0];
+                    rows = parts[1];
                 }
             }
-            return { width: SLOT_SIZE, height: SLOT_SIZE };
+
+            columns = Math.min(4, columns);
+            rows = Math.min(7, rows);
+            return {
+                width: columns * columnWidth + (columns - 1) * COLUMN_GAP,
+                height: rows * ROW_HEIGHT + (rows - 1) * ROW_GAP
+            };
         }
         window.getWidgetDimensions = getWidgetDimensions;
         function formatWidgetSizeLabel(widget) {
@@ -4045,6 +4076,7 @@
             if (radio.checked) {
                 document.getElementById('widgetCustomSizeLabel').innerText = '自定义大小';
                 document.getElementById('widgetCustomSizeLabel').style.color = '#8e8e93';
+                updateWidgetCodePreview();
             }
         }
         window.handleWidgetPresetChange = handleWidgetPresetChange;
@@ -4099,6 +4131,7 @@
             const label = document.getElementById('widgetCustomSizeLabel');
             label.innerText = w + ' × ' + h;
             label.style.color = '#000';
+            updateWidgetCodePreview();
             closeCustomSizePicker();
         }
         window.confirmCustomSize = confirmCustomSize;
@@ -4109,16 +4142,76 @@
         }
         window.handleWidgetCustomSizeChange = handleWidgetCustomSizeChange;
 
-        function addDesktopWidget(widgetData) {
-        const slots = document.querySelectorAll('#desktopGrid .desktop-slot');
-        let emptySlot = null;
-        for (let i = 0; i < slots.length; i++) {
-            if (!slots[i].querySelector('.app-item')) {
-                emptySlot = slots[i];
-                break;
+        function getWidgetGridSpan(widgetData) {
+            const legacyWidth = parseInt(widgetData.width, 10);
+            const legacyHeight = parseInt(widgetData.height, 10);
+            let columns = 1;
+            let rows = 1;
+            if (legacyWidth > 0 && legacyHeight > 0) {
+                columns = Math.round(legacyWidth / 140) || 1;
+                rows = Math.round(legacyHeight / 140) || 1;
+            } else if (widgetData.presetSize) {
+                const parts = widgetData.presetSize.split('x').map(Number);
+                columns = parts[0] || 1;
+                rows = parts[1] || 1;
             }
+            return { columns: Math.min(4, Math.max(1, columns)), rows: Math.min(7, Math.max(1, rows)) };
         }
-        
+
+        function getDesktopAreaIndexes(startIndex, columns, rows) {
+            const startColumn = startIndex % 4;
+            const startRow = Math.floor(startIndex / 4);
+            if (startColumn + columns > 4 || startRow + rows > 7) return [];
+            const indexes = [];
+            for (let row = 0; row < rows; row++) {
+                for (let column = 0; column < columns; column++) {
+                    indexes.push(startIndex + row * 4 + column);
+                }
+            }
+            return indexes;
+        }
+
+        function rebuildDesktopWidgetOccupancy() {
+            const slots = Array.from(document.querySelectorAll('#desktopGrid .desktop-slot'));
+            slots.forEach(slot => slot.removeAttribute('data-widget-occupied-by'));
+            slots.forEach((slot, startIndex) => {
+                const widget = slot.querySelector(':scope > .app-item.is-widget');
+                if (!widget) return;
+                const columns = parseInt(widget.getAttribute('data-widget-columns'), 10) || 1;
+                const rows = parseInt(widget.getAttribute('data-widget-rows'), 10) || 1;
+                const widgetId = widget.getAttribute('data-app-id') || '';
+                getDesktopAreaIndexes(startIndex, columns, rows).forEach(index => {
+                    if (index !== startIndex && slots[index]) slots[index].setAttribute('data-widget-occupied-by', widgetId);
+                });
+            });
+        }
+
+        function isDesktopAreaAvailable(startIndex, columns, rows, ignoredWidget) {
+            const slots = Array.from(document.querySelectorAll('#desktopGrid .desktop-slot'));
+            const indexes = getDesktopAreaIndexes(startIndex, columns, rows);
+            if (indexes.length !== columns * rows) return false;
+            const ignoredId = ignoredWidget ? ignoredWidget.getAttribute('data-app-id') : '';
+            return indexes.every(index => {
+                const slot = slots[index];
+                const app = slot ? slot.querySelector(':scope > .app-item') : null;
+                const occupiedBy = slot ? slot.getAttribute('data-widget-occupied-by') : '';
+                return slot && (!app || app === ignoredWidget) && (!occupiedBy || occupiedBy === ignoredId);
+            });
+        }
+
+        function findAvailableWidgetSlot(columns, rows) {
+            rebuildDesktopWidgetOccupancy();
+            const slots = Array.from(document.querySelectorAll('#desktopGrid .desktop-slot'));
+            for (let index = 0; index < slots.length; index++) {
+                if (isDesktopAreaAvailable(index, columns, rows, null)) return slots[index];
+            }
+            return null;
+        }
+
+        function addDesktopWidget(widgetData) {
+        const span = getWidgetGridSpan(widgetData);
+        const emptySlot = findAvailableWidgetSlot(span.columns, span.rows);
+
         if (emptySlot) {
             const app = document.createElement('div');
             app.className = 'app-item is-widget';
@@ -4127,20 +4220,22 @@
             app.setAttribute('data-widget-width', widgetData.width || '');
             app.setAttribute('data-widget-height', widgetData.height || '');
             app.setAttribute('data-widget-preset-size', widgetData.presetSize || '');
-            
+            app.setAttribute('data-widget-columns', span.columns);
+            app.setAttribute('data-widget-rows', span.rows);
+
             const dims1 = getWidgetDimensions(widgetData);
             app.style.width = dims1.width + 'px';
             app.style.height = dims1.height + 'px';
             app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims1.width}px; height: ${dims1.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${widgetData.content}</div><div class="app-name" style="display:none;">${widgetData.name || "组件"}</div>`;
-            
-            if (isEditMode) {
-                app.classList.add('jiggling');
-            }
-            
+
+            if (isEditMode) app.classList.add('jiggling');
             emptySlot.appendChild(app);
+            rebuildDesktopWidgetOccupancy();
             saveLayout();
+            return true;
         } else {
-            alert('桌面空间不足，请先清理或更换位置');
+            alert('桌面没有足够的连续空间，请先清理或更换位置');
+            return false;
         }
     }
 
@@ -4429,6 +4524,9 @@
             app.setAttribute('data-widget-width', width || '');
             app.setAttribute('data-widget-height', height || '');
             app.setAttribute('data-widget-preset-size', presetSize || '');
+            const widgetSpan = getWidgetGridSpan({ width, height, presetSize });
+            app.setAttribute('data-widget-columns', widgetSpan.columns);
+            app.setAttribute('data-widget-rows', widgetSpan.rows);
             const dims2 = getWidgetDimensions({ width, height, presetSize });
             app.style.width = dims2.width + 'px';
             app.style.height = dims2.height + 'px';
@@ -4502,6 +4600,8 @@
         }
 
             // show three-dots button; click to expand vertical capsule menu
+        rebuildDesktopWidgetOccupancy();
+
         dockData.forEach(appData => {
             dock.appendChild(createAppElement(appData.name, appData.icon, appData.appId));
         });
@@ -4542,6 +4642,7 @@
             const appItem = btn.closest('.app-item');
             if (appItem) {
                 appItem.remove();
+                rebuildDesktopWidgetOccupancy();
                 if (typeof window.saveLayout === 'function') {
                     window.saveLayout();
                 }
@@ -4693,19 +4794,35 @@
 
                 const parent1 = draggedApp.parentNode;
 
-                if (targetApp && targetApp !== draggedApp) {
+                const draggedIsWidget = draggedApp.classList.contains('is-widget');
+                if (draggedIsWidget) {
+                    if (targetSlot) {
+                        const slots = Array.from(document.querySelectorAll('#desktopGrid .desktop-slot'));
+                        const targetIndex = slots.indexOf(targetSlot);
+                        const columns = parseInt(draggedApp.getAttribute('data-widget-columns'), 10) || 1;
+                        const rows = parseInt(draggedApp.getAttribute('data-widget-rows'), 10) || 1;
+                        if (targetIndex > -1 && isDesktopAreaAvailable(targetIndex, columns, rows, draggedApp)) {
+                            targetSlot.appendChild(draggedApp);
+                        }
+                    }
+                } else if (targetApp && targetApp !== draggedApp && !targetApp.classList.contains('is-widget')) {
                     const parent2 = targetApp.parentNode;
-                    const sibling1 = draggedApp.nextSibling === targetApp ? draggedApp : draggedApp.nextSibling;
-                    const sibling2 = targetApp.nextSibling === draggedApp ? targetApp : targetApp.nextSibling;
-                    parent2.insertBefore(draggedApp, sibling2);
-                    parent1.insertBefore(targetApp, sibling1);
-                } else if (targetSlot && !targetSlot.querySelector('.app-item')) {
+                    const targetOccupied = parent2.getAttribute('data-widget-occupied-by');
+                    const sourceOccupied = parent1.getAttribute('data-widget-occupied-by');
+                    if (!targetOccupied && !sourceOccupied) {
+                        const sibling1 = draggedApp.nextSibling === targetApp ? draggedApp : draggedApp.nextSibling;
+                        const sibling2 = targetApp.nextSibling === draggedApp ? targetApp : targetApp.nextSibling;
+                        parent2.insertBefore(draggedApp, sibling2);
+                        parent1.insertBefore(targetApp, sibling1);
+                    }
+                } else if (targetSlot && !targetSlot.querySelector('.app-item') && !targetSlot.getAttribute('data-widget-occupied-by')) {
                     targetSlot.appendChild(draggedApp);
                 } else if (targetDock && !parent1.classList.contains('dock')) {
                     if (dockContainer.querySelectorAll('.app-item').length < 4) {
                         dockContainer.appendChild(draggedApp);
                     }
                 }
+                rebuildDesktopWidgetOccupancy();
             }
             draggedApp = null;
         }
@@ -8177,32 +8294,8 @@
             if (action === 'edit') { openWidgetEditor(activeWidgetIndex); }
             else if (action === 'addToDesktop') {
                 const widget = currentWidgets[activeWidgetIndex];
-                if (typeof window.addAppToDesktop === 'function') {
-                    window.addAppToDesktop(widget.name, null, true, widget);
-                    if (typeof window.showToast === 'function') {
-                        window.showToast("已添加到桌面");
-                    }
-                } else if (typeof window.appData !== 'undefined') {
-                     const emptySlot = Array.from(document.querySelectorAll('.app-item.empty-slot')).find(slot => slot.style.display !== 'none');
-                     if (emptySlot) {
-                         const app = document.createElement('div');
-                         app.className = 'app-item is-widget';
-                         app.setAttribute('data-app-id', 'widget-' + Date.now());
-                         app.setAttribute('data-widget-content', encodeURIComponent(widget.content));
-                         const dims3 = getWidgetDimensions(widget); app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims3.width}px; height: ${dims3.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${widget.content}</div><div class="app-name" style="display:none;">${widget.name || "组件"}</div>`;
-                         emptySlot.appendChild(app);
-                         if (typeof window.saveLayout === 'function') window.saveLayout();
-                         if (typeof window.showToast === 'function') {
-                             window.showToast("已添加到桌面");
-                         }
-                     } else {
-                         if (typeof window.showToast === 'function') {
-                             window.showToast("桌面没有足够空间");
-                         } else {
-                             alert("桌面没有足够空间");
-                         }
-                     }
-                }
+                const added = addDesktopWidget(widget);
+                if (added && typeof window.showToast === 'function') window.showToast('已添加到桌面');
             }
             else if (action === 'export') {
                 const widget = currentWidgets[activeWidgetIndex];
@@ -8312,6 +8405,40 @@
         }
         window.exportWidgetJson = exportWidgetJson;
 
+        function updateWidgetCodePreview() {
+            const preview = document.getElementById('widgetCodePreview');
+            const stage = document.getElementById('widgetCodePreviewStage');
+            const frame = document.getElementById('widgetCodePreviewFrame');
+            const sizeLabel = document.getElementById('widgetCodePreviewSize');
+            const editor = document.getElementById('widgetEditContent');
+            if (!preview || !stage || !frame || !sizeLabel || !editor) return;
+
+            const checkedPreset = document.querySelector('input[name="widgetPresetSize"]:checked');
+            let cols = 1;
+            let rows = 1;
+            if (checkedPreset) {
+                const parts = checkedPreset.value.split('x').map(Number);
+                cols = parts[0] || 1;
+                rows = parts[1] || 1;
+            } else if (document.getElementById('widgetCustomSizeLabel').innerText !== '自定义大小') {
+                cols = parseInt(document.getElementById('customW').innerText, 10) || 1;
+                rows = parseInt(document.getElementById('customH').innerText, 10) || 1;
+            }
+
+            const width = cols * 140;
+            const height = rows * 140;
+            preview.style.display = 'block';
+            const availableWidth = stage.clientWidth || 280;
+            const scale = Math.min(1, availableWidth / width);
+            stage.style.height = Math.round(height * scale) + 'px';
+            frame.style.width = width + 'px';
+            frame.style.height = height + 'px';
+            frame.style.transform = 'scale(' + scale + ')';
+            frame.srcdoc = editor.value;
+            sizeLabel.innerText = cols + ' × ' + rows;
+        }
+        window.updateWidgetCodePreview = updateWidgetCodePreview;
+
         function openWidgetEditor(index) {
             activeWidgetIndex = index; const widget = currentWidgets[index];
             document.getElementById('widgetEditName').value = widget.name;
@@ -8334,6 +8461,7 @@
             document.getElementById('widgetEditorModal').classList.add('show');
             const overlay = document.getElementById('widgetOverlay');
             overlay.style.display = 'block'; overlay.style.zIndex = '250';
+            requestAnimationFrame(updateWidgetCodePreview);
         }
         window.openWidgetEditor = openWidgetEditor;
 
@@ -8341,6 +8469,10 @@
             document.getElementById('widgetEditorModal').classList.remove('show');
             const overlay = document.getElementById('widgetOverlay');
             overlay.style.display = 'none'; overlay.style.zIndex = '105';
+            const preview = document.getElementById('widgetCodePreview');
+            const frame = document.getElementById('widgetCodePreviewFrame');
+            if (preview) preview.style.display = 'none';
+            if (frame) frame.srcdoc = '';
             activeWidgetIndex = -1;
         }
         window.closeWidgetEditor = closeWidgetEditor;
@@ -8448,7 +8580,21 @@
                     if (isWidgetEditing) openWidgetEditor(i);
                     else { targetProgress = i; currentProgress = i; toggleWidgetViewMode('carousel'); }
                 };
-                listItem.innerHTML = '<div class="widget-delete-btn-left" onclick="deleteWidget(' + i + ', event)"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg></div><div class="widget-list-item-icon">' + (widget.content || '') + '</div><div class="widget-list-item-info"><div class="widget-title-wrapper"><div class="widget-list-item-title">' + widget.name + '</div><svg class="widget-edit-pencil" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></div><div class="widget-list-item-sub">Widget</div></div><div class="widget-list-action-trigger" onclick="openWidgetContextMenu(' + i + ', event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="#c7c7cc" stroke="none"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg></div>';
+                listItem.innerHTML = '<div class="widget-delete-btn-left" onclick="deleteWidget(' + i + ', event)"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg></div><div class="widget-list-item-icon"></div><div class="widget-list-item-info"><div class="widget-title-wrapper"><div class="widget-list-item-title">' + widget.name + '</div><svg class="widget-edit-pencil" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></div><div class="widget-list-item-sub">Widget</div></div><div class="widget-list-action-trigger" onclick="openWidgetContextMenu(' + i + ', event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="#c7c7cc" stroke="none"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg></div>';
+                const listPreviewHost = listItem.querySelector('.widget-list-item-icon');
+                const listPreviewFrame = document.createElement('iframe');
+                const listPreviewDims = getWidgetDimensions(widget);
+                const listPreviewScale = Math.min(48 / listPreviewDims.width, 48 / listPreviewDims.height);
+                listPreviewFrame.className = 'widget-list-preview-frame';
+                listPreviewFrame.setAttribute('sandbox', 'allow-scripts');
+                listPreviewFrame.setAttribute('title', (widget.name || '组件') + '预览');
+                listPreviewFrame.style.width = listPreviewDims.width + 'px';
+                listPreviewFrame.style.height = listPreviewDims.height + 'px';
+                listPreviewFrame.style.left = (48 - listPreviewDims.width * listPreviewScale) / 2 + 'px';
+                listPreviewFrame.style.top = (48 - listPreviewDims.height * listPreviewScale) / 2 + 'px';
+                listPreviewFrame.style.transform = 'scale(' + listPreviewScale + ')';
+                listPreviewFrame.srcdoc = widget.content || '';
+                listPreviewHost.appendChild(listPreviewFrame);
                 widgetListContainer.appendChild(listItem);
             });
             updateWidgetCardsContinuous();
