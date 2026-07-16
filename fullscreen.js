@@ -1,62 +1,60 @@
 /**
- * Mobile fullscreen compatibility layer.
- * Browsers retain control over OS status/gesture bars, so this combines PWA
- * detection, visual viewport sizing, and the Fullscreen API where supported.
+ * Browser/PWA fullscreen split:
+ * - Installed PWA: rely on standalone layout and safe-area CSS.
+ * - Regular Android browser: request Fullscreen API after a user gesture.
  */
 document.addEventListener('DOMContentLoaded', () => {
     const root = document.documentElement;
-    const isMobile = window.matchMedia('(max-width: 1024px) and (hover: none)').matches;
     const isIosStandalone = window.navigator.standalone === true;
-    const isDisplayModeApp = ['fullscreen', 'standalone', 'minimal-ui', 'window-controls-overlay']
-        .some(mode => window.matchMedia(`(display-mode: ${mode})`).matches);
+    const displayModes = ['fullscreen', 'standalone', 'minimal-ui', 'window-controls-overlay'];
+    const isDisplayModeApp = displayModes.some(mode =>
+        window.matchMedia(`(display-mode: ${mode})`).matches
+    );
+    const isInstalledApp = isIosStandalone || isDisplayModeApp;
     const isAndroid = /Android/i.test(navigator.userAgent);
+    const isMobile = window.matchMedia('(max-width: 1024px) and (hover: none)').matches;
 
     function syncViewport() {
         const viewport = window.visualViewport;
         const viewportHeight = viewport ? viewport.height : window.innerHeight;
-        const viewportOffsetTop = viewport ? viewport.offsetTop : 0;
 
         root.style.setProperty('--app-height', `${Math.ceil(viewportHeight)}px`);
-        root.style.setProperty('--viewport-offset-top', `${Math.max(0, Math.floor(viewportOffsetTop))}px`);
-        root.classList.toggle('app-installed', isIosStandalone || isDisplayModeApp);
+        root.classList.toggle('app-installed', isInstalledApp);
     }
 
     syncViewport();
     window.addEventListener('resize', syncViewport, { passive: true });
     window.addEventListener('orientationchange', syncViewport, { passive: true });
+
     if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', syncViewport, { passive: true });
-        window.visualViewport.addEventListener('scroll', syncViewport, { passive: true });
     }
 
-    if (!isMobile || !isAndroid) return;
+    // Installed PWAs must not call Fullscreen API; Chromium may letterbox cutout areas.
+    if (isInstalledApp || !isAndroid || !isMobile) return;
 
-    function isActualFullscreen() {
+    function isFullscreen() {
         return Boolean(
             document.fullscreenElement ||
-            document.webkitFullscreenElement ||
-            window.matchMedia('(display-mode: fullscreen)').matches
+            document.webkitFullscreenElement
         );
     }
 
-    async function tryFullscreen() {
-        if (isActualFullscreen()) return;
+    async function enterBrowserFullscreen() {
+        if (isFullscreen()) return;
 
-        const request = root.requestFullscreen || root.webkitRequestFullscreen;
-        if (!request) return;
+        const requestFullscreen = root.requestFullscreen || root.webkitRequestFullscreen;
+        if (!requestFullscreen) return;
 
         try {
-            await request.call(root, { navigationUI: 'hide' });
-            syncViewport();
+            await requestFullscreen.call(root, { navigationUI: 'hide' });
         } catch (_) {
-            // Some browsers reject options or disallow fullscreen in installed PWAs.
             try {
-                await request.call(root);
-                syncViewport();
+                await requestFullscreen.call(root);
             } catch (_) {}
         }
     }
 
-    document.addEventListener('pointerup', tryFullscreen, { once: true, passive: true });
-    document.addEventListener('touchend', tryFullscreen, { once: true, passive: true });
+    document.addEventListener('pointerup', enterBrowserFullscreen, { passive: true });
+    document.addEventListener('touchend', enterBrowserFullscreen, { passive: true });
 });
