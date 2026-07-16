@@ -2565,7 +2565,9 @@
         #wechatAppUI .btn-primary:active { opacity: 0.8; }
         #wechatAppUI .btn-secondary { background: #E5E5EA; color: #000; border: none; border-radius: 20px; padding: 14px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; }
         #wechatAppUI .btn-secondary:active { background: #D1D1D6; }
-        #wechatAppUI .wc-custom-preview { position: absolute; top: 95px; left: 50%; transform: translateX(-50%); width: 85%; background: #ffffff; border-radius: 24px; padding: 16px; display: none; flex-direction: column; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 10; }
+        #wechatAppUI .wc-custom-preview { position: absolute; top: 95px; left: 50%; transform: translateX(-50%); width: 85%; height: 140px; background: #ffffff; border-radius: 24px; padding: 16px; display: none; flex-direction: column; justify-content: center; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 10; overflow: hidden; }
+        #wechatAppUI .wc-custom-preview .message-row { margin-bottom: 0 !important; }
+        #wechatAppUI .wc-custom-preview .message-bubble { margin-bottom: 0 !important; }
         
         #wechatAppUI .wc-font-item.active-font { background: var(--tg-blue) !important; }
         #wechatAppUI .wc-font-item.active-font .modal-item-text { color: #fff !important; }
@@ -4278,6 +4280,14 @@
                                 <div class="custom-toggle" id="wc-avatar-toggle" onclick="wcToggleAvatarEnable(this)"><div class="thumb"></div></div>
                             </div>
                             <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-size: 16px; font-weight: 600;">显示模式</span>
+                                <select id="wc-avatar-display-mode" onchange="wcApplyAvatarSettings()" style="border: none; background: transparent; font-size: 16px; color: var(--tg-blue); outline: none; text-align: right; direction: rtl; cursor: pointer;">
+                                    <option value="all">全程显示</option>
+                                    <option value="first">首个显示</option>
+                                    <option value="last">末尾显示</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
                                 <span style="font-size: 16px; font-weight: 600;">头像大小</span>
                                 <input type="range" id="wc-avatar-size-slider" min="20" max="60" value="40" oninput="wcApplyAvatarSettings()" style="width: 60%; accent-color: var(--tg-blue);">
                             </div>
@@ -5042,6 +5052,13 @@
             
             wcPresets = appSettings.wc_presets || [];
             wcCurrentPresetId = appSettings.wc_current_preset_id;
+            
+            if (appSettings.wc_custom_css) {
+                const cssInput = document.getElementById('wc-custom-css-input');
+                if (cssInput) cssInput.value = appSettings.wc_custom_css;
+                wcApplyCustomCss(appSettings.wc_custom_css);
+            }
+
             wcTimestampEnabled = appSettings.wc_timestamp_enabled;
             wcApplyTimestampSettings();
             
@@ -5228,10 +5245,11 @@
         ios_brightness: 100,
         wc_presets: [],
         wc_current_preset_id: null,
+        wc_custom_css: '',
         wc_timestamp_enabled: true,
         wc_bubble_theme: 'image',
         wc_bubble_color: 'default',
-        wc_avatar_settings: { enabled: false, size: 40, radius: 50, frameUrlChat: '', frameUrlUser: '', savedFrames: [] },
+        wc_avatar_settings: { enabled: false, displayMode: 'all', size: 40, radius: 50, frameUrlChat: '', frameUrlUser: '', savedFrames: [] },
         wc_font_settings: null
     };
 
@@ -7247,12 +7265,13 @@
         const preset = wcPresets.find(p => p.id === id);
         if (preset) {
             document.getElementById('wc-custom-css-input').value = preset.css;
-            wcApplyCustomCss();
+            appSettings.wc_custom_css = preset.css;
             wcCurrentPresetId = id;
             appSettings.wc_current_preset_id = id;
             saveAppSettings();
+            wcApplyCustomCss(preset.css);
             wcRenderPresets();
-            showCustomAlert("提示", `已应用预设：${preset.name}`);
+            showCustomAlert("提示", `已应用主题：${preset.name}`);
         }
     }
 
@@ -7289,10 +7308,12 @@
     }
 
     function wcSaveCustomTheme() { 
-        wcApplyCustomCss();
+        const cssText = document.getElementById('wc-custom-css-input').value;
+        appSettings.wc_custom_css = cssText;
         wcCurrentPresetId = null;
         appSettings.wc_current_preset_id = null;
         saveAppSettings();
+        wcApplyCustomCss(cssText);
         showCustomAlert("提示", "自定义 CSS 已应用！"); 
     }
     
@@ -7316,16 +7337,35 @@
         });
     }
 
-    function wcApplyCustomCss() {
-        const cssText = document.getElementById('wc-custom-css-input').value;
+    function wcApplyCustomCss(cssText) {
+        if (cssText === undefined) {
+            cssText = document.getElementById('wc-custom-css-input').value;
+        }
         let styleTag = document.getElementById('wc-dynamic-style');
         if (!styleTag) {
             styleTag = document.createElement('style');
             styleTag.id = 'wc-dynamic-style';
             document.head.appendChild(styleTag);
         }
-        // 将用户的 CSS 限制在微信容器内生效，防止污染外部桌面
-        styleTag.innerHTML = `#wechatAppUI { ${cssText} } \n ${cssText.replace(/(^|\})\s*([^{]+)/g, function(m, p1, p2) { return p1 + ' #wechatAppUI ' + p2.split(',').join(', #wechatAppUI '); })}`;
+        
+        if (!cssText.trim()) {
+            styleTag.innerHTML = '';
+            return;
+        }
+
+        let processedCss = cssText.replace(/\/\*[\s\S]*?\*\//g, '');
+        processedCss = processedCss.replace(/(^|\})\s*([^{]+)/g, function(m, p1, p2) {
+            if (p2.trim().startsWith('@')) return m;
+            const prefixed = p2.split(',').map(selector => {
+                const s = selector.trim();
+                if (!s) return '';
+                if (s.startsWith('#wechatAppUI')) return s;
+                return '#wechatAppUI ' + s;
+            }).filter(Boolean).join(', ');
+            return p1 + ' ' + prefixed + ' ';
+        });
+
+        styleTag.innerHTML = processedCss;
     }
 
     function wcCopyOriginalCSS() {
@@ -7429,12 +7469,13 @@
         { id: 'default', name: '默认 (黑白)', leftBg: '#F2F2F7', leftText: '#000000', rightBg: '#000000', rightText: '#ffffff' },
         { id: 'wechat-green', name: '微信绿', leftBg: '#95ec69', leftText: '#000000', rightBg: '#95ec69', rightText: '#000000' },
         { id: 'gray-black', name: '灰黑', leftBg: '#E5E5EA', leftText: '#000000', rightBg: '#333333', rightText: '#ffffff' },
-        { id: 'gray-white', name: '灰白', leftBg: '#E5E5EA', leftText: '#000000', rightBg: '#FFFFFF', rightText: '#000000' },
-        { id: 'pink-white', name: '粉白', leftBg: '#F8E8EE', leftText: '#000000', rightBg: '#FFFFFF', rightText: '#000000' },
         { id: 'white-pink', name: '白粉', leftBg: '#FFFFFF', leftText: '#000000', rightBg: '#F8E8EE', rightText: '#000000' },
-        { id: 'blue-white', name: '低饱蓝白', leftBg: '#E6F0FA', leftText: '#000000', rightBg: '#FFFFFF', rightText: '#000000' },
         { id: 'white-blue', name: '低饱白蓝', leftBg: '#FFFFFF', leftText: '#000000', rightBg: '#E6F0FA', rightText: '#000000' },
-        { id: 'white-green', name: '白绿', leftBg: '#FFFFFF', leftText: '#000000', rightBg: '#E9F7E6', rightText: '#000000' }
+        { id: 'white-green', name: '白绿', leftBg: '#FFFFFF', leftText: '#000000', rightBg: '#E9F7E6', rightText: '#000000' },
+        { id: 'blue-pink', name: '蓝粉', leftBg: '#E6F0FA', leftText: '#000000', rightBg: '#F8E8EE', rightText: '#000000' },
+        { id: 'lightgray-green', name: '浅灰微信绿', leftBg: '#F2F2F7', leftText: '#000000', rightBg: '#95ec69', rightText: '#000000' },
+        { id: 'gray-pink', name: '灰粉', leftBg: '#F2F2F7', leftText: '#000000', rightBg: '#F8E8EE', rightText: '#000000' },
+        { id: 'gray-blue', name: '灰蓝', leftBg: '#F2F2F7', leftText: '#000000', rightBg: '#E6F0FA', rightText: '#000000' }
     ];
 
     function wcShowThemeBubble() {
@@ -7594,15 +7635,18 @@
     }
 
     // --- 微信头像美化逻辑 ---
-    let wcAvatarSettings = { enabled: false, size: 40, radius: 50, frameUrlChat: '', frameUrlUser: '', savedFrames: [] };
+    let wcAvatarSettings = { enabled: false, displayMode: 'all', size: 40, radius: 50, frameUrlChat: '', frameUrlUser: '', savedFrames: [] };
 
     function wcApplyAvatarSettings() {
         const toggleEl = document.getElementById('wc-avatar-toggle');
         const enabled = toggleEl ? toggleEl.classList.contains('active') : wcAvatarSettings.enabled;
+        const modeSelect = document.getElementById('wc-avatar-display-mode');
+        const displayMode = modeSelect ? modeSelect.value : (wcAvatarSettings.displayMode || 'all');
         const size = document.getElementById('wc-avatar-size-slider') ? document.getElementById('wc-avatar-size-slider').value : wcAvatarSettings.size;
         const radius = document.getElementById('wc-avatar-radius-slider') ? document.getElementById('wc-avatar-radius-slider').value : wcAvatarSettings.radius;
         
         wcAvatarSettings.enabled = enabled;
+        wcAvatarSettings.displayMode = displayMode;
         wcAvatarSettings.size = size;
         wcAvatarSettings.radius = radius;
         appSettings.wc_avatar_settings = wcAvatarSettings;
@@ -7626,6 +7670,23 @@
             css += `
                 #wechatAppUI .msg-avatar { display: block !important; width: ${size}px !important; height: ${size}px !important; border-radius: ${radius}% !important; }
             `;
+            
+            if (displayMode === 'first') {
+                css += `
+                    #wechatAppUI .message-row.group-mid .msg-avatar,
+                    #wechatAppUI .message-row.group-bottom .msg-avatar { visibility: hidden !important; }
+                `;
+            } else if (displayMode === 'last') {
+                css += `
+                    #wechatAppUI .message-row.group-top .msg-avatar,
+                    #wechatAppUI .message-row.group-mid .msg-avatar { visibility: hidden !important; }
+                `;
+            } else {
+                css += `
+                    #wechatAppUI .msg-avatar { visibility: visible !important; }
+                `;
+            }
+
             if (wcAvatarSettings.frameUrlChat) {
                 css += `#wechatAppUI .message-row.received .msg-avatar::after { background-image: url('${wcAvatarSettings.frameUrlChat}') !important; }`;
             } else {
@@ -7724,6 +7785,8 @@
             const toggleEl = document.getElementById('wc-avatar-toggle');
             if (toggleEl) toggleEl.classList.add('active');
         }
+        const modeSelect = document.getElementById('wc-avatar-display-mode');
+        if (modeSelect) modeSelect.value = wcAvatarSettings.displayMode || 'all';
         const sizeSlider = document.getElementById('wc-avatar-size-slider');
         if (sizeSlider) sizeSlider.value = wcAvatarSettings.size;
         const radiusSlider = document.getElementById('wc-avatar-radius-slider');
