@@ -29,6 +29,9 @@
             font-weight: normal;
             font-style: normal;
         }
+        :root {
+            --system-bar-color: #fdfbfb;
+        }
         *, *::before, *::after, input, button, textarea, select {
             margin: 0;
             padding: 0;
@@ -74,7 +77,7 @@
                 min-height: 100%;
                 margin: 0;
                 padding: 0;
-                background-color: #fdfbfb;
+                background-color: var(--system-bar-color, #fdfbfb);
                 overflow: hidden;
                 overscroll-behavior: none;
             }
@@ -109,7 +112,7 @@
         /* PWA standalone/fullscreen: cover system safe areas and remove the simulated frame. */
         @media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui), (display-mode: window-controls-overlay) {
             :root {
-                background-color: #fdfbfb;
+                background-color: var(--system-bar-color, #fdfbfb);
                 color-scheme: light;
             }
 
@@ -121,7 +124,7 @@
                 height: 100%;
                 min-height: 100%;
                 margin: 0;
-                background-color: #fdfbfb;
+                background-color: var(--system-bar-color, #fdfbfb);
                 overflow: hidden;
                 overscroll-behavior: none;
             }
@@ -143,7 +146,7 @@
                 border: 0;
                 border-radius: 0;
                 box-shadow: none;
-                background-color: #fdfbfb;
+                background-color: var(--system-bar-color, #fdfbfb);
             }
 
             html body .iphone .status-bar {
@@ -160,7 +163,7 @@
                 position: fixed;
                 left: 0;
                 width: 100%;
-                background-color: #fdfbfb;
+                background-color: var(--system-bar-color, #fdfbfb);
                 pointer-events: none;
                 z-index: -1;
             }
@@ -186,7 +189,7 @@
             height: var(--app-height, 100dvh);
             min-height: var(--app-height, 100dvh);
             margin: 0;
-            background-color: #fdfbfb;
+            background-color: var(--system-bar-color, #fdfbfb);
             overflow: hidden;
             overscroll-behavior: none;
         }
