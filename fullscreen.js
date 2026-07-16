@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const root = document.documentElement;
     const appShell = document.querySelector('.iphone');
     const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const isIosStandalone = window.navigator.standalone === true;
     const displayModes = ['fullscreen', 'standalone', 'minimal-ui', 'window-controls-overlay'];
     const isDisplayModeApp = displayModes.some(mode =>
@@ -21,12 +23,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function syncViewport() {
         const viewport = window.visualViewport;
-        const viewportHeight = viewport ? viewport.height : window.innerHeight;
+        let appHeight = window.innerHeight;
 
-        root.style.setProperty('--app-height', `${Math.ceil(viewportHeight)}px`);
+        if (isIos && viewport) {
+            const keyboardOpen = (window.screen.height - viewport.height) > 150;
+
+            if (keyboardOpen) {
+                appHeight = viewport.height;
+            } else {
+                const candidates = [
+                    window.innerHeight,
+                    document.documentElement.clientHeight,
+                    viewport.height
+                ];
+
+                if (isIosStandalone) candidates.push(window.screen.height);
+                appHeight = Math.max(...candidates.filter(value => Number.isFinite(value) && value > 0));
+            }
+
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+        }
+
+        root.style.setProperty('--app-height', `${Math.ceil(appHeight)}px`);
         root.classList.toggle('app-installed', isInstalledApp);
     }
-
     function fallbackSystemColor() {
         return appShell && appShell.classList.contains('dark-mode') ? '#000000' : '#fdfbfb';
     }
@@ -141,8 +162,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
 
     if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', syncViewport, { passive: true });
+        let viewportResizeTimer = 0;
+        window.visualViewport.addEventListener('resize', () => {
+            window.clearTimeout(viewportResizeTimer);
+            viewportResizeTimer = window.setTimeout(syncViewport, 150);
+        }, { passive: true });
+
+        window.visualViewport.addEventListener('scroll', () => {
+            if (!isIos) return;
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+        }, { passive: true });
     }
+
+    document.addEventListener('focusout', () => {
+        if (!isIos) return;
+        window.setTimeout(syncViewport, 50);
+    });
 
     if (appShell) {
         new MutationObserver(scheduleSystemColorSync).observe(appShell, {
