@@ -1679,8 +1679,10 @@
         .set-list-item:last-child .set-item-content { border-bottom: none; }
         
         .set-chevron { width: 8px; height: 13px; stroke: #c5c5c7; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
-        .set-toggle { width: 51px; height: 31px; background-color: #e9e9eb; border-radius: 15.5px; position: relative; }
-        .set-toggle::after { content: ''; position: absolute; width: 27px; height: 27px; background-color: white; border-radius: 50%; top: 2px; left: 2px; box-shadow: 0 3px 8px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.16), 0 3px 1px rgba(0,0,0,0.1); }
+        .set-toggle { width: 51px; height: 31px; background-color: #e9e9eb; border-radius: 15.5px; position: relative; cursor: pointer; transition: background-color 0.2s ease; }
+        .set-toggle::after { content: ''; position: absolute; width: 27px; height: 27px; background-color: white; border-radius: 50%; top: 2px; left: 2px; box-shadow: 0 3px 8px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.16), 0 3px 1px rgba(0,0,0,0.1); transition: transform 0.2s ease; }
+        .set-toggle.on { background-color: #34c759; }
+        .set-toggle.on::after { transform: translateX(20px); }
         
         .set-bg-orange { background-color: #ff9500; }
         .set-bg-blue { background-color: #007aff; }
@@ -3086,7 +3088,7 @@
                 </div>
                 <div class="set-list-item">
                     <div class="set-item-icon set-bg-green" style="animation-delay: 1.0s;"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2" fill="none" stroke="white" stroke-width="2"/><rect x="4" y="9" width="10" height="6" rx="1"/><path d="M22 10v4" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div>
-                    <div class="set-item-content"><span>电池</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                    <div class="set-item-content"><span>顶部状态栏</span><div class="set-toggle on" id="statusBarToggle" role="switch" aria-checked="true" onclick="toggleStatusBarVisibility()"></div></div>
                 </div>
                 <div class="set-list-item">
                     <div class="set-item-icon set-bg-blue" style="animation-delay: 1.2s;"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div>
@@ -5121,6 +5123,32 @@
     const editDone = document.getElementById('editDone');
     const statusBar = document.getElementById('statusBar');
     const dockContainer = document.getElementById('dock');
+    const STATUS_BAR_VISIBILITY_KEY = 'simulatedStatusBarVisible';
+
+    function isStatusBarVisible() {
+        const savedValue = localStorage.getItem(STATUS_BAR_VISIBILITY_KEY);
+        return savedValue === null || savedValue === 'true';
+    }
+
+    function applyStatusBarVisibility() {
+        const shouldShow = isStatusBarVisible();
+        const toggle = document.getElementById('statusBarToggle');
+        const isActuallyVisible = shouldShow && !isEditMode;
+
+        statusBar.style.opacity = isActuallyVisible ? '1' : '0';
+        statusBar.style.visibility = isActuallyVisible ? 'visible' : 'hidden';
+        if (toggle) {
+            toggle.classList.toggle('on', shouldShow);
+            toggle.setAttribute('aria-checked', String(shouldShow));
+        }
+    }
+
+    function toggleStatusBarVisibility() {
+        localStorage.setItem(STATUS_BAR_VISIBILITY_KEY, String(!isStatusBarVisible()));
+        applyStatusBarVisibility();
+    }
+
+    applyStatusBarVisibility();
 
     let pressTimer = null;
     let startX = 0, startY = 0;
@@ -5156,8 +5184,7 @@
 
     function exitEditMode() {
         isEditMode = false;
-        statusBar.style.opacity = '1';
-        statusBar.style.visibility = 'visible';
+        applyStatusBarVisibility();
         editPlus.style.display = 'none';
         editDone.style.display = 'none';
         
