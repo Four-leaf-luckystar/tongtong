@@ -116,12 +116,13 @@
             height: calc(100% - 180px - env(safe-area-inset-top, 0px));
         }
 
+        /* iOS content stays above the Home Indicator; the background still fills behind it. */
         html.ios-installed .iphone > .dock {
-            bottom: 15px;
+            bottom: calc(15px + env(safe-area-inset-bottom, 0px));
         }
 
         html.ios-installed .iphone > .search-bar {
-            bottom: 115px;
+            bottom: calc(115px + env(safe-area-inset-bottom, 0px));
         }
 
         .status-bar {

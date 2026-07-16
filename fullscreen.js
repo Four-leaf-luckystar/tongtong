@@ -60,6 +60,21 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.backgroundColor = bottomColor;
     }
 
+    function syncCanvasBackground() {
+        if (!appShell) return;
+        const shellStyle = getComputedStyle(appShell);
+        const targets = [root, document.body];
+
+        targets.forEach(target => {
+            target.style.backgroundColor = shellStyle.backgroundColor;
+            target.style.backgroundImage = shellStyle.backgroundImage;
+            target.style.backgroundSize = shellStyle.backgroundSize;
+            target.style.backgroundPosition = shellStyle.backgroundPosition;
+            target.style.backgroundRepeat = shellStyle.backgroundRepeat;
+            target.style.backgroundAttachment = 'fixed';
+        });
+    }
+
     function extractBackgroundUrl(backgroundImage) {
         const match = backgroundImage && backgroundImage.match(/url\(["']?(.*?)["']?\)/i);
         return match ? match[1] : '';
@@ -143,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
             : '';
 
         applySafeColors(fallback.top, fallback.bottom);
+        syncCanvasBackground();
         if (backgroundUrl) sampleWallpaperEdges(backgroundUrl, token);
     }
     function scheduleLayoutUpdate() {
