@@ -32,6 +32,7 @@
         :root {
             --app-height: 100vh;
             --system-bar-color: #fdfbfb;
+            --bottom-safe-color: #ebedee;
             --top-safe-area: env(safe-area-inset-top, 0px);
         }
         *, *::before, *::after, input, button, textarea, select {
@@ -122,6 +123,18 @@
 
         html.ios-installed .iphone > .search-bar {
             bottom: calc(115px + env(safe-area-inset-bottom, 0px));
+        }
+
+        html.ios-installed body::after {
+            content: "";
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: env(safe-area-inset-bottom, 0px);
+            background-color: var(--bottom-safe-color, #ebedee);
+            pointer-events: none;
+            z-index: 1;
         }
         .status-bar {
             display: flex;

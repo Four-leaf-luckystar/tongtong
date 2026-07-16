@@ -1,6 +1,6 @@
 /**
  * Unified mobile viewport controller.
- * CSS consumes only --app-height, --system-bar-color and ios-installed.
+ * CSS consumes --app-height, system safe-area colors and ios-installed.
  */
 document.addEventListener('DOMContentLoaded', () => {
     const root = document.documentElement;
@@ -46,15 +46,19 @@ document.addEventListener('DOMContentLoaded', () => {
         root.classList.toggle('ios-installed', isIosStandalone);
     }
 
-    function fallbackSystemColor() {
-        return appShell && appShell.classList.contains('dark-mode') ? '#000000' : '#fdfbfb';
+    function fallbackSafeColors() {
+        const darkMode = appShell && appShell.classList.contains('dark-mode');
+        return darkMode
+            ? { top: '#000000', bottom: '#000000' }
+            : { top: '#fdfbfb', bottom: '#ebedee' };
     }
 
-    function applySystemColor(color) {
-        if (themeColorMeta) themeColorMeta.setAttribute('content', color);
-        root.style.setProperty('--system-bar-color', color);
-        root.style.backgroundColor = color;
-        document.body.style.backgroundColor = color;
+    function applySafeColors(topColor, bottomColor) {
+        if (themeColorMeta) themeColorMeta.setAttribute('content', topColor);
+        root.style.setProperty('--system-bar-color', topColor);
+        root.style.setProperty('--bottom-safe-color', bottomColor);
+        root.style.backgroundColor = topColor;
+        document.body.style.backgroundColor = bottomColor;
     }
 
     function extractBackgroundUrl(backgroundImage) {
@@ -62,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return match ? match[1] : '';
     }
 
-    function sampleWallpaperTop(url, token) {
+    function sampleWallpaperEdges(url, token) {
         const image = new Image();
         if (!url.startsWith('data:') && !url.startsWith('blob:')) image.crossOrigin = 'anonymous';
 
@@ -73,65 +77,75 @@ document.addEventListener('DOMContentLoaded', () => {
                 const shellWidth = Math.max(1, appShell.clientWidth || window.innerWidth);
                 const shellHeight = Math.max(1, appShell.clientHeight || window.innerHeight);
                 const scale = Math.max(shellWidth / image.naturalWidth, shellHeight / image.naturalHeight);
-                const sourceWidth = shellWidth / scale;
-                const sourceHeight = Math.min(48 / scale, image.naturalHeight);
-                const sourceX = Math.max(0, (image.naturalWidth - sourceWidth) / 2);
-                const sourceY = Math.max(0, (image.naturalHeight - shellHeight / scale) / 2);
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d', { willReadFrequently: true });
+                const visibleWidth = shellWidth / scale;
+                const visibleHeight = shellHeight / scale;
+                const sourceX = Math.max(0, (image.naturalWidth - visibleWidth) / 2);
+                const sourceY = Math.max(0, (image.naturalHeight - visibleHeight) / 2);
+                const edgeHeight = Math.min(48 / scale, visibleHeight);
 
-                canvas.width = 24;
-                canvas.height = 6;
-                context.drawImage(
-                    image,
-                    sourceX,
-                    sourceY,
-                    Math.min(sourceWidth, image.naturalWidth - sourceX),
-                    Math.min(sourceHeight, image.naturalHeight - sourceY),
-                    0,
-                    0,
-                    canvas.width,
-                    canvas.height
-                );
+                function averageEdgeColor(edgeY) {
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d', { willReadFrequently: true });
+                    canvas.width = 24;
+                    canvas.height = 6;
+                    context.drawImage(
+                        image,
+                        sourceX,
+                        edgeY,
+                        Math.min(visibleWidth, image.naturalWidth - sourceX),
+                        Math.min(edgeHeight, image.naturalHeight - edgeY),
+                        0,
+                        0,
+                        canvas.width,
+                        canvas.height
+                    );
 
-                const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
-                let red = 0;
-                let green = 0;
-                let blue = 0;
-                let count = 0;
+                    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+                    let red = 0;
+                    let green = 0;
+                    let blue = 0;
+                    let count = 0;
 
-                for (let index = 0; index < pixels.length; index += 4) {
-                    if (pixels[index + 3] < 128) continue;
-                    red += pixels[index];
-                    green += pixels[index + 1];
-                    blue += pixels[index + 2];
-                    count += 1;
+                    for (let index = 0; index < pixels.length; index += 4) {
+                        if (pixels[index + 3] < 128) continue;
+                        red += pixels[index];
+                        green += pixels[index + 1];
+                        blue += pixels[index + 2];
+                        count += 1;
+                    }
+
+                    if (!count) throw new Error('No opaque pixels');
+                    return `rgb(${Math.round(red / count)}, ${Math.round(green / count)}, ${Math.round(blue / count)})`;
                 }
 
-                if (!count) throw new Error('No opaque pixels');
-                applySystemColor(`rgb(${Math.round(red / count)}, ${Math.round(green / count)}, ${Math.round(blue / count)})`);
+                const topColor = averageEdgeColor(sourceY);
+                const bottomY = Math.max(sourceY, sourceY + visibleHeight - edgeHeight);
+                const bottomColor = averageEdgeColor(bottomY);
+                applySafeColors(topColor, bottomColor);
             } catch (_) {
-                applySystemColor(fallbackSystemColor());
+                const fallback = fallbackSafeColors();
+                applySafeColors(fallback.top, fallback.bottom);
             }
         };
 
         image.onerror = () => {
-            if (token === colorToken) applySystemColor(fallbackSystemColor());
+            if (token !== colorToken) return;
+            const fallback = fallbackSafeColors();
+            applySafeColors(fallback.top, fallback.bottom);
         };
         image.src = url;
     }
 
     function updateSystemColor() {
         const token = ++colorToken;
-        const fallback = fallbackSystemColor();
+        const fallback = fallbackSafeColors();
         const backgroundUrl = appShell
             ? extractBackgroundUrl(getComputedStyle(appShell).backgroundImage)
             : '';
 
-        applySystemColor(fallback);
-        if (backgroundUrl) sampleWallpaperTop(backgroundUrl, token);
+        applySafeColors(fallback.top, fallback.bottom);
+        if (backgroundUrl) sampleWallpaperEdges(backgroundUrl, token);
     }
-
     function scheduleLayoutUpdate() {
         window.clearTimeout(viewportTimer);
         viewportTimer = window.setTimeout(updateViewportHeight, 150);
