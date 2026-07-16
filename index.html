@@ -461,6 +461,21 @@
             padding: 0 10px;
         }
 
+        html.ios-installed body .iphone .status-bar {
+            padding-top: 14px;
+        }
+
+        html.ios-installed body .iphone .desktop-grid {
+            margin-top: 30px;
+            height: calc(100% - 180px);
+        }
+        html.ios-installed .iphone > .dock {
+            bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+        }
+
+        html.ios-installed .iphone > .search-bar {
+            bottom: calc(115px + env(safe-area-inset-bottom, 0px));
+        }
         .dock .app-item {
             margin-top: 10px;
             width: auto;

@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         root.style.setProperty('--app-height', `${Math.ceil(appHeight)}px`);
         root.classList.toggle('app-installed', isInstalledApp);
+        root.classList.toggle('ios-installed', isIosStandalone);
     }
     function fallbackSystemColor() {
         return appShell && appShell.classList.contains('dark-mode') ? '#000000' : '#fdfbfb';
