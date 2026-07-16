@@ -56,8 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function applySafeColors(topColor, bottomColor) {
         if (themeColorMeta) themeColorMeta.setAttribute('content', topColor);
         root.style.setProperty('--system-bar-color', topColor);
-        root.style.setProperty('--bottom-safe-color', bottomColor);
-        root.style.backgroundColor = topColor;
+        root.style.backgroundColor = bottomColor;
         document.body.style.backgroundColor = bottomColor;
     }
 

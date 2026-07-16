@@ -112,16 +112,16 @@
         }
 
         html.ios-installed body .iphone .desktop-grid {
-            margin-top: 30px;
-            height: calc(100% - 180px);
+            margin-top: calc(30px + env(safe-area-inset-top, 0px));
+            height: calc(100% - 180px - env(safe-area-inset-top, 0px));
         }
 
         html.ios-installed .iphone > .dock {
-            bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+            bottom: 15px;
         }
 
         html.ios-installed .iphone > .search-bar {
-            bottom: calc(115px + env(safe-area-inset-bottom, 0px));
+            bottom: 115px;
         }
 
         .status-bar {
