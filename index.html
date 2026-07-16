@@ -2486,23 +2486,25 @@
         #wechatAppUI .message-row.sent { align-self: flex-end; flex-direction: row-reverse; padding-left: 15%; }
         #wechatAppUI .msg-avatar { display: none; width: 40px; height: 40px; border-radius: 50%; background-color: #E5E5EA; background-size: cover; background-position: center; flex-shrink: 0; position: relative; margin: 0 8px; }
         #wechatAppUI .msg-avatar::after { content: ''; position: absolute; top: -15%; left: -15%; width: 130%; height: 130%; background-size: contain; background-repeat: no-repeat; background-position: center; pointer-events: none; z-index: 2; }
-        #wechatAppUI .message-row.group-top, #wechatAppUI .message-row.group-mid { margin-bottom: 4px; } 
-        #wechatAppUI .message-bubble { padding: 8px 12px 8px 14px; position: relative; display: flex; align-items: flex-end; gap: 10px; z-index: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.08)); }
-        #wechatAppUI .msg-text { font-size: 16px; color: #000; line-height: 1.4; padding-bottom: 2px; word-break: break-word; }
-        #wechatAppUI .msg-meta { font-size: 11px; font-weight: 700; flex-shrink: 0; display: flex; align-items: center; gap: 2px; margin-bottom: -2px; }
-        #wechatAppUI .message-bubble.received { background-color: var(--bubble-left); border-radius: 18px 18px 18px 0; } 
-        #wechatAppUI .message-bubble.received.group-top { border-radius: 18px 18px 18px 6px; } 
-        #wechatAppUI .message-bubble.received.group-mid { border-radius: 6px 18px 18px 6px; } 
-        #wechatAppUI .message-bubble.received.group-bottom { border-radius: 6px 18px 18px 0; } 
-        #wechatAppUI .msg-meta.received { color: var(--meta-left); }
-        #wechatAppUI .message-bubble.received.tail::before { content: ''; position: absolute; bottom: 0; left: -8px; width: 8px; height: 16px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 16'%3E%3Cpath d='M8 0C8 10 4 16 0 16L8 16Z' fill='%23F2F2F7'/%3E%3C/svg%3E"); background-size: contain; background-repeat: no-repeat; }
-        #wechatAppUI .message-bubble.sent { background-color: var(--bubble-right); border-radius: 18px 18px 0 18px; } 
-        #wechatAppUI .message-bubble.sent.group-top { border-radius: 18px 18px 6px 18px; } 
-        #wechatAppUI .message-bubble.sent.group-mid { border-radius: 18px 6px 6px 18px; } 
-        #wechatAppUI .message-bubble.sent.group-bottom { border-radius: 18px 6px 0 18px; } 
-        #wechatAppUI .msg-meta.sent { color: var(--meta-right); }
+        #wechatAppUI .message-row.group-top, #wechatAppUI .message-row.group-mid { margin-bottom: 20px; } 
+        #wechatAppUI .message-bubble { padding: 8px 14px; position: relative; display: flex; align-items: center; gap: 10px; z-index: 1; margin-bottom: 18px; min-height: 36px; }
+        #wechatAppUI .msg-text { font-size: 16px; color: #000; line-height: 1.4; word-break: break-word; }
+        #wechatAppUI .msg-meta { font-size: 11px; font-weight: 700; flex-shrink: 0; display: flex; align-items: center; gap: 2px; position: absolute; bottom: -18px; white-space: nowrap; }
+        #wechatAppUI .message-bubble.received { background-color: #F2F2F7; border-radius: 18px; color: #000; } 
+        #wechatAppUI .message-bubble.received.group-top { border-radius: 18px; } 
+        #wechatAppUI .message-bubble.received.group-mid { border-radius: 18px; } 
+        #wechatAppUI .message-bubble.received.group-bottom { border-radius: 18px; } 
+        #wechatAppUI .message-bubble.received .msg-text { color: #000; }
+        #wechatAppUI .message-bubble.received .msg-meta { left: 4px; color: #8E8E93; }
+        #wechatAppUI .message-bubble.received.tail::before { display: none; }
+        #wechatAppUI .message-bubble.sent { background-color: #000000; border-radius: 18px; color: #fff; } 
+        #wechatAppUI .message-bubble.sent.group-top { border-radius: 18px; } 
+        #wechatAppUI .message-bubble.sent.group-mid { border-radius: 18px; } 
+        #wechatAppUI .message-bubble.sent.group-bottom { border-radius: 18px; } 
+        #wechatAppUI .message-bubble.sent .msg-text { color: #fff; }
+        #wechatAppUI .message-bubble.sent .msg-meta { right: 4px; color: rgba(0,0,0,0.4); }
         #wechatAppUI .msg-meta.sent svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-        #wechatAppUI .message-bubble.sent.tail::before { content: ''; position: absolute; bottom: 0; right: -8px; width: 8px; height: 16px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 16'%3E%3Cpath d='M0 0C0 10 4 16 8 16L0 16Z' fill='%23E3F6CB'/%3E%3C/svg%3E"); background-size: contain; background-repeat: no-repeat; }
+        #wechatAppUI .message-bubble.sent.tail::before { display: none; }
         #wechatAppUI .footer-capsule { position: absolute; bottom: calc(26px + env(safe-area-inset-bottom)); left: 16px; right: 16px; height: 52px; background-color: rgba(255, 255, 255, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(230, 230, 230, 0.6); border-radius: 26px; display: flex; align-items: center; padding: 0 6px 0 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); z-index: 100; gap: 12px; }
         #wechatAppUI .footer-capsule .tool-icon { width: 26px; height: 26px; color: var(--text-sub); cursor: pointer; flex-shrink: 0; }
         #wechatAppUI .footer-capsule input { flex: 1; min-width: 0; border: none; background: transparent; outline: none; font-size: 16px; font-weight: 600; color: var(--text-main); }
@@ -2573,6 +2575,22 @@
         #wechatAppUI .wc-frame-grid-item:active { transform: scale(0.95); }
         #wechatAppUI .wc-frame-grid-img { width: 80%; height: 80%; background-size: contain; background-position: center; background-repeat: no-repeat; }
 
+        /* 微信聊天壁纸库样式 */
+        #wechatAppUI .wc-bg-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 20px 16px; gap: 16px; }
+        #wechatAppUI .wc-bg-carousel::-webkit-scrollbar { display: none; }
+        #wechatAppUI .wc-bg-card { flex: 0 0 140px; height: 260px; border-radius: 16px; scroll-snap-align: center; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: transform 0.2s; cursor: pointer; }
+        #wechatAppUI .wc-bg-card:active { transform: scale(0.96); }
+        #wechatAppUI .wc-bg-add-box { flex: 0 0 140px; height: 260px; border-radius: 16px; border: 2px dashed #c7c7cc; display: flex; flex-direction: column; justify-content: center; align-items: center; scroll-snap-align: center; cursor: pointer; background: transparent; gap: 10px; transition: background 0.2s; }
+        #wechatAppUI .wc-bg-add-box:active { background: rgba(0,0,0,0.05); }
+        #wechatAppUI .wc-bg-add-box svg { width: 32px; height: 32px; stroke: #8e8e93; }
+        #wechatAppUI .wc-bg-add-box span { font-size: 14px; color: #8e8e93; font-weight: 600; }
+        #wechatAppUI .wc-bg-img { width: 100%; height: 100%; background-size: cover; background-position: center; }
+        #wechatAppUI .wc-bg-delete-btn { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; background: rgba(255,59,48,0.85); backdrop-filter: blur(4px); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; z-index: 10; }
+        #wechatAppUI .wc-bg-delete-btn svg { width: 16px; height: 16px; stroke: #fff; stroke-width: 2.5; }
+        #wechatAppUI .wc-bg-selected-border { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 3px solid var(--tg-blue); border-radius: 16px; pointer-events: none; display: none; box-sizing: border-box; }
+        #wechatAppUI .wc-bg-card.selected .wc-bg-selected-border { display: block; }
+        #wechatAppUI .wc-bg-card.selected::after { content: '使用中'; position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(51, 144, 236, 0.95); color: #fff; text-align: center; font-size: 12px; padding: 6px 0; font-weight: bold; }
+
         /* ==========================================
            微信 APP 深色模式适配
            ========================================== */
@@ -2610,8 +2628,8 @@
         .iphone.dark-mode #wechatAppUI .wc-frame-preview-box, .iphone.dark-mode #wechatAppUI .wc-frame-grid-item { background: #2c2c2e !important; }
         .iphone.dark-mode #wechatAppUI .btn-secondary { background: #2c2c2e; color: #ffffff; }
         .iphone.dark-mode #wechatAppUI .btn-secondary:active { background: #3a3a3c; }
-        .iphone.dark-mode #wechatAppUI .message-bubble.received.tail::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 16'%3E%3Cpath d='M8 0C8 10 4 16 0 16L8 16Z' fill='%232c2c2e'/%3E%3C/svg%3E"); }
-        .iphone.dark-mode #wechatAppUI .message-bubble.sent.tail::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 16'%3E%3Cpath d='M0 0C0 10 4 16 8 16L0 16Z' fill='%23005c4b'/%3E%3C/svg%3E"); }
+        .iphone.dark-mode #wechatAppUI .wc-bg-add-box { border-color: #38383a; }
+        .iphone.dark-mode #wechatAppUI .wc-bg-add-box:active { background: rgba(255,255,255,0.05); }
 
     </style>
 
@@ -2961,7 +2979,7 @@
                 </div>
                 <div>
                     <div style="font-size: 12px; color: #8e8e93; margin-left: 8px; font-weight: 600; margin-bottom: 6px;">尺寸设置（二选一）</div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+                    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; text-align: center;">
                         <label class="widget-size-preset">
                             <input type="radio" name="widgetPresetSize" value="2x2" onchange="handleWidgetPresetChange(this)">
                             <span>2×2</span>
@@ -4165,36 +4183,51 @@
                 <div class="theme-card-main">
                     <div class="modal-drag-bar"></div>
                     <div class="view-container" id="wc-theme-menu-view">
+                        <div class="modal-item" onclick="wcToggleTimestamp(this.querySelector('.custom-toggle'))">
+                            <div class="modal-item-icon"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></div>
+                            <div class="modal-item-text">时间戳显示</div>
+                            <div class="custom-toggle active" id="wc-timestamp-toggle"><div class="thumb"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div></div>
+                        </div>
+                        <div class="modal-item" onclick="wcShowThemeBubble()">
+                            <div class="modal-item-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+                            <div class="modal-item-text">气泡主题库</div><div class="modal-item-dot"></div>
+                        </div>
                         <div class="modal-item" onclick="wcShowThemeAvatar()">
                             <div class="modal-item-icon"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
                             <div class="modal-item-text">头像显示</div><div class="modal-item-dot"></div>
-                        </div>
-                        <div class="modal-item" onclick="wcToggleSwitch(this.querySelector('.custom-toggle'))">
-                            <div class="modal-item-icon"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></div>
-                            <div class="modal-item-text">时间戳显示</div>
-                            <div class="custom-toggle active"><div class="thumb"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div></div>
-                        </div>
-                        <div class="modal-item" onclick="wcShowThemeCustom()">
-                            <div class="modal-item-icon"><svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg></div>
-                            <div class="modal-item-text">自定义美化</div><div class="modal-item-dot"></div>
                         </div>
                         <div class="modal-item" onclick="wcShowThemeFont()">
                             <div class="modal-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg></div>
                             <div class="modal-item-text">字体美化</div><div class="modal-item-dot"></div>
                         </div>
+                        <div class="modal-item" onclick="wcShowThemeChatBg()">
+                            <div class="modal-item-icon"><svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></div>
+                            <div class="modal-item-text">聊天壁纸</div><div class="modal-item-dot"></div>
+                        </div>
+                        <div class="modal-item" onclick="wcShowThemeCustom()">
+                            <div class="modal-item-icon"><svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg></div>
+                            <div class="modal-item-text">自定义美化</div><div class="modal-item-dot"></div>
+                        </div>
                         <div class="modal-item" onclick="wcShowThemePreset()">
                             <div class="modal-item-icon"><svg viewBox="0 0 24 24"><path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm0 10c-2.76 0-5-2.24-5-5h2c0 1.66 1.34 3 3 3s3-1.34 3-3h2c0 2.76-2.24 5-5 5z"/></svg></div>
                             <div class="modal-item-text">美化预设库</div><div class="modal-item-dot"></div>
                         </div>
-                        <div class="modal-item">
-                            <div class="modal-item-icon"><svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></div>
-                            <div class="modal-item-text">聊天壁纸</div><div class="modal-item-dot"></div>
-                        </div>
-                        <div class="modal-item">
+                        <div class="modal-item" onclick="wcCopyOriginalCSS()">
                             <div class="modal-item-icon"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></div>
                             <div class="modal-item-text">复制原CSS</div><div class="modal-item-dot"></div>
+                        </div>               
+                    </div>
+                    
+                    <!-- 视图 7：气泡主题库 -->
+                    <div class="view-container" id="wc-theme-bubble-view" style="display: none;">
+                        <div id="wc-bubble-color-circles" style="display: flex; gap: 14px; padding: 16px 16px 4px 16px; overflow-x: auto; scrollbar-width: none;">
+                            <!-- 动态渲染色系圆形 -->
+                        </div>
+                        <div id="wc-bubble-list-container" style="display: flex; flex-direction: column; gap: 12px; padding: 10px 16px;">
+                            <!-- 动态渲染气泡样式卡片 -->
                         </div>
                     </div>
+
                     <!-- 视图 5：字体美化 -->
                     <div class="view-container" id="wc-theme-font-view" style="display: none;">
                         <div class="custom-textarea-wrapper" style="flex: none; gap: 20px; padding: 20px 16px;">
@@ -4203,8 +4236,12 @@
                                 <input type="range" id="wc-font-size-slider" min="12" max="24" value="16" oninput="wcApplyFontSettings()" style="width: 60%; accent-color: var(--tg-blue);">
                             </div>
                             <div style="display: flex; align-items: center; justify-content: space-between;">
-                                <span style="font-size: 16px; font-weight: 600;">字体颜色</span>
-                                <input type="color" id="wc-font-color-picker" value="#000000" oninput="wcApplyFontSettings()" style="width: 44px; height: 32px; border: none; border-radius: 6px; background: transparent; cursor: pointer;">
+                                <span style="font-size: 16px; font-weight: 600;">对方字体颜色</span>
+                                <input type="color" id="wc-font-color-received" value="#000000" oninput="wcApplyFontSettings()" style="width: 44px; height: 32px; border: none; border-radius: 6px; background: transparent; cursor: pointer;">
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-size: 16px; font-weight: 600;">自己字体颜色</span>
+                                <input type="color" id="wc-font-color-sent" value="#ffffff" oninput="wcApplyFontSettings()" style="width: 44px; height: 32px; border: none; border-radius: 6px; background: transparent; cursor: pointer;">
                             </div>
                         </div>
                         <div class="custom-actions" style="flex-direction: row; margin-top: 0;">
@@ -4273,9 +4310,17 @@
                         </div>
                     </div>
 
+                    <!-- 视图 8：聊天壁纸 -->
+                    <div class="view-container" id="wc-theme-chat-bg-view" style="display: none;">
+                        <div class="wc-bg-carousel" id="wc-chat-bg-carousel">
+                            <!-- 动态渲染壁纸库 -->
+                        </div>
+                        <input type="file" id="wc-chat-bg-file-input" accept="image/*" style="display: none;" onchange="wcHandleChatBgUpload(event)">
+                    </div>
 
                     <!-- 视图 4：编辑预设 -->
                     <div class="view-container" id="wc-theme-edit-preset-view" style="display: none;">
+
                         <div class="custom-textarea-wrapper" style="flex: none; margin-bottom: 12px; padding: 12px 16px;">
                             <input type="text" id="wc-edit-preset-name" placeholder="主题预设名称" style="width: 100%; border: none; background: transparent; outline: none; font-size: 16px; font-weight: 600; color: var(--text-main);">
                         </div>
@@ -4291,6 +4336,21 @@
                 </div>
             </div>
         </div>
+        
+        <!-- 聊天壁纸上传菜单 -->
+        <div class="icon-menu-overlay" id="wcChatBgMenuOverlay" onclick="wcCloseChatBgMenu()" style="z-index: 2000;">
+            <div class="icon-menu" id="wcChatBgMenu" onclick="event.stopPropagation()">
+                <div class="icon-menu-item" onclick="document.getElementById('wc-chat-bg-file-input').click(); wcCloseChatBgMenu();">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16V6a2 2 0 0 1 2-2h10"></path><rect x="8" y="8" width="14" height="14" rx="2" ry="2"></rect><circle cx="13.5" cy="13.5" r="1.5"></circle><path d="M8 18l4-4 2 2 3-3 5 5"></path></svg>
+                    <span>照片图库</span>
+                </div>
+                <div class="icon-menu-item" onclick="wcHandleChatBgUrl();">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    <span>使用 URL</span>
+                </div>
+            </div>
+        </div>
+
         <div class="wechat-home-indicator" onclick="closeWechatApp()"></div>
     </div>
 </div>
@@ -4956,6 +5016,45 @@
                 wbEntries = [];
             }
         };
+
+        // --- 新增：加载微信聊天壁纸数据 ---
+        const wcBgRequest = store.get("wechatBgData");
+        wcBgRequest.onsuccess = (e) => {
+            const data = e.target.result;
+            if (data) {
+                wcChatBgList = data.list || [];
+                wcCurrentChatBg = data.current || '';
+                if (typeof wcApplyChatBg === 'function') wcApplyChatBg();
+            }
+        };
+
+        // --- 加载全局设置数据 ---
+        const settingsRequest = store.get("appSettings");
+        settingsRequest.onsuccess = (e) => {
+            const sData = e.target.result;
+            if (sData && sData.data) {
+                appSettings = Object.assign(appSettings, sData.data);
+            }
+            
+            // 在数据加载完成后执行初始化
+            applyStatusBarVisibility();
+            initThemeAndBrightness();
+            
+            wcPresets = appSettings.wc_presets || [];
+            wcCurrentPresetId = appSettings.wc_current_preset_id;
+            wcTimestampEnabled = appSettings.wc_timestamp_enabled;
+            wcApplyTimestampSettings();
+            
+            wcCurrentBubbleTheme = appSettings.wc_bubble_theme || 'image';
+            wcCurrentColorScheme = appSettings.wc_bubble_color || 'default';
+            wcApplyBubbleTheme();
+            
+            if (appSettings.wc_avatar_settings) {
+                wcAvatarSettings = appSettings.wc_avatar_settings;
+            }
+            initWcAvatarSettings();
+            initWcFontSettings();
+        };
     }
 
     let currentWallpaperSrc = null;
@@ -5123,11 +5222,29 @@
     const editDone = document.getElementById('editDone');
     const statusBar = document.getElementById('statusBar');
     const dockContainer = document.getElementById('dock');
-    const STATUS_BAR_VISIBILITY_KEY = 'simulatedStatusBarVisible';
+    let appSettings = {
+        simulatedStatusBarVisible: true,
+        ios_theme_mode: 'light',
+        ios_brightness: 100,
+        wc_presets: [],
+        wc_current_preset_id: null,
+        wc_timestamp_enabled: true,
+        wc_bubble_theme: 'image',
+        wc_bubble_color: 'default',
+        wc_avatar_settings: { enabled: false, size: 40, radius: 50, frameUrlChat: '', frameUrlUser: '', savedFrames: [] },
+        wc_font_settings: null
+    };
+
+    function saveAppSettings() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "appSettings", data: appSettings });
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+    }
 
     function isStatusBarVisible() {
-        const savedValue = localStorage.getItem(STATUS_BAR_VISIBILITY_KEY);
-        return savedValue === null || savedValue === 'true';
+        return appSettings.simulatedStatusBarVisible;
     }
 
     function applyStatusBarVisibility() {
@@ -5144,11 +5261,10 @@
     }
 
     function toggleStatusBarVisibility() {
-        localStorage.setItem(STATUS_BAR_VISIBILITY_KEY, String(!isStatusBarVisible()));
+        appSettings.simulatedStatusBarVisible = !isStatusBarVisible();
+        saveAppSettings();
         applyStatusBarVisibility();
     }
-
-    applyStatusBarVisibility();
 
     let pressTimer = null;
     let startX = 0, startY = 0;
@@ -6931,6 +7047,8 @@
         const editView = document.getElementById('wc-theme-edit-preset-view');
         const fontView = document.getElementById('wc-theme-font-view');
         const avatarView = document.getElementById('wc-theme-avatar-view');
+        const bubbleView = document.getElementById('wc-theme-bubble-view');
+        const chatBgView = document.getElementById('wc-theme-chat-bg-view');
         
         if (customView.style.display === 'flex') {
             wcShowThemeMenu(); wcResetAllSwipes();
@@ -6942,6 +7060,10 @@
             wcShowThemeMenu(); wcResetAllSwipes();
         } else if (avatarView && avatarView.style.display === 'flex') {
             wcShowThemeMenu(); wcResetAllSwipes();
+        } else if (bubbleView && bubbleView.style.display === 'flex') {
+            wcShowThemeMenu(); wcResetAllSwipes();
+        } else if (chatBgView && chatBgView.style.display === 'flex') {
+            wcShowThemeMenu(); wcResetAllSwipes();
         } else {
             wcCloseThemeModal();
         }
@@ -6950,12 +7072,13 @@
     // ==========================================
     // 微信自定义美化与预设库逻辑
     // ==========================================
-    let wcPresets = JSON.parse(localStorage.getItem('wc_presets')) || [];
+    let wcPresets = [];
     let wcCurrentEditId = null;
-    let wcCurrentPresetId = localStorage.getItem('wc_current_preset_id') || null;
+    let wcCurrentPresetId = null;
 
     function wcSavePresetsToStorage() {
-        localStorage.setItem('wc_presets', JSON.stringify(wcPresets));
+        appSettings.wc_presets = wcPresets;
+        saveAppSettings();
     }
 
     function wcRenderPresets() {
@@ -6993,6 +7116,8 @@
         document.getElementById('wc-theme-edit-preset-view').style.display = 'none';
         document.getElementById('wc-theme-font-view').style.display = 'none';
         document.getElementById('wc-theme-avatar-view').style.display = 'none';
+        if(document.getElementById('wc-theme-bubble-view')) document.getElementById('wc-theme-bubble-view').style.display = 'none';
+        if(document.getElementById('wc-theme-chat-bg-view')) document.getElementById('wc-theme-chat-bg-view').style.display = 'none';
         document.querySelector('#wechatAppUI .theme-capsule').style.display = 'flex';
         document.getElementById('wc-custom-preview-box').style.display = 'none';
         document.getElementById('wc-theme-modal-title').innerText = 'WeTheme';
@@ -7008,6 +7133,8 @@
         document.getElementById('wc-theme-edit-preset-view').style.display = 'none';
         document.getElementById('wc-theme-font-view').style.display = 'none';
         document.getElementById('wc-theme-avatar-view').style.display = 'none';
+        if(document.getElementById('wc-theme-bubble-view')) document.getElementById('wc-theme-bubble-view').style.display = 'none';
+        if(document.getElementById('wc-theme-chat-bg-view')) document.getElementById('wc-theme-chat-bg-view').style.display = 'none';
         document.querySelector('#wechatAppUI .theme-capsule').style.display = 'flex';
         document.getElementById('wc-custom-preview-box').style.display = 'none';
         document.getElementById('wc-theme-modal-title').innerText = '美化预设库';
@@ -7022,6 +7149,8 @@
         document.getElementById('wc-theme-edit-preset-view').style.display = 'none';
         document.getElementById('wc-theme-font-view').style.display = 'none';
         document.getElementById('wc-theme-avatar-view').style.display = 'none';
+        if(document.getElementById('wc-theme-bubble-view')) document.getElementById('wc-theme-bubble-view').style.display = 'none';
+        if(document.getElementById('wc-theme-chat-bg-view')) document.getElementById('wc-theme-chat-bg-view').style.display = 'none';
         document.querySelector('#wechatAppUI .theme-capsule').style.display = 'none';
         document.getElementById('wc-custom-preview-box').style.display = 'flex';
         document.getElementById('wc-theme-modal-title').innerText = '自定义美化';
@@ -7035,6 +7164,8 @@
         document.getElementById('wc-theme-edit-preset-view').style.display = 'none';
         document.getElementById('wc-theme-font-view').style.display = 'flex';
         document.getElementById('wc-theme-avatar-view').style.display = 'none';
+        if(document.getElementById('wc-theme-bubble-view')) document.getElementById('wc-theme-bubble-view').style.display = 'none';
+        if(document.getElementById('wc-theme-chat-bg-view')) document.getElementById('wc-theme-chat-bg-view').style.display = 'none';
         document.querySelector('#wechatAppUI .theme-capsule').style.display = 'none';
         document.getElementById('wc-custom-preview-box').style.display = 'flex';
         document.getElementById('wc-theme-modal-title').innerText = '字体美化';
@@ -7048,6 +7179,8 @@
         document.getElementById('wc-theme-edit-preset-view').style.display = 'none';
         document.getElementById('wc-theme-font-view').style.display = 'none';
         document.getElementById('wc-theme-avatar-view').style.display = 'flex';
+        if(document.getElementById('wc-theme-bubble-view')) document.getElementById('wc-theme-bubble-view').style.display = 'none';
+        if(document.getElementById('wc-theme-chat-bg-view')) document.getElementById('wc-theme-chat-bg-view').style.display = 'none';
         document.querySelector('#wechatAppUI .theme-capsule').style.display = 'none';
         document.getElementById('wc-custom-preview-box').style.display = 'flex';
         document.getElementById('wc-theme-modal-title').innerText = '头像显示';
@@ -7064,12 +7197,28 @@
         document.getElementById('wc-theme-edit-preset-view').style.display = 'flex';
         document.getElementById('wc-theme-font-view').style.display = 'none';
         document.getElementById('wc-theme-avatar-view').style.display = 'none';
+        if(document.getElementById('wc-theme-bubble-view')) document.getElementById('wc-theme-bubble-view').style.display = 'none';
+        if(document.getElementById('wc-theme-chat-bg-view')) document.getElementById('wc-theme-chat-bg-view').style.display = 'none';
         document.querySelector('#wechatAppUI .theme-capsule').style.display = 'none';
         document.getElementById('wc-custom-preview-box').style.display = 'none';
         document.getElementById('wc-theme-modal-title').innerText = '编辑预设';
         
         document.getElementById('wc-edit-preset-name').value = preset.name;
         document.getElementById('wc-edit-preset-css').value = preset.css; 
+    }
+
+    function wcShowThemeChatBg() {
+        document.getElementById('wc-theme-menu-view').style.display = 'none';
+        document.getElementById('wc-theme-preset-view').style.display = 'none';
+        document.getElementById('wc-theme-custom-view').style.display = 'none';
+        document.getElementById('wc-theme-edit-preset-view').style.display = 'none';
+        document.getElementById('wc-theme-font-view').style.display = 'none';
+        document.getElementById('wc-theme-avatar-view').style.display = 'none';
+        if(document.getElementById('wc-theme-bubble-view')) document.getElementById('wc-theme-bubble-view').style.display = 'none';
+        document.getElementById('wc-theme-chat-bg-view').style.display = 'flex';
+        document.querySelector('#wechatAppUI .theme-capsule').style.display = 'none';
+        document.getElementById('wc-custom-preview-box').style.display = 'none';
+        document.getElementById('wc-theme-modal-title').innerText = '聊天壁纸';
     }
 
     function wcSaveEditedPreset() {
@@ -7100,7 +7249,8 @@
             document.getElementById('wc-custom-css-input').value = preset.css;
             wcApplyCustomCss();
             wcCurrentPresetId = id;
-            localStorage.setItem('wc_current_preset_id', id);
+            appSettings.wc_current_preset_id = id;
+            saveAppSettings();
             wcRenderPresets();
             showCustomAlert("提示", `已应用预设：${preset.name}`);
         }
@@ -7108,10 +7258,41 @@
 
     function wcToggleSwitch(element) { element.classList.toggle('active'); }
     
+    let wcTimestampEnabled = true;
+
+    function wcApplyTimestampSettings() {
+        let styleTag = document.getElementById('wc-dynamic-timestamp-style');
+        if (!styleTag) {
+            styleTag = document.createElement('style');
+            styleTag.id = 'wc-dynamic-timestamp-style';
+            document.head.appendChild(styleTag);
+        }
+        if (wcTimestampEnabled) {
+            styleTag.innerHTML = `#wechatAppUI .msg-meta { display: flex !important; }`;
+        } else {
+            styleTag.innerHTML = `#wechatAppUI .msg-meta { display: none !important; }`;
+        }
+        
+        const toggleEl = document.getElementById('wc-timestamp-toggle');
+        if (toggleEl) {
+            if (wcTimestampEnabled) toggleEl.classList.add('active');
+            else toggleEl.classList.remove('active');
+        }
+    }
+
+    function wcToggleTimestamp(element) {
+        element.classList.toggle('active');
+        wcTimestampEnabled = element.classList.contains('active');
+        appSettings.wc_timestamp_enabled = wcTimestampEnabled;
+        saveAppSettings();
+        wcApplyTimestampSettings();
+    }
+
     function wcSaveCustomTheme() { 
         wcApplyCustomCss();
         wcCurrentPresetId = null;
-        localStorage.removeItem('wc_current_preset_id');
+        appSettings.wc_current_preset_id = null;
+        saveAppSettings();
         showCustomAlert("提示", "自定义 CSS 已应用！"); 
     }
     
@@ -7147,8 +7328,273 @@
         styleTag.innerHTML = `#wechatAppUI { ${cssText} } \n ${cssText.replace(/(^|\})\s*([^{]+)/g, function(m, p1, p2) { return p1 + ' #wechatAppUI ' + p2.split(',').join(', #wechatAppUI '); })}`;
     }
 
+    function wcCopyOriginalCSS() {
+        const cssTemplate = `/* ==============================
+ * 聊天室基础 CSS 模板
+ * ============================== */
+
+/* 1. 顶栏 (Header) */
+.chat-header-container {
+    /* 顶栏容器 */
+}
+.room-icon-btn.frosted-glass {
+    /* 左右两侧圆形按钮 */
+    background-color: rgba(255, 255, 255, 0.75);
+}
+.room-info-capsule.frosted-glass {
+    /* 中间名字胶囊 */
+    background-color: rgba(255, 255, 255, 0.75);
+}
+
+/* 2. 底栏 (Footer) */
+.footer-capsule {
+    /* 底部输入框胶囊 */
+    background-color: rgba(255, 255, 255, 0.75);
+}
+.room-send-btn {
+    /* 发送按钮 */
+    background-color: #3390EC;
+}
+
+/* 3. 聊天气泡 (Bubbles) */
+.message-bubble {
+    /* 气泡通用样式 */
+    border-radius: 18px;
+}
+.message-bubble.received {
+    /* 对方气泡背景色 */
+    background-color: #F2F2F7;
+}
+.message-bubble.sent {
+    /* 自己气泡背景色 */
+    background-color: #95ec69;
+}
+
+/* 4. 字体与时间戳 (Text & Meta) */
+.msg-text {
+    /* 聊天文本 */
+    font-size: 16px;
+    color: #000;
+}
+.msg-meta {
+    /* 气泡底部的时间戳 */
+    color: #8E8E93;
+    font-size: 11px;
+}
+
+/* 5. 头像 (Avatars) */
+.msg-avatar {
+    /* 头像大小与圆角 */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+}
+
+/* 6. 聊天背景 (Chat Area) */
+.chat-area {
+    /* 聊天区背景色 */
+    background-color: transparent;
+}`;
+        
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(cssTemplate).then(() => {
+                showToast('原CSS已复制到剪贴板');
+            }).catch(err => {
+                showCustomAlert('错误', '复制失败，请手动尝试');
+            });
+        } else {
+            // 兼容不支持 clipboard API 的环境
+            const textArea = document.createElement("textarea");
+            textArea.value = cssTemplate;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('原CSS已复制到剪贴板');
+            } catch (err) {
+                showCustomAlert('错误', '复制失败，请手动尝试');
+            }
+            textArea.remove();
+        }
+    }
+
+    // --- 微信气泡主题库逻辑 ---
+    let wcCurrentBubbleTheme = 'image'; // 默认使用图片气泡
+    let wcCurrentColorScheme = 'default';
+
+    const wcColorSchemes = [
+        { id: 'default', name: '默认 (黑白)', leftBg: '#F2F2F7', leftText: '#000000', rightBg: '#000000', rightText: '#ffffff' },
+        { id: 'wechat-green', name: '微信绿', leftBg: '#95ec69', leftText: '#000000', rightBg: '#95ec69', rightText: '#000000' },
+        { id: 'gray-black', name: '灰黑', leftBg: '#E5E5EA', leftText: '#000000', rightBg: '#333333', rightText: '#ffffff' },
+        { id: 'gray-white', name: '灰白', leftBg: '#E5E5EA', leftText: '#000000', rightBg: '#FFFFFF', rightText: '#000000' },
+        { id: 'pink-white', name: '粉白', leftBg: '#F8E8EE', leftText: '#000000', rightBg: '#FFFFFF', rightText: '#000000' },
+        { id: 'white-pink', name: '白粉', leftBg: '#FFFFFF', leftText: '#000000', rightBg: '#F8E8EE', rightText: '#000000' },
+        { id: 'blue-white', name: '低饱蓝白', leftBg: '#E6F0FA', leftText: '#000000', rightBg: '#FFFFFF', rightText: '#000000' },
+        { id: 'white-blue', name: '低饱白蓝', leftBg: '#FFFFFF', leftText: '#000000', rightBg: '#E6F0FA', rightText: '#000000' },
+        { id: 'white-green', name: '白绿', leftBg: '#FFFFFF', leftText: '#000000', rightBg: '#E9F7E6', rightText: '#000000' }
+    ];
+
+    function wcShowThemeBubble() {
+        document.getElementById('wc-theme-menu-view').style.display = 'none';
+        document.getElementById('wc-theme-preset-view').style.display = 'none';
+        document.getElementById('wc-theme-custom-view').style.display = 'none';
+        document.getElementById('wc-theme-edit-preset-view').style.display = 'none';
+        document.getElementById('wc-theme-font-view').style.display = 'none';
+        document.getElementById('wc-theme-avatar-view').style.display = 'none';
+        document.getElementById('wc-theme-bubble-view').style.display = 'flex';
+        document.querySelector('#wechatAppUI .theme-capsule').style.display = 'none';
+        document.getElementById('wc-custom-preview-box').style.display = 'flex';
+        document.getElementById('wc-theme-modal-title').innerText = '气泡主题库';
+        wcRenderBubbleList();
+    }
+
+    function wcRenderBubbleList() {
+        const container = document.getElementById('wc-bubble-list-container');
+        const currentScheme = wcColorSchemes.find(s => s.id === wcCurrentColorScheme) || wcColorSchemes[0];
+        
+        // 使用主题预设的 SVG 图标
+        const presetSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4 2.9967H20C20.5523 2.9967 21 3.44442 21 3.9967V8.9967C21 9.54899 20.5523 9.9967 20 9.9967H4C3.44772 9.9967 3 9.54899 3 8.9967V3.9967C3 3.44442 3.44772 2.9967 4 2.9967ZM6 11.9967H12C12.5523 11.9967 13 12.4444 13 12.9967V15.9967H14V21.9967H10V15.9967H11V13.9967H5C4.44772 13.9967 4 13.549 4 12.9967V10.9967H6V11.9967ZM17.7322 13.7289L19.5 11.9612L21.2678 13.7289C22.2441 14.7052 22.2441 16.2882 21.2678 17.2645C20.2915 18.2408 18.7085 18.2408 17.7322 17.2645C16.7559 16.2882 16.7559 14.7052 17.7322 13.7289Z"></path></svg>`;
+        
+        // 动态生成双色圆形指示器
+        const dualColorCircle = `<div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(to right, ${currentScheme.leftBg} 50%, ${currentScheme.rightBg} 50%); border: 1px solid rgba(0,0,0,0.1); flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);"></div>`;
+
+        const styles = [
+            { id: 'image', name: '默认气泡' },
+            { id: 'telegram', name: '仿Telegram 气泡' },
+            { id: 'capsule', name: '仿line气泡' }
+        ];
+
+        if (container) {
+            let html = '';
+            styles.forEach(style => {
+                const isSelected = wcCurrentBubbleTheme === style.id;
+                const inUseHtml = isSelected ? `<div style="position: absolute; top: 0; right: 0; background: var(--tg-blue); color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 0 20px 0 10px; z-index: 10;">使用中</div>` : '';
+                const activeBorder = isSelected ? 'border: 2px solid var(--tg-blue);' : 'border: 2px solid transparent;';
+                
+                html += `
+                    <div class="preset-item-wrapper" style="${activeBorder} transition: all 0.2s;">
+                        ${inUseHtml}
+                        <div class="preset-item-content" style="padding: 14px; cursor: pointer;" onclick="wcSelectBubbleTheme('${style.id}')">
+                            <div class="preset-icon" style="width: 44px; height: 44px;">
+                                <div style="width: 24px; height: 24px; color: #8E8E93;">${presetSvg}</div>
+                            </div>
+                            <div class="preset-info">
+                                <div class="preset-title" style="font-size: 16px;">${style.name}</div>
+                            </div>
+                            ${dualColorCircle}
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        const colorContainer = document.getElementById('wc-bubble-color-circles');
+        if (colorContainer) {
+            let html = '';
+            wcColorSchemes.forEach(scheme => {
+                const isActive = wcCurrentColorScheme === scheme.id ? 'box-shadow: 0 0 0 2px var(--tg-blue), 0 2px 6px rgba(0,0,0,0.2); transform: scale(1.1);' : 'box-shadow: 0 2px 6px rgba(0,0,0,0.1); transform: scale(1);';
+                html += `
+                    <div style="box-sizing: border-box; width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(to right, ${scheme.leftBg} 50%, ${scheme.rightBg} 50%); cursor: pointer; flex-shrink: 0; ${isActive} transition: all 0.2s;" onclick="wcSelectColorScheme('${scheme.id}')"></div>
+                `;
+            });
+            colorContainer.innerHTML = html;
+        }
+    }
+
+    function wcSelectBubbleTheme(themeId) {
+        wcCurrentBubbleTheme = themeId;
+        wcApplyBubbleTheme();
+        wcRenderBubbleList();
+    }
+
+    function wcSelectColorScheme(schemeId) {
+        wcCurrentColorScheme = schemeId;
+        wcApplyBubbleTheme();
+        wcRenderBubbleList();
+    }
+
+    function wcApplyBubbleTheme() {
+        let styleTag = document.getElementById('wc-dynamic-bubble-style');
+        if (!styleTag) {
+            styleTag = document.createElement('style');
+            styleTag.id = 'wc-dynamic-bubble-style';
+            document.head.appendChild(styleTag);
+        }
+
+        const scheme = wcColorSchemes.find(s => s.id === wcCurrentColorScheme) || wcColorSchemes[0];
+
+        let css = `
+            #wechatAppUI .message-bubble.received { background-color: ${scheme.leftBg} !important; color: ${scheme.leftText} !important; }
+            #wechatAppUI .message-bubble.sent { background-color: ${scheme.rightBg} !important; color: ${scheme.rightText} !important; }
+            #wechatAppUI .message-bubble.received .msg-text { color: ${scheme.leftText} !important; }
+            #wechatAppUI .message-bubble.sent .msg-text { color: ${scheme.rightText} !important; }
+        `;
+
+        if (wcCurrentBubbleTheme === 'telegram') {
+            const leftSvgColor = encodeURIComponent(scheme.leftBg);
+            const rightSvgColor = encodeURIComponent(scheme.rightBg);
+            
+            css += `
+                #wechatAppUI .message-row.group-top, #wechatAppUI .message-row.group-mid { margin-bottom: 4px !important; }
+                #wechatAppUI .message-bubble { margin-bottom: 0 !important; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.08)) !important; padding: 8px 12px 8px 14px !important; }
+                #wechatAppUI .msg-meta { position: static !important; margin-bottom: -2px !important; }
+                #wechatAppUI .message-bubble.received { border-radius: 18px 18px 18px 0 !important; } 
+                #wechatAppUI .message-bubble.sent { border-radius: 18px 18px 0 18px !important; } 
+                #wechatAppUI .message-bubble.received.group-top { border-radius: 18px 18px 18px 6px !important; } 
+                #wechatAppUI .message-bubble.received.group-mid { border-radius: 6px 18px 18px 6px !important; } 
+                #wechatAppUI .message-bubble.received.group-bottom { border-radius: 6px 18px 18px 0 !important; } 
+                #wechatAppUI .message-bubble.sent.group-top { border-radius: 18px 18px 6px 18px !important; } 
+                #wechatAppUI .message-bubble.sent.group-mid { border-radius: 18px 6px 6px 18px !important; } 
+                #wechatAppUI .message-bubble.sent.group-bottom { border-radius: 18px 6px 0 18px !important; } 
+                #wechatAppUI .message-bubble.received .msg-text { padding-bottom: 2px !important; }
+                #wechatAppUI .message-bubble.sent .msg-text { padding-bottom: 2px !important; }
+                #wechatAppUI .message-bubble.received.tail::before { display: block !important; content: '' !important; position: absolute !important; bottom: 0 !important; left: -8px !important; width: 8px !important; height: 16px !important; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 16'%3E%3Cpath d='M8 0C8 10 4 16 0 16L8 16Z' fill='${leftSvgColor}'/%3E%3C/svg%3E") !important; background-size: contain !important; background-repeat: no-repeat !important; }
+                #wechatAppUI .message-bubble.sent.tail::before { display: block !important; content: '' !important; position: absolute !important; bottom: 0 !important; right: -8px !important; width: 8px !important; height: 16px !important; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 16'%3E%3Cpath d='M0 0C0 10 4 16 8 16L0 16Z' fill='${rightSvgColor}'/%3E%3C/svg%3E") !important; background-size: contain !important; background-repeat: no-repeat !important; }
+                #wechatAppUI .msg-meta.sent { color: var(--meta-right) !important; }
+                #wechatAppUI .msg-meta.received { color: var(--meta-left) !important; }
+            `;
+        } else if (wcCurrentBubbleTheme === 'capsule') {
+            const leftSvgColor = encodeURIComponent(scheme.leftBg);
+            const rightSvgColor = encodeURIComponent(scheme.rightBg);
+            
+            css += `
+                #wechatAppUI .message-row.group-top, #wechatAppUI .message-row.group-mid { margin-bottom: 3px !important; }
+                #wechatAppUI .message-bubble { padding: 7px 14px !important; border-radius: 20px !important; min-height: 17px !important; margin-bottom: 14px !important; }
+                #wechatAppUI .msg-meta { position: static !important; margin-bottom: -2px !important; }
+                
+                /* 尾巴逻辑：利用你代码中已有的 tail 类名来控制只在第一条显示尾巴 */
+                #wechatAppUI .message-bubble.received.tail::before { 
+                    display: block !important; content: '' !important; position: absolute !important; 
+                    top: 3px !important; left: -3px !important; width: 9px !important; height: 11px !important; 
+                    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 10,2 C 6,3 3,2 0,0.5 C 4,6 7,9 10,11 Z' fill='${leftSvgColor}' stroke='${leftSvgColor}' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") !important; 
+                    background-size: contain !important; background-repeat: no-repeat !important; z-index: 1 !important;
+                }
+                #wechatAppUI .message-bubble.sent.tail::before { 
+                    display: block !important; content: '' !important; position: absolute !important; 
+                    top: 3px !important; right: -3px !important; width: 9px !important; height: 11px !important; 
+                    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 0,2 C 4,3 7,2 10,0.5 C 6,6 3,9 0,11 Z' fill='${rightSvgColor}' stroke='${rightSvgColor}' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") !important; 
+                    background-size: contain !important; background-repeat: no-repeat !important; z-index: 1 !important;
+                }
+                
+                #wechatAppUI .msg-meta.sent { color: #8E8E93 !important; }
+                #wechatAppUI .msg-meta.received { color: #8E8E93 !important; }
+            `;
+        } else {
+            // Default bubble dark mode removed
+        }
+
+        styleTag.innerHTML = css;
+        appSettings.wc_bubble_theme = wcCurrentBubbleTheme;
+        appSettings.wc_bubble_color = wcCurrentColorScheme;
+        saveAppSettings();
+    }
+
     // --- 微信头像美化逻辑 ---
-    let wcAvatarSettings = JSON.parse(localStorage.getItem('wc_avatar_settings')) || { enabled: false, size: 40, radius: 50, frameUrlChat: '', frameUrlUser: '', savedFrames: [] };
+    let wcAvatarSettings = { enabled: false, size: 40, radius: 50, frameUrlChat: '', frameUrlUser: '', savedFrames: [] };
 
     function wcApplyAvatarSettings() {
         const toggleEl = document.getElementById('wc-avatar-toggle');
@@ -7159,7 +7605,8 @@
         wcAvatarSettings.enabled = enabled;
         wcAvatarSettings.size = size;
         wcAvatarSettings.radius = radius;
-        localStorage.setItem('wc_avatar_settings', JSON.stringify(wcAvatarSettings));
+        appSettings.wc_avatar_settings = wcAvatarSettings;
+        saveAppSettings();
 
         // 更新预览图
         const chatPreview = document.getElementById('wc-chat-frame-preview');
@@ -7272,7 +7719,7 @@
         showToast('头像框已删除');
     }
 
-    (function initWcAvatarSettings() {
+    function initWcAvatarSettings() {
         if (wcAvatarSettings.enabled) {
             const toggleEl = document.getElementById('wc-avatar-toggle');
             if (toggleEl) toggleEl.classList.add('active');
@@ -7282,14 +7729,15 @@
         const radiusSlider = document.getElementById('wc-avatar-radius-slider');
         if (radiusSlider) radiusSlider.value = wcAvatarSettings.radius;
         wcApplyAvatarSettings();
-    })();
+    }
 
     // --- 微信字体美化逻辑 ---
     let wcCurrentFontFamily = 'default';
 
     function wcApplyFontSettings() {
         const size = document.getElementById('wc-font-size-slider').value;
-        const color = document.getElementById('wc-font-color-picker').value;
+        const colorReceived = document.getElementById('wc-font-color-received').value;
+        const colorSent = document.getElementById('wc-font-color-sent').value;
         
         let styleTag = document.getElementById('wc-dynamic-font-style');
         if (!styleTag) {
@@ -7305,10 +7753,13 @@
 
         styleTag.innerHTML = `
             #wechatAppUI * { font-family: ${fontFamilyStr} !important; }
-            #wechatAppUI .msg-text { font-size: ${size}px !important; color: ${color} !important; }
+            #wechatAppUI .msg-text { font-size: ${size}px !important; }
+            #wechatAppUI .message-bubble.received .msg-text { color: ${colorReceived} !important; }
+            #wechatAppUI .message-bubble.sent .msg-text { color: ${colorSent} !important; }
         `;
         
-        localStorage.setItem('wc_font_settings', JSON.stringify({ size: size, color: color, family: wcCurrentFontFamily }));
+        appSettings.wc_font_settings = { size: size, colorReceived: colorReceived, colorSent: colorSent, family: wcCurrentFontFamily };
+        saveAppSettings();
     }
 
     function wcRenderFontList() {
@@ -7392,18 +7843,23 @@
         });
     }
 
-    (function initWcFontSettings() {
-        const saved = localStorage.getItem('wc_font_settings');
-        if (saved) {
+    function initWcFontSettings() {
+        const data = appSettings.wc_font_settings;
+        if (data) {
             try {
-                const data = JSON.parse(saved);
                 if (data.size) document.getElementById('wc-font-size-slider').value = data.size;
-                if (data.color) document.getElementById('wc-font-color-picker').value = data.color;
+                if (data.colorReceived) document.getElementById('wc-font-color-received').value = data.colorReceived;
+                if (data.colorSent) document.getElementById('wc-font-color-sent').value = data.colorSent;
+                // 兼容旧版单颜色数据
+                if (data.color && !data.colorReceived) {
+                    document.getElementById('wc-font-color-received').value = data.color;
+                    document.getElementById('wc-font-color-sent').value = data.color;
+                }
                 if (data.family) wcCurrentFontFamily = data.family;
                 wcApplyFontSettings();
             } catch(e){}
         }
-    })();
+    }
 
     let wcStartX = 0, wcStartY = 0, wcCurrentX = 0, wcCurrentY = 0, wcActiveSwipeItem = null, wcIsScrolling = false;
     function wcHandleTouchStart(e) {
@@ -7466,9 +7922,166 @@
             else if (prevIsSame && !nextIsSame) { row.classList.add('group-bottom'); bubble.classList.add('group-bottom'); bubble.classList.add('tail'); }
         });
     }
+
+    // --- 微信聊天壁纸逻辑 ---
+    let wcChatBgList = [];
+    let wcCurrentChatBg = '';
+
+    function wcSaveChatBgDataToDB() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "wechatBgData", list: wcChatBgList, current: wcCurrentChatBg });
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+    }
+
+    function wcApplyChatBg() {
+        const chatArea = document.getElementById('wc-chat-area');
+        if (wcCurrentChatBg) {
+            if (chatArea) {
+                chatArea.style.backgroundImage = `url('${wcCurrentChatBg}')`;
+                chatArea.style.backgroundSize = 'cover';
+                chatArea.style.backgroundPosition = 'center';
+                chatArea.style.backgroundColor = 'transparent';
+            }
+        } else {
+            if (chatArea) {
+                chatArea.style.backgroundImage = 'none';
+                chatArea.style.backgroundColor = ''; 
+            }
+        }
+    }
+
+    function wcRenderChatBgLibrary() {
+        const carousel = document.getElementById('wc-chat-bg-carousel');
+        if (!carousel) return;
+        
+        let html = `
+            <div class="wc-bg-add-box" onclick="wcOpenChatBgMenu(event)">
+                <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>添加壁纸</span>
+            </div>
+        `;
+        
+        // 默认无壁纸选项
+        const isNoneSelected = wcCurrentChatBg === '' ? 'selected' : '';
+        html += `
+            <div class="wc-bg-card ${isNoneSelected}" onclick="wcSetChatBg('')">
+                <div class="wc-bg-img" style="background-color: #E5E5EA; display: flex; justify-content: center; align-items: center; color: #8e8e93; font-size: 14px; font-weight: 600;">无壁纸</div>
+                <div class="wc-bg-selected-border"></div>
+            </div>
+        `;
+
+        wcChatBgList.forEach((bg, index) => {
+            const isSelected = wcCurrentChatBg === bg ? 'selected' : '';
+            html += `
+                <div class="wc-bg-card ${isSelected}" onclick="wcSetChatBg('${bg}')">
+                    <div class="wc-bg-delete-btn" onclick="wcDeleteChatBg(${index}, event)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </div>
+                    <div class="wc-bg-img" style="background-image: url('${bg}')"></div>
+                    <div class="wc-bg-selected-border"></div>
+                </div>
+            `;
+        });
+        
+        carousel.innerHTML = html;
+    }
+
+    function wcOpenChatBgMenu(event) {
+        const overlay = document.getElementById('wcChatBgMenuOverlay');
+        const menu = document.getElementById('wcChatBgMenu');
+        overlay.style.display = 'block';
+        const rect = event.currentTarget.getBoundingClientRect();
+        let top = rect.bottom + 10;
+        let left = rect.left;
+        if (top + 130 > window.innerHeight) top = rect.top - 120;
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+    }
+
+    function wcCloseChatBgMenu() {
+        document.getElementById('wcChatBgMenuOverlay').style.display = 'none';
+    }
+
+    function wcHandleChatBgUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const MAX_WIDTH = 1080;
+                const MAX_HEIGHT = 2400;
+                let width = img.width;
+                let height = img.height;
+                if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                    const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+                    width = Math.round(width * ratio);
+                    height = Math.round(height * ratio);
+                }
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+                const base64Url = canvas.toDataURL('image/jpeg', 0.85);
+                
+                wcChatBgList.unshift(base64Url);
+                wcSetChatBg(base64Url); // 内部会调用 wcSaveChatBgDataToDB
+                showToast('壁纸添加成功');
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+    }
+
+    function wcHandleChatBgUrl() {
+        wcCloseChatBgMenu();
+        showCustomPrompt('添加聊天壁纸', { placeholder: '输入图片 URL' }, '确定').then(url => {
+            if (url && url.trim()) {
+                wcChatBgList.unshift(url.trim());
+                wcSetChatBg(url.trim()); // 内部会调用 wcSaveChatBgDataToDB
+                showToast('壁纸添加成功');
+            }
+        });
+    }
+
+    function wcSetChatBg(url) {
+        wcCurrentChatBg = url;
+        wcSaveChatBgDataToDB();
+        wcApplyChatBg();
+        wcRenderChatBgLibrary();
+    }
+
+    function wcDeleteChatBg(index, event) {
+        event.stopPropagation();
+        showCustomConfirm('删除壁纸', '确定要删除这张聊天壁纸吗？', '删除', true).then(confirmed => {
+            if (confirmed) {
+                const deletedUrl = wcChatBgList[index];
+                wcChatBgList.splice(index, 1);
+                if (wcCurrentChatBg === deletedUrl) {
+                    wcSetChatBg(''); // 内部会调用 wcSaveChatBgDataToDB
+                } else {
+                    wcSaveChatBgDataToDB();
+                    wcRenderChatBgLibrary();
+                }
+            }
+        });
+    }
+
+    // 每次打开壁纸页面时渲染库
+    const originalWcShowThemeChatBg = window.wcShowThemeChatBg;
+    window.wcShowThemeChatBg = function() {
+        if (typeof originalWcShowThemeChatBg === 'function') originalWcShowThemeChatBg();
+        wcRenderChatBgLibrary();
+    };
+
     // ==========================================
 
     function openWorldbookApp() {
+
         const worldbookUI = document.getElementById('worldbookAppUI');
         if (worldbookUI) {
             worldbookUI.style.display = 'flex';
@@ -7519,13 +8132,14 @@
             lightOpt.classList.remove('active');
             darkOpt.classList.add('active');
             iphone.classList.add('dark-mode');
-            localStorage.setItem('ios_theme_mode', 'dark');
+            appSettings.ios_theme_mode = 'dark';
         } else {
             darkOpt.classList.remove('active');
             lightOpt.classList.add('active');
             iphone.classList.remove('dark-mode');
-            localStorage.setItem('ios_theme_mode', 'light');
+            appSettings.ios_theme_mode = 'light';
         }
+        saveAppSettings();
         
             // show three-dots button; click to expand vertical capsule menu
         const slider = document.getElementById('dsBrightnessSlider');
@@ -7546,28 +8160,29 @@
         }
 
             // show three-dots button; click to expand vertical capsule menu
-        localStorage.setItem('ios_brightness', el.value);
+        appSettings.ios_brightness = el.value;
+        saveAppSettings();
     }
 
             // show three-dots button; click to expand vertical capsule menu
-    (function initThemeAndBrightness() {
-        const savedTheme = localStorage.getItem('ios_theme_mode');
+    function initThemeAndBrightness() {
+        const savedTheme = appSettings.ios_theme_mode;
         if (savedTheme === 'dark') {
             toggleDsAppearance('dark');
         }
 
             // show three-dots button; click to expand vertical capsule menu
-        const savedBrightness = localStorage.getItem('ios_brightness');
+        const savedBrightness = appSettings.ios_brightness;
         const slider = document.getElementById('dsBrightnessSlider');
         if (slider) {
-            if (savedBrightness !== null) {
+            if (savedBrightness !== null && savedBrightness !== undefined) {
                 slider.value = savedBrightness;
             } else {
                 slider.value = 100; // 默认最亮
             }
             updateDsSlider(slider);
         }
-    })();
+    }
 
             // show three-dots button; click to expand vertical capsule menu
     function openAppleIdApp() {
@@ -9465,6 +10080,9 @@
             toggleWidgetViewMode('list');
             document.getElementById('topBarTitle').innerText = '管理组件';
             const wgc1 = document.getElementById('widgetToolbarMenu'); if (wgc1) { wgc1.style.display = 'none'; wgc1.classList.remove('show'); }
+            const doneBtn = document.getElementById('widgetDoneBtn'); if (doneBtn) doneBtn.style.display = 'block';
+            const viewBtn = document.getElementById('widgetViewBtn'); if (viewBtn) viewBtn.style.display = 'none';
+            const menuBtn = document.getElementById('themeMenuBtn'); if (menuBtn) menuBtn.style.display = 'none';
         }
         window.enterWidgetEditMode = enterWidgetEditMode;
 
@@ -9474,6 +10092,9 @@
             if (!silent && currentActiveTab === 'widget') {
                 document.getElementById('topBarTitle').innerText = 'Widgets';
                 const wgc2 = document.getElementById('widgetToolbarMenu'); if (wgc2) { wgc2.style.display = 'flex'; wgc2.classList.remove('show'); }
+                const doneBtn = document.getElementById('widgetDoneBtn'); if (doneBtn) doneBtn.style.display = 'none';
+                const viewBtn = document.getElementById('widgetViewBtn'); if (viewBtn) viewBtn.style.display = 'flex';
+                const menuBtn = document.getElementById('themeMenuBtn'); if (menuBtn) menuBtn.style.display = 'flex';
             }
         }
         window.exitWidgetEditMode = exitWidgetEditMode;
