@@ -1,8 +1,6 @@
 /**
- * Browser/PWA fullscreen split and adaptive system-bar coloring.
- * - Installed PWA: rely on standalone layout and safe-area CSS.
- * - Regular Android browser: request Fullscreen API after a user gesture.
- * - System-controlled margins: match the desktop's top color where possible.
+ * Unified mobile viewport controller.
+ * CSS consumes only --app-height, --system-bar-color and ios-installed.
  */
 document.addEventListener('DOMContentLoaded', () => {
     const root = document.documentElement;
@@ -10,18 +8,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeColorMeta = document.querySelector('meta[name="theme-color"]');
     const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    const isIosStandalone = window.navigator.standalone === true;
-    const displayModes = ['fullscreen', 'standalone', 'minimal-ui', 'window-controls-overlay'];
-    const isDisplayModeApp = displayModes.some(mode =>
-        window.matchMedia(`(display-mode: ${mode})`).matches
-    );
-    const isInstalledApp = isIosStandalone || isDisplayModeApp;
+    const isIosStandalone = isIos && window.navigator.standalone === true;
+    const isInstalledDisplayMode = ['fullscreen', 'standalone', 'minimal-ui', 'window-controls-overlay']
+        .some(mode => window.matchMedia(`(display-mode: ${mode})`).matches);
+    const isInstalledApp = isIosStandalone || isInstalledDisplayMode;
     const isAndroid = /Android/i.test(navigator.userAgent);
     const isMobile = window.matchMedia('(max-width: 1024px) and (hover: none)').matches;
-    let colorSyncToken = 0;
-    let colorSyncTimer = 0;
+    let viewportTimer = 0;
+    let colorTimer = 0;
+    let colorToken = 0;
 
-    function syncViewport() {
+    function updateViewportHeight() {
         const viewport = window.visualViewport;
         let appHeight = window.innerHeight;
 
@@ -46,9 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         root.style.setProperty('--app-height', `${Math.ceil(appHeight)}px`);
-        root.classList.toggle('app-installed', isInstalledApp);
         root.classList.toggle('ios-installed', isIosStandalone);
     }
+
     function fallbackSystemColor() {
         return appShell && appShell.classList.contains('dark-mode') ? '#000000' : '#fdfbfb';
     }
@@ -67,12 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function sampleWallpaperTop(url, token) {
         const image = new Image();
-        if (!url.startsWith('data:') && !url.startsWith('blob:')) {
-            image.crossOrigin = 'anonymous';
-        }
+        if (!url.startsWith('data:') && !url.startsWith('blob:')) image.crossOrigin = 'anonymous';
 
         image.onload = () => {
-            if (token !== colorSyncToken || !appShell) return;
+            if (token !== colorToken || !appShell) return;
 
             try {
                 const shellWidth = Math.max(1, appShell.clientWidth || window.innerWidth);
@@ -113,62 +108,54 @@ document.addEventListener('DOMContentLoaded', () => {
                     count += 1;
                 }
 
-                if (!count) throw new Error('No opaque wallpaper pixels');
-                const color = `rgb(${Math.round(red / count)}, ${Math.round(green / count)}, ${Math.round(blue / count)})`;
-                applySystemColor(color);
+                if (!count) throw new Error('No opaque pixels');
+                applySystemColor(`rgb(${Math.round(red / count)}, ${Math.round(green / count)}, ${Math.round(blue / count)})`);
             } catch (_) {
                 applySystemColor(fallbackSystemColor());
             }
         };
 
         image.onerror = () => {
-            if (token === colorSyncToken) applySystemColor(fallbackSystemColor());
+            if (token === colorToken) applySystemColor(fallbackSystemColor());
         };
         image.src = url;
     }
 
-    function syncSystemColor() {
-        const token = ++colorSyncToken;
+    function updateSystemColor() {
+        const token = ++colorToken;
         const fallback = fallbackSystemColor();
-
-        if (!appShell) {
-            applySystemColor(fallback);
-            return;
-        }
-
-        const backgroundUrl = extractBackgroundUrl(getComputedStyle(appShell).backgroundImage);
-        if (!backgroundUrl) {
-            applySystemColor(fallback);
-            return;
-        }
+        const backgroundUrl = appShell
+            ? extractBackgroundUrl(getComputedStyle(appShell).backgroundImage)
+            : '';
 
         applySystemColor(fallback);
-        sampleWallpaperTop(backgroundUrl, token);
+        if (backgroundUrl) sampleWallpaperTop(backgroundUrl, token);
     }
 
-    function scheduleSystemColorSync() {
-        window.clearTimeout(colorSyncTimer);
-        colorSyncTimer = window.setTimeout(syncSystemColor, 80);
+    function scheduleLayoutUpdate() {
+        window.clearTimeout(viewportTimer);
+        viewportTimer = window.setTimeout(updateViewportHeight, 150);
     }
 
-    syncViewport();
-    syncSystemColor();
+    function scheduleColorUpdate() {
+        window.clearTimeout(colorTimer);
+        colorTimer = window.setTimeout(updateSystemColor, 80);
+    }
+
+    updateViewportHeight();
+    updateSystemColor();
+
     window.addEventListener('resize', () => {
-        syncViewport();
-        scheduleSystemColorSync();
+        scheduleLayoutUpdate();
+        scheduleColorUpdate();
     }, { passive: true });
     window.addEventListener('orientationchange', () => {
-        syncViewport();
-        scheduleSystemColorSync();
+        scheduleLayoutUpdate();
+        scheduleColorUpdate();
     }, { passive: true });
 
     if (window.visualViewport) {
-        let viewportResizeTimer = 0;
-        window.visualViewport.addEventListener('resize', () => {
-            window.clearTimeout(viewportResizeTimer);
-            viewportResizeTimer = window.setTimeout(syncViewport, 150);
-        }, { passive: true });
-
+        window.visualViewport.addEventListener('resize', scheduleLayoutUpdate, { passive: true });
         window.visualViewport.addEventListener('scroll', () => {
             if (!isIos) return;
             window.scrollTo(0, 0);
@@ -177,30 +164,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('focusout', () => {
-        if (!isIos) return;
-        window.setTimeout(syncViewport, 50);
+        if (isIos) window.setTimeout(updateViewportHeight, 50);
     });
 
     if (appShell) {
-        new MutationObserver(scheduleSystemColorSync).observe(appShell, {
+        new MutationObserver(scheduleColorUpdate).observe(appShell, {
             attributes: true,
             attributeFilter: ['class', 'style']
         });
     }
 
-    // Installed PWAs must not call Fullscreen API; Chromium may letterbox cutout areas.
     if (isInstalledApp || !isAndroid || !isMobile) return;
 
-    function isFullscreen() {
-        return Boolean(
-            document.fullscreenElement ||
-            document.webkitFullscreenElement
-        );
-    }
-
     async function enterBrowserFullscreen() {
-        if (isFullscreen()) return;
-
+        if (document.fullscreenElement || document.webkitFullscreenElement) return;
         const requestFullscreen = root.requestFullscreen || root.webkitRequestFullscreen;
         if (!requestFullscreen) return;
 
@@ -214,5 +191,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('pointerup', enterBrowserFullscreen, { passive: true });
-    document.addEventListener('touchend', enterBrowserFullscreen, { passive: true });
 });

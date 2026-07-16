@@ -68,32 +68,15 @@
             border: 8px solid #f0f0f0;
         }
 
-        /* iOS Safari/PWA height model from xiaoyuanji: one JS-controlled height source. */
-        @supports (-webkit-touch-callout: none) {
-            html {
-                height: var(--app-height, 100vh) !important;
-                min-height: var(--app-height, 100vh) !important;
-            }
-
-            body {
-                height: 100% !important;
-                min-height: 100% !important;
-            }
-
-            .iphone {
-                height: var(--app-height, 100vh) !important;
-                min-height: var(--app-height, 100vh) !important;
-            }
-        }
-        /* Mobile fullscreen layout, matching the proven Chill/xsjproject approach. */
+        /* Single mobile viewport model: one height source and one safe-area source. */
         @media (max-width: 768px) {
             html,
             body {
                 position: fixed;
                 inset: 0;
                 width: 100%;
-                height: 100%;
-                min-height: 100%;
+                height: var(--app-height, 100dvh);
+                min-height: var(--app-height, 100dvh);
                 margin: 0;
                 padding: 0;
                 background-color: var(--system-bar-color, #fdfbfb);
@@ -107,135 +90,38 @@
 
             .iphone {
                 position: fixed;
-                top: 0;
-                right: 0;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                height: auto;
-                max-width: none;
-                max-height: none;
-                border: 0;
-                border-radius: 0;
-                box-shadow: none;
-            }
-
-            html body .iphone .status-bar {
-                padding-top: calc(14px + var(--top-safe-area));
-            }
-
-            html body .iphone .desktop-grid {
-                margin-top: calc(30px + var(--top-safe-area));
-                height: calc(100% - 180px - var(--top-safe-area));
-            }
-
-            html body .iphone .bottom-nav-wrapper {
-                bottom: max(25px, calc(env(safe-area-inset-bottom) + 8px));
-            }
-        }
-        /* PWA standalone/fullscreen: cover system safe areas and remove the simulated frame. */
-        @media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui), (display-mode: window-controls-overlay) {
-            :root {
-                background-color: var(--system-bar-color, #fdfbfb);
-                color-scheme: light;
-            }
-
-            html,
-            body {
-                position: fixed;
                 inset: 0;
                 width: 100%;
-                height: 100%;
-                min-height: 100%;
-                margin: 0;
-                background-color: var(--system-bar-color, #fdfbfb);
-                overflow: hidden;
-                overscroll-behavior: none;
-            }
-
-            body {
-                min-height: 100vh;
-                min-height: 100dvh;
-            }
-
-            .iphone {
-                position: fixed;
-                inset: 0;
-                width: 100vw;
-                height: 100vh;
-                height: 100dvh;
                 height: var(--app-height, 100dvh);
+                min-height: var(--app-height, 100dvh);
                 max-width: none;
                 max-height: none;
                 border: 0;
                 border-radius: 0;
                 box-shadow: none;
-                background-color: var(--system-bar-color, #fdfbfb);
             }
 
-            html body .iphone .status-bar {
-                padding-top: calc(14px + var(--top-safe-area));
-            }
-
-            html body .iphone .bottom-nav-wrapper {
-                bottom: max(25px, calc(env(safe-area-inset-bottom) + 8px));
-            }
-
-            body::before,
-            body::after {
-                content: "";
-                position: fixed;
-                left: 0;
-                width: 100%;
-                background-color: var(--system-bar-color, #fdfbfb);
-                pointer-events: none;
-                z-index: -1;
-            }
-
-            body::before {
-                top: 0;
-                height: env(safe-area-inset-top);
-            }
-
-            body::after {
-                bottom: 0;
-                height: env(safe-area-inset-bottom);
+            .bottom-nav-wrapper {
+                bottom: calc(25px + env(safe-area-inset-bottom, 0px));
             }
         }
 
-        /* 状态栏 */
-        /* Runtime fallback for installed modes not exposed through display-mode media queries. */
-        html.app-installed,
-        html.app-installed body {
-            position: fixed;
-            inset: 0;
-            width: 100%;
-            height: var(--app-height, 100dvh);
-            min-height: var(--app-height, 100dvh);
-            margin: 0;
-            background-color: var(--system-bar-color, #fdfbfb);
-            overflow: hidden;
-            overscroll-behavior: none;
+        /* iOS standalone keeps the simulated status bar over the system status area. */
+        html.ios-installed body .iphone .status-bar {
+            padding-top: 14px;
         }
 
-        html.app-installed .iphone {
-            position: fixed;
-            inset: 0;
-            width: 100vw;
-            height: var(--app-height, 100dvh);
-            max-width: none;
-            max-height: none;
-            border: 0;
-            border-radius: 0;
-            box-shadow: none;
+        html.ios-installed body .iphone .desktop-grid {
+            margin-top: 30px;
+            height: calc(100% - 180px);
         }
 
-        html.app-installed .status-bar {
-            padding-top: calc(14px + var(--top-safe-area));
+        html.ios-installed .iphone > .dock {
+            bottom: calc(15px + env(safe-area-inset-bottom, 0px));
         }
 
-        html.app-installed .bottom-nav-wrapper {
-            bottom: max(25px, calc(env(safe-area-inset-bottom) + 8px));
+        html.ios-installed .iphone > .search-bar {
+            bottom: calc(115px + env(safe-area-inset-bottom, 0px));
         }
         .status-bar {
             display: flex;
@@ -461,21 +347,7 @@
             padding: 0 10px;
         }
 
-        html.ios-installed body .iphone .status-bar {
-            padding-top: 14px;
-        }
 
-        html.ios-installed body .iphone .desktop-grid {
-            margin-top: 30px;
-            height: calc(100% - 180px);
-        }
-        html.ios-installed .iphone > .dock {
-            bottom: calc(15px + env(safe-area-inset-bottom, 0px));
-        }
-
-        html.ios-installed .iphone > .search-bar {
-            bottom: calc(115px + env(safe-area-inset-bottom, 0px));
-        }
         .dock .app-item {
             margin-top: 10px;
             width: auto;
