@@ -2651,13 +2651,48 @@
         #page-moments .post-image { aspect-ratio: 1 / 1; background-color: #e9ecef; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
         #page-moments .post-footer { display: flex; justify-content: space-between; align-items: center; position: relative; }
         #page-moments .post-time { color: #888888; font-size: 13px; }
-        #page-moments .action-btn { width: 32px; height: 24px; background-color: #f1f1f1; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #576b95; cursor: pointer; }
+        #page-moments .action-btn { width: 32px; height: 24px; background-color: #f1f1f1; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #576b95; cursor: pointer; position: relative; z-index: 11; }
+        
+        /* 朋友圈弹出菜单样式 */
+        #page-moments .moments-action-menu { position: absolute; right: 42px; top: 50%; transform: translateY(-50%); background-color: #4c5154; border-radius: 6px; display: flex; align-items: center; overflow: hidden; width: 0; opacity: 0; transition: width 0.2s ease, opacity 0.2s ease; z-index: 10; }
+        #page-moments .moments-action-menu.show { width: 260px; opacity: 1; }
+        #page-moments .moments-action-item { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; color: #fff; font-size: 13px; font-weight: 600; padding: 10px 0; cursor: pointer; white-space: nowrap; }
+        #page-moments .moments-action-item:active { background-color: #3a3f42; }
+        #page-moments .moments-action-item:not(:last-child) { position: relative; }
+        #page-moments .moments-action-item:not(:last-child)::after { content: ''; position: absolute; right: 0; top: 20%; height: 60%; width: 1px; background-color: #3a3f42; }
+        #page-moments .moments-action-item svg { width: 14px; height: 14px; fill: currentColor; }
+
         #page-moments .interaction-area { margin-top: 10px; background-color: #f0f2f5; border-radius: 6px; padding: 8px 10px; font-size: 14px; position: relative; }
         #page-moments .interaction-area::before { content: ''; position: absolute; top: -5px; left: 12px; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 6px solid #f0f2f5; }
         #page-moments .likes { color: #576b95; font-weight: 500; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
         #page-moments .comments { border-top: 1px solid rgba(0,0,0,0.05); padding-top: 4px; }
         #page-moments .comment-item { margin-bottom: 4px; line-height: 1.4; color: #000; }
         #page-moments .comment-name { color: #576b95; font-weight: 600; }
+
+        /* 微信“我的”页面专属样式 */
+        #page-profile { background-color: #ffffff; overflow-y: auto; overflow-x: hidden; padding-bottom: 100px; }
+        #page-profile::-webkit-scrollbar { display: none; }
+        #wechatAppUI .wc-profile-header { padding: 16px 20px 12px 20px; padding-top: 45px; display: flex; align-items: center; }
+        #wechatAppUI .wc-profile-title { font-size: 24px; font-weight: 800; color: var(--tg-blue); letter-spacing: -0.5px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+        #wechatAppUI .wc-profile-title svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; margin-top: 2px; }
+        #wechatAppUI .wc-profile-section { padding: 10px 20px 30px 20px; }
+        #wechatAppUI .wc-profile-main { display: flex; align-items: center; margin-bottom: 16px; }
+        #wechatAppUI .wc-avatar-wrapper { width: 86px; height: 86px; border-radius: 50%; border: 3px solid #e5e5ea; padding: 3px; margin-right: 16px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+        #wechatAppUI .wc-avatar-inner { width: 100%; height: 100%; border-radius: 50%; background-color: #e5e5ea; }
+        #wechatAppUI .wc-profile-info-wrap { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        #wechatAppUI .wc-profile-name { font-size: 20px; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
+        #wechatAppUI .wc-profile-id { font-size: 15px; color: var(--text-sub); font-weight: 400; }
+        #wechatAppUI .wc-profile-qr { display: flex; align-items: center; gap: 10px; color: var(--text-sub); cursor: pointer; padding-left: 10px; }
+        #wechatAppUI .wc-profile-qr svg.qr-icon { width: 16px; height: 16px; fill: currentColor; }
+        #wechatAppUI .wc-profile-bio { font-size: 15px; color: var(--text-sub); line-height: 1.6; letter-spacing: 0.5px; }
+        #wechatAppUI .wc-bio-line1 { margin-bottom: 4px; }
+        #wechatAppUI .wc-list-group { padding: 0 20px; }
+        #wechatAppUI .wc-list-item { display: flex; align-items: center; padding: 18px 0; background-color: var(--bg-color); cursor: pointer; transition: opacity 0.2s; }
+        #wechatAppUI .wc-list-item:active { opacity: 0.5; }
+        #wechatAppUI .wc-item-icon { width: 24px; height: 24px; margin-right: 16px; display: flex; justify-content: center; align-items: center; color: var(--text-main); }
+        #wechatAppUI .wc-item-icon svg { width: 24px; height: 24px; fill: currentColor; }
+        #wechatAppUI .wc-item-text { flex: 1; font-size: 16px; color: var(--text-main); font-weight: 400; }
+        #wechatAppUI .wc-chevron-right { width: 8px; height: 14px; stroke: #c7c7cc; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
 
         /* ==========================================
            微信 APP 深色模式适配
@@ -2742,6 +2777,10 @@
         .iphone.dark-mode #page-moments .btn-edit { background-color: #1c1c1e; border-color: #38383a; color: #ffffff; }
         .iphone.dark-mode #page-moments .btn-follow { background-color: #ffffff; color: #000000; }
         .iphone.dark-mode #page-moments .action-btn { background-color: #1c1c1e; }
+
+        .iphone.dark-mode #page-profile { background-color: #000000; }
+        .iphone.dark-mode #wechatAppUI .wc-list-item { background-color: #000000; }
+        .iphone.dark-mode #wechatAppUI .wc-avatar-wrapper { border-color: #38383a; }
 
     </style>
 
@@ -4329,6 +4368,68 @@
             </section>
         </div>
 
+        <!-- 新增的“我的”页面 -->
+        <div id="page-profile" class="page">
+            <div class="wc-profile-header">
+                <div class="wc-profile-title" onclick="closeWechatApp()">
+                    AboutMe
+                    <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+            </div>
+
+            <div class="wc-profile-section">
+                <div class="wc-profile-main">
+                    <div class="wc-avatar-wrapper">
+                        <div class="wc-avatar-inner"></div>
+                    </div>
+                    <div class="wc-profile-info-wrap">
+                        <div class="wc-profile-name">早虞春</div>
+                        <div class="wc-profile-id">微信号：@zoouiy</div>
+                    </div>
+                    <div class="wc-profile-qr">
+                        <svg class="qr-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 17V16H13V13H16V15H18V17H17V19H15V21H13V18H15V17H16ZM21 21H17V19H19V17H21V21ZM3 3H11V11H3V3ZM13 3H21V11H13V3ZM3 13H11V21H3V13ZM18 13H21V15H18V13ZM6 6V8H8V6H6ZM6 16V18H8V16H6ZM16 6V8H18V6H16Z"></path></svg>
+                        <svg class="wc-chevron-right" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                    </div>
+                </div>
+                <div class="wc-profile-bio">
+                    <div class="wc-bio-line1">Oㅈo：뭐?</div>
+                    <div class="wc-bio-line2">ㅎㅇ…iam>iwas🖤🤍</div>
+                </div>
+            </div>
+
+
+            <div class="wc-list-group">
+                <div class="wc-list-item">
+                    <div class="wc-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M22.0049 6.99979H23.0049V16.9998H22.0049V19.9998C22.0049 20.5521 21.5572 20.9998 21.0049 20.9998H3.00488C2.4526 20.9998 2.00488 20.5521 2.00488 19.9998V3.99979C2.00488 3.4475 2.4526 2.99979 3.00488 2.99979H21.0049C21.5572 2.99979 22.0049 3.4475 22.0049 3.99979V6.99979ZM20.0049 16.9998H14.0049C11.2435 16.9998 9.00488 14.7612 9.00488 11.9998C9.00488 9.23836 11.2435 6.99979 14.0049 6.99979H20.0049V4.99979H4.00488V18.9998H20.0049V16.9998ZM21.0049 14.9998V8.99979H14.0049C12.348 8.99979 11.0049 10.3429 11.0049 11.9998C11.0049 13.6566 12.348 14.9998 14.0049 14.9998H21.0049ZM14.0049 10.9998H17.0049V12.9998H14.0049V10.9998Z"></path></svg>
+                    </div>
+                    <div class="wc-item-text">服务</div>
+                    <svg class="wc-chevron-right" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                </div>
+                <div class="wc-list-item">
+                    <div class="wc-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M22 13H20V7.23792L12.0718 14.338L4 7.21594V19H14V21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3H21C21.5523 3 22 3.44772 22 4V13ZM4.51146 5L12.0619 11.662L19.501 5H4.51146ZM19.5 21.75L16.855 23.1406L17.3601 20.1953L15.2202 18.1094L18.1775 17.6797L19.5 15L20.8225 17.6797L23.7798 18.1094L21.6399 20.1953L22.145 23.1406L19.5 21.75Z"></path></svg>
+                    </div>
+                    <div class="wc-item-text">收藏</div>
+                    <svg class="wc-chevron-right" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                </div>
+                <div class="wc-list-item">
+                    <div class="wc-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5199 19.8634C10.5955 18.6615 10.8833 17.5172 11.3463 16.4676C9.81124 16.3252 8.41864 15.6867 7.33309 14.7151L8.66691 13.2248C9.55217 14.0172 10.7188 14.4978 12 14.4978C12.1763 14.4978 12.3501 14.4887 12.5211 14.471C14.227 12.2169 16.8661 10.7083 19.8634 10.5199C19.1692 6.80877 15.9126 4 12 4C7.58172 4 4 7.58172 4 12C4 15.9126 6.80877 19.1692 10.5199 19.8634ZM19.0233 12.636C15.7891 13.2396 13.2396 15.7891 12.636 19.0233L19.0233 12.636ZM22 12C22 12.1677 21.9959 12.3344 21.9877 12.5L12.5 21.9877C12.3344 21.9959 12.1677 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM10 10C10 10.8284 9.32843 11.5 8.5 11.5C7.67157 11.5 7 10.8284 7 10C7 9.17157 7.67157 8.5 8.5 8.5C9.32843 8.5 10 9.17157 10 10ZM17 10C17 10.8284 16.3284 11.5 15.5 11.5C14.6716 11.5 14 10.8284 14 10C14 9.17157 14.6716 8.5 15.5 8.5C16.3284 8.5 17 9.17157 17 10Z"></path></svg>
+                    </div>
+                    <div class="wc-item-text">表情</div>
+                    <svg class="wc-chevron-right" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                </div>
+                <div class="wc-list-item">
+                    <div class="wc-item-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21H5C4.44772 21 4 20.5523 4 20V11L1 11L11.3273 1.6115C11.7087 1.26475 12.2913 1.26475 12.6727 1.6115L23 11L20 11V20C20 20.5523 19.5523 21 19 21ZM6 19H18V9.15745L12 3.7029L6 9.15745V19ZM8.59117 13.8089C8.52937 13.5486 8.49666 13.277 8.49666 12.9978C8.49666 12.7186 8.52936 12.4471 8.59115 12.1868L7.60001 11.6145L8.59952 9.88333L9.59136 10.456C9.98427 10.0843 10.4633 9.80273 10.9954 9.64436V8.49998H12.9945V9.64436C13.5266 9.80272 14.0056 10.0843 14.3985 10.4559L15.3904 9.88323L16.39 11.6144L15.3987 12.1867C15.4605 12.447 15.4932 12.7186 15.4932 12.9978C15.4932 13.277 15.4605 13.5485 15.3988 13.8088L16.39 14.381L15.3905 16.1122L14.3986 15.5396C14.0057 15.9112 13.5267 16.1928 12.9946 16.3512V17.4956H10.9955V16.3512C10.4634 16.1929 9.98437 15.9114 9.59144 15.5397L8.59957 16.1123L7.60001 14.3811L8.59117 13.8089ZM11.995 14.4971C12.823 14.4971 13.4942 13.8258 13.4942 12.9978C13.4942 12.1698 12.823 11.4985 11.995 11.4985C11.1669 11.4985 10.4957 12.1698 10.4957 12.9978C10.4957 13.8258 11.1669 14.4971 11.995 14.4971Z"></path></svg>
+                    </div>
+                    <div class="wc-item-text">设置</div>
+                    <svg class="wc-chevron-right" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                </div>
+            </div>
+        </div>
+
         <div class="modal-wrapper" id="wc-theme-modal">
             <div class="modal-overlay" onclick="wcHandleThemeBack()"></div>
             <div class="theme-header">
@@ -4553,7 +4654,7 @@
                 <div class="nav-item active" id="wc-nav-chat" onclick="wcSwitchTab('chat')"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.9795 10.995C21.9724 9.9371 21.7584 8.89079 21.3495 7.91505C20.9471 6.93651 20.3519 6.04889 19.5995 5.30503C18.8548 4.56116 17.9707 3.97156 16.9977 3.57001C16.0247 3.16847 14.9821 2.96289 13.9295 2.96503C12.1823 2.95788 10.4807 3.52297 9.08489 4.57392C7.68903 5.62487 6.67562 7.1039 6.19951 8.78504C5.04368 9.19813 4.03507 9.9424 3.29952 10.925C2.47028 12.0222 2.02095 13.3597 2.01952 14.735C2.01101 15.5289 2.15705 16.3169 2.44951 17.055L2.1595 19.195C2.10244 19.5466 2.17152 19.9071 2.35451 20.2127C2.5375 20.5182 2.82262 20.7493 3.1595 20.865C3.39629 20.9505 3.6509 20.9746 3.89952 20.935L5.98952 20.565C6.74584 20.8713 7.55355 21.0308 8.36952 21.035C9.31014 21.0353 10.2391 20.827 11.0895 20.425C11.8146 20.0835 12.4667 19.6047 13.0095 19.015C13.3175 19.0615 13.6281 19.0882 13.9395 19.095C15.0005 19.0953 16.0508 18.8846 17.0295 18.475L19.9095 18.895H20.0195C20.2673 18.8954 20.5125 18.8443 20.7395 18.745C20.9686 18.6474 21.1734 18.5006 21.3395 18.315C21.5075 18.1309 21.6337 17.9125 21.7095 17.675C21.7897 17.4336 21.8203 17.1785 21.7995 16.925L21.4495 13.995C21.8182 13.0386 21.9981 12.0199 21.9795 10.995ZM12.0995 17.685C11.6417 18.2456 11.0643 18.6967 10.4095 19.005C9.74736 19.2987 9.03368 19.4584 8.30953 19.475C7.62035 19.4711 6.93943 19.3247 6.30953 19.045C6.21686 18.9972 6.11376 18.9732 6.00951 18.975H5.8795L3.60951 19.355L3.93953 16.995C3.95049 16.8589 3.92994 16.722 3.8795 16.595C3.61556 15.9862 3.48269 15.3286 3.48952 14.665C3.50527 13.6187 3.86116 12.6058 4.5034 11.7795C5.14565 10.9533 6.03936 10.3585 7.04952 10.085C7.46761 9.97483 7.89725 9.91442 8.32951 9.90504C9.61389 9.91005 10.8438 10.4243 11.7495 11.335C12.1983 11.782 12.554 12.3135 12.7961 12.8988C13.0381 13.4841 13.1616 14.1116 13.1595 14.745C13.1365 15.8145 12.7643 16.847 12.0995 17.685Z" fill="currentColor"/></svg></div><span>聊天</span></div>
                 <div class="nav-item" id="wc-nav-contacts" onclick="wcSwitchTab('contacts')"><div class="nav-icon-wrapper"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" /></svg></div><span>联系人</span></div>
                 <div class="nav-item" id="wc-nav-moments" onclick="wcSwitchTab('moments')"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 1.72717C9.97277 1.72717 7.99106 2.32832 6.30545 3.45461C4.61985 4.58089 3.30598 6.18173 2.53019 8.05467C1.75439 9.92762 1.55143 11.9885 1.94693 13.9769C2.34243 15.9652 3.31862 17.7915 4.75211 19.225C6.1856 20.6585 8.01197 21.6347 10.0003 22.0302C11.9886 22.4257 14.0496 22.2227 15.9225 21.4469C17.7955 20.6711 19.3963 19.3574 20.5226 17.6718C21.6489 15.9862 22.25 14.0044 22.25 11.9772C22.2474 9.25952 21.1666 6.65393 19.2449 4.73225C17.3232 2.81058 14.7177 1.72982 12 1.72717ZM9.85001 10.1072C9.86863 10.0431 9.90298 9.9846 9.94998 9.93716C10.0007 9.88705 10.0623 9.84939 10.13 9.82716L16.13 7.82716L14.13 13.8872C14.1063 13.9429 14.0723 13.9938 14.0299 14.0372C13.9834 14.0853 13.9247 14.1198 13.86 14.1372L7.86002 16.1372L9.85001 10.1072Z" fill="currentColor"/></svg></div><span>朋友圈</span></div>
-                <div class="nav-item"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.9667 1.75195C9.81618 1.76239 7.72323 2.4468 5.98323 3.70856C4.24323 4.97032 2.94402 6.74571 2.26894 8.78424C1.59387 10.8228 1.57703 13.0215 2.22077 15.0701C2.86452 17.1187 4.13635 18.9138 5.85681 20.202C5.90685 20.2507 5.96434 20.2912 6.02709 20.322C7.7668 21.5741 9.85708 22.248 12.0017 22.248C14.1464 22.248 16.2367 21.5741 17.9764 20.322C18.0421 20.2869 18.1027 20.2432 18.1567 20.192C19.877 18.8994 21.1468 17.0996 21.7865 15.0471C22.4261 12.9945 22.4032 10.7931 21.721 8.7543C21.0389 6.71546 19.7319 4.94233 17.985 3.68573C16.2382 2.42913 14.1398 1.75265 11.9867 1.75195H11.9667ZM11.9667 5.51196C12.7921 5.50205 13.6018 5.73775 14.2926 6.18903C14.9834 6.6403 15.5239 7.28669 15.8454 8.04584C16.1668 8.80498 16.2545 9.64249 16.0974 10.4516C15.9403 11.2607 15.5454 12.0048 14.963 12.589C14.3807 13.1732 13.6374 13.5711 12.8277 13.7319C12.0181 13.8927 11.1788 13.8092 10.4169 13.492C9.65495 13.1748 9.00487 12.6383 8.54951 11.9508C8.09415 11.2634 7.85414 10.4561 7.86004 9.63196C7.86783 8.54512 8.30238 7.50471 9.07028 6.73431C9.83818 5.96392 10.8781 5.52503 11.9667 5.51196ZM16.5942 19.4319C15.2071 20.2944 13.6058 20.7515 11.9717 20.7515C10.3376 20.7515 8.73627 20.2944 7.34921 19.4319C6.918 19.1703 6.51226 18.869 6.13726 18.532C6.70519 17.7242 7.43513 17.0431 8.28074 16.532C9.39741 15.869 10.6725 15.5191 11.9717 15.5191C13.2709 15.5191 14.546 15.869 15.6627 16.532C16.5083 17.0431 17.2382 17.7242 17.8061 18.532C17.4311 18.869 17.0254 19.1703 16.5942 19.4319Z" fill="currentColor"/></svg></div><span>我的</span></div>
+                <div class="nav-item" id="wc-nav-profile" onclick="wcSwitchTab('profile')"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.9667 1.75195C9.81618 1.76239 7.72323 2.4468 5.98323 3.70856C4.24323 4.97032 2.94402 6.74571 2.26894 8.78424C1.59387 10.8228 1.57703 13.0215 2.22077 15.0701C2.86452 17.1187 4.13635 18.9138 5.85681 20.202C5.90685 20.2507 5.96434 20.2912 6.02709 20.322C7.7668 21.5741 9.85708 22.248 12.0017 22.248C14.1464 22.248 16.2367 21.5741 17.9764 20.322C18.0421 20.2869 18.1027 20.2432 18.1567 20.192C19.877 18.8994 21.1468 17.0996 21.7865 15.0471C22.4261 12.9945 22.4032 10.7931 21.721 8.7543C21.0389 6.71546 19.7319 4.94233 17.985 3.68573C16.2382 2.42913 14.1398 1.75265 11.9867 1.75195H11.9667ZM11.9667 5.51196C12.7921 5.50205 13.6018 5.73775 14.2926 6.18903C14.9834 6.6403 15.5239 7.28669 15.8454 8.04584C16.1668 8.80498 16.2545 9.64249 16.0974 10.4516C15.9403 11.2607 15.5454 12.0048 14.963 12.589C14.3807 13.1732 13.6374 13.5711 12.8277 13.7319C12.0181 13.8927 11.1788 13.8092 10.4169 13.492C9.65495 13.1748 9.00487 12.6383 8.54951 11.9508C8.09415 11.2634 7.85414 10.4561 7.86004 9.63196C7.86783 8.54512 8.30238 7.50471 9.07028 6.73431C9.83818 5.96392 10.8781 5.52503 11.9667 5.51196ZM16.5942 19.4319C15.2071 20.2944 13.6058 20.7515 11.9717 20.7515C10.3376 20.7515 8.73627 20.2944 7.34921 19.4319C6.918 19.1703 6.51226 18.869 6.13726 18.532C6.70519 17.7242 7.43513 17.0431 8.28074 16.532C9.39741 15.869 10.6725 15.5191 11.9717 15.5191C13.2709 15.5191 14.546 15.869 15.6627 16.532C16.5083 17.0431 17.2382 17.7242 17.8061 18.532C17.4311 18.869 17.0254 19.1703 16.5942 19.4319Z" fill="currentColor"/></svg></div><span>我的</span></div>
             </div>
         </div>
 
@@ -7344,6 +7445,9 @@
         } else if (tabName === 'moments') {
             document.getElementById('wc-nav-moments').classList.add('active');
             document.getElementById('page-moments').classList.add('active');
+        } else if (tabName === 'profile') {
+            document.getElementById('wc-nav-profile').classList.add('active');
+            document.getElementById('page-profile').classList.add('active');
         }
     }
 
@@ -7404,8 +7508,14 @@
                         ${imagesHtml}
                         <div class="post-footer">
                             <span class="post-time">${post.time}</span>
-                            <div class="action-btn">
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="12" r="2.5"></circle></svg>
+                            <div class="moments-action-menu" id="moments-menu-${post.id}">
+                                <div class="moments-action-item" onclick="wcMomentsAction('like', '${post.id}', event)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.863 11.0263C21.7522 10.5766 21.544 10.1567 21.253 9.79633C20.9625 9.43687 20.5929 9.14937 20.173 8.9563C19.7545 8.75706 19.2965 8.65454 18.833 8.65631H14.403L14.663 7.65631C14.9043 6.70449 14.8125 5.69875 14.403 4.8063C13.9855 3.91771 13.281 3.19559 12.403 2.75632L11.303 2.21631C11.0729 2.10257 10.8196 2.0434 10.563 2.0434C10.3063 2.0434 10.0531 2.10257 9.82297 2.21631C9.5931 2.33519 9.39442 2.50646 9.24297 2.71631C9.08952 2.92185 8.98983 3.16248 8.95297 3.41632L8.01297 9.06631C7.86088 9.20517 7.72349 9.35931 7.60297 9.52631C7.37478 9.25012 7.08946 9.02667 6.76664 8.87131C6.44382 8.71594 6.09118 8.63236 5.73297 8.62631H4.55297C3.88463 8.62631 3.24366 8.89182 2.77106 9.36441C2.29847 9.837 2.03297 10.478 2.03297 11.1463V19.4363C2.03297 20.1047 2.29847 20.7456 2.77106 21.2182C3.24366 21.6908 3.88463 21.9563 4.55297 21.9563H5.73297C6.10357 21.9579 6.46989 21.8771 6.80541 21.7197C7.14094 21.5623 7.43727 21.3323 7.67297 21.0463C8.26027 21.63 9.05494 21.9572 9.88297 21.9563H17.403C18.1297 21.9663 18.837 21.7222 19.403 21.2663C19.9754 20.8107 20.3657 20.165 20.503 19.4463L21.923 12.3563C21.9977 11.9138 21.9772 11.4603 21.863 11.0263ZM6.73297 19.4763C6.73297 19.7415 6.62761 19.9959 6.44008 20.1834C6.25254 20.3709 5.99819 20.4763 5.73297 20.4763H4.55297C4.28775 20.4763 4.0334 20.3709 3.84586 20.1834C3.65833 19.9959 3.55297 19.7415 3.55297 19.4763V11.1863C3.55297 10.9211 3.65833 10.6668 3.84586 10.4792C4.0334 10.2917 4.28775 10.1863 4.55297 10.1863H5.73297C5.99819 10.1863 6.25254 10.2917 6.44008 10.4792C6.62761 10.6668 6.73297 10.9211 6.73297 11.1863V19.4763Z" fill="currentColor"/></svg>点赞</div>
+                                <div class="moments-action-item" onclick="wcMomentsAction('comment', '${post.id}', event)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.605 4.17001C20.1691 3.73083 19.6502 3.38265 19.0785 3.14575C18.5069 2.90884 17.8938 2.78793 17.275 2.79H6.70503C6.08566 2.79 5.47234 2.91215 4.90025 3.14947C4.32815 3.3868 3.80851 3.73464 3.37101 4.17306C2.93352 4.61148 2.58677 5.1319 2.35066 5.70449C2.11455 6.27709 1.99369 6.89064 1.99501 7.51001V14.11C1.99369 14.7294 2.11455 15.3429 2.35066 15.9155C2.58677 16.4881 2.93352 17.0085 3.37101 17.4469C3.80851 17.8853 4.32815 18.2332 4.90025 18.4705C5.47234 18.7078 6.08566 18.83 6.70503 18.83H9.03501L10.985 20.77C11.112 20.9127 11.2691 21.0254 11.445 21.1C11.6195 21.1719 11.8063 21.2092 11.995 21.21C12.1836 21.2082 12.3702 21.1709 12.545 21.1C12.7083 21.0226 12.8572 20.9177 12.985 20.79L14.985 18.79H17.315C17.9337 18.791 18.5464 18.6695 19.1179 18.4327C19.6894 18.1959 20.2084 17.8483 20.645 17.41C21.0733 16.9688 21.4127 16.4493 21.645 15.88C21.8793 15.3051 22.0015 14.6908 22.005 14.07V7.47C22.0005 6.85484 21.8745 6.24664 21.6343 5.68032C21.394 5.11401 21.0442 4.60075 20.605 4.17001ZM7.365 12.34C7.03668 12.34 6.71574 12.2426 6.44276 12.0602C6.16977 11.8778 5.95701 11.6186 5.83137 11.3152C5.70573 11.0119 5.67287 10.6781 5.73692 10.3561C5.80097 10.0341 5.95905 9.73835 6.1912 9.50619C6.42336 9.27404 6.71914 9.11596 7.04115 9.05191C7.36316 8.98785 7.69693 9.02072 8.00025 9.14636C8.30358 9.272 8.56285 9.48476 8.74525 9.75775C8.92765 10.0307 9.025 10.3517 9.025 10.68C9.02238 11.1194 8.84664 11.5401 8.5359 11.8509C8.22516 12.1616 7.80445 12.3374 7.365 12.34ZM11.995 12.34C11.6667 12.34 11.3457 12.2426 11.0728 12.0602C10.7998 11.8778 10.587 11.6186 10.4614 11.3152C10.3357 11.0119 10.3029 10.6781 10.3669 10.3561C10.431 10.0341 10.5891 9.73835 10.8212 9.50619C11.0534 9.27404 11.3491 9.11596 11.6712 9.05191C11.9932 8.98785 12.3269 9.02072 12.6303 9.14636C12.9336 9.272 13.1929 9.48476 13.3753 9.75775C13.5577 10.0307 13.655 10.3517 13.655 10.68C13.655 11.1202 13.4801 11.5425 13.1688 11.8538C12.8575 12.1651 12.4353 12.34 11.995 12.34ZM16.615 12.34C16.2867 12.34 15.9657 12.2426 15.6928 12.0602C15.4198 11.8778 15.207 11.6186 15.0814 11.3152C14.9557 11.0119 14.9229 10.6781 14.9869 10.3561C15.051 10.0341 15.209 9.73835 15.4412 9.50619C15.6734 9.27404 15.9691 9.11596 16.2911 9.05191C16.6132 8.98785 16.9469 9.02072 17.2503 9.14636C17.5536 9.272 17.8128 9.48476 17.9953 9.75775C18.1777 10.0307 18.275 10.3517 18.275 10.68C18.2724 11.1194 18.0966 11.5401 17.7859 11.8509C17.4752 12.1616 17.0545 12.3374 16.615 12.34Z" fill="currentColor"/></svg>评论</div>
+                                <div class="moments-action-item" onclick="wcMomentsAction('delete', '${post.id}', event)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.725 5.27503H16.035V4.38501C16.0302 3.75505 15.779 3.152 15.335 2.70502C15.1134 2.48265 14.85 2.3063 14.56 2.18616C14.2699 2.06602 13.9589 2.00446 13.645 2.00501H10.385C10.0711 2.00446 9.76012 2.06602 9.47008 2.18616C9.18003 2.3063 8.91661 2.48265 8.69501 2.70502C8.25382 3.15302 8.00606 3.75625 8.005 4.38501V5.27503H3.315C3.11609 5.27503 2.92534 5.35404 2.78468 5.49469C2.64403 5.63535 2.565 5.82612 2.565 6.02503C2.565 6.22394 2.64403 6.41468 2.78468 6.55533C2.92534 6.69598 3.11609 6.77503 3.315 6.77503H4.73502V18.535C4.73094 18.9908 4.81721 19.4429 4.98885 19.8651C5.16049 20.2873 5.4141 20.6713 5.73502 20.995C6.38935 21.6361 7.26895 21.9951 8.18501 21.995H15.805C16.7211 21.9951 17.6007 21.6361 18.255 20.995C18.5759 20.6713 18.8295 20.2873 19.0012 19.8651C19.1728 19.4429 19.2591 18.9908 19.255 18.535V6.77503H20.685C20.8839 6.77503 21.0747 6.69598 21.2153 6.55533C21.356 6.41468 21.435 6.22394 21.435 6.02503C21.435 5.82612 21.356 5.63535 21.2153 5.49469C21.0747 5.35404 20.8839 5.27503 20.685 5.27503H20.725ZM9.52501 4.38501C9.52505 4.26959 9.54806 4.15534 9.5927 4.04889C9.63733 3.94245 9.70272 3.84595 9.78502 3.76502C9.95034 3.60152 10.1725 3.50833 10.405 3.50501H13.665C13.782 3.50428 13.898 3.52689 14.0062 3.57154C14.1144 3.61618 14.2126 3.68197 14.295 3.76502C14.4576 3.93092 14.5507 4.15273 14.555 4.38501V5.27503H9.55501L9.52501 4.38501ZM10.855 16.995C10.855 17.2602 10.7497 17.5146 10.5621 17.7021C10.3746 17.8897 10.1202 17.995 9.855 17.995C9.58978 17.995 9.33544 17.8897 9.1479 17.7021C8.96037 17.5146 8.85501 17.2602 8.85501 16.995V11.565C8.85501 11.2998 8.96037 11.0455 9.1479 10.8579C9.33544 10.6704 9.58978 10.565 9.855 10.565C10.1202 10.565 10.3746 10.6704 10.5621 10.8579C10.7497 11.0455 10.855 11.2998 10.855 11.565V16.995ZM15.215 16.995C15.215 17.2602 15.1096 17.5146 14.9221 17.7021C14.7346 17.8897 14.4802 17.995 14.215 17.995C13.9498 17.995 13.6954 17.8897 13.5079 17.7021C13.3204 17.5146 13.215 17.2602 13.215 16.995V11.565C13.215 11.2998 13.3204 11.0455 13.5079 10.8579C13.6954 10.6704 13.9498 10.565 14.215 10.565C14.4802 10.565 14.7346 10.6704 14.9221 10.8579C15.1096 11.0455 15.215 11.2998 15.215 11.565V16.995Z" fill="currentColor"/></svg>删除</div>
+                                <div class="moments-action-item" onclick="wcMomentsAction('summon', '${post.id}', event)"><svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>召唤</div>
+                            </div>
+                            <div class="action-btn" onclick="wcToggleMomentsMenu('${post.id}', event)">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle></svg>
                             </div>
                         </div>
                         ${interactionHtml}
@@ -7415,6 +7525,39 @@
         });
         container.innerHTML = html;
     }
+
+    function wcToggleMomentsMenu(postId, event) {
+        event.stopPropagation();
+        // 关闭其他已打开的菜单
+        document.querySelectorAll('.moments-action-menu').forEach(menu => {
+            if (menu.id !== `moments-menu-${postId}`) {
+                menu.classList.remove('show');
+            }
+        });
+        // 切换当前菜单
+        const targetMenu = document.getElementById(`moments-menu-${postId}`);
+        if (targetMenu) {
+            targetMenu.classList.toggle('show');
+        }
+    }
+
+    function wcMomentsAction(action, postId, event) {
+        event.stopPropagation();
+        document.getElementById(`moments-menu-${postId}`).classList.remove('show');
+        if (typeof showToast === 'function') {
+            const actionNames = { 'like': '点赞', 'comment': '评论', 'delete': '删除', 'summon': '召唤' };
+            showToast(`已点击：${actionNames[action]}`);
+        }
+    }
+
+    // 全局点击关闭朋友圈菜单
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.moments-action-menu') && !e.target.closest('.action-btn')) {
+            document.querySelectorAll('.moments-action-menu').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+    });
 
     // --- 微信朋友圈个人资料逻辑 ---
     let wcMomentsProfile = {
