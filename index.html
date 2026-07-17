@@ -2445,7 +2445,7 @@
         #wechatAppUI .list-avatar.orange { background-color: var(--orange); color: #fff; font-size: 22px; font-weight: 700; }
         #wechatAppUI .chat-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
         #wechatAppUI .chat-row-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        #wechatAppUI .chat-name { font-size: 17px; font-weight: 700; color: #000; }
+        #wechatAppUI .chat-name { font-size: 17px; font-weight: 700; color: var(--text-main); }
         #wechatAppUI .chat-meta { display: flex; align-items: center; gap: 4px; }
         #wechatAppUI .check-icon { width: 18px; height: 18px; stroke: var(--check-green); }
         #wechatAppUI .chat-time { font-size: 13px; color: #8E8E93; font-weight: 600; }
@@ -2628,8 +2628,7 @@
         #page-moments { overflow-y: auto; overflow-x: hidden; background-color: #ffffff; }
         #page-moments::-webkit-scrollbar { display: none; }
         #page-moments .profile-section { background-color: #ffffff; padding-bottom: 16px; }
-        #page-moments .cover-photo { height: 220px; background: linear-gradient(to bottom, #4a4a4a, #2b2b2b); position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        #page-moments .cover-photo::after { content: 'Npcs'; position: absolute; bottom: 45px; left: 115px; color: rgba(255, 255, 255, 0.9); font-size: 22px; font-family: serif; letter-spacing: 1px; }
+        #page-moments .cover-photo { height: 220px; background-color: #4a4a4a; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         #page-moments .profile-top-row { display: flex; justify-content: flex-end; padding: 12px 16px; position: relative; height: 60px; }
         #page-moments .profile-avatar-wrapper { position: absolute; top: -44px; left: 14px; width: 90px; height: 90px; border-radius: 50%; background-color: #d1d1d1; padding: 3px; z-index: 10; }
         #page-moments .profile-avatar-inner { width: 100%; height: 100%; border-radius: 50%; border: 3px solid #ffffff; background-color: #f7f9f9; overflow: hidden; display: flex; align-items: center; justify-content: center; }
@@ -2704,7 +2703,48 @@
         .iphone.dark-mode #wechatAppUI .wc-sheet-title, .iphone.dark-mode #wechatAppUI .wc-sheet-btn { border-bottom-color: #38383a; }
         .iphone.dark-mode #wechatAppUI .wc-sheet-cancel { background: #1c1c1e; }
 
+        /* 微信朋友圈编辑弹窗样式 */
+        .wc-moments-edit-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); z-index: 2000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .wc-moments-edit-overlay.show { opacity: 1; pointer-events: auto; }
+        .wc-moments-edit-card { width: 280px; background: rgba(242, 242, 247, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .wc-moments-edit-overlay.show .wc-moments-edit-card { transform: scale(1); }
+        .wc-moments-edit-card .edit-header { padding: 16px; text-align: center; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.1); color: #000; }
+        .wc-moments-edit-card .edit-bg-preview { height: 120px; background: #ccc; position: relative; cursor: pointer; background-size: cover; background-position: center; }
+        .wc-moments-edit-card .edit-avatar-wrapper { position: relative; width: 70px; height: 70px; margin: -35px auto 10px; z-index: 2; }
+        .wc-moments-edit-card .edit-avatar-preview { width: 100%; height: 100%; border-radius: 50%; border: 3px solid #fff; background: #eee; cursor: pointer; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .wc-moments-edit-card .edit-cam-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 32px; height: 32px; background: rgba(0,0,0,0.5); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff; pointer-events: none; }
+        .wc-moments-edit-card .edit-cam-icon.small { width: 24px; height: 24px; }
+        .wc-moments-edit-card .edit-cam-icon svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .wc-moments-edit-card .edit-form { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+        .wc-moments-edit-card input, .wc-moments-edit-card textarea { width: 100%; background: rgba(0,0,0,0.05); border: none; border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; color: #000; font-family: inherit; }
+        .wc-moments-edit-card textarea { resize: none; height: 60px; }
+        .wc-moments-edit-card .edit-actions { display: flex; gap: 12px; padding: 0 16px 16px; border-top: none; }
+        .wc-moments-edit-card .edit-actions button { flex: 1; padding: 12px 0; border-radius: 20px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; color: #fff; transition: transform 0.2s, opacity 0.2s; }
+        .wc-moments-edit-card .edit-actions button:active { transform: scale(0.96); opacity: 0.8; }
+        .wc-moments-edit-card .edit-actions button.cancel { background: #ff3b30; }
+        .wc-moments-edit-card .edit-actions button.save { background: #007aff; }
+        
+        .iphone.dark-mode .wc-moments-edit-card { background: rgba(30, 30, 30, 0.85); }
+        .iphone.dark-mode .wc-moments-edit-card .edit-header { border-bottom-color: rgba(255,255,255,0.1); color: #fff; }
+        .iphone.dark-mode .wc-moments-edit-card .edit-avatar-preview { border-color: #1c1c1e; background: #2c2c2e; }
+        .iphone.dark-mode .wc-moments-edit-card input, .iphone.dark-mode .wc-moments-edit-card textarea { background: rgba(255,255,255,0.1); color: #fff; }
+        
+        /* 微信朋友圈深色模式适配 */
+        .iphone.dark-mode #page-moments { background-color: #000000; }
+        .iphone.dark-mode #page-moments .profile-section { background-color: #000000; }
+        .iphone.dark-mode #page-moments .profile-name { color: #ffffff; }
+        .iphone.dark-mode #page-moments .profile-bio { color: #ffffff; }
+        .iphone.dark-mode #page-moments .feed-list { background-color: #000000; }
+        .iphone.dark-mode #page-moments .post-text { color: #ffffff; }
+        .iphone.dark-mode #page-moments .interaction-area { background-color: #1c1c1e; }
+        .iphone.dark-mode #page-moments .interaction-area::before { border-bottom-color: #1c1c1e; }
+        .iphone.dark-mode #page-moments .comment-item { color: #ffffff; }
+        .iphone.dark-mode #page-moments .btn-edit { background-color: #1c1c1e; border-color: #38383a; color: #ffffff; }
+        .iphone.dark-mode #page-moments .btn-follow { background-color: #ffffff; color: #000000; }
+        .iphone.dark-mode #page-moments .action-btn { background-color: #1c1c1e; }
+
     </style>
+
 
 </head>
 <body>
@@ -4187,14 +4227,6 @@
                 <div class="fab-small"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9a3.75 3.75 0 1 0 0 7.5A3.75 3.75 0 0 0 12 9Z" /><path fill-rule="evenodd" d="M9.344 3.071a49.52 49.52 0 0 1 5.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 0 1-3 3h-15a3 3 0 0 1-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 0 0 1.11-.71l.822-1.315a2.942 2.942 0 0 1 2.332-1.39ZM6.75 12.75a5.25 5.25 0 1 1 10.5 0 5.25 5.25 0 0 1-10.5 0Zm12-1.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd" /></svg></div>
                 <div class="fab-large"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.2649 8.18054C20.7681 6.96199 20.03 5.8565 19.0949 4.93054C17.6965 3.53121 15.9144 2.57813 13.9742 2.19186C12.0339 1.80559 10.0227 2.00351 8.19492 2.76055C6.98162 3.26722 5.87795 4.00411 4.94492 4.93054C4.01541 5.85775 3.27881 6.95994 2.77763 8.17343C2.27644 9.38691 2.02063 10.6876 2.02494 12.0005C2.01395 13.2943 2.26569 14.5769 2.76493 15.7705L2.26493 19.4206C2.1849 19.7288 2.1849 20.0523 2.26493 20.3606C2.35093 20.6666 2.50864 20.9476 2.72495 21.1805C2.94509 21.4073 3.21579 21.5786 3.51493 21.6805C3.81143 21.7779 4.1271 21.8019 4.43492 21.7505L8.09495 21.2105C9.32038 21.7373 10.6411 22.0062 11.975 22.0005C14.6269 22 17.17 20.946 19.045 19.0706C19.9797 18.1482 20.7179 17.0461 21.2149 15.8306C22.2289 13.3814 22.2289 10.6297 21.2149 8.18054H21.2649ZM15.665 12.6905H12.7549V15.5806C12.7549 15.8458 12.6496 16.1001 12.462 16.2877C12.2745 16.4752 12.0201 16.5806 11.7549 16.5806C11.4897 16.5806 11.2354 16.4752 11.0478 16.2877C10.8603 16.1001 10.7549 15.8458 10.7549 15.5806V12.6905H7.86491C7.59969 12.6905 7.34535 12.5852 7.15782 12.3976C6.97028 12.2101 6.86491 11.9558 6.86491 11.6905C6.86491 11.4253 6.97028 11.171 7.15782 10.9835C7.34535 10.7959 7.59969 10.6905 7.86491 10.6905H10.7549V7.79055C10.7549 7.52534 10.8603 7.27097 11.0478 7.08343C11.2354 6.89589 11.4897 6.79055 11.7549 6.79055C12.0201 6.79055 12.2745 6.89589 12.462 7.08343C12.6496 7.27097 12.7549 7.52534 12.7549 7.79055V10.6905H15.665C15.9302 10.6905 16.1845 10.7959 16.372 10.9835C16.5596 11.171 16.665 11.4253 16.665 11.6905C16.665 11.9558 16.5596 12.2101 16.372 12.3976C16.1845 12.5852 15.9302 12.6905 15.665 12.6905Z" fill="currentColor"/></svg></div>
             </div>
-            <div class="bottom-nav-wrapper">
-                <div class="bottom-nav">
-                    <div class="nav-item active" id="wc-nav-chat" onclick="wcSwitchTab('chat')"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.9795 10.995C21.9724 9.9371 21.7584 8.89079 21.3495 7.91505C20.9471 6.93651 20.3519 6.04889 19.5995 5.30503C18.8548 4.56116 17.9707 3.97156 16.9977 3.57001C16.0247 3.16847 14.9821 2.96289 13.9295 2.96503C12.1823 2.95788 10.4807 3.52297 9.08489 4.57392C7.68903 5.62487 6.67562 7.1039 6.19951 8.78504C5.04368 9.19813 4.03507 9.9424 3.29952 10.925C2.47028 12.0222 2.02095 13.3597 2.01952 14.735C2.01101 15.5289 2.15705 16.3169 2.44951 17.055L2.1595 19.195C2.10244 19.5466 2.17152 19.9071 2.35451 20.2127C2.5375 20.5182 2.82262 20.7493 3.1595 20.865C3.39629 20.9505 3.6509 20.9746 3.89952 20.935L5.98952 20.565C6.74584 20.8713 7.55355 21.0308 8.36952 21.035C9.31014 21.0353 10.2391 20.827 11.0895 20.425C11.8146 20.0835 12.4667 19.6047 13.0095 19.015C13.3175 19.0615 13.6281 19.0882 13.9395 19.095C15.0005 19.0953 16.0508 18.8846 17.0295 18.475L19.9095 18.895H20.0195C20.2673 18.8954 20.5125 18.8443 20.7395 18.745C20.9686 18.6474 21.1734 18.5006 21.3395 18.315C21.5075 18.1309 21.6337 17.9125 21.7095 17.675C21.7897 17.4336 21.8203 17.1785 21.7995 16.925L21.4495 13.995C21.8182 13.0386 21.9981 12.0199 21.9795 10.995ZM12.0995 17.685C11.6417 18.2456 11.0643 18.6967 10.4095 19.005C9.74736 19.2987 9.03368 19.4584 8.30953 19.475C7.62035 19.4711 6.93943 19.3247 6.30953 19.045C6.21686 18.9972 6.11376 18.9732 6.00951 18.975H5.8795L3.60951 19.355L3.93953 16.995C3.95049 16.8589 3.92994 16.722 3.8795 16.595C3.61556 15.9862 3.48269 15.3286 3.48952 14.665C3.50527 13.6187 3.86116 12.6058 4.5034 11.7795C5.14565 10.9533 6.03936 10.3585 7.04952 10.085C7.46761 9.97483 7.89725 9.91442 8.32951 9.90504C9.61389 9.91005 10.8438 10.4243 11.7495 11.335C12.1983 11.782 12.554 12.3135 12.7961 12.8988C13.0381 13.4841 13.1616 14.1116 13.1595 14.745C13.1365 15.8145 12.7643 16.847 12.0995 17.685Z" fill="currentColor"/></svg></div><span>聊天</span></div>
-                    <div class="nav-item" id="wc-nav-contacts" onclick="wcSwitchTab('contacts')"><div class="nav-icon-wrapper"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" /></svg></div><span>联系人</span></div>
-                    <div class="nav-item" id="wc-nav-moments" onclick="wcSwitchTab('moments')"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 1.72717C9.97277 1.72717 7.99106 2.32832 6.30545 3.45461C4.61985 4.58089 3.30598 6.18173 2.53019 8.05467C1.75439 9.92762 1.55143 11.9885 1.94693 13.9769C2.34243 15.9652 3.31862 17.7915 4.75211 19.225C6.1856 20.6585 8.01197 21.6347 10.0003 22.0302C11.9886 22.4257 14.0496 22.2227 15.9225 21.4469C17.7955 20.6711 19.3963 19.3574 20.5226 17.6718C21.6489 15.9862 22.25 14.0044 22.25 11.9772C22.2474 9.25952 21.1666 6.65393 19.2449 4.73225C17.3232 2.81058 14.7177 1.72982 12 1.72717ZM9.85001 10.1072C9.86863 10.0431 9.90298 9.9846 9.94998 9.93716C10.0007 9.88705 10.0623 9.84939 10.13 9.82716L16.13 7.82716L14.13 13.8872C14.1063 13.9429 14.0723 13.9938 14.0299 14.0372C13.9834 14.0853 13.9247 14.1198 13.86 14.1372L7.86002 16.1372L9.85001 10.1072Z" fill="currentColor"/></svg></div><span>朋友圈</span></div>
-                    <div class="nav-item"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.9667 1.75195C9.81618 1.76239 7.72323 2.4468 5.98323 3.70856C4.24323 4.97032 2.94402 6.74571 2.26894 8.78424C1.59387 10.8228 1.57703 13.0215 2.22077 15.0701C2.86452 17.1187 4.13635 18.9138 5.85681 20.202C5.90685 20.2507 5.96434 20.2912 6.02709 20.322C7.7668 21.5741 9.85708 22.248 12.0017 22.248C14.1464 22.248 16.2367 21.5741 17.9764 20.322C18.0421 20.2869 18.1027 20.2432 18.1567 20.192C19.877 18.8994 21.1468 17.0996 21.7865 15.0471C22.4261 12.9945 22.4032 10.7931 21.721 8.7543C21.0389 6.71546 19.7319 4.94233 17.985 3.68573C16.2382 2.42913 14.1398 1.75265 11.9867 1.75195H11.9667ZM11.9667 5.51196C12.7921 5.50205 13.6018 5.73775 14.2926 6.18903C14.9834 6.6403 15.5239 7.28669 15.8454 8.04584C16.1668 8.80498 16.2545 9.64249 16.0974 10.4516C15.9403 11.2607 15.5454 12.0048 14.963 12.589C14.3807 13.1732 13.6374 13.5711 12.8277 13.7319C12.0181 13.8927 11.1788 13.8092 10.4169 13.492C9.65495 13.1748 9.00487 12.6383 8.54951 11.9508C8.09415 11.2634 7.85414 10.4561 7.86004 9.63196C7.86783 8.54512 8.30238 7.50471 9.07028 6.73431C9.83818 5.96392 10.8781 5.52503 11.9667 5.51196ZM16.5942 19.4319C15.2071 20.2944 13.6058 20.7515 11.9717 20.7515C10.3376 20.7515 8.73627 20.2944 7.34921 19.4319C6.918 19.1703 6.51226 18.869 6.13726 18.532C6.70519 17.7242 7.43513 17.0431 8.28074 16.532C9.39741 15.869 10.6725 15.5191 11.9717 15.5191C13.2709 15.5191 14.546 15.869 15.6627 16.532C16.5083 17.0431 17.2382 17.7242 17.8061 18.532C17.4311 18.869 17.0254 19.1703 16.5942 19.4319Z" fill="currentColor"/></svg></div><span>我的</span></div>
-                </div>
-            </div>
         </div>
 
         <!-- 联系人页面 -->
@@ -4226,16 +4258,6 @@
                         <!-- 动态渲染分组列表 -->
                     </div>
                     <div class="wc-sheet-cancel" onclick="wcCloseMoveSheet()">取消</div>
-                </div>
-            </div>
-            
-            <!-- 底部导航栏 (复制一份给联系人页面) -->
-            <div class="bottom-nav-wrapper">
-                <div class="bottom-nav">
-                    <div class="nav-item" onclick="wcSwitchTab('chat')"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.9795 10.995C21.9724 9.9371 21.7584 8.89079 21.3495 7.91505C20.9471 6.93651 20.3519 6.04889 19.5995 5.30503C18.8548 4.56116 17.9707 3.97156 16.9977 3.57001C16.0247 3.16847 14.9821 2.96289 13.9295 2.96503C12.1823 2.95788 10.4807 3.52297 9.08489 4.57392C7.68903 5.62487 6.67562 7.1039 6.19951 8.78504C5.04368 9.19813 4.03507 9.9424 3.29952 10.925C2.47028 12.0222 2.02095 13.3597 2.01952 14.735C2.01101 15.5289 2.15705 16.3169 2.44951 17.055L2.1595 19.195C2.10244 19.5466 2.17152 19.9071 2.35451 20.2127C2.5375 20.5182 2.82262 20.7493 3.1595 20.865C3.39629 20.9505 3.6509 20.9746 3.89952 20.935L5.98952 20.565C6.74584 20.8713 7.55355 21.0308 8.36952 21.035C9.31014 21.0353 10.2391 20.827 11.0895 20.425C11.8146 20.0835 12.4667 19.6047 13.0095 19.015C13.3175 19.0615 13.6281 19.0882 13.9395 19.095C15.0005 19.0953 16.0508 18.8846 17.0295 18.475L19.9095 18.895H20.0195C20.2673 18.8954 20.5125 18.8443 20.7395 18.745C20.9686 18.6474 21.1734 18.5006 21.3395 18.315C21.5075 18.1309 21.6337 17.9125 21.7095 17.675C21.7897 17.4336 21.8203 17.1785 21.7995 16.925L21.4495 13.995C21.8182 13.0386 21.9981 12.0199 21.9795 10.995ZM12.0995 17.685C11.6417 18.2456 11.0643 18.6967 10.4095 19.005C9.74736 19.2987 9.03368 19.4584 8.30953 19.475C7.62035 19.4711 6.93943 19.3247 6.30953 19.045C6.21686 18.9972 6.11376 18.9732 6.00951 18.975H5.8795L3.60951 19.355L3.93953 16.995C3.95049 16.8589 3.92994 16.722 3.8795 16.595C3.61556 15.9862 3.48269 15.3286 3.48952 14.665C3.50527 13.6187 3.86116 12.6058 4.5034 11.7795C5.14565 10.9533 6.03936 10.3585 7.04952 10.085C7.46761 9.97483 7.89725 9.91442 8.32951 9.90504C9.61389 9.91005 10.8438 10.4243 11.7495 11.335C12.1983 11.782 12.554 12.3135 12.7961 12.8988C13.0381 13.4841 13.1616 14.1116 13.1595 14.745C13.1365 15.8145 12.7643 16.847 12.0995 17.685Z" fill="currentColor"/></svg></div><span>聊天</span></div>
-                    <div class="nav-item active" onclick="wcSwitchTab('contacts')"><div class="nav-icon-wrapper"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" /></svg></div><span>联系人</span></div>
-                    <div class="nav-item" id="wc-nav-moments" onclick="wcSwitchTab('moments')"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 1.72717C9.97277 1.72717 7.99106 2.32832 6.30545 3.45461C4.61985 4.58089 3.30598 6.18173 2.53019 8.05467C1.75439 9.92762 1.55143 11.9885 1.94693 13.9769C2.34243 15.9652 3.31862 17.7915 4.75211 19.225C6.1856 20.6585 8.01197 21.6347 10.0003 22.0302C11.9886 22.4257 14.0496 22.2227 15.9225 21.4469C17.7955 20.6711 19.3963 19.3574 20.5226 17.6718C21.6489 15.9862 22.25 14.0044 22.25 11.9772C22.2474 9.25952 21.1666 6.65393 19.2449 4.73225C17.3232 2.81058 14.7177 1.72982 12 1.72717ZM9.85001 10.1072C9.86863 10.0431 9.90298 9.9846 9.94998 9.93716C10.0007 9.88705 10.0623 9.84939 10.13 9.82716L16.13 7.82716L14.13 13.8872C14.1063 13.9429 14.0723 13.9938 14.0299 14.0372C13.9834 14.0853 13.9247 14.1198 13.86 14.1372L7.86002 16.1372L9.85001 10.1072Z" fill="currentColor"/></svg></div><span>朋友圈</span></div>
-                    <div class="nav-item"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.9667 1.75195C9.81618 1.76239 7.72323 2.4468 5.98323 3.70856C4.24323 4.97032 2.94402 6.74571 2.26894 8.78424C1.59387 10.8228 1.57703 13.0215 2.22077 15.0701C2.86452 17.1187 4.13635 18.9138 5.85681 20.202C5.90685 20.2507 5.96434 20.2912 6.02709 20.322C7.7668 21.5741 9.85708 22.248 12.0017 22.248C14.1464 22.248 16.2367 21.5741 17.9764 20.322C18.0421 20.2869 18.1027 20.2432 18.1567 20.192C19.877 18.8994 21.1468 17.0996 21.7865 15.0471C22.4261 12.9945 22.4032 10.7931 21.721 8.7543C21.0389 6.71546 19.7319 4.94233 17.985 3.68573C16.2382 2.42913 14.1398 1.75265 11.9867 1.75195H11.9667ZM11.9667 5.51196C12.7921 5.50205 13.6018 5.73775 14.2926 6.18903C14.9834 6.6403 15.5239 7.28669 15.8454 8.04584C16.1668 8.80498 16.2545 9.64249 16.0974 10.4516C15.9403 11.2607 15.5454 12.0048 14.963 12.589C14.3807 13.1732 13.6374 13.5711 12.8277 13.7319C12.0181 13.8927 11.1788 13.8092 10.4169 13.492C9.65495 13.1748 9.00487 12.6383 8.54951 11.9508C8.09415 11.2634 7.85414 10.4561 7.86004 9.63196C7.86783 8.54512 8.30238 7.50471 9.07028 6.73431C9.83818 5.96392 10.8781 5.52503 11.9667 5.51196ZM16.5942 19.4319C15.2071 20.2944 13.6058 20.7515 11.9717 20.7515C10.3376 20.7515 8.73627 20.2944 7.34921 19.4319C6.918 19.1703 6.51226 18.869 6.13726 18.532C6.70519 17.7242 7.43513 17.0431 8.28074 16.532C9.39741 15.869 10.6725 15.5191 11.9717 15.5191C13.2709 15.5191 14.546 15.869 15.6627 16.532C16.5083 17.0431 17.2382 17.7242 17.8061 18.532C17.4311 18.869 17.0254 19.1703 16.5942 19.4319Z" fill="currentColor"/></svg></div><span>我的</span></div>
                 </div>
             </div>
         </div>
@@ -4271,9 +4293,6 @@
         <div id="page-moments" class="page">
             <section class="profile-section">
                 <div class="cover-photo">
-                    <svg width="100%" height="100%" viewBox="0 0 400 220" preserveAspectRatio="none" style="opacity: 0.15;">
-                        <path d="M0,220 C100,120 200,280 400,80 L400,220 Z" fill="#ffffff"></path>
-                    </svg>
                 </div>
                 <div class="profile-top-row">
                     <div class="profile-avatar-wrapper">
@@ -4295,84 +4314,19 @@
                         </div>
                     </div>
                     <div class="profile-actions">
-                        <div class="btn btn-edit">Edit</div>
+                        <div class="btn btn-edit" onclick="wcOpenMomentsEditModal()">Edit</div>
                         <div class="btn btn-follow">Follow</div>
                     </div>
                 </div>
                 <div class="profile-info">
-                    <div class="profile-name">立华奏</div>
-                    <div class="profile-handle">@umimilasw</div>
+                    <div class="profile-name">早虞春</div>
+                    <div class="profile-handle">@zoouiy</div>
                     <div class="profile-bio">i luv u &lt;3…🤍</div>
                 </div>
             </section>
 
-            <section class="feed-list">
-                <div class="post">
-                    <div class="post-avatar">
-                        <svg viewBox="0 0 24 24" width="24" height="24" fill="#999"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                    </div>
-                    <div class="post-content">
-                        <div class="post-name">立华奏</div>
-                        <div class="post-text">今天的天气很好，适合散步。</div>
-                        <div class="post-footer">
-                            <span class="post-time">10分钟前</span>
-                            <div class="action-btn">
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                                    <circle cx="6" cy="12" r="2.5"></circle>
-                                    <circle cx="18" cy="12" r="2.5"></circle>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="interaction-area">
-                            <div class="likes">
-                                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                                </svg>
-                                音无结弦, 仲村由理
-                            </div>
-                            <div class="comments">
-                                <div class="comment-item">
-                                    <span class="comment-name">音无结弦:</span> 一起去吃麻婆豆腐吧！
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="post">
-                    <div class="post-avatar">
-                        <svg viewBox="0 0 24 24" width="24" height="24" fill="#999"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                    </div>
-                    <div class="post-content">
-                        <div class="post-name">立华奏</div>
-                        <div class="post-text">分享一些最近的随手拍。</div>
-                        <div class="post-images">
-                            <div class="post-image"><svg viewBox="0 0 24 24" width="24" height="24" stroke="#adb5bd" stroke-width="1.5" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><polyline points="21 15 16 10 5 21"></polyline></svg></div>
-                            <div class="post-image"><svg viewBox="0 0 24 24" width="24" height="24" stroke="#adb5bd" stroke-width="1.5" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><polyline points="21 15 16 10 5 21"></polyline></svg></div>
-                            <div class="post-image"><svg viewBox="0 0 24 24" width="24" height="24" stroke="#adb5bd" stroke-width="1.5" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><polyline points="21 15 16 10 5 21"></polyline></svg></div>
-                        </div>
-                        <div class="post-footer">
-                            <span class="post-time">昨天</span>
-                            <div class="action-btn">
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                                    <circle cx="6" cy="12" r="2.5"></circle>
-                                    <circle cx="18" cy="12" r="2.5"></circle>
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <section class="feed-list" id="wc-moments-feed-list">
             </section>
-            
-            <!-- 朋友圈底部导航栏 -->
-            <div class="bottom-nav-wrapper">
-                <div class="bottom-nav">
-                    <div class="nav-item" onclick="wcSwitchTab('chat')"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.9795 10.995C21.9724 9.9371 21.7584 8.89079 21.3495 7.91505C20.9471 6.93651 20.3519 6.04889 19.5995 5.30503C18.8548 4.56116 17.9707 3.97156 16.9977 3.57001C16.0247 3.16847 14.9821 2.96289 13.9295 2.96503C12.1823 2.95788 10.4807 3.52297 9.08489 4.57392C7.68903 5.62487 6.67562 7.1039 6.19951 8.78504C5.04368 9.19813 4.03507 9.9424 3.29952 10.925C2.47028 12.0222 2.02095 13.3597 2.01952 14.735C2.01101 15.5289 2.15705 16.3169 2.44951 17.055L2.1595 19.195C2.10244 19.5466 2.17152 19.9071 2.35451 20.2127C2.5375 20.5182 2.82262 20.7493 3.1595 20.865C3.39629 20.9505 3.6509 20.9746 3.89952 20.935L5.98952 20.565C6.74584 20.8713 7.55355 21.0308 8.36952 21.035C9.31014 21.0353 10.2391 20.827 11.0895 20.425C11.8146 20.0835 12.4667 19.6047 13.0095 19.015C13.3175 19.0615 13.6281 19.0882 13.9395 19.095C15.0005 19.0953 16.0508 18.8846 17.0295 18.475L19.9095 18.895H20.0195C20.2673 18.8954 20.5125 18.8443 20.7395 18.745C20.9686 18.6474 21.1734 18.5006 21.3395 18.315C21.5075 18.1309 21.6337 17.9125 21.7095 17.675C21.7897 17.4336 21.8203 17.1785 21.7995 16.925L21.4495 13.995C21.8182 13.0386 21.9981 12.0199 21.9795 10.995ZM12.0995 17.685C11.6417 18.2456 11.0643 18.6967 10.4095 19.005C9.74736 19.2987 9.03368 19.4584 8.30953 19.475C7.62035 19.4711 6.93943 19.3247 6.30953 19.045C6.21686 18.9972 6.11376 18.9732 6.00951 18.975H5.8795L3.60951 19.355L3.93953 16.995C3.95049 16.8589 3.92994 16.722 3.8795 16.595C3.61556 15.9862 3.48269 15.3286 3.48952 14.665C3.50527 13.6187 3.86116 12.6058 4.5034 11.7795C5.14565 10.9533 6.03936 10.3585 7.04952 10.085C7.46761 9.97483 7.89725 9.91442 8.32951 9.90504C9.61389 9.91005 10.8438 10.4243 11.7495 11.335C12.1983 11.782 12.554 12.3135 12.7961 12.8988C13.0381 13.4841 13.1616 14.1116 13.1595 14.745C13.1365 15.8145 12.7643 16.847 12.0995 17.685Z" fill="currentColor"/></svg></div><span>聊天</span></div>
-                    <div class="nav-item" onclick="wcSwitchTab('contacts')"><div class="nav-icon-wrapper"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" /></svg></div><span>联系人</span></div>
-                    <div class="nav-item active" onclick="wcSwitchTab('moments')"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 1.72717C9.97277 1.72717 7.99106 2.32832 6.30545 3.45461C4.61985 4.58089 3.30598 6.18173 2.53019 8.05467C1.75439 9.92762 1.55143 11.9885 1.94693 13.9769C2.34243 15.9652 3.31862 17.7915 4.75211 19.225C6.1856 20.6585 8.01197 21.6347 10.0003 22.0302C11.9886 22.4257 14.0496 22.2227 15.9225 21.4469C17.7955 20.6711 19.3963 19.3574 20.5226 17.6718C21.6489 15.9862 22.25 14.0044 22.25 11.9772C22.2474 9.25952 21.1666 6.65393 19.2449 4.73225C17.3232 2.81058 14.7177 1.72982 12 1.72717ZM9.85001 10.1072C9.86863 10.0431 9.90298 9.9846 9.94998 9.93716C10.0007 9.88705 10.0623 9.84939 10.13 9.82716L16.13 7.82716L14.13 13.8872C14.1063 13.9429 14.0723 13.9938 14.0299 14.0372C13.9834 14.0853 13.9247 14.1198 13.86 14.1372L7.86002 16.1372L9.85001 10.1072Z" fill="currentColor"/></svg></div><span>朋友圈</span></div>
-                    <div class="nav-item"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.9667 1.75195C9.81618 1.76239 7.72323 2.4468 5.98323 3.70856C4.24323 4.97032 2.94402 6.74571 2.26894 8.78424C1.59387 10.8228 1.57703 13.0215 2.22077 15.0701C2.86452 17.1187 4.13635 18.9138 5.85681 20.202C5.90685 20.2507 5.96434 20.2912 6.02709 20.322C7.7668 21.5741 9.85708 22.248 12.0017 22.248C14.1464 22.248 16.2367 21.5741 17.9764 20.322C18.0421 20.2869 18.1027 20.2432 18.1567 20.192C19.877 18.8994 21.1468 17.0996 21.7865 15.0471C22.4261 12.9945 22.4032 10.7931 21.721 8.7543C21.0389 6.71546 19.7319 4.94233 17.985 3.68573C16.2382 2.42913 14.1398 1.75265 11.9867 1.75195H11.9667ZM11.9667 5.51196C12.7921 5.50205 13.6018 5.73775 14.2926 6.18903C14.9834 6.6403 15.5239 7.28669 15.8454 8.04584C16.1668 8.80498 16.2545 9.64249 16.0974 10.4516C15.9403 11.2607 15.5454 12.0048 14.963 12.589C14.3807 13.1732 13.6374 13.5711 12.8277 13.7319C12.0181 13.8927 11.1788 13.8092 10.4169 13.492C9.65495 13.1748 9.00487 12.6383 8.54951 11.9508C8.09415 11.2634 7.85414 10.4561 7.86004 9.63196C7.86783 8.54512 8.30238 7.50471 9.07028 6.73431C9.83818 5.96392 10.8781 5.52503 11.9667 5.51196ZM16.5942 19.4319C15.2071 20.2944 13.6058 20.7515 11.9717 20.7515C10.3376 20.7515 8.73627 20.2944 7.34921 19.4319C6.918 19.1703 6.51226 18.869 6.13726 18.532C6.70519 17.7242 7.43513 17.0431 8.28074 16.532C9.39741 15.869 10.6725 15.5191 11.9717 15.5191C13.2709 15.5191 14.546 15.869 15.6627 16.532C16.5083 17.0431 17.2382 17.7242 17.8061 18.532C17.4311 18.869 17.0254 19.1703 16.5942 19.4319Z" fill="currentColor"/></svg></div><span>我的</span></div>
-                </div>
-            </div>
         </div>
 
         <div class="modal-wrapper" id="wc-theme-modal">
@@ -4589,6 +4543,39 @@
                 <div class="icon-menu-item" onclick="wcHandleChatBgUrl();">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                     <span>使用 URL</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 统一的底部导航栏 (放置在所有 page 的外面) -->
+        <div class="bottom-nav-wrapper">
+            <div class="bottom-nav">
+                <div class="nav-item active" id="wc-nav-chat" onclick="wcSwitchTab('chat')"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.9795 10.995C21.9724 9.9371 21.7584 8.89079 21.3495 7.91505C20.9471 6.93651 20.3519 6.04889 19.5995 5.30503C18.8548 4.56116 17.9707 3.97156 16.9977 3.57001C16.0247 3.16847 14.9821 2.96289 13.9295 2.96503C12.1823 2.95788 10.4807 3.52297 9.08489 4.57392C7.68903 5.62487 6.67562 7.1039 6.19951 8.78504C5.04368 9.19813 4.03507 9.9424 3.29952 10.925C2.47028 12.0222 2.02095 13.3597 2.01952 14.735C2.01101 15.5289 2.15705 16.3169 2.44951 17.055L2.1595 19.195C2.10244 19.5466 2.17152 19.9071 2.35451 20.2127C2.5375 20.5182 2.82262 20.7493 3.1595 20.865C3.39629 20.9505 3.6509 20.9746 3.89952 20.935L5.98952 20.565C6.74584 20.8713 7.55355 21.0308 8.36952 21.035C9.31014 21.0353 10.2391 20.827 11.0895 20.425C11.8146 20.0835 12.4667 19.6047 13.0095 19.015C13.3175 19.0615 13.6281 19.0882 13.9395 19.095C15.0005 19.0953 16.0508 18.8846 17.0295 18.475L19.9095 18.895H20.0195C20.2673 18.8954 20.5125 18.8443 20.7395 18.745C20.9686 18.6474 21.1734 18.5006 21.3395 18.315C21.5075 18.1309 21.6337 17.9125 21.7095 17.675C21.7897 17.4336 21.8203 17.1785 21.7995 16.925L21.4495 13.995C21.8182 13.0386 21.9981 12.0199 21.9795 10.995ZM12.0995 17.685C11.6417 18.2456 11.0643 18.6967 10.4095 19.005C9.74736 19.2987 9.03368 19.4584 8.30953 19.475C7.62035 19.4711 6.93943 19.3247 6.30953 19.045C6.21686 18.9972 6.11376 18.9732 6.00951 18.975H5.8795L3.60951 19.355L3.93953 16.995C3.95049 16.8589 3.92994 16.722 3.8795 16.595C3.61556 15.9862 3.48269 15.3286 3.48952 14.665C3.50527 13.6187 3.86116 12.6058 4.5034 11.7795C5.14565 10.9533 6.03936 10.3585 7.04952 10.085C7.46761 9.97483 7.89725 9.91442 8.32951 9.90504C9.61389 9.91005 10.8438 10.4243 11.7495 11.335C12.1983 11.782 12.554 12.3135 12.7961 12.8988C13.0381 13.4841 13.1616 14.1116 13.1595 14.745C13.1365 15.8145 12.7643 16.847 12.0995 17.685Z" fill="currentColor"/></svg></div><span>聊天</span></div>
+                <div class="nav-item" id="wc-nav-contacts" onclick="wcSwitchTab('contacts')"><div class="nav-icon-wrapper"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" /></svg></div><span>联系人</span></div>
+                <div class="nav-item" id="wc-nav-moments" onclick="wcSwitchTab('moments')"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 1.72717C9.97277 1.72717 7.99106 2.32832 6.30545 3.45461C4.61985 4.58089 3.30598 6.18173 2.53019 8.05467C1.75439 9.92762 1.55143 11.9885 1.94693 13.9769C2.34243 15.9652 3.31862 17.7915 4.75211 19.225C6.1856 20.6585 8.01197 21.6347 10.0003 22.0302C11.9886 22.4257 14.0496 22.2227 15.9225 21.4469C17.7955 20.6711 19.3963 19.3574 20.5226 17.6718C21.6489 15.9862 22.25 14.0044 22.25 11.9772C22.2474 9.25952 21.1666 6.65393 19.2449 4.73225C17.3232 2.81058 14.7177 1.72982 12 1.72717ZM9.85001 10.1072C9.86863 10.0431 9.90298 9.9846 9.94998 9.93716C10.0007 9.88705 10.0623 9.84939 10.13 9.82716L16.13 7.82716L14.13 13.8872C14.1063 13.9429 14.0723 13.9938 14.0299 14.0372C13.9834 14.0853 13.9247 14.1198 13.86 14.1372L7.86002 16.1372L9.85001 10.1072Z" fill="currentColor"/></svg></div><span>朋友圈</span></div>
+                <div class="nav-item"><div class="nav-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.9667 1.75195C9.81618 1.76239 7.72323 2.4468 5.98323 3.70856C4.24323 4.97032 2.94402 6.74571 2.26894 8.78424C1.59387 10.8228 1.57703 13.0215 2.22077 15.0701C2.86452 17.1187 4.13635 18.9138 5.85681 20.202C5.90685 20.2507 5.96434 20.2912 6.02709 20.322C7.7668 21.5741 9.85708 22.248 12.0017 22.248C14.1464 22.248 16.2367 21.5741 17.9764 20.322C18.0421 20.2869 18.1027 20.2432 18.1567 20.192C19.877 18.8994 21.1468 17.0996 21.7865 15.0471C22.4261 12.9945 22.4032 10.7931 21.721 8.7543C21.0389 6.71546 19.7319 4.94233 17.985 3.68573C16.2382 2.42913 14.1398 1.75265 11.9867 1.75195H11.9667ZM11.9667 5.51196C12.7921 5.50205 13.6018 5.73775 14.2926 6.18903C14.9834 6.6403 15.5239 7.28669 15.8454 8.04584C16.1668 8.80498 16.2545 9.64249 16.0974 10.4516C15.9403 11.2607 15.5454 12.0048 14.963 12.589C14.3807 13.1732 13.6374 13.5711 12.8277 13.7319C12.0181 13.8927 11.1788 13.8092 10.4169 13.492C9.65495 13.1748 9.00487 12.6383 8.54951 11.9508C8.09415 11.2634 7.85414 10.4561 7.86004 9.63196C7.86783 8.54512 8.30238 7.50471 9.07028 6.73431C9.83818 5.96392 10.8781 5.52503 11.9667 5.51196ZM16.5942 19.4319C15.2071 20.2944 13.6058 20.7515 11.9717 20.7515C10.3376 20.7515 8.73627 20.2944 7.34921 19.4319C6.918 19.1703 6.51226 18.869 6.13726 18.532C6.70519 17.7242 7.43513 17.0431 8.28074 16.532C9.39741 15.869 10.6725 15.5191 11.9717 15.5191C13.2709 15.5191 14.546 15.869 15.6627 16.532C16.5083 17.0431 17.2382 17.7242 17.8061 18.532C17.4311 18.869 17.0254 19.1703 16.5942 19.4319Z" fill="currentColor"/></svg></div><span>我的</span></div>
+            </div>
+        </div>
+
+        <!-- 朋友圈编辑弹窗 -->
+        <div class="wc-moments-edit-overlay" id="wcMomentsEditOverlay">
+            <div class="wc-moments-edit-card">
+                <div class="edit-header">编辑个人资料</div>
+                <div class="edit-bg-preview" id="wcMomentsEditBgPreview" onclick="openIconMenu(event, 'wcMomentsBg')">
+                    <div class="edit-cam-icon"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></div>
+                </div>
+                <div class="edit-avatar-wrapper">
+                    <div class="edit-avatar-preview" id="wcMomentsEditAvatarPreview" onclick="openIconMenu(event, 'wcMomentsAvatar')"></div>
+                    <div class="edit-cam-icon small"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></div>
+                </div>
+                <div class="edit-form">
+                    <input type="text" id="wcMomentsEditName" placeholder="名称">
+                    <input type="text" id="wcMomentsEditId" placeholder="ID">
+                    <textarea id="wcMomentsEditBio" placeholder="个性签名"></textarea>
+                </div>
+                <div class="edit-actions">
+                    <button class="cancel" onclick="wcCloseMomentsEditModal()">取消</button>
+                    <button class="save" onclick="wcSaveMomentsEdit()">保存</button>
                 </div>
             </div>
         </div>
@@ -5270,6 +5257,57 @@
             }
         };
 
+        // --- 加载微信朋友圈数据 ---
+        const wcMomentsRequest = store.get("wechatMomentsData");
+        wcMomentsRequest.onsuccess = (e) => {
+            const data = e.target.result;
+            if (data) {
+                wcMomentsList = data.list || [];
+            } else {
+                wcMomentsList = [
+                    {
+                        id: 'm1',
+                        name: '早虞春',
+                        avatar: '<svg viewBox="0 0 24 24" width="24" height="24" fill="#999"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>',
+                        text: '今天的天气很好，适合散步。',
+                        time: '10分钟前',
+                        images: [],
+                        likes: ['音无结弦', '仲村由理'],
+                        comments: [
+                            { name: '音无结弦', content: '一起去吃麻婆豆腐吧！' }
+                        ]
+                    },
+                    {
+                        id: 'm2',
+                        name: '早虞春',
+                        avatar: '<svg viewBox="0 0 24 24" width="24" height="24" fill="#999"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>',
+                        text: '分享一些最近的随手拍。',
+                        time: '昨天',
+                        images: [
+                            '<svg viewBox="0 0 24 24" width="24" height="24" stroke="#adb5bd" stroke-width="1.5" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><polyline points="21 15 16 10 5 21"></polyline></svg>',
+                            '<svg viewBox="0 0 24 24" width="24" height="24" stroke="#adb5bd" stroke-width="1.5" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><polyline points="21 15 16 10 5 21"></polyline></svg>',
+                            '<svg viewBox="0 0 24 24" width="24" height="24" stroke="#adb5bd" stroke-width="1.5" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><polyline points="21 15 16 10 5 21"></polyline></svg>'
+                        ],
+                        likes: [],
+                        comments: []
+                    }
+                ];
+            }
+            if (typeof wcRenderMoments === 'function') {
+                wcRenderMoments();
+            }
+        };
+
+        // --- 加载微信朋友圈个人资料数据 ---
+        const wcMomentsProfileReq = store.get("wechatMomentsProfileData");
+        wcMomentsProfileReq.onsuccess = (e) => {
+            const data = e.target.result;
+            if (data && data.profile) {
+                wcMomentsProfile = data.profile;
+            }
+            if (typeof wcRenderMomentsProfile === 'function') wcRenderMomentsProfile();
+        };
+
         // --- 加载微信联系人数据 ---
         const wcContactsRequest = store.get("wechatContactsData");
         wcContactsRequest.onsuccess = (e) => {
@@ -5874,35 +5912,40 @@
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    const MAX_SIZE = 256;
-                    let width = img.width;
-                    let height = img.height;
-                    
-                    if (width > height) {
-                        if (width > MAX_SIZE) {
-                            height *= MAX_SIZE / width;
-                            width = MAX_SIZE;
+                if (currentIconIndex === 'wcMomentsBg' || currentIconIndex === 'wcMomentsAvatar') {
+                    // 朋友圈背景和头像不压缩，直接使用原图
+                    applyIconToApp(e.target.result);
+                } else {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        const MAX_SIZE = 256;
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        if (width > height) {
+                            if (width > MAX_SIZE) {
+                                height *= MAX_SIZE / width;
+                                width = MAX_SIZE;
+                            }
+                        } else {
+                            if (height > MAX_SIZE) {
+                                width *= MAX_SIZE / height;
+                                height = MAX_SIZE;
+                            }
                         }
-                    } else {
-                        if (height > MAX_SIZE) {
-                            width *= MAX_SIZE / height;
-                            height = MAX_SIZE;
-                        }
-                    }
-                    
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-                    
-                    const base64Url = canvas.toDataURL('image/webp', 0.95);
-                    applyIconToApp(base64Url);
-                };
-                img.src = e.target.result;
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        const base64Url = canvas.toDataURL('image/webp', 0.95);
+                        applyIconToApp(base64Url);
+                    };
+                    img.src = e.target.result;
+                }
             };
             reader.readAsDataURL(file);
         }
@@ -5920,6 +5963,21 @@
     function applyIconToApp(url) {
         if (currentIconIndex === null) return;
         
+        if (currentIconIndex === 'wcMomentsBg') {
+            wcMomentsProfile.bg = url;
+            document.getElementById('wcMomentsEditBgPreview').style.backgroundImage = `url('${url}')`;
+            return;
+        }
+        if (currentIconIndex === 'wcMomentsAvatar') {
+            wcMomentsProfile.avatar = url;
+            const avatarPreview = document.getElementById('wcMomentsEditAvatarPreview');
+            avatarPreview.innerHTML = '';
+            avatarPreview.style.backgroundImage = `url('${url}')`;
+            avatarPreview.style.backgroundSize = 'cover';
+            avatarPreview.style.backgroundPosition = 'center';
+            return;
+        }
+
             // show three-dots button; click to expand vertical capsule menu
         if (currentIconIndex === 'appleIdAvatar') {
             const appleIdAvatar = document.getElementById('appleIdAvatarPreview');
@@ -7276,17 +7334,175 @@
         document.querySelectorAll('#wechatAppUI .page').forEach(el => el.classList.remove('active'));
         
         if (tabName === 'chat') {
-            document.querySelectorAll('#wechatAppUI .bottom-nav .nav-item:nth-child(1)').forEach(el => el.classList.add('active'));
+            document.getElementById('wc-nav-chat').classList.add('active');
             document.getElementById('page-chat-list').classList.add('active');
         } else if (tabName === 'contacts') {
-            document.querySelectorAll('#wechatAppUI .bottom-nav .nav-item:nth-child(2)').forEach(el => el.classList.add('active'));
+            document.getElementById('wc-nav-contacts').classList.add('active');
             document.getElementById('page-contacts').classList.add('active');
             wcRenderContactTabs();
             wcRenderContactList();
         } else if (tabName === 'moments') {
-            document.querySelectorAll('#wechatAppUI .bottom-nav .nav-item:nth-child(3)').forEach(el => el.classList.add('active'));
+            document.getElementById('wc-nav-moments').classList.add('active');
             document.getElementById('page-moments').classList.add('active');
         }
+    }
+
+    // --- 微信朋友圈逻辑 ---
+    let wcMomentsList = [];
+
+    function wcSaveMomentsData() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "wechatMomentsData", list: wcMomentsList });
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+    }
+
+    function wcRenderMoments() {
+        const container = document.getElementById('wc-moments-feed-list');
+        if (!container) return;
+        let html = '';
+        wcMomentsList.forEach(post => {
+            let imagesHtml = '';
+            if (post.images && post.images.length > 0) {
+                imagesHtml = '<div class="post-images">';
+                post.images.forEach(img => {
+                    imagesHtml += `<div class="post-image">${img}</div>`;
+                });
+                imagesHtml += '</div>';
+            }
+            
+            let commentsHtml = '';
+            if (post.comments && post.comments.length > 0) {
+                commentsHtml = '<div class="comments">';
+                post.comments.forEach(c => {
+                    commentsHtml += `<div class="comment-item"><span class="comment-name">${c.name}:</span> ${c.content}</div>`;
+                });
+                commentsHtml += '</div>';
+            }
+
+            let interactionHtml = '';
+            if ((post.likes && post.likes.length > 0) || (post.comments && post.comments.length > 0)) {
+                let likesHtml = '';
+                if (post.likes && post.likes.length > 0) {
+                    likesHtml = `<div class="likes"><svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> ${post.likes.join(', ')}</div>`;
+                }
+                interactionHtml = `
+                    <div class="interaction-area">
+                        ${likesHtml}
+                        ${commentsHtml}
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="post">
+                    <div class="post-avatar">${post.avatar}</div>
+                    <div class="post-content">
+                        <div class="post-name">${post.name}</div>
+                        <div class="post-text">${post.text}</div>
+                        ${imagesHtml}
+                        <div class="post-footer">
+                            <span class="post-time">${post.time}</span>
+                            <div class="action-btn">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="12" r="2.5"></circle></svg>
+                            </div>
+                        </div>
+                        ${interactionHtml}
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    // --- 微信朋友圈个人资料逻辑 ---
+    let wcMomentsProfile = {
+        bg: '',
+        avatar: '',
+        name: '早虞春',
+        id: '@zoouiy',
+        bio: 'i luv u <3…🤍'
+    };
+
+    function wcSaveMomentsProfileData() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "wechatMomentsProfileData", profile: wcMomentsProfile });
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+    }
+
+    function wcRenderMomentsProfile() {
+        const bgEl = document.querySelector('#page-moments .cover-photo');
+        const avatarEl = document.querySelector('#page-moments .profile-avatar-inner');
+        const nameEl = document.querySelector('#page-moments .profile-name');
+        const idEl = document.querySelector('#page-moments .profile-handle');
+        const bioEl = document.querySelector('#page-moments .profile-bio');
+
+        if (bgEl) {
+            if (wcMomentsProfile.bg) {
+                bgEl.style.backgroundImage = `url('${wcMomentsProfile.bg}')`;
+                bgEl.style.backgroundSize = 'cover';
+                bgEl.style.backgroundPosition = 'center';
+            } else {
+                bgEl.style.backgroundImage = 'none';
+                bgEl.style.backgroundColor = '#4a4a4a';
+            }
+        }
+        if (avatarEl) {
+            if (wcMomentsProfile.avatar) {
+                avatarEl.innerHTML = '';
+                avatarEl.style.backgroundImage = `url('${wcMomentsProfile.avatar}')`;
+                avatarEl.style.backgroundSize = 'cover';
+                avatarEl.style.backgroundPosition = 'center';
+            } else {
+                avatarEl.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%" fill="none" stroke="#555" stroke-width="1.5"><circle cx="50" cy="40" r="20" fill="#eee" stroke="none"/><path d="M30 40 Q50 60 70 40" stroke="#888"/><path d="M20 100 Q50 60 80 100" fill="#eee" stroke="none"/><path d="M20 100 Q50 60 80 100"/><circle cx="42" cy="38" r="2" fill="#555"/><circle cx="58" cy="38" r="2" fill="#555"/></svg>`;
+                avatarEl.style.backgroundImage = 'none';
+            }
+        }
+        if (nameEl) nameEl.innerText = wcMomentsProfile.name;
+        if (idEl) idEl.innerText = wcMomentsProfile.id;
+        if (bioEl) bioEl.innerText = wcMomentsProfile.bio;
+    }
+
+    function wcOpenMomentsEditModal() {
+        document.getElementById('wcMomentsEditName').value = wcMomentsProfile.name;
+        document.getElementById('wcMomentsEditId').value = wcMomentsProfile.id;
+        document.getElementById('wcMomentsEditBio').value = wcMomentsProfile.bio;
+
+        const bgPreview = document.getElementById('wcMomentsEditBgPreview');
+        if (wcMomentsProfile.bg) {
+            bgPreview.style.backgroundImage = `url('${wcMomentsProfile.bg}')`;
+        } else {
+            bgPreview.style.backgroundImage = 'none';
+            bgPreview.style.backgroundColor = '#4a4a4a';
+        }
+
+        const avatarPreview = document.getElementById('wcMomentsEditAvatarPreview');
+        if (wcMomentsProfile.avatar) {
+            avatarPreview.innerHTML = '';
+            avatarPreview.style.backgroundImage = `url('${wcMomentsProfile.avatar}')`;
+        } else {
+            avatarPreview.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%" fill="none" stroke="#555" stroke-width="1.5"><circle cx="50" cy="40" r="20" fill="#eee" stroke="none"/><path d="M30 40 Q50 60 70 40" stroke="#888"/><path d="M20 100 Q50 60 80 100" fill="#eee" stroke="none"/><path d="M20 100 Q50 60 80 100"/><circle cx="42" cy="38" r="2" fill="#555"/><circle cx="58" cy="38" r="2" fill="#555"/></svg>`;
+            avatarPreview.style.backgroundImage = 'none';
+        }
+
+        document.getElementById('wcMomentsEditOverlay').classList.add('show');
+    }
+
+    function wcCloseMomentsEditModal() {
+        document.getElementById('wcMomentsEditOverlay').classList.remove('show');
+    }
+
+    function wcSaveMomentsEdit() {
+        wcMomentsProfile.name = document.getElementById('wcMomentsEditName').value || '未命名';
+        wcMomentsProfile.id = document.getElementById('wcMomentsEditId').value || '';
+        wcMomentsProfile.bio = document.getElementById('wcMomentsEditBio').value || '';
+        
+        wcSaveMomentsProfileData();
+        wcRenderMomentsProfile();
+        wcCloseMomentsEditModal();
     }
 
     // --- 微信联系人逻辑 ---
@@ -7488,12 +7704,16 @@
     function wcOpenChat() {
         document.querySelector('#wechatAppUI #page-chat-list').classList.remove('active');
         document.querySelector('#wechatAppUI #page-chat-room').classList.add('active');
+        const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+        if (bottomNav) bottomNav.style.display = 'none';
         wcUpdateMessageGroupings(); wcScrollToBottom();
     }
 
     function wcCloseChat() {
         document.querySelector('#wechatAppUI #page-chat-room').classList.remove('active');
         document.querySelector('#wechatAppUI #page-chat-list').classList.add('active');
+        const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+        if (bottomNav) bottomNav.style.display = 'block';
         document.getElementById('wc-dropdown-menu').classList.remove('show');
     }
 
