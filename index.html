@@ -2512,6 +2512,34 @@
         #wechatAppUI .room-send-btn { width: 40px; height: 40px; border-radius: 50%; background-color: var(--tg-blue); display: flex; justify-content: center; align-items: center; color: #fff; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 8px rgba(51, 144, 236, 0.3); transition: transform 0.1s; }
         #wechatAppUI .room-send-btn:active { transform: scale(0.9); }
         #wechatAppUI .room-send-btn svg { width: 20px; height: 20px; fill: currentColor; margin-right: 2px; margin-top: 1px; }
+        
+        /* 微信表情面板样式 */
+        #wechatAppUI .wc-emoji-panel { position: absolute; bottom: 0; left: 0; width: 100%; background-color: rgba(255, 255, 255, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 16px 16px 0 0; border-top: 1px solid rgba(230, 230, 230, 0.6); box-shadow: 0 -4px 20px rgba(0,0,0,0.06); height: 280px; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom, 15px); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); z-index: 90; }
+        #wechatAppUI .wc-emoji-panel.show { transform: translateY(0); }
+        #wechatAppUI .wc-emoji-panel-header { display: flex; flex-direction: column; padding: 14px 16px 10px 16px; min-height: 36px; justify-content: center; }
+        #wechatAppUI .wc-capsule-group { display: flex; background: rgba(0, 0, 0, 0.06); border-radius: 999px; padding: 2px; margin: 0 auto; width: fit-content; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        #wechatAppUI .wc-capsule-group::-webkit-scrollbar { display: none; }
+        #wechatAppUI .wc-capsule-item { flex-shrink: 0; padding: 3px 16px; font-size: 12px; color: #666; border-radius: 999px; cursor: pointer; transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); text-align: center; user-select: none; -webkit-user-select: none; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        #wechatAppUI .wc-capsule-item.active { background: #ffffff; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        #wechatAppUI .wc-search-trigger { padding: 3px 14px; gap: 4px; }
+        #wechatAppUI .wc-search-trigger svg { width: 14px; height: 14px; stroke: #666; stroke-width: 2.5; flex-shrink: 0; }
+        #wechatAppUI .wc-search-view { display: none; align-items: center; gap: 12px; width: 100%; }
+        #wechatAppUI .wc-search-view.show { display: flex; }
+        #wechatAppUI .wc-search-box { flex: 1; background: rgba(0, 0, 0, 0.06); border-radius: 20px; padding: 6px 14px; display: flex; align-items: center; gap: 8px; }
+        #wechatAppUI .wc-search-box svg { width: 16px; height: 16px; stroke: #888; }
+        #wechatAppUI .wc-search-box input { border: none; background: transparent; outline: none; font-size: 14px; color: #333; width: 100%; font-weight: bold; }
+        #wechatAppUI .wc-search-box input::placeholder { color: #888; font-weight: bold; }
+        #wechatAppUI .wc-cancel-btn { font-size: 14px; color: #576b95; cursor: pointer; font-weight: bold; white-space: nowrap; }
+        #wechatAppUI .wc-panel-content { flex: 1; display: flex; justify-content: center; align-items: center; color: #888; font-size: 15px; letter-spacing: 0.5px; font-weight: bold; }
+        
+        /* 深色模式适配 */
+        .iphone.dark-mode #wechatAppUI .wc-emoji-panel { background-color: rgba(28, 28, 30, 0.75); border-top-color: rgba(255,255,255,0.1); }
+        .iphone.dark-mode #wechatAppUI .wc-capsule-group, .iphone.dark-mode #wechatAppUI .wc-search-box { background: rgba(255, 255, 255, 0.1); }
+        .iphone.dark-mode #wechatAppUI .wc-capsule-item { color: #aaa; }
+        .iphone.dark-mode #wechatAppUI .wc-capsule-item.active { background: #333; color: #fff; }
+        .iphone.dark-mode #wechatAppUI .wc-search-trigger svg { stroke: #aaa; }
+        .iphone.dark-mode #wechatAppUI .wc-search-box input { color: #fff; }
+
         #wechatAppUI .modal-wrapper { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
         #wechatAppUI .modal-wrapper.show { opacity: 1; visibility: visible; }
         #wechatAppUI .modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(28, 28, 30, 0.85); }
@@ -4320,11 +4348,33 @@
                 <div class="message-row sent"><div class="msg-avatar" style="background-image: url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')"></div><div class="message-bubble sent"><div class="msg-text">想我</div><div class="msg-meta sent"><span>18:06</span><svg viewBox="0 0 24 24"><polyline points="18 6 7 17 2 12"></polyline><polyline points="22 6 12 16"></polyline></svg></div></div></div>
                 <div class="message-row sent"><div class="msg-avatar" style="background-image: url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')"></div><div class="message-bubble sent"><div class="msg-text">需要我</div><div class="msg-meta sent"><span>18:06</span><svg viewBox="0 0 24 24"><polyline points="18 6 7 17 2 12"></polyline><polyline points="22 6 12 16"></polyline></svg></div></div></div>
             </div>
-            <div class="footer-capsule">
-                <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="stroke: none;"><path d="M10.5199 19.8634C10.5955 18.6615 10.8833 17.5172 11.3463 16.4676C9.81124 16.3252 8.41864 15.6867 7.33309 14.7151L8.66691 13.2248C9.55217 14.0172 10.7188 14.4978 12 14.4978C12.1763 14.4978 12.3501 14.4887 12.5211 14.471C14.227 12.2169 16.8661 10.7083 19.8634 10.5199C19.1692 6.80877 15.9126 4 12 4C7.58172 4 4 7.58172 4 12C4 15.9126 6.80877 19.1692 10.5199 19.8634ZM19.0233 12.636C15.7891 13.2396 13.2396 15.7891 12.636 19.0233L19.0233 12.636ZM22 12C22 12.1677 21.9959 12.3344 21.9877 12.5L12.5 21.9877C12.3344 21.9959 12.1677 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM10 10C10 10.8284 9.32843 11.5 8.5 11.5C7.67157 11.5 7 10.8284 7 10C7 9.17157 7.67157 8.5 8.5 8.5C9.32843 8.5 10 9.17157 10 10ZM17 10C17 10.8284 16.3284 11.5 15.5 11.5C14.6716 11.5 14 10.8284 14 10C14 9.17157 14.6716 8.5 15.5 8.5C16.3284 8.5 17 9.17157 17 10Z"></path></svg>
-                <input type="text" id="wc-chat-input" placeholder="广播" onkeypress="wcHandleKeyPress(event)">
+            <div class="footer-capsule" id="wcFooterCapsule" style="transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);">
+                <svg class="tool-icon" onclick="wcToggleEmojiPanel(event)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="stroke: none;"><path d="M10.5199 19.8634C10.5955 18.6615 10.8833 17.5172 11.3463 16.4676C9.81124 16.3252 8.41864 15.6867 7.33309 14.7151L8.66691 13.2248C9.55217 14.0172 10.7188 14.4978 12 14.4978C12.1763 14.4978 12.3501 14.4887 12.5211 14.471C14.227 12.2169 16.8661 10.7083 19.8634 10.5199C19.1692 6.80877 15.9126 4 12 4C7.58172 4 4 7.58172 4 12C4 15.9126 6.80877 19.1692 10.5199 19.8634ZM19.0233 12.636C15.7891 13.2396 13.2396 15.7891 12.636 19.0233L19.0233 12.636ZM22 12C22 12.1677 21.9959 12.3344 21.9877 12.5L12.5 21.9877C12.3344 21.9959 12.1677 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM10 10C10 10.8284 9.32843 11.5 8.5 11.5C7.67157 11.5 7 10.8284 7 10C7 9.17157 7.67157 8.5 8.5 8.5C9.32843 8.5 10 9.17157 10 10ZM17 10C17 10.8284 16.3284 11.5 15.5 11.5C14.6716 11.5 14 10.8284 14 10C14 9.17157 14.6716 8.5 15.5 8.5C16.3284 8.5 17 9.17157 17 10Z"></path></svg>
+                <input type="text" id="wc-chat-input" placeholder="广播" onkeypress="wcHandleKeyPress(event)" onclick="wcCloseEmojiPanel()">
                 <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                 <div class="room-send-btn" onclick="wcSendMessage()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.38 2.49946C21.7685 2.89783 22.0386 3.39641 22.16 3.93946C22.2806 4.48282 22.2389 5.04963 22.04 5.56947L16.87 20.4895C16.7165 20.8646 16.4886 21.2048 16.2 21.4895C16.0617 21.6264 15.9111 21.7502 15.75 21.8595C15.2538 22.1908 14.6664 22.3586 14.07 22.3395C13.4715 22.3235 12.8926 22.1227 12.4127 21.7646C11.9329 21.4065 11.5756 20.9087 11.39 20.3395C11.39 20.3395 11.39 20.2495 11.39 20.2195L10.77 16.4495C10.7311 16.2026 10.7467 15.9502 10.8158 15.7101C10.8849 15.4699 11.0058 15.2479 11.17 15.0595L11.93 14.1895L16.14 9.34947C16.2332 9.25623 16.3072 9.14554 16.3577 9.02372C16.4081 8.9019 16.4341 8.77133 16.4341 8.63947C16.4341 8.50762 16.4081 8.37703 16.3577 8.25521C16.3072 8.13339 16.2332 8.02271 16.14 7.92947C16.0468 7.83623 15.9361 7.76226 15.8143 7.7118C15.6924 7.66134 15.5619 7.63537 15.43 7.63537C15.2982 7.63537 15.1676 7.66134 15.0457 7.7118C14.9239 7.76226 14.8132 7.83623 14.72 7.92947L9.96001 12.0795L9.13 12.7995C8.94034 12.9645 8.71624 13.0852 8.47405 13.1526C8.23186 13.2201 7.97767 13.2327 7.73 13.1895L3.99001 12.5195C3.37752 12.3591 2.83146 12.0091 2.43001 11.5195C2.04824 11.0377 1.82819 10.4478 1.80126 9.83375C1.77433 9.21968 1.94185 8.61277 2.27999 8.09947C2.61551 7.58257 3.11059 7.18933 3.68999 6.97947L18.35 1.78947C18.8712 1.60015 19.4354 1.56261 19.977 1.68121C20.5187 1.79981 21.0156 2.06968 21.41 2.45947L21.38 2.49946Z" fill="currentColor"/></svg></div>
+            </div>
+            
+            <!-- 悬浮表情面板 -->
+            <div class="wc-emoji-panel" id="wcEmojiPanel" onclick="event.stopPropagation()">
+                <div class="wc-emoji-panel-header">
+                    <div class="wc-capsule-group" id="wcEmojiCapsuleGroup">
+                        <div class="wc-capsule-item wc-search-trigger" onclick="wcOpenEmojiSearch()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <span>搜索</span>
+                        </div>
+                        <div class="wc-capsule-item active" onclick="wcSwitchEmojiGroup(this)">全部</div>
+                        <div class="wc-capsule-item" onclick="wcSwitchEmojiGroup(this)">最近</div>
+                    </div>
+                    <div class="wc-search-view" id="wcEmojiSearchView">
+                        <div class="wc-search-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <input type="text" id="wcEmojiSearchInput" placeholder="搜索表情包">
+                        </div>
+                        <div class="wc-cancel-btn" onclick="wcCloseEmojiSearch()">取消</div>
+                    </div>
+                </div>
+                <div class="wc-panel-content" id="wcEmojiPanelContent">当前暂无表情包</div>
             </div>
         </div>
 
@@ -7862,6 +7912,69 @@
     function wcCloseMenu(event) {
         const menu = document.getElementById('wc-dropdown-menu');
         if (menu && menu.classList.contains('show')) menu.classList.remove('show');
+        
+        // 点击聊天区域空白处时，收起表情面板
+        const emojiPanel = document.getElementById('wcEmojiPanel');
+        if (emojiPanel && emojiPanel.classList.contains('show') && event && !event.target.closest('#wcEmojiPanel') && !event.target.closest('.tool-icon')) {
+            wcCloseEmojiPanel();
+        }
+    }
+
+    // 切换表情面板显示/隐藏
+    function wcToggleEmojiPanel(event) {
+        if (event) event.stopPropagation();
+        const panel = document.getElementById('wcEmojiPanel');
+        const footer = document.getElementById('wcFooterCapsule');
+        const chatArea = document.getElementById('wc-chat-area');
+        
+        if (panel.classList.contains('show')) {
+            wcCloseEmojiPanel();
+        } else {
+            panel.classList.add('show');
+            if(footer) footer.style.transform = 'translateY(-266px)';
+            if(chatArea) chatArea.style.paddingBottom = '366px';
+            wcScrollToBottom();
+        }
+    }
+
+    // 收起表情面板
+    function wcCloseEmojiPanel() {
+        const panel = document.getElementById('wcEmojiPanel');
+        const footer = document.getElementById('wcFooterCapsule');
+        const chatArea = document.getElementById('wc-chat-area');
+        if (panel && panel.classList.contains('show')) {
+            panel.classList.remove('show');
+            if(footer) footer.style.transform = 'translateY(0)';
+            if(chatArea) chatArea.style.paddingBottom = '100px';
+            
+            // 关闭面板时，自动退出搜索状态，恢复默认分组视图
+            if (typeof wcCloseEmojiSearch === 'function') {
+                wcCloseEmojiSearch();
+            }
+        }
+    }
+
+    // 切换表情分组
+    function wcSwitchEmojiGroup(item) {
+        const items = document.querySelectorAll('#wcEmojiPanel .wc-capsule-item:not(.wc-search-trigger)');
+        items.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        item.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+
+    // 打开表情搜索视图
+    function wcOpenEmojiSearch() {
+        document.getElementById('wcEmojiCapsuleGroup').style.display = 'none';
+        document.getElementById('wcEmojiSearchView').classList.add('show');
+        document.getElementById('wcEmojiPanelContent').innerText = '搜索表情包...';
+    }
+
+    // 关闭表情搜索视图
+    function wcCloseEmojiSearch() {
+        document.getElementById('wcEmojiSearchView').classList.remove('show');
+        document.getElementById('wcEmojiCapsuleGroup').style.display = 'flex';
+        document.getElementById('wcEmojiSearchInput').value = '';
+        document.getElementById('wcEmojiPanelContent').innerText = '当前暂无表情包';
     }
 
     function wcHandleMenuClick(action) {
@@ -8813,6 +8926,9 @@
         const avatarHtml = `<div class="msg-avatar" style="background-image: url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')"></div>`;
         row.innerHTML = `${avatarHtml}<div class="message-bubble sent"><div class="msg-text">${text}</div><div class="msg-meta sent"><span>${timeStr}</span><svg viewBox="0 0 24 24"><polyline points="18 6 7 17 2 12"></polyline><polyline points="22 6 12 16"></polyline></svg></div></div>`;
         chatArea.appendChild(row); input.value = ''; wcUpdateMessageGroupings(); wcScrollToBottom(); 
+        
+        // 发送消息后自动收起表情面板
+        wcCloseEmojiPanel();
     }
     function wcScrollToBottom() { const chatArea = document.getElementById('wc-chat-area'); chatArea.scrollTop = chatArea.scrollHeight; }
     function wcUpdateMessageGroupings() {
