@@ -2921,8 +2921,45 @@
         .iphone.dark-mode #wechatAppUI .wc-list-item { background-color: #000000; }
         .iphone.dark-mode #wechatAppUI .wc-avatar-wrapper { border-color: #38383a; }
 
-    </style>
+        /* --- 通用选择弹窗样式 (恢复您满意的 macOS 风格 + 胶囊按钮) --- */
+        .univ-sel-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.35); z-index: 10000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .univ-sel-overlay.show { opacity: 1; visibility: visible; }
+        .univ-sel-frame { width: fit-content; min-width: 250px; max-width: 85%; max-height: 65vh; background-color: rgba(242, 242, 247, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; transform: scale(1.15); opacity: 0; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease; }
+        .univ-sel-overlay.show .univ-sel-frame { transform: scale(1); opacity: 1; }
+        .univ-sel-window-header { padding: 14px 16px 4px 16px; display: flex; gap: 8px; flex-shrink: 0; }
+        .univ-sel-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .univ-sel-dot.red { background-color: #ff5f56; cursor: pointer; }
+        .univ-sel-dot.yellow { background-color: #ffbd2e; }
+        .univ-sel-dot.green { background-color: #27c93f; }
+        .univ-sel-search-wrap { padding: 8px 16px 12px 16px; flex-shrink: 0; }
+        .univ-sel-search { background-color: rgba(0, 0, 0, 0.06); border-radius: 10px; height: 36px; display: flex; align-items: center; padding: 0 8px; }
+        .univ-sel-search svg { width: 16px; height: 16px; fill: #8e8e93; margin: 0 6px; flex-shrink: 0; }
+        .univ-sel-search input { border: none; background: transparent; flex: 1; font-size: 15px; color: #000; outline: none; }
+        .univ-sel-search input::placeholder { color: #8e8e93; }
+        .univ-sel-content { overflow-y: auto; padding: 0; -webkit-overflow-scrolling: touch; border: none; }
+        .univ-sel-inner { padding: 0 16px 8px 16px; display: flex; flex-direction: column; }
+        .univ-sel-content::-webkit-scrollbar { width: 14px; }
+        .univ-sel-content::-webkit-scrollbar-track { background: transparent; border: none; }
+        .univ-sel-content::-webkit-scrollbar-thumb { background-color: rgba(0, 0, 0, 0.25); border-radius: 10px; border: 4px solid transparent; background-clip: padding-box; }
+        .univ-sel-content::-webkit-scrollbar-button { display: none; }
+        .univ-sel-card { display: flex; align-items: center; padding: 10px 4px; cursor: pointer; transition: opacity 0.2s; border: none; background: transparent; }
+        .univ-sel-card:active { opacity: 0.5; }
+        .univ-sel-radio { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #c7c7cc; margin-right: 12px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; transition: all 0.2s ease; }
+        .univ-sel-radio svg { width: 12px; height: 12px; stroke: #fff; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: scale(0.5); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .univ-sel-card.selected .univ-sel-radio { background-color: #007aff; border-color: #007aff; }
+        .univ-sel-card.selected .univ-sel-radio svg { opacity: 1; transform: scale(1); }
+        .univ-sel-info { display: flex; flex-direction: column; gap: 2px; }
+        .univ-sel-name { font-size: 15px; font-weight: 500; color: #000; word-break: break-word; white-space: normal; }
+        .univ-sel-footer { padding: 8px 16px 16px 16px; display: flex; justify-content: flex-end; align-items: center; flex-shrink: 0; background: transparent; }
+        .univ-sel-save { background-color: #007aff; color: #fff; padding: 8px 24px; border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.1s, opacity 0.2s; box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25); }
+        .univ-sel-save:active { transform: scale(0.95); opacity: 0.8; }
+        .univ-sel-save.disabled { background-color: #c7c7cc; box-shadow: none; pointer-events: none; }
+        .iphone.dark-mode .univ-sel-frame { background-color: rgba(30, 30, 30, 0.85); }
+        .iphone.dark-mode .univ-sel-search { background-color: rgba(255, 255, 255, 0.1); }
+        .iphone.dark-mode .univ-sel-search input { color: #fff; }
+        .iphone.dark-mode .univ-sel-name { color: #fff; }
 
+    </style>
 
 </head>
 <body>
@@ -3944,20 +3981,19 @@
                 </div>
                 <div class="ic-list-item" style="padding: 12px 16px; border-bottom: 1px solid #f2f2f7;">
                     <div class="ic-list-item-title">备份模式</div>
-                    <select id="autoBackupMode" onchange="changeBackupMode()" style="border: none; background: transparent; font-size: 16px; color: #8e8e93; outline: none; text-align: right; direction: rtl; cursor: pointer;">
-                        <option value="action">每次修改时</option>
-                        <option value="interval">间隔时间备份</option>
-                        <option value="scheduled">定时备份</option>
-                    </select>
+                    <div id="autoBackupModeBtn" onclick="openAutoBackupModeSelect()" style="font-size: 16px; color: #8e8e93; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <span id="autoBackupModeText" data-value="action">每次修改时</span>
+                        <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                    </div>
                 </div>
                 <div class="ic-list-item" id="intervalSettingsRow" style="padding: 12px 16px; display: none; border-bottom: 1px solid #f2f2f7;">
                     <div class="ic-list-item-title">间隔时间</div>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <input type="number" id="backupIntervalValue" value="30" onchange="updateBackupSettings()" style="width: 50px; text-align: right; border: none; background: transparent; font-size: 16px; color: #007aff; outline: none;">
-                        <select id="backupIntervalUnit" onchange="updateBackupSettings()" style="border: none; background: transparent; font-size: 16px; color: #8e8e93; outline: none; cursor: pointer;">
-                            <option value="60000">分钟</option>
-                            <option value="3600000">小时</option>
-                        </select>
+                        <div id="backupIntervalUnitBtn" onclick="openBackupIntervalUnitSelect()" style="font-size: 16px; color: #8e8e93; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <span id="backupIntervalUnitText" data-value="60000">分钟</span>
+                            <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                        </div>
                     </div>
                 </div>
                 <div class="ic-list-item" id="scheduledSettingsRow" style="padding: 12px 16px; display: none;">
@@ -4054,10 +4090,8 @@
                     
                     <div class="api-form-group" style="margin-bottom: 0;">
                         <div class="api-form-label">MODEL (模型)</div>
-                        <div class="api-form-input-wrapper">
-                            <select class="api-form-select" id="api-add-model">
-                                <option value="" disabled selected>请先拉取模型</option>
-                            </select>
+                        <div class="api-form-input-wrapper" onclick="openApiModelSelect('add')" style="cursor: pointer;">
+                            <input type="text" class="api-form-input" id="api-add-model" placeholder="请先拉取模型" readonly style="cursor: pointer; pointer-events: none;">
                             <svg style="width: 12px; height: 12px; stroke: #8e8e93; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; margin-left: 10px;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </div>
                     </div>
@@ -4103,10 +4137,8 @@
                     
                     <div class="api-form-group" style="margin-bottom: 0;">
                         <div class="api-form-label">MODEL (模型)</div>
-                        <div class="api-form-input-wrapper">
-                            <select class="api-form-select" id="api-edit-model">
-                                <option value="" disabled selected>请先拉取模型</option>
-                            </select>
+                        <div class="api-form-input-wrapper" onclick="openApiModelSelect('edit')" style="cursor: pointer;">
+                            <input type="text" class="api-form-input" id="api-edit-model" placeholder="请先拉取模型" readonly style="cursor: pointer; pointer-events: none;">
                             <svg style="width: 12px; height: 12px; stroke: #8e8e93; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; margin-left: 10px;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </div>
                     </div>
@@ -4241,11 +4273,10 @@
                     </div>
                     <div class="wb-settings-row">
                         <div class="wb-settings-label">注入位置</div>
-                        <select class="wb-settings-select">
-                            <option>前置 (Before)</option>
-                            <option selected>后置 (After)</option>
-                            <option>作者注释 (Author's Note)</option>
-                        </select>
+                        <div class="wb-settings-value-with-arrow" onclick="openWbPositionSelect()" style="cursor: pointer;">
+                            <span id="wbPositionText" data-value="后置 (After)">后置 (After)</span>
+                            <svg class="wb-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                        </div>
                     </div>
                     <div class="wb-settings-row">
                         <div class="wb-settings-label">注入深度</div>
@@ -4352,6 +4383,35 @@
     <div class="custom-dialog-overlay" id="customDialogOverlay">
         <div class="custom-dialog" id="customDialog">
             <!-- 内容由 JS 动态生成 -->
+        </div>
+    </div>
+
+    <!-- 通用选择弹窗 -->
+    <div class="univ-sel-overlay" id="univSelOverlay" onclick="closeUniversalSelect()">
+        <div class="univ-sel-frame" onclick="event.stopPropagation()">
+            <!-- 模仿网页窗口控制点 -->
+            <div class="univ-sel-window-header">
+                <div class="univ-sel-dot red" onclick="closeUniversalSelect()"></div>
+                <div class="univ-sel-dot yellow"></div>
+                <div class="univ-sel-dot green"></div>
+            </div>
+            <!-- 顶部搜索栏 -->
+            <div class="univ-sel-search-wrap" id="univSelSearchWrap">
+                <div class="univ-sel-search">
+                    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                    <input type="text" id="univSelSearchInput" placeholder="搜索..." oninput="handleUniversalSearch()">
+                </div>
+            </div>
+            <!-- 内容区域 -->
+            <div class="univ-sel-content">
+                <div class="univ-sel-inner" id="univSelListContainer">
+                    <!-- 列表动态渲染 -->
+                </div>
+            </div>
+            <!-- 底部 Save 按钮 -->
+            <div class="univ-sel-footer">
+                <div class="univ-sel-save disabled" id="univSelSaveBtn" onclick="saveUniversalSelection()">Save</div>
+            </div>
         </div>
     </div>
 
@@ -4711,11 +4771,10 @@
                             </div>
                             <div style="display: flex; align-items: center; justify-content: space-between;">
                                 <span style="font-size: 16px; font-weight: 600;">显示模式</span>
-                                <select id="wc-avatar-display-mode" onchange="wcApplyAvatarSettings()" style="border: none; background: transparent; font-size: 16px; color: var(--tg-blue); outline: none; text-align: right; direction: rtl; cursor: pointer;">
-                                    <option value="all">全程显示</option>
-                                    <option value="first">首个显示</option>
-                                    <option value="last">末尾显示</option>
-                                </select>
+                                <div id="wcAvatarDisplayModeBtn" onclick="openWcAvatarModeSelect()" style="font-size: 16px; color: var(--tg-blue); cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                    <span id="wcAvatarDisplayModeText" data-value="all">全程显示</span>
+                                    <svg class="wc-chevron-right" viewBox="0 0 8 13" style="width: 8px; height: 13px; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none;"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                                </div>
                             </div>
                             <div style="display: flex; align-items: center; justify-content: space-between;">
                                 <span style="font-size: 16px; font-weight: 600;">头像大小</span>
@@ -4843,7 +4902,10 @@
                         批量导入
                     </div>
                     <div class="wc-batch-header-right">
-                        <select id="wcBatchGroupSelect"></select>
+                        <div id="wcBatchGroupSelectBtn" onclick="openWcBatchGroupSelect()" style="padding: 6px 28px 6px 12px; border: 1px solid #e5e5e5; border-radius: 6px; font-size: 13px; font-weight: 600; color: #555; background-color: #fff; cursor: pointer; display: flex; align-items: center; gap: 8px; max-width: 120px;">
+                            <span id="wcBatchGroupSelectText" data-value="new_default" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">默认分组</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
                     </div>
                 </div>
                 <div class="wc-batch-body">
@@ -5558,9 +5620,19 @@
                 document.getElementById('ld-last-time').innerText = ldData.lastTime || '--';
                 document.getElementById('ld-last-size').innerText = ldData.lastSize || '--';
                 
-                document.getElementById('autoBackupMode').value = ldData.backupMode || 'action';
+                const modeMap = { 'action': '每次修改时', 'interval': '间隔时间备份', 'scheduled': '定时备份' };
+                const unitMap = { '60000': '分钟', '3600000': '小时' };
+                const modeVal = ldData.backupMode || 'action';
+                const unitVal = ldData.intervalUnit || '60000';
+                
+                const modeTextEl = document.getElementById('autoBackupModeText');
+                if(modeTextEl) { modeTextEl.setAttribute('data-value', modeVal); modeTextEl.innerText = modeMap[modeVal]; }
+                
                 document.getElementById('backupIntervalValue').value = ldData.intervalValue || '30';
-                document.getElementById('backupIntervalUnit').value = ldData.intervalUnit || '60000';
+                
+                const unitTextEl = document.getElementById('backupIntervalUnitText');
+                if(unitTextEl) { unitTextEl.setAttribute('data-value', unitVal); unitTextEl.innerText = unitMap[unitVal]; }
+                
                 document.getElementById('backupScheduledTime').value = ldData.scheduledTime || '02:00';
                 
                 const toggleBtn = document.getElementById('autoBackupToggle');
@@ -7926,7 +7998,7 @@
             const isActive = g.id === wcCurrentContactTabId ? 'active' : '';
             html += `<div class="wc-tab-item ${isActive}" onclick="wcSwitchContactTab('${g.id}')">${g.name}</div>`;
         });
-        html += `<div class="wc-tab-item" onclick="wcOpenCreateContactGroupDialog()">📁+分组</div>`;
+        html += `<div class="wc-tab-item" onclick="wcOpenCreateContactGroupDialog()">📁分组+</div>`;
         container.innerHTML = html;
     }
 
@@ -7992,39 +8064,53 @@
 
     function wcOpenMoveSheet(contactId) {
         wcCurrentMoveContactId = contactId;
-        const sheetList = document.getElementById('wcMoveSheetGroupList');
-        let html = `<div class="wc-sheet-title">移动联系人至...</div>`;
-        wcContactGroups.forEach(g => {
-            if (g.id !== wcCurrentContactTabId) {
-                html += `<div class="wc-sheet-btn" onclick="wcMoveToGroup('${g.id}')">${g.name}</div>`;
-            }
-        });
-        if (wcContactGroups.length <= 1) {
-            html += `<div class="wc-sheet-title" style="padding: 20px;">没有其他分组可选</div>`;
-        }
-        sheetList.innerHTML = html;
-        document.getElementById('wcMoveSheetOverlay').classList.add('show');
+        
         if (wcActiveContactSwipeItem) {
             wcActiveContactSwipeItem.style.transform = 'translateX(0)';
             wcActiveContactSwipeItem = null;
         }
+
+        let items = [];
+        wcContactGroups.forEach(g => {
+            if (g.id !== wcCurrentContactTabId) {
+                items.push({ label: g.name, value: g.id });
+            }
+        });
+
+        if (items.length === 0) {
+            showToast('没有其他分组可选');
+            return;
+        }
+
+        openUniversalSelect({
+            title: '移动联系人至',
+            items: items,
+            currentValue: '', // 默认不选中
+            searchable: false,
+            onSelect: (groupId) => {
+                if (wcCurrentMoveContactId) {
+                    const contact = wcContactsList.find(c => c.id === wcCurrentMoveContactId);
+                    if (contact) {
+                        contact.groupId = groupId;
+                        wcSaveContactsData();
+                        wcRenderContactList();
+                        showToast('移动成功');
+                    }
+                }
+                wcCurrentMoveContactId = null;
+            }
+        });
     }
 
     function wcCloseMoveSheet() {
-        document.getElementById('wcMoveSheetOverlay').classList.remove('show');
+        // 兼容旧版 HTML 绑定的事件，防止报错
+        const overlay = document.getElementById('wcMoveSheetOverlay');
+        if (overlay) overlay.classList.remove('show');
         wcCurrentMoveContactId = null;
     }
 
     function wcMoveToGroup(groupId) {
-        if (wcCurrentMoveContactId) {
-            const contact = wcContactsList.find(c => c.id === wcCurrentMoveContactId);
-            if (contact) {
-                contact.groupId = groupId;
-                wcSaveContactsData();
-                wcRenderContactList();
-            }
-        }
-        wcCloseMoveSheet();
+        // 兼容旧版 HTML 绑定的事件，防止报错
     }
 
     let wcContactStartX = 0, wcContactStartY = 0, wcContactCurrentX = 0, wcContactCurrentY = 0;
@@ -8806,8 +8892,8 @@
     function wcApplyAvatarSettings() {
         const toggleEl = document.getElementById('wc-avatar-toggle');
         const enabled = toggleEl ? toggleEl.classList.contains('active') : wcAvatarSettings.enabled;
-        const modeSelect = document.getElementById('wc-avatar-display-mode');
-        const displayMode = modeSelect ? modeSelect.value : (wcAvatarSettings.displayMode || 'all');
+        const modeSelect = document.getElementById('wcAvatarDisplayModeText');
+        const displayMode = modeSelect ? modeSelect.getAttribute('data-value') : (wcAvatarSettings.displayMode || 'all');
         const size = document.getElementById('wc-avatar-size-slider') ? document.getElementById('wc-avatar-size-slider').value : wcAvatarSettings.size;
         const radius = document.getElementById('wc-avatar-radius-slider') ? document.getElementById('wc-avatar-radius-slider').value : wcAvatarSettings.radius;
         
@@ -8951,8 +9037,13 @@
             const toggleEl = document.getElementById('wc-avatar-toggle');
             if (toggleEl) toggleEl.classList.add('active');
         }
-        const modeSelect = document.getElementById('wc-avatar-display-mode');
-        if (modeSelect) modeSelect.value = wcAvatarSettings.displayMode || 'all';
+        const modeSelect = document.getElementById('wcAvatarDisplayModeText');
+        if (modeSelect) {
+            const val = wcAvatarSettings.displayMode || 'all';
+            const map = { 'all': '全程显示', 'first': '首个显示', 'last': '末尾显示' };
+            modeSelect.setAttribute('data-value', val);
+            modeSelect.innerText = map[val];
+        }
         const sizeSlider = document.getElementById('wc-avatar-size-slider');
         if (sizeSlider) sizeSlider.value = wcAvatarSettings.size;
         const radiusSlider = document.getElementById('wc-avatar-radius-slider');
@@ -9596,20 +9687,28 @@
 
     function wcOpenMoveEmojiModal() {
         if (wcSelectedEmojiIds.size === 0) return;
-        const sheetList = document.getElementById('wcMoveSheetGroupList');
-        let html = `<div class="wc-sheet-title">移到</div>`;
-        let hasTarget = false;
+        
+        let items = [];
         wcEmojiGroups.forEach(g => {
             if (wcCurrentEmojiGroupId === 'all' || g.id !== wcCurrentEmojiGroupId) {
-                hasTarget = true;
-                html += `<div class="wc-sheet-btn" onclick="wcConfirmMoveEmojis('${g.id}')">${g.name}</div>`;
+                items.push({ label: g.name, value: g.id });
             }
         });
-        if (!hasTarget) {
-            html += `<div class="wc-sheet-title" style="padding: 20px;">没有其他分组可选</div>`;
+
+        if (items.length === 0) {
+            showToast('没有其他分组可选');
+            return;
         }
-        sheetList.innerHTML = html;
-        document.getElementById('wcMoveSheetOverlay').classList.add('show');
+
+        openUniversalSelect({
+            title: '移动表情至',
+            items: items,
+            currentValue: '',
+            searchable: true, // 表情分组可能比较多，开启搜索框
+            onSelect: (targetGroupId) => {
+                wcConfirmMoveEmojis(targetGroupId);
+            }
+        });
     }
 
     function wcConfirmMoveEmojis(targetGroupId) {
@@ -9623,7 +9722,6 @@
         });
         targetGroup.emojis = targetGroup.emojis.concat(emojisToMove);
         wcSaveEmojiData();
-        document.getElementById('wcMoveSheetOverlay').classList.remove('show');
         wcOpenEmojiGroupDetail(wcCurrentEmojiGroupId);
         showToast(`成功移动 ${emojisToMove.length} 个表情到 "${targetGroup.name}"`);
     }
@@ -9670,20 +9768,15 @@
     }
 
     function wcImportEmojis() {
-        const select = document.getElementById('wcBatchGroupSelect');
-        select.innerHTML = '';
+        const selectText = document.getElementById('wcBatchGroupSelectText');
         
-        // 动态填充下拉框
         if (wcEmojiGroups.length === 0) {
-            select.innerHTML = '<option value="new_default">默认分组</option>';
+            selectText.setAttribute('data-value', 'new_default');
+            selectText.innerText = '默认分组';
         } else {
-            wcEmojiGroups.forEach(g => {
-                const option = document.createElement('option');
-                option.value = g.id;
-                option.textContent = g.name;
-                if (wcCurrentEmojiGroupId === g.id) option.selected = true;
-                select.appendChild(option);
-            });
+            let targetGroup = wcEmojiGroups.find(g => g.id === wcCurrentEmojiGroupId) || wcEmojiGroups[0];
+            selectText.setAttribute('data-value', targetGroup.id);
+            selectText.innerText = targetGroup.name;
         }
         
         document.getElementById('wcBatchImportTextarea').value = '';
@@ -9712,8 +9805,8 @@
         const data = document.getElementById('wcBatchImportTextarea').value;
         if (!data.trim()) { showCustomAlert('提示', '请输入导入数据'); return; }
         
-        const select = document.getElementById('wcBatchGroupSelect');
-        let targetGroupId = select.value;
+        const selectText = document.getElementById('wcBatchGroupSelectText');
+        let targetGroupId = selectText.getAttribute('data-value');
         let targetGroup = null;
 
         if (targetGroupId === 'new_default') {
@@ -10226,7 +10319,7 @@
         const keyInput = document.querySelector('.wb-editor-key-input');
         const contentInput = document.querySelector('.wb-editor-textarea');
         const globalSwitch = document.querySelector('.wb-ios-switch');
-        const posSelect = document.querySelector('.wb-settings-select');
+        const posSelect = document.getElementById('wbPositionText');
         const depthInput = document.querySelector('.wb-settings-input');
         const groupNameSpan = document.getElementById('wbSelectedGroupName');
 
@@ -10238,7 +10331,8 @@
                 contentInput.value = entry.content || '';
                 if (entry.isGlobal) globalSwitch.classList.add('active');
                 else globalSwitch.classList.remove('active');
-                posSelect.value = entry.position || '后置 (After)';
+                posSelect.innerText = entry.position || '后置 (After)';
+                posSelect.setAttribute('data-value', entry.position || '后置 (After)');
                 depthInput.value = entry.depth || 4;
                 
                 const group = wbGroups.find(g => g.id === entry.groupId);
@@ -10253,7 +10347,8 @@
             keyInput.value = '';
             contentInput.value = '';
             globalSwitch.classList.remove('active');
-            posSelect.value = '后置 (After)';
+            posSelect.innerText = '后置 (After)';
+            posSelect.setAttribute('data-value', '后置 (After)');
             depthInput.value = 4;
             
             // 如果没有选中分组，默认选未分类
@@ -10285,7 +10380,7 @@
         const key = document.querySelector('.wb-editor-key-input').value.trim();
         const content = document.querySelector('.wb-editor-textarea').value;
         const isGlobal = document.querySelector('.wb-ios-switch').classList.contains('active');
-        const position = document.querySelector('.wb-settings-select').value;
+        const position = document.getElementById('wbPositionText').getAttribute('data-value');
         const depth = document.querySelector('.wb-settings-input').value;
         
         let groupId = document.getElementById('wbSelectedGroupName').getAttribute('data-id');
@@ -10587,10 +10682,12 @@
         if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
     }
 
+    let fetchedModelsCache = []; // 缓存拉取到的模型
+
     async function fetchApiModels(mode) {
         const urlInput = document.getElementById(mode === 'add' ? 'api-add-url' : 'api-edit-url').value.trim();
         const keyInput = document.getElementById(mode === 'add' ? 'api-add-key' : 'api-edit-key').value.trim();
-        const selectEl = document.getElementById(mode === 'add' ? 'api-add-model' : 'api-edit-model');
+        const inputEl = document.getElementById(mode === 'add' ? 'api-add-model' : 'api-edit-model');
 
         if (!urlInput || !keyInput) {
             showCustomAlert('提示', '请先填写 URL 和 Key');
@@ -10617,22 +10714,20 @@
             const data = await response.json();
 
             if (data && data.data && Array.isArray(data.data)) {
-                selectEl.innerHTML = ''; // 清空旧选项
-                
                 if (data.data.length === 0) {
-                    selectEl.innerHTML = '<option value="" disabled selected>未找到可用模型</option>';
+                    inputEl.value = '';
+                    inputEl.placeholder = '未找到可用模型';
+                    fetchedModelsCache = [];
                     showToast('未找到可用模型');
                     return;
                 }
 
-                data.data.forEach((model, index) => {
-                    const option = document.createElement('option');
-                    option.value = model.id;
-                    option.textContent = model.id;
-                    if (index === 0) option.selected = true; // 默认选中第一个
-                    selectEl.appendChild(option);
-                });
+                fetchedModelsCache = data.data.map(m => m.id);
+                inputEl.value = fetchedModelsCache[0]; // 默认选中第一个
                 showToast('模型拉取成功');
+                
+                // 拉取成功后自动打开选择弹窗
+                openApiModelSelect(mode);
             } else {
                 throw new Error('接口返回的数据格式不符合 OpenAI 标准');
             }
@@ -10668,7 +10763,8 @@
         document.getElementById('api-add-name').value = '';
         document.getElementById('api-add-url').value = '';
         document.getElementById('api-add-key').value = '';
-        document.getElementById('api-add-model').innerHTML = '<option value="" disabled selected>请先拉取模型</option>';
+        document.getElementById('api-add-model').value = '';
+        document.getElementById('api-add-model').placeholder = '请先拉取模型';
     }
 
     function deleteApiDrawer() {
@@ -10764,8 +10860,9 @@
         document.getElementById('api-edit-key').value = api.key;
         
             // show three-dots button; click to expand vertical capsule menu
-        const selectEl = document.getElementById('api-edit-model');
-        selectEl.innerHTML = `<option value="${api.model}" selected>${api.model || '未选择模型'}</option>`;
+        const inputEl = document.getElementById('api-edit-model');
+        inputEl.value = api.model || '';
+        inputEl.placeholder = api.model ? api.model : '未选择模型';
         
         document.getElementById('apiDrawerOverlay').classList.add('show');
         document.getElementById('apiDrawer').classList.add('show');
@@ -11311,7 +11408,7 @@
         const lastTime = document.getElementById('ld-last-time').innerText;
         const lastSize = document.getElementById('ld-last-size').innerText;
         const intervalValue = document.getElementById('backupIntervalValue').value;
-        const intervalUnit = document.getElementById('backupIntervalUnit').value;
+        const intervalUnit = document.getElementById('backupIntervalUnitText').getAttribute('data-value');
         const scheduledTime = document.getElementById('backupScheduledTime').value;
 
         store.put({
@@ -11488,7 +11585,7 @@
     }
 
     function changeBackupMode() {
-        const mode = document.getElementById('autoBackupMode').value;
+        const mode = document.getElementById('autoBackupModeText').getAttribute('data-value');
         backupModeType = mode;
         
             // show three-dots button; click to expand vertical capsule menu
@@ -11514,7 +11611,7 @@
 
         if (backupModeType === 'interval') {
             const val = parseInt(document.getElementById('backupIntervalValue').value, 10) || 30;
-            const unit = parseInt(document.getElementById('backupIntervalUnit').value, 10) || 60000;
+            const unit = parseInt(document.getElementById('backupIntervalUnitText').getAttribute('data-value'), 10) || 60000;
             const intervalMs = val * unit;
             
             autoBackupTimerId = setInterval(() => {
@@ -11603,6 +11700,212 @@
             console.error("Restore failed:", err);
             showCustomAlert("错误", "恢复失败: " + err.message);
         }
+    }
+
+    // --- 通用选择弹窗逻辑 ---
+    let univSelCallback = null;
+
+    function openUniversalSelect(options) {
+        // options: { title, items: [{label, value}], currentValue, searchable, onSelect }
+        const titleEl = document.getElementById('univSelTitle');
+        if (titleEl) titleEl.innerText = options.title;
+        
+        const searchWrap = document.getElementById('univSelSearchWrap');
+        const searchInput = document.getElementById('univSelSearchInput');
+        
+        if (options.searchable) {
+            searchWrap.style.display = 'block';
+            searchInput.value = '';
+        } else {
+            searchWrap.style.display = 'none';
+        }
+
+        window.univSelCurrentItems = options.items;
+        window.univSelCurrentValue = options.currentValue;
+        univSelCallback = options.onSelect;
+
+        renderUniversalSelectList('');
+        document.getElementById('univSelOverlay').classList.add('show');
+    }
+
+    function closeUniversalSelect() {
+        document.getElementById('univSelOverlay').classList.remove('show');
+    }
+
+    function renderUniversalSelectList(query) {
+        const container = document.getElementById('univSelListContainer');
+        container.innerHTML = '';
+        
+        const filtered = window.univSelCurrentItems.filter(item => 
+            item.label.toLowerCase().includes(query.toLowerCase()) || 
+            item.value.toLowerCase().includes(query.toLowerCase())
+        );
+        
+        if (filtered.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:#8e8e93; padding: 40px 0; font-size: 14px;">无匹配项</div>';
+            document.getElementById('univSelSaveBtn').classList.add('disabled');
+            return;
+        }
+
+        let html = '';
+        filtered.forEach(item => {
+            const isSelected = window.univSelCurrentValue === item.value ? 'selected' : '';
+            const safeValue = item.value.replace(/'/g, "\\'");
+            html += `
+                <div class="univ-sel-card ${isSelected}" onclick="selectUniversalItem(this, '${safeValue}')">
+                    <div class="univ-sel-radio">
+                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                    <div class="univ-sel-info">
+                        <div class="univ-sel-name">${item.label}</div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        
+        if (window.univSelCurrentValue !== null && window.univSelCurrentValue !== undefined && window.univSelCurrentValue !== '') {
+            document.getElementById('univSelSaveBtn').classList.remove('disabled');
+        } else {
+            document.getElementById('univSelSaveBtn').classList.add('disabled');
+        }
+    }
+
+    function handleUniversalSearch() {
+        const query = document.getElementById('univSelSearchInput').value.trim();
+        renderUniversalSelectList(query);
+    }
+
+    function selectUniversalItem(element, value) {
+        const cards = document.querySelectorAll('.univ-sel-card');
+        cards.forEach(card => card.classList.remove('selected'));
+        element.classList.add('selected');
+        window.univSelCurrentValue = value;
+        document.getElementById('univSelSaveBtn').classList.remove('disabled');
+    }
+
+    function saveUniversalSelection() {
+        if (window.univSelCurrentValue !== null && window.univSelCurrentValue !== undefined && window.univSelCurrentValue !== '') {
+            if (univSelCallback) univSelCallback(window.univSelCurrentValue);
+            closeUniversalSelect();
+        }
+    }
+
+    // --- 各个模块的触发函数 ---
+    function openApiModelSelect(mode) {
+        if (typeof fetchedModelsCache === 'undefined' || fetchedModelsCache.length === 0) {
+            showToast('请先点击“拉取模型”获取列表');
+            return;
+        }
+        const inputEl = document.getElementById(mode === 'add' ? 'api-add-model' : 'api-edit-model');
+        const items = fetchedModelsCache.map(m => ({ label: m, value: m }));
+        openUniversalSelect({
+            title: '选择模型',
+            items: items,
+            currentValue: inputEl.value,
+            searchable: true,
+            onSelect: (val) => {
+                inputEl.value = val;
+            }
+        });
+    }
+
+    function openAutoBackupModeSelect() {
+        const textEl = document.getElementById('autoBackupModeText');
+        const items = [
+            { label: '每次修改时', value: 'action' },
+            { label: '间隔时间备份', value: 'interval' },
+            { label: '定时备份', value: 'scheduled' }
+        ];
+        openUniversalSelect({
+            title: '备份模式',
+            items: items,
+            currentValue: textEl.getAttribute('data-value') || 'action',
+            searchable: false,
+            onSelect: (val) => {
+                textEl.setAttribute('data-value', val);
+                textEl.innerText = items.find(i => i.value === val).label;
+                changeBackupMode();
+            }
+        });
+    }
+
+    function openBackupIntervalUnitSelect() {
+        const textEl = document.getElementById('backupIntervalUnitText');
+        const items = [
+            { label: '分钟', value: '60000' },
+            { label: '小时', value: '3600000' }
+        ];
+        openUniversalSelect({
+            title: '间隔单位',
+            items: items,
+            currentValue: textEl.getAttribute('data-value') || '60000',
+            searchable: false,
+            onSelect: (val) => {
+                textEl.setAttribute('data-value', val);
+                textEl.innerText = items.find(i => i.value === val).label;
+                updateBackupSettings();
+            }
+        });
+    }
+
+    function openWbPositionSelect() {
+        const textEl = document.getElementById('wbPositionText');
+        const items = [
+            { label: '前置 (Before)', value: '前置 (Before)' },
+            { label: '后置 (After)', value: '后置 (After)' },
+            { label: '作者注释 (Author\'s Note)', value: '作者注释 (Author\'s Note)' }
+        ];
+        openUniversalSelect({
+            title: '注入位置',
+            items: items,
+            currentValue: textEl.getAttribute('data-value') || '后置 (After)',
+            searchable: false,
+            onSelect: (val) => {
+                textEl.setAttribute('data-value', val);
+                textEl.innerText = val;
+            }
+        });
+    }
+
+    function openWcAvatarModeSelect() {
+        const textEl = document.getElementById('wcAvatarDisplayModeText');
+        const items = [
+            { label: '全程显示', value: 'all' },
+            { label: '首个显示', value: 'first' },
+            { label: '末尾显示', value: 'last' }
+        ];
+        openUniversalSelect({
+            title: '显示模式',
+            items: items,
+            currentValue: textEl.getAttribute('data-value') || 'all',
+            searchable: false,
+            onSelect: (val) => {
+                textEl.setAttribute('data-value', val);
+                textEl.innerText = items.find(i => i.value === val).label;
+                wcApplyAvatarSettings();
+            }
+        });
+    }
+
+    function openWcBatchGroupSelect() {
+        const textEl = document.getElementById('wcBatchGroupSelectText');
+        let items = [];
+        if (wcEmojiGroups.length === 0) {
+            items.push({ label: '默认分组', value: 'new_default' });
+        } else {
+            items = wcEmojiGroups.map(g => ({ label: g.name, value: g.id }));
+        }
+        openUniversalSelect({
+            title: '选择分组',
+            items: items,
+            currentValue: textEl.getAttribute('data-value'),
+            searchable: true,
+            onSelect: (val) => {
+                textEl.setAttribute('data-value', val);
+                textEl.innerText = items.find(i => i.value === val).label;
+            }
+        });
     }
 </script>
 
