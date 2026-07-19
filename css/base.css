@@ -1,0 +1,378 @@
+
+        @font-face {
+            font-family: Geomini;
+            src: url(https://nos.netease.com/ysf/260de1ccc0fffea1b1af12b7f5b50c3c.ttf) format(truetype);
+            font-weight: normal;
+            font-style: normal;
+        }
+        :root {
+            --app-height: 100vh;
+            --system-bar-color: #fdfbfb;
+            --top-safe-area: env(safe-area-inset-top, 0px);
+        }
+        *, *::before, *::after, input, button, textarea, select {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            /* 全局使用 Geomini，并加入优质中文字体回退链 */
+            font-family: "Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif !important;
+            font-optical-sizing: auto;
+            font-style: normal;
+            font-weight: 600; /* 新增：全局默认半粗体，实现所有地方一点加粗 */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #e0e0e0;
+            overflow: hidden;
+        }
+
+        /* 手机外壳模拟 */
+        .iphone {
+            width: 375px;
+            height: 812px;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            border-radius: 45px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            border: 8px solid #f0f0f0;
+        }
+
+        /* Single mobile viewport model: one height source and one safe-area source. */
+        @media (max-width: 768px) {
+            html,
+            body {
+                width: 100%;
+                height: var(--app-height, 100vh);
+                min-height: var(--app-height, 100vh);
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                overscroll-behavior: none;
+                -webkit-overflow-scrolling: touch;
+                touch-action: manipulation;
+            }
+
+            body {
+                position: fixed;
+                inset: 0;
+                display: block;
+                height: 100%;
+                min-height: 100%;
+            }
+
+            .iphone {
+                position: fixed;
+                inset: 0;
+                width: 100%;
+                height: var(--app-height, 100vh);
+                min-height: var(--app-height, 100vh);
+                max-width: none;
+                max-height: none;
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .bottom-nav-wrapper {
+                bottom: calc(25px + env(safe-area-inset-bottom, 0px));
+            }
+        }
+
+        /* iOS standalone keeps the simulated status bar over the system status area. */
+        html.ios-installed body .iphone .status-bar {
+            padding-top: 14px;
+        }
+
+        html.ios-installed body .iphone .desktop-grid {
+            margin-top: 30px;
+            height: calc(100% - 180px);
+        }
+
+        html.ios-installed .iphone > .dock {
+            bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+        }
+
+        html.ios-installed .iphone > .search-bar {
+            bottom: calc(115px + env(safe-area-inset-bottom, 0px));
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 26px 0 26px;
+            color: #000;
+            z-index: 9999;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            pointer-events: none;
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .time {
+            font-size: 14.5px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .focus-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1px;
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 电池UI */
+        .battery-wrapper {
+            display: flex;
+            align-items: center;
+            margin-left: 1px;
+        }
+        
+        .battery-body {
+            width: 22px;
+            height: 11px;
+            border: 1px solid rgba(0, 0, 0, 0.4);
+            border-radius: 3.5px;
+            position: relative;
+            padding: 1px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .battery-fill {
+            height: 100%;
+            background-color: #000;
+            border-radius: 1.5px;
+            width: 85%;
+            transition: width 0.3s ease;
+        }
+        
+        .battery-nub {
+            width: 1.2px;
+            height: 3.5px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 0 1.5px 1.5px 0;
+        }
+        /* 编辑模式 UI */
+        .edit-ui {
+            position: absolute;
+            top: 18px;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+            cursor: pointer;
+        }
+
+        .edit-plus {
+            left: 20px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .edit-done {
+            right: 20px;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 桌面 4x7 网格 */
+        .desktop-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-rows: repeat(7, 80px);
+            gap: 15px 10px;
+            padding: 25px 20px;
+            margin-top: 30px;
+            height: calc(100% - 180px);
+            position: relative;
+            z-index: 5;
+        }
+
+        /* 桌面格子占位符 */
+        .desktop-slot {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            border-radius: 16px;
+            transition: background-color 0.2s, border 0.2s;
+            border: 1px solid transparent;
+        }
+
+        /* 编辑模式下显示格子 */
+        .desktop-slot.show-grid {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px dashed rgba(0, 0, 0, 0.15);
+        }
+
+        /* APP 图标容器 */
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            touch-action: none;
+            cursor: default;
+            position: relative;
+            width: 100%;
+        }
+
+        .app-icon {
+            width: 60px;
+            height: 60px;
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(0,0,0,0.02);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            pointer-events: none;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .app-icon::before {
+            content: '';
+            width: 30px;
+            height: 30px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .app-name {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #555;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        /* 搜索按钮 */
+        .search-bar {
+            position: absolute;
+            bottom: 115px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #555;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 5;
+        }
+
+        /* 底部程序坞 (Dock) */
+        .dock {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            height: 85px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 30px;
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            z-index: 5;
+            padding: 0 10px;
+        }
+
+
+        .dock .app-item {
+            margin-top: 10px;
+            width: auto;
+        }
+
+        .dock .app-item .app-name {
+            display: none;
+        }
+        
+        .dock .app-icon {
+            background-color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+                .app-delete-btn {
+            display: none;
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #ff3b30;
+            border-radius: 50%;
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            line-height: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-family: Arial, sans-serif;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .app-item.is-widget.jiggling .app-delete-btn {
+            display: flex;
+        }
+        .is-widget .app-icon::before {
+            display: none;
+        }
+        .dock .app-delete-btn { display: none !important; }
+
+                .widget-size-preset {
+            position: relative;
+            cursor: pointer;
+        }

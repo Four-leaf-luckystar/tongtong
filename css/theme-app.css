@@ -1,0 +1,1109 @@
+
+        .widget-size-preset input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .widget-size-preset span {
+            display: block;
+            padding: 8px 14px;
+            background: #f2f2f7;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #000;
+            font-weight: 500;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .widget-size-preset input:checked + span {
+            background: #007aff;
+            color: #fff;
+            border-color: #007aff;
+        }
+        .widget-size-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .widget-size-preset {
+            flex: 0 0 auto;
+        }
+
+        /* ?????????? */
+        .widget-custom-size-picker {
+            position: fixed; left: 0; bottom: 0; width: 100%; max-height: 70%;
+            background: #f2f2f7; border-radius: 24px 24px 0 0;
+            transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+            z-index: 400; display: flex; flex-direction: column;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.12);
+        }
+        .widget-custom-size-picker.show { transform: translateY(0); }
+        .widget-custom-size-picker .picker-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-radius: 24px 24px 0 0; background: #f2f2f7;
+        }
+        .widget-custom-size-picker .picker-title { font-size: 16px; font-weight: 600; color: #000; }
+        .widget-custom-size-picker .picker-body {
+            padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto;
+        }
+        .widget-custom-size-picker .picker-row {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #fff; border-radius: 14px; padding: 14px 16px;
+        }
+        .widget-custom-size-picker .picker-label { font-size: 15px; color: #000; font-weight: 500; }
+        .widget-custom-size-picker .picker-stepper { display: flex; align-items: center; gap: 14px; }
+        .widget-custom-size-picker .stepper-btn {
+            width: 32px; height: 32px; border-radius: 50%; border: none;
+            background: #f2f2f7; font-size: 20px; color: #007aff; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: background 0.15s;
+        }
+        .widget-custom-size-picker .stepper-btn:active { background: #e0e0e8; }
+        .widget-custom-size-picker .stepper-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .widget-custom-size-picker .stepper-val { font-size: 16px; font-weight: 600; color: #000; min-width: 24px; text-align: center; }
+        #themeAppUI .widget-code-preview { display: none; }
+        #themeAppUI .widget-code-preview-stage { position: relative; width: 100%; overflow: hidden; border-radius: 12px; background: #d9d9de; }
+        #themeAppUI .widget-code-preview-frame { position: absolute; top: 0; left: 0; border: 0; background: #fff; transform-origin: top left; }
+
+
+        /* 编辑模式抖动动画 */
+        @keyframes jiggle {
+            0% { transform: rotate(-1.5deg); }
+            50% { transform: rotate(1.5deg); }
+            100% { transform: rotate(-1.5deg); }
+        }
+
+        .app-item.jiggling {
+            animation: jiggle 0.3s infinite;
+            cursor: grab;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+        .app-item.jiggling:active {
+            cursor: grabbing;
+        }
+
+        /* 隐藏自定义图标时的默认占位方块 */
+        .app-icon.has-custom-icon::before {
+            display: none;
+        }
+        
+        /* 去除自定义图标的白色背景和阴影，完美适配透明底图片 */
+        .app-icon.has-custom-icon {
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+
+        /* --- 主题 APP UI 样式 --- */
+        .theme-app-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fafafa; /* 低饱和素白色 */
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .theme-app-container.show {
+            transform: translateY(0);
+        }
+        /* 顶部导航栏 */
+        .ios-top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 90px;
+            padding: 45px 20px 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 110;
+            background-color: #fafafa; /* 低饱和素白色 */
+            border-bottom: none; /* 确保没有横线 */
+        }
+        .ios-top-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 17px;
+            font-weight: 600;
+            color: #000;
+        }
+        .ios-back-btn {
+            width: 36px;
+            height: 36px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .ios-save-btn {
+            background-color: #fff;
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .ios-menu-btn {
+            width: 36px;
+            height: 36px;
+            background-color: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .ios-top-right-group { display: flex; align-items: center; gap: 8px; }
+        .theme-dropdown-menu {
+            position: absolute;
+            top: 85px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 120;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-15px);
+            transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .theme-dropdown-menu.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+        .detail-dropdown-menu {
+            position: absolute;
+            top: 85px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 220;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-15px);
+            transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .detail-dropdown-menu.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+        .dropdown-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 6px 16px 6px 6px;
+            border-radius: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .dropdown-btn:active {
+            transform: scale(0.95);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .dropdown-icon-circle {
+            width: 32px;
+            height: 32px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        
+        /* 底部导航栏外层容器 */
+        .bottom-nav-wrapper {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 110;
+            gap: 12px;
+        }
+        
+        /* 左侧主胶囊 */
+        .nav-capsule-main {
+            flex: 1;
+            height: 64px;
+            background-color: rgba(242, 242, 247, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 32px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+
+        /* 右侧独立按钮 */
+        .nav-capsule-standalone {
+            width: 64px;
+            height: 64px;
+            background-color: rgba(242, 242, 247, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            flex-shrink: 0;
+        }
+
+        .theme-tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            width: 54px;
+            height: 54px;
+            border-radius: 27px;
+            transition: all 0.2s ease;
+        }
+        
+        .theme-tab-item svg {
+            width: 20px;
+            height: 20px;
+            stroke: #8e8e93;
+            stroke-width: 2;
+            fill: none;
+            transition: stroke 0.2s ease;
+        }
+        
+        .theme-tab-item.active {
+            background-color: #e5e5ea;
+        }
+        
+        .theme-tab-item.active svg {
+            stroke: #000;
+        }
+        
+        .theme-tab-text {
+            font-size: 8px;
+            font-weight: 600;
+            color: #8e8e93;
+            transition: color 0.2s ease;
+        }
+
+        .theme-tab-item.active .theme-tab-text {
+            color: #007aff;
+        }
+        
+        .nav-capsule-standalone .theme-tab-item {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+        
+        /* 内容区适配上下栏 */
+        .theme-content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 90px; /* 为底部栏留出空间 */
+            padding-top: 90px; /* 为顶部栏留出空间 */
+            background-color: #fafafa; /* 低饱和素白色 */
+        }
+
+        .theme-grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 0 16px;
+        }
+        .theme-app-card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 28px 12px 16px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .theme-original-name {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            font-size: 10px;
+            color: #aeaeb2;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .theme-reset-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background-color: rgba(142, 142, 147, 0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: #8e8e93;
+            z-index: 5;
+        }
+        .theme-icon-wrapper {
+            position: relative;
+            width: 56px;
+            height: 56px;
+            flex-shrink: 0;
+        }
+        .theme-app-icon {
+            width: 100%;
+            height: 100%;
+            border-radius: 14px;
+            background-color: #e5e5ea;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+        }
+        .theme-camera-badge {
+            position: absolute;
+            bottom: -6px;
+            right: -6px;
+            width: 22px;
+            height: 22px;
+            background-color: #3a3a3c;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .theme-text-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 14px;
+            gap: 4px;
+            max-width: 100%;
+        }
+        .theme-app-name-input {
+            font-size: 13px;
+            color: #000;
+            font-weight: bold;
+            outline: none;
+            border-bottom: 1px solid transparent;
+            padding: 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 90px;
+        }
+        .theme-app-name-input:focus { border-bottom-color: #d1d1d6; }
+
+        /* --- 壁纸 UI 样式 --- */
+        .wallpaper-carousel-container {
+            display: none; /* 默认隐藏，点击Tab后显示 */
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            position: relative;
+            background-color: #fafafa; /* 低饱和素白色 */
+        }
+        .carousel-scroll {
+            display: flex;
+            width: 100%;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            padding: 0 20px;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .carousel-scroll::-webkit-scrollbar { display: none; }
+        .wallpaper-card {
+            flex: 0 0 100%;
+            background-color: #fff;
+            border-radius: 24px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            scroll-snap-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            position: relative;
+        }
+        .card-title {
+            font-size: 16px;
+            color: #8e8e93;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .screens-container {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+        .screen-preview {
+            width: 130px;
+            height: 280px;
+            background-color: #e5e5ea;
+            border-radius: 20px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .screen-preview.selected {
+            border-color: #007aff;
+        }
+        .add-btn {
+            width: 40px;
+            height: 40px;
+            background-color: #007aff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255, 59, 48, 0.1);
+            color: #ff3b30;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .pagination {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+            height: 20px;
+            align-items: center;
+        }
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #d1d1d6;
+            transition: background-color 0.3s;
+        }
+        .dot.active { background-color: #000; }
+        .info-card {
+            background-color: #e5e5ea;
+            margin: 20px;
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: calc(100% - 40px);
+        }
+        .info-text { flex: 1; padding-right: 15px; }
+        .info-title { font-size: 15px; font-weight: 600; color: #000; margin-bottom: 6px; }
+        .info-desc { font-size: 13px; color: #8e8e93; line-height: 1.4; }
+        .info-img {
+            width: 50px;
+            height: 100px;
+            background-color: #aeaeb2;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            padding-top: 15px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* --- 字体 UI 样式 --- */
+        .font-app-container {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            padding-bottom: 20px;
+        }
+        .font-section-title {
+            font-size: 13px;
+            color: #8e8e93;
+            text-transform: uppercase;
+            margin: 20px 16px 8px 32px;
+            letter-spacing: 0.5px;
+        }
+        .font-ios-card {
+            background-color: #fff;
+            border-radius: 12px;
+            margin: 0 16px;
+            overflow: hidden;
+        }
+        .font-preview-box {
+            padding: 30px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 120px;
+            transition: font-family 0.3s ease;
+        }
+        .font-preview-text {
+            font-size: 18px;
+            color: #333;
+            line-height: 1.5;
+            outline: none;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 10px;
+            transition: border-color 0.3s, background-color 0.3s;
+            font-weight: bold;
+        }
+        .font-preview-text.editable {
+            border-color: rgba(0, 122, 255, 0.3);
+            background-color: rgba(0, 122, 255, 0.05);
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        .font-slider-container {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            gap: 15px;
+        }
+        .font-slider-icon-small { font-size: 14px; color: #8e8e93; font-weight: bold; }
+        .font-slider-icon-large { font-size: 22px; color: #8e8e93; font-weight: bold; }
+        .font-ios-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 4px;
+            background: #e5e5ea;
+            border-radius: 2px;
+            outline: none;
+        }
+        .font-ios-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        .font-list-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: #fff;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .font-list-item:active { background-color: #e5e5ea; }
+        .font-item-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .font-icon-blue { background-color: #007aff; }
+        .font-icon-green { background-color: #34c759; }
+        .font-item-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: #fff;
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .font-item-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .font-item-title { font-size: 16px; color: #000; font-weight: bold; }
+        .font-item-subtitle { font-size: 13px; color: #8e8e93; margin-top: 2px; }
+        .font-item-padding { padding: 14px 16px; }
+        .font-name-text { font-size: 16px; color: #000; margin-bottom: 4px; font-weight: bold; }
+        .font-preview-subtext { font-size: 14px; color: #8e8e93; }
+        .font-checkmark { display: none; color: #007aff; margin-left: 10px; }
+        .font-list-item.active .font-checkmark { display: block; }
+        .font-list-item.active .font-name-text { color: #007aff; }
+        .delete-font-btn {
+            display: none;
+            width: 28px;
+            height: 28px;
+            background-color: #ff3b30;
+            border-radius: 50%;
+            justify-content: center;
+            align-items: center;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .delete-font-btn svg { width: 14px; height: 14px; stroke: #fff; stroke-width: 3; }
+        .font-edit-mode .delete-font-btn { display: flex; }
+        .font-edit-mode .font-checkmark { display: none !important; }
+
+        /* 字体左滑操作样式 */
+        #fontListContainer .font-list-item { padding: 0; overflow: hidden; touch-action: pan-y; }
+        .font-item-inner {
+            display: flex; align-items: center; padding: 12px 16px;
+            background-color: #fff; position: relative; z-index: 2;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); width: 100%;
+        }
+        .font-item-inner:active { background-color: #e5e5ea; }
+        .font-swipe-actions {
+            position: absolute; top: 0; right: 0; height: 100%; display: flex; z-index: 1;
+        }
+
+        .font-swipe-btn {
+            height: 100%; display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 14px; font-weight: bold; padding: 0 20px; cursor: pointer;
+        }
+        .font-swipe-edit { background-color: #ff9500; }
+        .font-swipe-delete { background-color: #ff3b30; }
+        @keyframes menuPop {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* --- 预设库 UI 样式 --- */
+        .preset-container {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        .preset-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 16px 20px 16px;
+            scrollbar-width: none;
+        }
+        .preset-scroll-area::-webkit-scrollbar { display: none; }
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px 12px;
+            width: 100%;
+        }
+        .preset-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+        .preset-card:active { transform: scale(0.95); }
+        .preset-img-wrapper {
+            width: 100%;
+            aspect-ratio: 9 / 19;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            background-color: #e5e5ea;
+            position: relative;
+        }
+        .preset-bg {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+        .preset-name {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #000;
+            font-family: "Geomini", sans-serif;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* 预设封面锁屏时间 */
+        .preset-lock-time {
+            position: absolute;
+            top: 12%;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+            z-index: 5;
+            pointer-events: none;
+            letter-spacing: 0.5px;
+        }
+        .preset-lock-time.has-bg {
+            color: #fff;
+            text-shadow: 0 1px 5px rgba(0,0,0,0.4);
+        }
+
+        /* 多选打勾样式 */
+        .preset-check-circle {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            background-color: rgba(0,0,0,0.3);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        .preset-card.edit-mode .preset-check-circle { display: flex; }
+        .preset-card.selected .preset-check-circle {
+            background-color: #007aff;
+            border-color: #007aff;
+        }
+        .preset-card.selected .preset-check-circle::after {
+            content: '';
+            width: 6px;
+            height: 10px;
+            border: solid #fff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            margin-bottom: 2px;
+        }
+
+        /* 空提示 */
+        .preset-empty-hint {
+            text-align: center;
+            color: #8e8e93;
+            margin-top: 50px;
+            font-size: 14px;
+            display: none;
+        }
+        /* 导入导出按钮组 */
+        .preset-action-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .preset-action-btn {
+            flex: 1;
+            background-color: #e5e5ea;
+            color: #000;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px 0;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preset-action-btn:active {
+            background-color: #d1d1d6;
+        }
+        /* 详情页编辑名称 */
+        .info-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .info-name {
+            font-size: 22px; font-weight: bold; color: #000; font-family: "Geomini", sans-serif;
+        }
+        .edit-name-btn {
+            cursor: pointer;
+            color: #007aff;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 固定底部按钮区域 */
+        .preset-bottom-fixed {
+            padding: 10px 20px 20px 20px;
+            background: linear-gradient(to top, #fafafa 80%, rgba(250,250,250,0));
+            width: 100%;
+            flex-shrink: 0;
+        }
+        .save-preset-btn {
+            background-color: #ffffff;
+            color: #000;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 14px 0;
+            width: 100%;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        .save-preset-btn.delete-mode {
+            background-color: #ff3b30;
+            color: #fff;
+        }
+
+                .widget-card-size {
+            position: absolute;
+            bottom: 6px;
+            right: 8px;
+            background: rgba(0,122,255,0.15);
+            color: #007aff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+        }
+        .widget-card { position: relative; }
+        .preset-m-header {
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .preset-m-header-text {
+            font-size: 13px;
+            color: #333;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .preset-m-stars {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .preset-star-1 { width: 10px; height: 10px; fill: #d1d1d6; }
+        .preset-star-2 { width: 13px; height: 13px; fill: #8e8e93; }
+        .preset-star-3 { width: 16px; height: 16px; fill: #1c1c1e; }
+        
+        .preset-m1-body { padding: 24px 20px; }
+        .preset-m1-input {
+            width: 100%; background: rgba(0,0,0,0.05); border: none;
+            border-radius: 24px; padding: 14px 20px; font-size: 15px; 
+            outline: none; color: #333;
+        }
+        .preset-m1-input::placeholder { color: #aaa; }
+        .preset-m1-footer { display: flex; gap: 12px; padding: 0 20px 24px 20px; }
+        .preset-m1-btn {
+            flex: 1; padding: 12px 0; border-radius: 20px;
+            border: none; font-size: 14px; font-weight: 600; cursor: pointer;
+        }
+        .preset-m1-btn-cancel { background: rgba(0,0,0,0.05); color: #666; }
+        .preset-m1-btn-save { background: #007aff; color: #fff; }
+
+        /* --- 预设详情页样式 --- */
+        #presetDetailPage {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #fafafa;
+            display: none;
+            flex-direction: column;
+            z-index: 200;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        #presetDetailPage.show { transform: translateX(0); }
+        .detail-header {
+            padding: 45px 20px 10px 20px;
+            display: flex;
+            align-items: center;
+            background: #fafafa;
+            height: 90px;
+        }
+        .detail-back-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; margin-right: 4px;
+        }
+        .detail-export-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; margin-left: 4px;
+        }
+        .detail-title {
+            flex: 1; text-align: center; font-size: 17px; font-weight: 600;
+        }
+        .detail-content {
+            flex: 1; overflow-y: auto; scrollbar-width: none; padding-bottom: 100px;
+        }
+        .detail-content::-webkit-scrollbar { display: none; }
+        .preview-carousel {
+            display: flex; justify-content: center;
+            padding: 40px 30px 20px 30px; /* 修改：增加顶部 padding 将手机往下移 */
+        }
+        .preview-phone-mockup {
+            width: 220px; height: 476px; background-color: #fff;
+            border-radius: 32px; border: 6px solid #e5e5ea;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            position: relative; overflow: hidden;
+            box-sizing: content-box; /* 新增：防止边框向内挤压导致内容偏移 */
+        }
+        /* 1:1 缩放容器，将 375x812 的桌面等比缩小放入 220x476 的模型中 */
+        .preview-scale-container {
+            width: 375px; height: 812px;
+            transform: scale(0.5866); transform-origin: top left;
+            position: absolute; top: 0; left: 0;
+            background-size: cover; background-position: center;
+        }
+        .preset-info-box { padding: 20px 30px; }
+        .info-name { font-size: 22px; font-weight: bold; color: #000; font-family: "Geomini", sans-serif; margin-bottom: 8px; }
+        .info-meta { display: flex; align-items: center; justify-content: space-between; }
+        .info-date { font-size: 13px; color: #8e8e93; }
+        .info-size-box { display: flex; align-items: center; gap: 8px; }
+        .info-size { font-size: 12px; color: #007aff; font-weight: 600; background: rgba(0,122,255,0.1); padding: 4px 10px; border-radius: 12px; }
+        .compress-btn { font-size: 12px; color: #fff; background: #333; padding: 4px 12px; border-radius: 12px; cursor: pointer; border: none; transition: background 0.2s; }
+        .compress-btn:active { background: #000; }
+        .detail-bottom-bar {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 15px 20px 30px 20px; background: linear-gradient(to top, #fafafa 80%, rgba(250,250,250,0));
+        }
+        .apply-btn {
+            width: 100%; background-color: #007aff; color: #fff; border: none;
+            border-radius: 25px; padding: 16px 0; font-size: 16px; font-weight: 600;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3); transition: transform 0.2s;
+        }
+        .apply-btn:active { transform: scale(0.98); }
+
+        /* --- 设置 APP UI 样式 --- */
+        .settings-app-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f2f2f7;
+            z-index: 150;
+            display: none;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow: hidden; /* 新增：防止整个页面被水平拖动 */
+        }
+        #themeAppUI .widget-content-area { flex: 1; position: relative; overflow: hidden; }
+        /* 分段控件 */
+        #themeAppUI .widget-segment-control { position: relative; display: flex; background: rgba(118,118,128,0.12); border-radius: 9px; padding: 2px; margin: 16px 20px 12px; height: 32px; flex-shrink: 0; }
+        #themeAppUI .widget-segment-indicator { position: absolute; top: 2px; left: 2px; width: calc(50% - 2px); height: calc(100% - 4px); background: #fff; border-radius: 7px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 1; }
+        #themeAppUI .widget-segment-btn { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #000; z-index: 2; cursor: pointer; transition: opacity 0.2s; background: none; border: none; }
+        #themeAppUI .widget-segment-btn:not(.active) { opacity: 0.55; }
+        /* 空状态 */
+        #themeAppUI .widget-empty-state { color: #8e8e93; text-align: center; padding: 80px 20px; display: none; }
+        #themeAppUI .widget-empty-state svg { display: block; margin: 0 auto 12px; width: 44px; height: 44px; stroke: #c7c7cc; stroke-width: 1.5; fill: none; }
+        #themeAppUI .widget-empty-state p { font-size: 14px; line-height: 1.6; margin: 0; }
+        /* 3D 轮播容器/轨道 */
+        #themeAppUI .widget-carousel-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s; touch-action: pan-y; }
+        #themeAppUI .widget-carousel-track { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; perspective: 1000px; }
+        /* 液态玻璃卡片 */
+        #themeAppUI .widget-card { position: absolute; width: 260px; height: 380px; left: 50%; top: 50%; margin-left: -130px; margin-top: -190px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.5) 100%); backdrop-filter: blur(25px) saturate(150%); -webkit-backdrop-filter: blur(25px) saturate(150%); border-radius: 32px; border: 1px solid #fff; box-shadow: 0 15px 35px rgba(0,0,0,0.08), inset 0 2px 10px rgba(255,255,255,0.8); display: flex; flex-direction: column; align-items: center; padding: 20px; will-change: transform, opacity; }
+        #themeAppUI .widget-card-more-btn { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; background: rgba(255,255,255,0.8); border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; z-index: 10; transition: transform 0.2s; }
+        #themeAppUI .widget-card-more-btn:active { transform: scale(0.9); }
+        #themeAppUI .widget-card-preview { width: 100%; flex: 1; border-radius: 20px; background-color: #fff; margin-bottom: 16px; margin-top: 36px; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; }
+        #themeAppUI .widget-card-name { font-size: 16px; font-weight: 600; color: #000; margin-bottom: 4px; }
+        /* 分页点 */
+        #themeAppUI .widget-pagination { display: flex; justify-content: center; gap: 8px; padding-bottom: 20px; position: absolute; bottom: 0; left: 0; width: 100%; }
+        #themeAppUI .widget-pagination .widget-dot { width: 6px; height: 6px; border-radius: 50%; background-color: #d1d1d6; transition: background-color 0.3s; }
+        #themeAppUI .widget-pagination .widget-dot.active { background-color: #000; }
+        /* 垂直列表 */
+        #themeAppUI .widget-list-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; padding: 0 20px 20px; display: flex; flex-direction: column; gap: 12px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        #themeAppUI .widget-list-container::-webkit-scrollbar { display: none; }
+        #themeAppUI .widget-list-item { background: #fff; border-radius: 20px; padding: 16px; display: flex; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); transition: transform 0.2s; position: relative; overflow: hidden; }
+        #themeAppUI .widget-list-item:active { transform: scale(0.98); }
+        #themeAppUI .widget-delete-btn-left { width: 0; opacity: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        #themeAppUI .widget-delete-btn-left svg { width: 22px; height: 22px; fill: #ff3b30; cursor: pointer; }
+        #themeAppUI .widget-list-item-icon { width: 48px; height: 48px; border-radius: 12px; background-color: #fff; margin-right: 14px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; }
+        #themeAppUI .widget-list-preview-frame { position: absolute; border: 0; background: #fff; transform-origin: top left; pointer-events: none; }
+        #themeAppUI .widget-list-item-info { flex: 1; min-width: 0; }
+        #themeAppUI .widget-title-wrapper { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+        #themeAppUI .widget-list-item-title { font-size: 15px; font-weight: 600; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #themeAppUI .widget-edit-pencil { display: none; width: 12px; height: 12px; stroke: #8e8e93; }
+        #themeAppUI .widget-list-item-sub { font-size: 12px; color: #8e8e93; font-weight: 500; }
+        #themeAppUI .widget-list-action-trigger { width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 50%; transition: background 0.2s; }
+        /* 视图切换: 列表/轮播互斥 */
+        #themeAppUI .widget-content-area.show-list .widget-carousel-container { opacity: 0; pointer-events: none; }
+        #themeAppUI .widget-content-area.show-list .widget-list-container { opacity: 1; pointer-events: auto; }
+        /* 编辑模式态 */
+        #themeAppUI.is-widget-editing .widget-delete-btn-left { width: 22px; opacity: 1; margin-right: 12px; }
+        #themeAppUI.is-widget-editing .widget-edit-pencil { display: block; }
+        #themeAppUI.is-widget-editing .widget-list-action-trigger { opacity: 0; pointer-events: none; }
+        #themeAppUI.is-widget-editing .widget-segment-control { opacity: 0.5; pointer-events: none; }
+        /* 顶部新增按钮 */
+        #themeAppUI .widget-view-btn { display: none; margin-right: 8px; background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        #themeAppUI .widget-done-btn { display: none; padding: 8px 16px; border-radius: 20px; background: #000; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; align-self: center; }
+        /* 遮罩层 */
+        #themeAppUI .widget-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 105; display: none; background: rgba(0,0,0,0.1); }
+        /* 高级毛玻璃悬浮菜单 */
+        #themeAppUI .widget-context-menu { position: absolute; width: 140px; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%); border-radius: 28px; padding: 8px 0; box-shadow: 0 15px 40px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.6); display: flex; flex-direction: column; z-index: 400; opacity: 0; pointer-events: none; transform: scale(0.9); transform-origin: top right; transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        #themeAppUI .widget-context-menu.show { opacity: 1; pointer-events: auto; transform: scale(1); }
+        #themeAppUI .widget-ctx-item { display: flex; align-items: center; padding: 14px 24px; gap: 16px; cursor: pointer; transition: background 0.2s; }
+        #themeAppUI .widget-ctx-item:active { background: rgba(0,0,0,0.08); }
+        #themeAppUI .widget-ctx-item svg { width: 22px; height: 22px; stroke: #1d1d1f; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        #themeAppUI .widget-ctx-text { font-size: 17px; font-weight: 500; color: #1d1d1f; letter-spacing: 0.5px; }
+        /* 底部代码编辑器 */
+        #themeAppUI .widget-editor-modal { position: absolute; bottom: 0; left: 0; width: 100%; height: 85%; background: #f2f2f7; border-radius: 24px 24px 0 0; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); z-index: 300; display: flex; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); }
+        #themeAppUI .widget-editor-modal.show { transform: translateY(0); }
+        /* 顶部右侧按钮分组：紧凑靠右排列 */
+        /* Widget 竖向分离式胶囊菜单（点击三个点展开）*/
+        #themeAppUI .widget-toolbar-cluster { position: absolute; top: 100px; right: 16px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; z-index: 260; opacity: 0; pointer-events: none; transform: scale(0.9) translateY(-8px); transform-origin: top right; transition: all 0.28s cubic-bezier(0.25,0.8,0.25,1); }
+        #themeAppUI .widget-toolbar-cluster.show { opacity: 1; pointer-events: auto; transform: scale(1) translateY(0); }
+        #themeAppUI .widget-cap { display: flex; align-items: center; gap: 9px; padding: 12px 18px; border-radius: 28px; cursor: pointer; background: rgba(255,255,255,0.55); backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%); border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 10px 28px rgba(0,0,0,0.16), inset 0 1px 1px rgba(255,255,255,0.9); transition: transform 0.18s cubic-bezier(0.25,0.8,0.25,1), box-shadow 0.18s, background 0.18s; }
+        #themeAppUI .widget-cap:active { transform: scale(0.94); background: rgba(255,255,255,0.78); }
+        #themeAppUI .widget-cap svg { width: 20px; height: 20px; stroke: rgba(0,0,0,0.8); stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+        #themeAppUI .widget-cap-text { font-size: 15px; font-weight: 600; color: rgba(0,0,0,0.82); letter-spacing: 0.2px; white-space: nowrap; }
+        /* 全局图片上传兜底：点击组件预览图换图 */
+
+        /* --- 世界书 APP UI 样式 --- */
+        .wb-app-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; z-index: 160; display: none; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden; }
