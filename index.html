@@ -1515,20 +1515,6 @@
                 <div class="search-bar"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><span>搜索聊天</span></div>
             </div>
             <div class="chat-list">
-                <div class="chat-item" onclick="wcOpenChat()">
-                    <div class="list-avatar"></div>
-                    <div class="chat-content">
-                        <div class="chat-row-top"><span class="chat-name">哦哦</span><div class="chat-meta"><svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 6 7 17 2 12"></polyline><polyline points="22 6 12 16"></polyline></svg><span class="chat-time">9:40</span></div></div>
-                        <div class="chat-row-bottom"><span class="chat-msg">欧坤</span></div>
-                    </div>
-                </div>
-                <div class="chat-item" onclick="wcOpenChat()">
-                    <div class="list-avatar"></div>
-                    <div class="chat-content">
-                        <div class="chat-row-top"><span class="chat-name">Design Team</span><div class="chat-meta"><span class="chat-time">昨天</span></div></div>
-                        <div class="chat-row-bottom"><span class="chat-msg">UI稿已经更新了。</span></div>
-                    </div>
-                </div>
             </div>
             <div class="fab-container">
                 <div class="fab-small"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9a3.75 3.75 0 1 0 0 7.5A3.75 3.75 0 0 0 12 9Z" /><path fill-rule="evenodd" d="M9.344 3.071a49.52 49.52 0 0 1 5.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 0 1-3 3h-15a3 3 0 0 1-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 0 0 1.11-.71l.822-1.315a2.942 2.942 0 0 1 2.332-1.39ZM6.75 12.75a5.25 5.25 0 1 1 10.5 0 5.25 5.25 0 0 1-10.5 0Zm12-1.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd" /></svg></div>
@@ -1580,7 +1566,7 @@
         <div id="page-chat-room" class="page" onclick="wcCloseMenu(event)">
             <div class="chat-header-container">
                 <div class="room-icon-btn frosted-glass" onclick="wcCloseChat()"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg></div>
-                <div class="room-info-capsule frosted-glass"><div class="avatar">哦</div><div class="room-info-text"><div class="name">哦哦</div><div class="sub">1 位订阅者</div></div></div>
+                <div class="room-info-capsule frosted-glass"><div class="avatar"></div><div class="room-info-text"><div class="name"></div><div class="sub"></div></div></div>
                 <div class="room-icon-btn fill-icon frosted-glass" onclick="wcToggleMenu(event)"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg></div>
             </div>
             <div class="dropdown-menu" id="wc-dropdown-menu">
@@ -1589,12 +1575,6 @@
                 <div class="menu-item" onclick="wcHandleMenuClick('清空聊天记录')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg><span>清空聊天记录</span></div>
             </div>
             <div class="chat-area" id="wc-chat-area">
-                <div class="sys-badge">7月14日</div>
-                <div class="message-row received"><div class="msg-avatar" style="background-image: url('https://nos.netease.com/ysf/edecff66f1f78185763da92dcc2bd617.png')"></div><div class="message-bubble received"><div class="msg-text">我就站在这里呼吸两下</div><div class="msg-meta received"><span>18:05</span></div></div></div>
-                <div class="message-row received"><div class="msg-avatar" style="background-image: url('https://nos.netease.com/ysf/edecff66f1f78185763da92dcc2bd617.png')"></div><div class="message-bubble received"><div class="msg-text">你就爱上我好吗</div><div class="msg-meta received"><span>18:05</span></div></div></div>
-                <div class="message-row sent"><div class="msg-avatar" style="background-image: url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')"></div><div class="message-bubble sent"><div class="msg-text">快说你喜欢我</div><div class="msg-meta sent"><span>18:06</span><svg viewBox="0 0 24 24"><polyline points="18 6 7 17 2 12"></polyline><polyline points="22 6 12 16"></polyline></svg></div></div></div>
-                <div class="message-row sent"><div class="msg-avatar" style="background-image: url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')"></div><div class="message-bubble sent"><div class="msg-text">想我</div><div class="msg-meta sent"><span>18:06</span><svg viewBox="0 0 24 24"><polyline points="18 6 7 17 2 12"></polyline><polyline points="22 6 12 16"></polyline></svg></div></div></div>
-                <div class="message-row sent"><div class="msg-avatar" style="background-image: url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')"></div><div class="message-bubble sent"><div class="msg-text">需要我</div><div class="msg-meta sent"><span>18:06</span><svg viewBox="0 0 24 24"><polyline points="18 6 7 17 2 12"></polyline><polyline points="22 6 12 16"></polyline></svg></div></div></div>
             </div>
             <div class="footer-capsule" id="wcFooterCapsule" style="transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);">
                 <svg class="tool-icon" onclick="wcToggleEmojiPanel(event)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="stroke: none;"><path d="M10.5199 19.8634C10.5955 18.6615 10.8833 17.5172 11.3463 16.4676C9.81124 16.3252 8.41864 15.6867 7.33309 14.7151L8.66691 13.2248C9.55217 14.0172 10.7188 14.4978 12 14.4978C12.1763 14.4978 12.3501 14.4887 12.5211 14.471C14.227 12.2169 16.8661 10.7083 19.8634 10.5199C19.1692 6.80877 15.9126 4 12 4C7.58172 4 4 7.58172 4 12C4 15.9126 6.80877 19.1692 10.5199 19.8634ZM19.0233 12.636C15.7891 13.2396 13.2396 15.7891 12.636 19.0233L19.0233 12.636ZM22 12C22 12.1677 21.9959 12.3344 21.9877 12.5L12.5 21.9877C12.3344 21.9959 12.1677 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM10 10C10 10.8284 9.32843 11.5 8.5 11.5C7.67157 11.5 7 10.8284 7 10C7 9.17157 7.67157 8.5 8.5 8.5C9.32843 8.5 10 9.17157 10 10ZM17 10C17 10.8284 16.3284 11.5 15.5 11.5C14.6716 11.5 14 10.8284 14 10C14 9.17157 14.6716 8.5 15.5 8.5C16.3284 8.5 17 9.17157 17 10Z"></path></svg>
@@ -1648,9 +1628,9 @@
                     </div>
                 </div>
                 <div class="profile-info">
-                    <div class="profile-name">早虞春</div>
-                    <div class="profile-handle">@zoouiy</div>
-                    <div class="profile-bio">i luv u &lt;3…🤍</div>
+                    <div class="profile-name"></div>
+                    <div class="profile-handle"></div>
+                    <div class="profile-bio"></div>
                 </div>
             </section>
 
@@ -1673,8 +1653,8 @@
                         <div class="wc-avatar-inner"></div>
                     </div>
                     <div class="wc-profile-info-wrap">
-                        <div class="wc-profile-name">早虞春</div>
-                        <div class="wc-profile-id">微信号：@zoouiy</div>
+                        <div class="wc-profile-name"></div>
+                        <div class="wc-profile-id"></div>
                     </div>
                     <div class="wc-profile-qr">
                         <svg class="qr-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 17V16H13V13H16V15H18V17H17V19H15V21H13V18H15V17H16ZM21 21H17V19H19V17H21V21ZM3 3H11V11H3V3ZM13 3H21V11H13V3ZM3 13H11V21H3V13ZM18 13H21V15H18V13ZM6 6V8H8V6H6ZM6 16V18H8V16H6ZM16 6V8H18V6H16Z"></path></svg>

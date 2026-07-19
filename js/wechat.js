@@ -197,9 +197,9 @@
     }
 
     function wcSaveMomentsEdit() {
-        wcMomentsProfile.name = document.getElementById('wcMomentsEditName').value || '未命名';
-        wcMomentsProfile.id = document.getElementById('wcMomentsEditId').value || '';
-        wcMomentsProfile.bio = document.getElementById('wcMomentsEditBio').value || '';
+        wcMomentsProfile.name = document.getElementById('wcMomentsEditName').value.trim();
+        wcMomentsProfile.id = document.getElementById('wcMomentsEditId').value.trim();
+        wcMomentsProfile.bio = document.getElementById('wcMomentsEditBio').value.trim();
         
         wcSaveMomentsProfileData();
         wcRenderMomentsProfile();

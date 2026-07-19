@@ -23,9 +23,9 @@
     let wcMomentsProfile = {
         bg: '',
         avatar: '',
-        name: '早虞春',
-        id: '@zoouiy',
-        bio: 'i luv u <3…🤍'
+        name: '',
+        id: '',
+        bio: ''
     };
     let wcContactGroups = [];
     let wcContactsList = [];
@@ -340,36 +340,19 @@
         wcMomentsRequest.onsuccess = (e) => {
             const data = e.target.result;
             if (data) {
-                wcMomentsList = data.list || [];
+                const originalList = Array.isArray(data.list) ? data.list : [];
+                wcMomentsList = originalList.filter(post => {
+                    const isFirstPlaceholder = post?.id === 'm1'
+                        && post?.name === '早虞春'
+                        && post?.text === '今天的天气很好，适合散步。';
+                    const isSecondPlaceholder = post?.id === 'm2'
+                        && post?.name === '早虞春'
+                        && post?.text === '分享一些最近的随手拍。';
+                    return !isFirstPlaceholder && !isSecondPlaceholder;
+                });
+                if (wcMomentsList.length !== originalList.length) wcSaveMomentsData();
             } else {
-                wcMomentsList = [
-                    {
-                        id: 'm1',
-                        name: '早虞春',
-                        avatar: '<svg viewBox="0 0 24 24" width="24" height="24" fill="#999"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>',
-                        text: '今天的天气很好，适合散步。',
-                        time: '10分钟前',
-                        images: [],
-                        likes: ['音无结弦', '仲村由理'],
-                        comments: [
-                            { name: '音无结弦', content: '一起去吃麻婆豆腐吧！' }
-                        ]
-                    },
-                    {
-                        id: 'm2',
-                        name: '早虞春',
-                        avatar: '<svg viewBox="0 0 24 24" width="24" height="24" fill="#999"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>',
-                        text: '分享一些最近的随手拍。',
-                        time: '昨天',
-                        images: [
-                            '<svg viewBox="0 0 24 24" width="24" height="24" stroke="#adb5bd" stroke-width="1.5" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><polyline points="21 15 16 10 5 21"></polyline></svg>',
-                            '<svg viewBox="0 0 24 24" width="24" height="24" stroke="#adb5bd" stroke-width="1.5" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><polyline points="21 15 16 10 5 21"></polyline></svg>',
-                            '<svg viewBox="0 0 24 24" width="24" height="24" stroke="#adb5bd" stroke-width="1.5" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><polyline points="21 15 16 10 5 21"></polyline></svg>'
-                        ],
-                        likes: [],
-                        comments: []
-                    }
-                ];
+                wcMomentsList = [];
             }
             if (typeof wcRenderMoments === 'function') {
                 wcRenderMoments();
@@ -381,7 +364,16 @@
         wcMomentsProfileReq.onsuccess = (e) => {
             const data = e.target.result;
             if (data && data.profile) {
-                wcMomentsProfile = data.profile;
+                const profile = data.profile;
+                const isLegacyPlaceholder = profile.name === '早虞春'
+                    && profile.id === '@zoouiy'
+                    && profile.bio === 'i luv u <3…🤍';
+                wcMomentsProfile = isLegacyPlaceholder
+                    ? { ...profile, name: '', id: '', bio: '' }
+                    : profile;
+                if (isLegacyPlaceholder) wcSaveMomentsProfileData();
+            } else {
+                wcMomentsProfile = { bg: '', avatar: '', name: '', id: '', bio: '' };
             }
             if (typeof wcRenderMomentsProfile === 'function') wcRenderMomentsProfile();
         };
