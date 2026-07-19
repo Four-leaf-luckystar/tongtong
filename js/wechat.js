@@ -288,6 +288,76 @@
     }
     window.wcOpenAddFriendQr = wcOpenAddFriendQr;
 
+    function wcOpenAddFriendPanel() {
+        const app = document.getElementById('wechatAppUI');
+        const panel = document.getElementById('wcAddFriendPanel');
+        if (!app || !panel) return;
+        app.classList.add('wc-add-friend-open');
+        panel.classList.add('show');
+        panel.setAttribute('aria-hidden', 'false');
+        setTimeout(() => document.getElementById('wcAddFriendSearchInput')?.focus(), 260);
+    }
+    window.wcOpenAddFriendPanel = wcOpenAddFriendPanel;
+
+    function wcCloseAddFriendPanel() {
+        const app = document.getElementById('wechatAppUI');
+        const panel = document.getElementById('wcAddFriendPanel');
+        app?.classList.remove('wc-add-friend-open');
+        panel?.classList.remove('show');
+        panel?.setAttribute('aria-hidden', 'true');
+    }
+    window.wcCloseAddFriendPanel = wcCloseAddFriendPanel;
+
+    async function wcSearchFriend(event) {
+        event?.preventDefault();
+        const input = document.getElementById('wcAddFriendSearchInput');
+        const query = input?.value.trim().toLowerCase();
+        if (!query) {
+            showToast('请输入微信号或手机号');
+            return;
+        }
+
+        try {
+            await wcReloadContactsFromStorage();
+            const contact = wcContactsList.find(item =>
+                String(item.account || '').trim().toLowerCase() === query ||
+                String(item.phone || '').trim().toLowerCase() === query
+            );
+            if (!contact) {
+                showToast('未找到对应好友');
+                return;
+            }
+
+            wcCurrentContactTabId = contact.groupId;
+            wcCloseAddFriendPanel();
+            wcSwitchTab('contacts');
+            wcRenderContactTabs();
+            wcRenderContactList();
+            requestAnimationFrame(() => {
+                const card = Array.from(document.querySelectorAll('#wcDynamicContent .wc-character-card[data-id]'))
+                    .find(item => item.dataset.id === String(contact.id));
+                if (!card) return;
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                card.classList.add('wc-search-match');
+                setTimeout(() => card.classList.remove('wc-search-match'), 1600);
+            });
+        } catch (error) {
+            console.error('WeChat friend search failed:', error);
+            showToast('联系人数据读取失败');
+        }
+    }
+    window.wcSearchFriend = wcSearchFriend;
+
+    function wcStartQrFriendImport() {
+        wcOpenAddFriendQr();
+    }
+    window.wcStartQrFriendImport = wcStartQrFriendImport;
+
+    function wcOpenCreateGroupChat() {
+        showCustomAlert('提示', '创建群聊功能暂未开放');
+    }
+    window.wcOpenCreateGroupChat = wcOpenCreateGroupChat;
+
     function wcReadLayoutRecord(id) {
         if (typeof db !== 'undefined' && db && typeof storeName !== 'undefined' && db.objectStoreNames.contains(storeName)) {
             return new Promise((resolve, reject) => {
@@ -440,6 +510,8 @@
             });
             wcCurrentContactTabId = groupId;
             await wcSaveContactsDataAsync();
+            wcCloseAddFriendPanel();
+            wcSwitchTab('contacts');
             wcRenderContactTabs();
             wcRenderContactList();
             showToast('已通过二维码添加角色好友');

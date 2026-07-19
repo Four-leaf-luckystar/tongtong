@@ -138,6 +138,12 @@
         .iphone.dark-mode #wechatAppUI .wc-sheet-group { background: rgba(44, 44, 46, 0.9); }
         .iphone.dark-mode #wechatAppUI .wc-sheet-title, .iphone.dark-mode #wechatAppUI .wc-sheet-btn { border-bottom-color: #38383a; }
         .iphone.dark-mode #wechatAppUI .wc-sheet-cancel { background: #1c1c1e; }
+        .iphone.dark-mode #wechatAppUI .wc-add-friend-panel { background: linear-gradient(180deg, #3b2531 0%, #111113 58%, #000 100%); }
+        .iphone.dark-mode #wechatAppUI .wc-add-friend-header h2, .iphone.dark-mode #wechatAppUI .wc-add-friend-action { color: #fff; }
+        .iphone.dark-mode #wechatAppUI .wc-add-friend-close, .iphone.dark-mode #wechatAppUI .wc-add-friend-search, .iphone.dark-mode #wechatAppUI .wc-add-friend-actions { background: rgba(44,44,46,0.62); border-color: rgba(255,255,255,0.13); }
+        .iphone.dark-mode #wechatAppUI .wc-add-friend-search input { color: #fff; }
+        .iphone.dark-mode #wechatAppUI .wc-add-friend-action-icon { background: rgba(255,255,255,0.11); }
+        .iphone.dark-mode #wechatAppUI .wc-add-friend-action + .wc-add-friend-action { border-top-color: rgba(255,255,255,0.12); }
 
         /* 微信表情包深色模式适配 */
         .iphone.dark-mode #wechatAppUI #wc-page-emoji-groups,
@@ -197,5 +203,3 @@
         .iphone.dark-mode .univ-sel-search { background-color: rgba(255, 255, 255, 0.1); }
         .iphone.dark-mode .univ-sel-search input { color: #fff; }
         .iphone.dark-mode .univ-sel-name { color: #fff; }
-
-    
