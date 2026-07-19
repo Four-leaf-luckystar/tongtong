@@ -173,7 +173,13 @@
 #contactsAppUI .ct-contact-row .ct-avatar { width: 34px; height: 34px; margin-right: 12px; overflow: hidden; }
 #contactsAppUI .ct-avatar img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
 #contactsAppUI .ct-avatar-placeholder { font-size: 11px; font-weight: 700; }
-#contactsAppUI .ct-contact-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; font-weight: 600; }
+#contactsAppUI .ct-contact-name { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; font-weight: 600; }
+#contactsAppUI .ct-contact-generate { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; margin-left: 8px; color: #687078; border-radius: 50%; background: rgba(118, 118, 128, 0.1); flex: 0 0 auto; }
+#contactsAppUI .ct-contact-generate:active { background: rgba(118, 118, 128, 0.2); transform: scale(0.94); }
+#contactsAppUI .ct-contact-generate svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+#contactsAppUI .ct-contact-generate.is-loading { pointer-events: none; opacity: 0.55; }
+#contactsAppUI .ct-contact-generate.is-loading svg { animation: ct-generate-spin 0.9s linear infinite; }
+@keyframes ct-generate-spin { to { transform: rotate(360deg); } }
 #contactsAppUI .ct-empty { padding: 18px 16px 18px 46px; color: var(--ct-subtext); font-size: 14px; }
 
 #contactsAppUI .ct-delete-dot, #contactsAppUI .ct-group-delete { display: none; flex: 0 0 auto; align-items: center; justify-content: center; color: #fff; background: var(--ct-red); border-radius: 50%; }

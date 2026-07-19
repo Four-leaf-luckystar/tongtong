@@ -258,6 +258,30 @@
         wcInitContactSwipe();
     }
 
+    function wcReloadContactsFromStorage() {
+        if (typeof db === 'undefined' || !db || typeof storeName === 'undefined') return Promise.resolve(false);
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([storeName], 'readonly');
+            const request = transaction.objectStore(storeName).get('wechatContactsData');
+            request.onsuccess = () => {
+                const saved = request.result;
+                if (saved) {
+                    wcContactGroups = Array.isArray(saved.groups) ? saved.groups : [];
+                    wcContactsList = Array.isArray(saved.contacts) ? saved.contacts : [];
+                    if (!wcContactGroups.some(group => group.id === wcCurrentContactTabId)) {
+                        wcCurrentContactTabId = wcContactGroups[0]?.id || 'g_member';
+                    }
+                    wcRenderContactTabs();
+                    wcRenderContactList();
+                }
+            };
+            request.onerror = () => reject(request.error || new Error('微信联系人刷新失败'));
+            transaction.oncomplete = () => resolve(true);
+            transaction.onerror = () => reject(transaction.error || new Error('微信联系人刷新失败'));
+        });
+    }
+    window.wcReloadContactsFromStorage = wcReloadContactsFromStorage;
+
     function wcSwitchContactTab(groupId) {
         wcCurrentContactTabId = groupId;
         wcRenderContactTabs();

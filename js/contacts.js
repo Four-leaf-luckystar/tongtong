@@ -81,7 +81,7 @@
             persona: '',
             appearance: '',
             worldbookIds: [],
-            security: { account: '', password: '', paymentPassword: '', lockPassword: '', qrCode: '' },
+            security: { account: '', phone: '', password: '', paymentPassword: '', lockPassword: '', qrCode: '' },
             voice: {
                 provider: 'minimax',
                 minimaxVoiceId: '',
@@ -286,7 +286,15 @@
         const name = document.createElement('span');
         name.className = 'ct-contact-name';
         name.textContent = contact.name || '未命名角色';
-        row.appendChild(name);
+        const generate = document.createElement('button');
+        generate.type = 'button';
+        generate.className = 'ct-contact-generate';
+        generate.dataset.action = 'generate-contact';
+        generate.dataset.contactId = contact.id;
+        generate.title = '生成角色资料并同步到微信';
+        generate.setAttribute('aria-label', '生成角色资料并同步到微信');
+        generate.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.64 5.64l2.83 2.83M15.53 15.53l2.83 2.83M18.36 5.64l-2.83 2.83M8.47 15.53l-2.83 2.83"/><path d="M12 8.5 13.1 11l2.4 1-2.4 1-1.1 2.5-1.1-2.5-2.4-1 2.4-1L12 8.5Z"/></svg>';
+        row.append(name, generate);
         return row;
     }
 
@@ -380,6 +388,7 @@
         setValue('#ctContactPersona', contactDraft.persona);
         setValue('#ctContactAppearance', contactDraft.appearance);
         setValue('#ctSecurityAccount', contactDraft.security.account);
+        setValue('#ctSecurityPhone', contactDraft.security.phone);
         setValue('#ctSecurityPassword', contactDraft.security.password);
         setValue('#ctSecurityPayment', contactDraft.security.paymentPassword);
         setValue('#ctSecurityLock', contactDraft.security.lockPassword);
@@ -406,6 +415,7 @@
         contactDraft.persona = getValue('#ctContactPersona');
         contactDraft.appearance = getValue('#ctContactAppearance');
         contactDraft.security.account = getValue('#ctSecurityAccount');
+        contactDraft.security.phone = getValue('#ctSecurityPhone');
         contactDraft.security.password = getValue('#ctSecurityPassword');
         contactDraft.security.paymentPassword = getValue('#ctSecurityPayment');
         contactDraft.security.lockPassword = getValue('#ctSecurityLock');
@@ -431,6 +441,218 @@
         persist();
         showToast('已保存联系人');
         goMain();
+    }
+
+    function readIndexedDbRecord(id) {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('iOSDesktopDB');
+            request.onerror = () => reject(request.error || new Error('数据库打开失败'));
+            request.onsuccess = () => {
+                const connection = request.result;
+                if (!connection.objectStoreNames.contains('layoutStore')) {
+                    connection.close();
+                    resolve(null);
+                    return;
+                }
+                const transaction = connection.transaction(['layoutStore'], 'readonly');
+                const getRequest = transaction.objectStore('layoutStore').get(id);
+                getRequest.onsuccess = () => resolve(getRequest.result || null);
+                getRequest.onerror = () => reject(getRequest.error || new Error('数据库读取失败'));
+                transaction.oncomplete = () => connection.close();
+            };
+        });
+    }
+
+    function writeWechatContact(contact) {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('iOSDesktopDB');
+            request.onerror = () => reject(request.error || new Error('微信数据打开失败'));
+            request.onsuccess = () => {
+                const connection = request.result;
+                if (!connection.objectStoreNames.contains('layoutStore')) {
+                    connection.close();
+                    reject(new Error('微信数据表不存在'));
+                    return;
+                }
+                const transaction = connection.transaction(['layoutStore'], 'readwrite');
+                const store = transaction.objectStore('layoutStore');
+                const getRequest = store.get('wechatContactsData');
+                getRequest.onsuccess = () => {
+                    const saved = getRequest.result || {};
+                    const groups = Array.isArray(saved.groups) && saved.groups.length
+                        ? saved.groups.slice()
+                        : [{ id: 'g_member', name: 'Member' }];
+                    const contacts = Array.isArray(saved.contacts) ? saved.contacts.slice() : [];
+                    const groupId = contact.wechatGroupId || groups[0].id;
+                    if (!groups.some(group => group.id === groupId)) groups.push({ id: groupId, name: 'Member' });
+                    const linked = contacts.find(item => item.linkedContactId === contact.id || item.id === 'char_' + contact.id);
+                    const synced = {
+                        ...(linked || {}),
+                        id: linked?.id || 'char_' + contact.id,
+                        linkedContactId: contact.id,
+                        name: contact.name || '未命名角色',
+                        desc: contact.persona ? contact.persona.replace(/\s+/g, ' ').slice(0, 80) : '已从联系人同步',
+                        avatar: contact.avatar || '',
+                        groupId,
+                        account: contact.security.account || '',
+                        phone: contact.security.phone || '',
+                        qrCode: contact.security.qrCode || '',
+                        persona: contact.persona || '',
+                        npcs: Array.isArray(contact.npcs) ? clone(contact.npcs) : []
+                    };
+                    const index = contacts.findIndex(item => item.id === synced.id);
+                    if (index >= 0) contacts[index] = synced;
+                    else contacts.push(synced);
+                    store.put({ id: 'wechatContactsData', groups, contacts });
+                };
+                getRequest.onerror = () => reject(getRequest.error || new Error('微信联系人读取失败'));
+                transaction.oncomplete = () => {
+                    connection.close();
+                    if (typeof window.triggerAutoLocalBackup === 'function') window.triggerAutoLocalBackup();
+                    resolve(true);
+                };
+                transaction.onerror = () => reject(transaction.error || new Error('微信联系人保存失败'));
+            };
+        });
+    }
+
+    function parseGeneratedJson(value) {
+        if (value && typeof value === 'object') return value;
+        const text = String(value || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+        try {
+            return JSON.parse(text);
+        } catch (error) {
+            const start = text.indexOf('{');
+            const end = text.lastIndexOf('}');
+            if (start >= 0 && end > start) return JSON.parse(text.slice(start, end + 1));
+            throw new Error('API 返回的角色资料不是有效 JSON');
+        }
+    }
+
+    function firstGenerated(source, keys) {
+        for (const key of keys) {
+            if (source && source[key] !== undefined && source[key] !== null && String(source[key]).trim()) return source[key];
+        }
+        return '';
+    }
+
+    function normalizeGeneratedNpc(npc) {
+        if (!npc || typeof npc !== 'object') return null;
+        const name = String(firstGenerated(npc, ['name', '名称', '姓名']) || '').trim();
+        if (!name) return null;
+        return {
+            id: makeId('npc'),
+            name,
+            role: String(firstGenerated(npc, ['role', 'identity', '身份', '关系']) || '').trim(),
+            persona: String(firstGenerated(npc, ['persona', 'description', '人设', '描述']) || '').trim()
+        };
+    }
+
+    function mergeGeneratedContact(contact, generated) {
+        const source = generated?.character || generated?.contact || generated;
+        const security = source?.security || source?.accountInfo || {};
+        contact.security.account = contact.security.account || String(firstGenerated(security, ['account', 'username', '账号']) || firstGenerated(source, ['account', 'username', '账号'])).trim();
+        contact.security.phone = contact.security.phone || String(firstGenerated(security, ['phone', 'mobile', '手机号', '手机']) || firstGenerated(source, ['phone', 'mobile', '手机号', '手机'])).trim();
+        contact.security.password = contact.security.password || String(firstGenerated(security, ['password', '密码']) || firstGenerated(source, ['password', '密码'])).trim();
+        contact.security.paymentPassword = contact.security.paymentPassword || String(firstGenerated(security, ['paymentPassword', 'payment_password', '支付密码']) || firstGenerated(source, ['paymentPassword', 'payment_password', '支付密码'])).trim();
+        contact.security.lockPassword = contact.security.lockPassword || String(firstGenerated(security, ['lockPassword', 'lock_password', '锁屏密码']) || firstGenerated(source, ['lockPassword', 'lock_password', '锁屏密码'])).trim();
+        if (!contact.persona) contact.persona = String(firstGenerated(source, ['persona', 'character', '人设', '人设基础']) || '').trim();
+        if (!contact.appearance) contact.appearance = String(firstGenerated(source, ['appearance', '外貌']) || '').trim();
+        const generatedNpcs = Array.isArray(source?.npcs) ? source.npcs : (Array.isArray(generated?.npcs) ? generated.npcs : []);
+        const existingNames = new Set(contact.npcs.map(npc => String(npc.name || '').trim().toLowerCase()));
+        generatedNpcs.map(normalizeGeneratedNpc).filter(Boolean).forEach(npc => {
+            if (!existingNames.has(npc.name.toLowerCase())) {
+                contact.npcs.push(npc);
+                existingNames.add(npc.name.toLowerCase());
+            }
+        });
+    }
+
+    function getApiCompletionUrl(url) {
+        const base = String(url || '').trim().replace(/\/+$/, '');
+        return /\/chat\/completions$/i.test(base) ? base : base + '/chat/completions';
+    }
+
+    async function loadQrCodeLibrary() {
+        if (window.QRCode) return window.QRCode;
+        if (window.__contactsQrPromise) return window.__contactsQrPromise;
+        window.__contactsQrPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+            script.onload = () => window.QRCode ? resolve(window.QRCode) : reject(new Error('二维码组件加载失败'));
+            script.onerror = () => reject(new Error('二维码组件加载失败，请检查网络连接'));
+            document.head.appendChild(script);
+        });
+        return window.__contactsQrPromise;
+    }
+
+    async function createContactQr(contact) {
+        const payload = JSON.stringify({
+            type: 'tonghuaji-wechat-contact',
+            contactId: contact.id,
+            name: contact.name || '',
+            account: contact.security.account || '',
+            phone: contact.security.phone || ''
+        });
+        const QRCode = await loadQrCodeLibrary();
+        const holder = document.createElement('div');
+        holder.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:256px;height:256px;';
+        document.body.appendChild(holder);
+        try {
+            new QRCode(holder, { text: payload, width: 256, height: 256, correctLevel: QRCode.CorrectLevel.M });
+            const image = holder.querySelector('img');
+            if (image?.src) return image.src;
+            const canvas = holder.querySelector('canvas');
+            if (canvas) return canvas.toDataURL('image/png');
+            throw new Error('二维码生成失败');
+        } finally {
+            holder.remove();
+        }
+    }
+
+    async function generateContact(contactId, trigger) {
+        const contactIndex = data.contacts.findIndex(item => item.id === contactId);
+        if (contactIndex < 0 || trigger?.classList.contains('is-loading')) return;
+        const contact = normalizedContact(data.contacts[contactIndex]);
+        trigger?.classList.add('is-loading');
+        try {
+            const apiRecord = await readIndexedDbRecord('apiData');
+            const apiList = Array.isArray(apiRecord?.list) ? apiRecord.list : [];
+            const api = apiList.find(item => item.id === apiRecord?.connectedId) || apiList[0];
+            if (!api?.url || !api?.key || !api?.model) throw new Error('请先在 API 连接中配置并连接一个模型');
+            showToast('正在生成角色资料…');
+            const prompt = [
+                '请为下面的成年虚构角色补全资料，只返回一个合法 JSON 对象，不要 Markdown，不要解释。',
+                '字段必须包含：account、phone、password、paymentPassword、lockPassword、persona、appearance、npcs。',
+                'npcs 必须是数组，每项包含 name、role、persona；请生成 2 到 4 个与角色有关的 NPC。',
+                '已有字段可以参考，但不要重复或改写角色姓名。',
+                JSON.stringify({ name: contact.name, persona: contact.persona, appearance: contact.appearance, npcs: contact.npcs })
+            ].join('\n');
+            const response = await fetch(getApiCompletionUrl(api.url), {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + api.key, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model: api.model, temperature: 0.7, messages: [
+                    { role: 'system', content: '你是角色资料生成器。只输出 JSON。' },
+                    { role: 'user', content: prompt }
+                ] })
+            });
+            if (!response.ok) throw new Error('API 请求失败：HTTP ' + response.status);
+            const result = await response.json();
+            const content = result?.choices?.[0]?.message?.content ?? result?.choices?.[0]?.text ?? result?.output_text;
+            mergeGeneratedContact(contact, parseGeneratedJson(content));
+            contact.security.qrCode = await createContactQr(contact);
+            data.contacts[contactIndex] = clone(contact);
+            persist();
+            await writeWechatContact(contact);
+            if (typeof window.wcReloadContactsFromStorage === 'function') await window.wcReloadContactsFromStorage();
+            renderGroups();
+            showToast('资料已生成并同步到微信');
+        } catch (error) {
+            console.error('Contact generation failed:', error);
+            showToast(error?.message || '角色资料生成失败');
+        } finally {
+            trigger?.classList.remove('is-loading');
+        }
     }
 
     function switchEditorSection(section) {
@@ -1010,6 +1232,7 @@
             case 'add-group': addGroup(); break;
             case 'toggle-group': toggleGroup(actionElement.dataset.groupId); break;
             case 'delete-group': event.stopPropagation(); deleteGroup(actionElement.dataset.groupId); break;
+            case 'generate-contact': event.stopPropagation(); event.preventDefault(); generateContact(actionElement.dataset.contactId, actionElement); break;
             case 'open-contact':
                 if (isEditMode) {
                     editingContactId = actionElement.dataset.contactId;
