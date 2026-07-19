@@ -138,12 +138,12 @@
         .iphone.dark-mode #wechatAppUI .wc-sheet-group { background: rgba(44, 44, 46, 0.9); }
         .iphone.dark-mode #wechatAppUI .wc-sheet-title, .iphone.dark-mode #wechatAppUI .wc-sheet-btn { border-bottom-color: #38383a; }
         .iphone.dark-mode #wechatAppUI .wc-sheet-cancel { background: #1c1c1e; }
-        .iphone.dark-mode #wechatAppUI .wc-add-friend-panel { background: linear-gradient(180deg, #3b2531 0%, #111113 58%, #000 100%); }
-        .iphone.dark-mode #wechatAppUI .wc-add-friend-header h2, .iphone.dark-mode #wechatAppUI .wc-add-friend-action { color: #fff; }
-        .iphone.dark-mode #wechatAppUI .wc-add-friend-close, .iphone.dark-mode #wechatAppUI .wc-add-friend-search, .iphone.dark-mode #wechatAppUI .wc-add-friend-actions { background: rgba(44,44,46,0.62); border-color: rgba(255,255,255,0.13); }
-        .iphone.dark-mode #wechatAppUI .wc-add-friend-search input { color: #fff; }
-        .iphone.dark-mode #wechatAppUI .wc-add-friend-action-icon { background: rgba(255,255,255,0.11); }
-        .iphone.dark-mode #wechatAppUI .wc-add-friend-action + .wc-add-friend-action { border-top-color: rgba(255,255,255,0.12); }
+        .iphone.dark-mode #wechatAppUI .wc-add-friend-panel { background: #fff; }
+        .iphone.dark-mode #wechatAppUI .wc-add-friend-header h2, .iphone.dark-mode #wechatAppUI .wc-add-friend-action, .iphone.dark-mode #wechatAppUI .wc-add-friend-search input { color: #1c1c1e; }
+        .iphone.dark-mode #wechatAppUI .wc-add-friend-close, .iphone.dark-mode #wechatAppUI .wc-add-friend-action-icon { color: var(--tg-blue); background: rgba(0,122,255,0.08); border-color: rgba(0,122,255,0.16); }
+        .iphone.dark-mode #wechatAppUI .wc-add-friend-search { background: #f5f7fa; border-color: rgba(0,122,255,0.12); }
+        .iphone.dark-mode #wechatAppUI .wc-add-friend-actions { background: #fff; border-color: rgba(0,122,255,0.1); }
+        .iphone.dark-mode #wechatAppUI .wc-add-friend-action + .wc-add-friend-action { border-top-color: rgba(60,60,67,0.16); }
 
         /* 微信表情包深色模式适配 */
         .iphone.dark-mode #wechatAppUI #wc-page-emoji-groups,
