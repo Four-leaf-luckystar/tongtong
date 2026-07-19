@@ -26,6 +26,7 @@
     let pickerSelection = [];
     let dialogConfirm = null;
     let toastTimer = null;
+    let mainMenuOpen = false;
 
     function makeId(prefix) {
         if (window.crypto && typeof window.crypto.randomUUID === 'function') {
@@ -165,6 +166,7 @@
         const active = el('.ct-page.is-active');
         if (!next || active === next) return;
 
+        setMainMenu(false);
         all('.ct-page').forEach(page => page.classList.remove('is-active', 'is-behind'));
         if (direction === 'forward' && active) active.classList.add('is-behind');
         next.classList.add('is-active');
@@ -189,6 +191,7 @@
             goMain();
             return;
         }
+        setMainMenu(false);
         root.classList.remove('show');
         root.setAttribute('aria-hidden', 'true');
         setTimeout(() => {
@@ -335,13 +338,21 @@
     function renderMain() {
         all('[data-view]').forEach(view => view.classList.toggle('is-active', view.dataset.view === data.selectedTab));
         all('[data-action="switch-tab"]').forEach(button => button.classList.toggle('is-active', button.dataset.tab === data.selectedTab));
-        const editButton = el('[data-action="toggle-edit"]');
-        if (editButton) {
-            editButton.textContent = isEditMode ? '完成' : '编辑';
-            editButton.style.visibility = data.selectedTab === 'char' ? 'visible' : 'hidden';
-        }
+        setText('#ctAddMenuLabel', data.selectedTab === 'char' ? '添加联系人' : '添加 User');
+        setText('#ctEditMenuLabel', isEditMode ? '完成编辑' : '编辑列表');
+        const editMenuItem = el('#ctEditMenuItem');
+        if (editMenuItem) editMenuItem.hidden = data.selectedTab !== 'char';
         renderGroups();
         renderUsers();
+    }
+
+    function setMainMenu(open) {
+        mainMenuOpen = Boolean(open);
+        const menu = el('#ctMainMenu');
+        const trigger = el('[data-action="toggle-main-menu"]');
+        menu?.classList.toggle('is-active', mainMenuOpen);
+        menu?.setAttribute('aria-hidden', String(!mainMenuOpen));
+        trigger?.setAttribute('aria-expanded', String(mainMenuOpen));
     }
 
     function toggleGroup(groupId) {
@@ -747,6 +758,187 @@
         });
     }
 
+    function decodePlainText(buffer) {
+        const bytes = new Uint8Array(buffer);
+        if (bytes[0] === 0xff && bytes[1] === 0xfe) return new TextDecoder('utf-16le').decode(bytes.subarray(2));
+        if (bytes[0] === 0xfe && bytes[1] === 0xff) {
+            const swapped = bytes.subarray(2).slice();
+            for (let index = 0; index + 1 < swapped.length; index += 2) {
+                const value = swapped[index];
+                swapped[index] = swapped[index + 1];
+                swapped[index + 1] = value;
+            }
+            return new TextDecoder('utf-16le').decode(swapped);
+        }
+        try {
+            return new TextDecoder('utf-8', { fatal: true }).decode(bytes).replace(/^\uFEFF/, '');
+        } catch (error) {
+            try {
+                return new TextDecoder('gb18030').decode(bytes);
+            } catch (fallbackError) {
+                throw new Error('TXT 编码不受支持，请另存为 UTF-8');
+            }
+        }
+    }
+
+    let pakoLoadPromise = null;
+
+    function loadPakoInflater() {
+        if (window.pako?.inflateRaw) return Promise.resolve(window.pako);
+        if (pakoLoadPromise) return pakoLoadPromise;
+
+        pakoLoadPromise = new Promise((resolve, reject) => {
+            const existingScript = document.getElementById('contactsPakoInflater');
+            const finish = () => window.pako?.inflateRaw
+                ? resolve(window.pako)
+                : reject(new Error('DOCX 解压组件加载失败'));
+
+            if (existingScript) {
+                existingScript.addEventListener('load', finish, { once: true });
+                existingScript.addEventListener('error', () => reject(new Error('DOCX 解压组件加载失败')), { once: true });
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.id = 'contactsPakoInflater';
+            script.src = 'js/vendor/pako_inflate.min.js';
+            script.onload = finish;
+            script.onerror = () => {
+                script.remove();
+                reject(new Error('DOCX 解压组件加载失败'));
+            };
+            document.head.appendChild(script);
+        }).catch(error => {
+            pakoLoadPromise = null;
+            throw error;
+        });
+
+        return pakoLoadPromise;
+    }
+
+    async function inflateZipEntry(bytes, method) {
+        if (method === 0) return bytes;
+        if (method !== 8) throw new Error('DOCX 使用了不支持的压缩格式');
+
+        if (typeof DecompressionStream === 'function') {
+            try {
+                const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+                return new Uint8Array(await new Response(stream).arrayBuffer());
+            } catch (error) {
+                console.info('Native raw DEFLATE is unavailable; using the local DOCX inflater.', error);
+            }
+        }
+
+        const inflater = await loadPakoInflater();
+        try {
+            return inflater.inflateRaw(bytes);
+        } catch (error) {
+            throw new Error('DOCX 正文解压失败');
+        }
+    }
+
+    async function readDocxXmlWithoutLibrary(buffer) {
+        const bytes = new Uint8Array(buffer);
+        const view = new DataView(buffer);
+        let endOffset = -1;
+        for (let offset = Math.max(0, bytes.length - 65557); offset <= bytes.length - 22; offset += 1) {
+            if (view.getUint32(offset, true) === 0x06054b50) endOffset = offset;
+        }
+        if (endOffset < 0) throw new Error('DOCX 文件结构无效');
+
+        const entryCount = view.getUint16(endOffset + 10, true);
+        let directoryOffset = view.getUint32(endOffset + 16, true);
+        const decoder = new TextDecoder('utf-8');
+        for (let index = 0; index < entryCount; index += 1) {
+            if (view.getUint32(directoryOffset, true) !== 0x02014b50) break;
+            const method = view.getUint16(directoryOffset + 10, true);
+            const compressedSize = view.getUint32(directoryOffset + 20, true);
+            const nameLength = view.getUint16(directoryOffset + 28, true);
+            const extraLength = view.getUint16(directoryOffset + 30, true);
+            const commentLength = view.getUint16(directoryOffset + 32, true);
+            const localOffset = view.getUint32(directoryOffset + 42, true);
+            const name = decoder.decode(bytes.subarray(directoryOffset + 46, directoryOffset + 46 + nameLength));
+            if (name === 'word/document.xml') {
+                if (view.getUint32(localOffset, true) !== 0x04034b50) throw new Error('DOCX 正文结构无效');
+                const localNameLength = view.getUint16(localOffset + 26, true);
+                const localExtraLength = view.getUint16(localOffset + 28, true);
+                const dataOffset = localOffset + 30 + localNameLength + localExtraLength;
+                const content = await inflateZipEntry(bytes.slice(dataOffset, dataOffset + compressedSize), method);
+                return decoder.decode(content);
+            }
+            directoryOffset += 46 + nameLength + extraLength + commentLength;
+        }
+        throw new Error('DOCX 中没有可读取的正文');
+    }
+
+    async function readDocxXml(buffer) {
+        if (typeof window.JSZip !== 'undefined') {
+            const zip = await window.JSZip.loadAsync(buffer);
+            const documentFile = zip.file('word/document.xml');
+            if (!documentFile) throw new Error('DOCX 中没有可读取的正文');
+            return documentFile.async('string');
+        }
+        return readDocxXmlWithoutLibrary(buffer);
+    }
+
+    function docxXmlToText(xml) {
+        const documentXml = new DOMParser().parseFromString(xml, 'application/xml');
+        if (documentXml.querySelector('parsererror')) throw new Error('DOCX 正文解析失败');
+        const paragraphs = Array.from(documentXml.getElementsByTagNameNS('*', 'p'));
+        const lines = paragraphs.map(paragraph => {
+            let line = '';
+            paragraph.querySelectorAll('*').forEach(node => {
+                if (node.localName === 't') line += node.textContent || '';
+                else if (node.localName === 'tab') line += '\t';
+                else if (node.localName === 'br' || node.localName === 'cr') line += '\n';
+            });
+            return line;
+        });
+        return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    }
+
+    function inferImportedName(text, fileName) {
+        const labeledName = text.match(/^(?:角色名|角色名称|姓名|名字|名称)\s*[：:]\s*([^\r\n]{1,40})/m)?.[1]?.trim();
+        if (labeledName) return labeledName.slice(0, 40);
+        return fileName.replace(/\.(?:txt|docx)$/i, '').trim().slice(0, 40);
+    }
+
+    async function handlePersonaImport(input) {
+        const file = input.files?.[0];
+        input.value = '';
+        if (!file || !contactDraft) return;
+        if (file.size > 10 * 1024 * 1024) {
+            showToast('文档不能超过 10MB');
+            return;
+        }
+
+        const extension = file.name.split('.').pop()?.toLowerCase();
+        if (extension !== 'txt' && extension !== 'docx') {
+            showToast('请选择 TXT 或 DOCX 文件');
+            return;
+        }
+
+        try {
+            showToast('正在解析文档…');
+            const buffer = await file.arrayBuffer();
+            const importedText = extension === 'docx' ? docxXmlToText(await readDocxXml(buffer)) : decodePlainText(buffer).trim();
+            if (!importedText) throw new Error('文档中没有可导入的文字');
+
+            const persona = importedText.slice(0, 10000);
+            setValue('#ctContactPersona', persona);
+            contactDraft.persona = persona;
+            if (!getValue('#ctContactName').trim()) {
+                const importedName = inferImportedName(importedText, file.name);
+                setValue('#ctContactName', importedName);
+                contactDraft.name = importedName;
+            }
+            showToast(importedText.length > persona.length ? '已导入，超出 10000 字的内容已截断' : '已导入人设文档');
+        } catch (error) {
+            console.warn('Persona document could not be imported:', error);
+            showToast(error?.message || '文档解析失败');
+        }
+    }
+
     async function handleImageInput(input, target) {
         const file = input.files?.[0];
         input.value = '';
@@ -774,8 +966,9 @@
         switch (action) {
             case 'close-app': closeApp(); break;
             case 'switch-tab': switchTab(actionElement.dataset.tab); break;
-            case 'toggle-edit': isEditMode = !isEditMode; renderMain(); break;
-            case 'add-current': data.selectedTab === 'char' ? openContact(null) : openUser(null); break;
+            case 'toggle-main-menu': setMainMenu(!mainMenuOpen); break;
+            case 'toggle-edit': setMainMenu(false); isEditMode = !isEditMode; renderMain(); break;
+            case 'add-current': setMainMenu(false); data.selectedTab === 'char' ? openContact(null) : openUser(null); break;
             case 'add-group': addGroup(); break;
             case 'toggle-group': toggleGroup(actionElement.dataset.groupId); break;
             case 'delete-group': event.stopPropagation(); deleteGroup(actionElement.dataset.groupId); break;
@@ -807,6 +1000,7 @@
             case 'pick-contact-avatar': el('#ctContactAvatarInput')?.click(); break;
             case 'pick-user-avatar': el('#ctUserAvatarInput')?.click(); break;
             case 'pick-contact-qr': el('#ctQrInput')?.click(); break;
+            case 'import-persona': el('#ctPersonaImportInput')?.click(); break;
             case 'picker-item': togglePickerItem(actionElement.dataset.id, actionElement); break;
             case 'close-picker': closePicker(); break;
             case 'confirm-picker': confirmPicker(); break;
@@ -819,12 +1013,17 @@
         root.addEventListener('click', event => {
             const actionElement = event.target.closest('[data-action]');
             if (actionElement && root.contains(actionElement)) handleAction(actionElement, event);
+            else if (mainMenuOpen && !event.target.closest('.ct-header-menu-wrap')) setMainMenu(false);
         });
         el('#ctContactAvatarInput')?.addEventListener('change', event => handleImageInput(event.target, 'contact'));
         el('#ctUserAvatarInput')?.addEventListener('change', event => handleImageInput(event.target, 'user'));
         el('#ctQrInput')?.addEventListener('change', event => handleImageInput(event.target, 'qr'));
+        el('#ctPersonaImportInput')?.addEventListener('change', event => handlePersonaImport(event.target));
         el('#ctDialogInput')?.addEventListener('keydown', event => {
             if (event.key === 'Enter') confirmDialog();
+        });
+        root.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && mainMenuOpen) setMainMenu(false);
         });
     }
 

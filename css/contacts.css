@@ -59,6 +59,49 @@
 #contactsAppUI .ct-primary, #contactsAppUI .ct-back-button { color: var(--ct-blue); }
 #contactsAppUI .ct-strong { font-weight: 700; }
 #contactsAppUI .ct-header-spacer { width: 72px; }
+#contactsAppUI .ct-glass-circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(255, 255, 255, 0.86);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.58);
+    backdrop-filter: blur(18px) saturate(170%);
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    box-shadow: 0 5px 18px rgba(31, 35, 40, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    color: #30343a;
+    transition: transform 0.18s ease, background 0.18s ease;
+}
+#contactsAppUI .ct-glass-circle:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.78); }
+#contactsAppUI .ct-glass-circle svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#contactsAppUI .ct-header-menu-wrap { position: relative; justify-self: end; }
+#contactsAppUI .ct-header-menu-wrap > .ct-glass-circle { margin-left: auto; }
+#contactsAppUI .ct-menu-pencil { fill: rgba(242, 242, 247, 0.96); stroke-width: 1.45; }
+#contactsAppUI .ct-header-menu {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    width: 168px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 8px;
+    background: rgba(246, 246, 249, 0.82);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    box-shadow: 0 12px 32px rgba(24, 28, 32, 0.16);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px) scale(0.96);
+    transform-origin: top right;
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+#contactsAppUI .ct-header-menu.is-active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+#contactsAppUI .ct-header-menu button { display: flex; align-items: center; gap: 11px; width: 100%; min-height: 48px; padding: 0 14px; font-size: 15px; font-weight: 600; text-align: left; }
+#contactsAppUI .ct-header-menu button + button { border-top: 1px solid var(--ct-line); }
+#contactsAppUI .ct-header-menu button:active { background: rgba(118, 118, 128, 0.1); }
+#contactsAppUI .ct-header-menu svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 #contactsAppUI .ct-scroll {
     flex: 1;
@@ -162,12 +205,20 @@
 
 #contactsAppUI .ct-action-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 0 -4px 22px; }
 #contactsAppUI .ct-action-tab { display: flex; flex-direction: column; align-items: center; min-width: 0; gap: 6px; color: var(--ct-subtext); font-size: 10px; white-space: nowrap; }
-#contactsAppUI .ct-action-icon { display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 50%; background: rgba(255, 255, 255, 0.82); color: #5e6268; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04); font-size: 14px; }
+#contactsAppUI .ct-action-icon { display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; border: 1px solid rgba(255, 255, 255, 0.88); border-radius: 50%; background: rgba(255, 255, 255, 0.62); backdrop-filter: blur(15px) saturate(165%); -webkit-backdrop-filter: blur(15px) saturate(165%); color: #5e6268; box-shadow: 0 4px 14px rgba(31, 35, 40, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.78); }
+#contactsAppUI .ct-action-icon svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
 #contactsAppUI .ct-action-tab.is-active { color: var(--ct-text); }
-#contactsAppUI .ct-action-tab.is-active .ct-action-icon { color: #fff; background: #55585d; }
+#contactsAppUI .ct-action-tab.is-active .ct-action-icon { color: #fff; border-color: rgba(76, 79, 84, 0.72); background: rgba(70, 73, 78, 0.86); box-shadow: 0 5px 16px rgba(30, 32, 35, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.14); }
 
 #contactsAppUI .ct-settings-card { overflow: hidden; margin-bottom: 20px; }
 #contactsAppUI .ct-settings-row { font-size: 16px; }
+#contactsAppUI .ct-import-row { min-height: 64px; }
+#contactsAppUI .ct-import-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+#contactsAppUI .ct-import-main > span:last-child { display: flex; flex-direction: column; gap: 3px; }
+#contactsAppUI .ct-import-main strong { font-size: 15px; font-weight: 650; }
+#contactsAppUI .ct-import-main small { color: var(--ct-subtext); font-size: 11px; }
+#contactsAppUI .ct-import-icon { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex: 0 0 auto; border-radius: 50%; background: rgba(118, 118, 128, 0.11); color: #5e6268; }
+#contactsAppUI .ct-import-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 #contactsAppUI .ct-row-value { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--ct-subtext); font-size: 14px; }
 #contactsAppUI .ct-centered { justify-content: center; text-align: center; }
 #contactsAppUI .ct-textarea-card { height: 180px; padding: 0; }
@@ -223,4 +274,10 @@
 
 @media (max-width: 768px) {
     #contactsAppUI .ct-header { height: calc(78px + var(--top-safe-area, 0px)); padding-top: calc(30px + var(--top-safe-area, 0px)); }
+}
+
+@media (prefers-color-scheme: dark) {
+    #contactsAppUI .ct-glass-circle { border-color: rgba(255, 255, 255, 0.14); background: rgba(66, 66, 70, 0.58); color: #f5f5f7; box-shadow: 0 5px 18px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); }
+    #contactsAppUI .ct-header-menu { border-color: rgba(255, 255, 255, 0.12); background: rgba(45, 45, 49, 0.84); }
+    #contactsAppUI .ct-menu-pencil { fill: rgba(45, 45, 49, 0.96); }
 }
