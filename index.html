@@ -1909,38 +1909,37 @@
             </div>
         </div>
 
-        <section class="wc-add-friend-panel" id="wcAddFriendPanel" aria-hidden="true" aria-labelledby="wcAddFriendTitle">
-            <header class="wc-add-friend-header">
-                <button class="wc-add-friend-close" type="button" onclick="wcCloseAddFriendPanel()" aria-label="关闭添加好友页面">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg>
-                </button>
-                <h2 id="wcAddFriendTitle">添加朋友</h2>
-                <button class="wc-add-friend-cancel" type="button" onclick="wcCloseAddFriendPanel()">取消</button>
-            </header>
-            <div class="wc-add-friend-body">
-                <form class="wc-add-friend-search" onsubmit="wcSearchFriend(event)">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 4 4"/></svg>
-                    <input id="wcAddFriendSearchInput" type="search" placeholder="微信号 / 手机号" autocomplete="off">
-                    <button type="submit">搜索</button>
-                </form>
-                <div class="wc-add-friend-actions">
-                    <button class="wc-add-friend-action" type="button" onclick="wcStartQrFriendImport()">
-                        <span class="wc-add-friend-action-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none"><path d="M4 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3"/><path d="M9 8.5a3 3 0 0 1 6 0M8 16c.8-2 2.2-3 4-3s3.2 1 4 3"/><circle cx="12" cy="10" r="2"/></svg>
-                        </span>
-                        <span class="wc-add-friend-action-copy"><strong>扫码添加好友</strong><small>从相册选择角色微信二维码</small></span>
-                        <svg class="wc-add-friend-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
-                    </button>
-                    <button class="wc-add-friend-action" type="button" onclick="wcOpenCreateGroupChat()">
-                        <span class="wc-add-friend-action-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3"/><path d="M3.5 18c.6-3 2.5-4.5 5.5-4.5s4.9 1.5 5.5 4.5M15 8h6M18 5v6"/></svg>
-                        </span>
-                        <span class="wc-add-friend-action-copy"><strong>创建群聊</strong><small>邀请好友开始新的群聊</small></span>
-                        <svg class="wc-add-friend-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
-                    </button>
+        <section class="wc-add-friend-panel" id="wcAddFriendPanel" aria-hidden="true" aria-labelledby="wcAddFriendTitle" onclick="wcCloseAddFriendPanel()">
+            <div class="wc-add-friend-drawer" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
+                <header class="wc-add-friend-header">
+                    <span class="wc-add-friend-handle" aria-hidden="true"></span>
+                    <h2 id="wcAddFriendTitle">添加朋友</h2>
+                </header>
+                <div class="wc-add-friend-body">
+                    <form class="wc-add-friend-search" onsubmit="wcSearchFriend(event)">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 4 4"/></svg>
+                        <input id="wcAddFriendSearchInput" type="search" placeholder="微信号 / 手机号" autocomplete="off">
+                        <button type="submit">搜索</button>
+                    </form>
+                    <div class="wc-add-friend-actions">
+                        <button class="wc-add-friend-action" type="button" onclick="wcStartQrFriendImport()">
+                            <span class="wc-add-friend-action-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none"><path d="M4 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3"/><path d="M9 8.5a3 3 0 0 1 6 0M8 16c.8-2 2.2-3 4-3s3.2 1 4 3"/><circle cx="12" cy="10" r="2"/></svg>
+                            </span>
+                            <span class="wc-add-friend-action-copy"><strong>扫码添加好友</strong><small>从相册选择角色微信二维码</small></span>
+                            <svg class="wc-add-friend-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                        </button>
+                        <button class="wc-add-friend-action" type="button" onclick="wcOpenCreateGroupChat()">
+                            <span class="wc-add-friend-action-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3"/><path d="M3.5 18c.6-3 2.5-4.5 5.5-4.5s4.9 1.5 5.5 4.5M15 8h6M18 5v6"/></svg>
+                            </span>
+                            <span class="wc-add-friend-action-copy"><strong>创建群聊</strong><small>邀请好友开始新的群聊</small></span>
+                            <svg class="wc-add-friend-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                        </button>
+                    </div>
                 </div>
+                <input id="wcContactQrInput" type="file" accept="image/*" hidden onchange="wcHandleContactQrFile(event)">
             </div>
-            <input id="wcContactQrInput" type="file" accept="image/*" hidden onchange="wcHandleContactQrFile(event)">
         </section>
 
         <!-- 统一的底部导航栏 (放置在所有 page 的外面) -->
