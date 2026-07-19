@@ -1540,6 +1540,14 @@
         <div id="page-contacts" class="page">
             <div class="list-header">
                 <div class="title" onclick="closeWechatApp()" style="cursor: pointer;">Friend</div>
+                <button class="wc-contact-add-btn" type="button" onclick="wcOpenAddFriendQr()" aria-label="扫描二维码添加好友" title="扫描二维码添加好友">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3"/>
+                        <path d="M9 8.5a3 3 0 0 1 6 0M8 16c.8-2 2.2-3 4-3s3.2 1 4 3"/>
+                        <circle cx="12" cy="10" r="2"/>
+                    </svg>
+                </button>
+                <input id="wcContactQrInput" type="file" accept="image/*" hidden onchange="wcHandleContactQrFile(event)">
             </div>
             <div class="search-container">
                 <div class="search-bar">
@@ -2083,6 +2091,7 @@
 <script src="js/widget.js"></script>
 <script src="js/settings-app.js"></script>
 <script src="js/worldbook.js"></script>
+<script src="js/vendor/jsQR.min.js"></script>
 <script src="js/wechat.js"></script>
 <script src="js/search.js"></script>
 <script src="js/universal-select.js"></script>

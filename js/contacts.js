@@ -27,6 +27,8 @@
     let dialogConfirm = null;
     let toastTimer = null;
     let mainMenuOpen = false;
+    let persistQueue = Promise.resolve();
+    let migratedFromLocalStorage = false;
 
     function makeId(prefix) {
         if (window.crypto && typeof window.crypto.randomUUID === 'function') {
@@ -51,9 +53,77 @@
         };
     }
 
-    function loadData() {
+    function openContactsDb() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('iOSDesktopDB');
+            request.onerror = () => reject(request.error || new Error('联系人数据库打开失败'));
+            request.onupgradeneeded = event => {
+                const connection = event.target.result;
+                if (!connection.objectStoreNames.contains('layoutStore')) connection.createObjectStore('layoutStore', { keyPath: 'id' });
+            };
+            request.onsuccess = () => {
+                const connection = request.result;
+                if (connection.objectStoreNames.contains('layoutStore')) {
+                    resolve(connection);
+                    return;
+                }
+                const version = connection.version;
+                connection.close();
+                const upgrade = indexedDB.open('iOSDesktopDB', version + 1);
+                upgrade.onerror = () => reject(upgrade.error || new Error('联系人数据库升级失败'));
+                upgrade.onupgradeneeded = event => event.target.result.createObjectStore('layoutStore', { keyPath: 'id' });
+                upgrade.onsuccess = () => resolve(upgrade.result);
+            };
+        });
+    }
+
+    async function readContactsRecord() {
+        const connection = await openContactsDb();
+        return new Promise((resolve, reject) => {
+            const transaction = connection.transaction(['layoutStore'], 'readonly');
+            const request = transaction.objectStore('layoutStore').get('contactsAppData');
+            request.onsuccess = () => resolve(request.result || null);
+            request.onerror = () => reject(request.error || new Error('联系人数据读取失败'));
+            transaction.oncomplete = () => connection.close();
+            transaction.onerror = () => reject(transaction.error || new Error('联系人数据读取失败'));
+        });
+    }
+
+    function writeContactsRecord(snapshot) {
+        return openContactsDb().then(connection => new Promise((resolve, reject) => {
+            const transaction = connection.transaction(['layoutStore'], 'readwrite');
+            transaction.objectStore('layoutStore').put({ id: 'contactsAppData', data: snapshot });
+            transaction.oncomplete = () => {
+                connection.close();
+                if (migratedFromLocalStorage) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    migratedFromLocalStorage = false;
+                }
+                if (typeof window.triggerAutoLocalBackup === 'function') window.triggerAutoLocalBackup();
+                resolve(true);
+            };
+            transaction.onerror = () => {
+                connection.close();
+                reject(transaction.error || new Error('联系人数据保存失败'));
+            };
+        }));
+    }
+
+    async function loadData() {
         try {
-            data = normalizeData(JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'));
+            const stored = await readContactsRecord();
+            if (stored?.data) {
+                data = normalizeData(stored.data);
+                return;
+            }
+            const legacy = localStorage.getItem(STORAGE_KEY);
+            if (legacy) {
+                data = normalizeData(JSON.parse(legacy));
+                migratedFromLocalStorage = true;
+                await persist();
+                return;
+            }
+            data = clone(DEFAULT_DATA);
         } catch (error) {
             console.warn('Contacts data could not be read:', error);
             data = clone(DEFAULT_DATA);
@@ -61,15 +131,13 @@
     }
 
     function persist() {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            if (typeof window.triggerAutoLocalBackup === 'function') window.triggerAutoLocalBackup();
-            return true;
-        } catch (error) {
+        const snapshot = clone(data || DEFAULT_DATA);
+        persistQueue = persistQueue.then(() => writeContactsRecord(snapshot)).catch(error => {
             console.error('Contacts data could not be saved:', error);
-            showToast('存储空间不足，请更换较小的图片');
+            showToast('联系人数据保存失败，请稍后重试');
             return false;
-        }
+        });
+        return persistQueue;
     }
 
     function emptyContact() {
@@ -291,8 +359,8 @@
         generate.className = 'ct-contact-generate';
         generate.dataset.action = 'generate-contact';
         generate.dataset.contactId = contact.id;
-        generate.title = '生成角色资料并同步到微信';
-        generate.setAttribute('aria-label', '生成角色资料并同步到微信');
+        generate.title = '生成角色资料和微信二维码';
+        generate.setAttribute('aria-label', '生成角色资料和微信二维码');
         generate.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.64 5.64l2.83 2.83M15.53 15.53l2.83 2.83M18.36 5.64l-2.83 2.83M8.47 15.53l-2.83 2.83"/><path d="M12 8.5 13.1 11l2.4 1-2.4 1-1.1 2.5-1.1-2.5-2.4-1 2.4-1L12 8.5Z"/></svg>';
         row.append(name, generate);
         return row;
@@ -463,59 +531,6 @@
         });
     }
 
-    function writeWechatContact(contact) {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open('iOSDesktopDB');
-            request.onerror = () => reject(request.error || new Error('微信数据打开失败'));
-            request.onsuccess = () => {
-                const connection = request.result;
-                if (!connection.objectStoreNames.contains('layoutStore')) {
-                    connection.close();
-                    reject(new Error('微信数据表不存在'));
-                    return;
-                }
-                const transaction = connection.transaction(['layoutStore'], 'readwrite');
-                const store = transaction.objectStore('layoutStore');
-                const getRequest = store.get('wechatContactsData');
-                getRequest.onsuccess = () => {
-                    const saved = getRequest.result || {};
-                    const groups = Array.isArray(saved.groups) && saved.groups.length
-                        ? saved.groups.slice()
-                        : [{ id: 'g_member', name: 'Member' }];
-                    const contacts = Array.isArray(saved.contacts) ? saved.contacts.slice() : [];
-                    const groupId = contact.wechatGroupId || groups[0].id;
-                    if (!groups.some(group => group.id === groupId)) groups.push({ id: groupId, name: 'Member' });
-                    const linked = contacts.find(item => item.linkedContactId === contact.id || item.id === 'char_' + contact.id);
-                    const synced = {
-                        ...(linked || {}),
-                        id: linked?.id || 'char_' + contact.id,
-                        linkedContactId: contact.id,
-                        name: contact.name || '未命名角色',
-                        desc: contact.persona ? contact.persona.replace(/\s+/g, ' ').slice(0, 80) : '已从联系人同步',
-                        avatar: contact.avatar || '',
-                        groupId,
-                        account: contact.security.account || '',
-                        phone: contact.security.phone || '',
-                        qrCode: contact.security.qrCode || '',
-                        persona: contact.persona || '',
-                        npcs: Array.isArray(contact.npcs) ? clone(contact.npcs) : []
-                    };
-                    const index = contacts.findIndex(item => item.id === synced.id);
-                    if (index >= 0) contacts[index] = synced;
-                    else contacts.push(synced);
-                    store.put({ id: 'wechatContactsData', groups, contacts });
-                };
-                getRequest.onerror = () => reject(getRequest.error || new Error('微信联系人读取失败'));
-                transaction.oncomplete = () => {
-                    connection.close();
-                    if (typeof window.triggerAutoLocalBackup === 'function') window.triggerAutoLocalBackup();
-                    resolve(true);
-                };
-                transaction.onerror = () => reject(transaction.error || new Error('微信联系人保存失败'));
-            };
-        });
-    }
-
     function parseGeneratedJson(value) {
         if (value && typeof value === 'object') return value;
         const text = String(value || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
@@ -578,9 +593,9 @@
         if (window.__contactsQrPromise) return window.__contactsQrPromise;
         window.__contactsQrPromise = new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+            script.src = 'js/vendor/qrcode.min.js';
             script.onload = () => window.QRCode ? resolve(window.QRCode) : reject(new Error('二维码组件加载失败'));
-            script.onerror = () => reject(new Error('二维码组件加载失败，请检查网络连接'));
+            script.onerror = () => reject(new Error('二维码组件加载失败'));
             document.head.appendChild(script);
         });
         return window.__contactsQrPromise;
@@ -589,17 +604,14 @@
     async function createContactQr(contact) {
         const payload = JSON.stringify({
             type: 'tonghuaji-wechat-contact',
-            contactId: contact.id,
-            name: contact.name || '',
-            account: contact.security.account || '',
-            phone: contact.security.phone || ''
+            contactId: contact.id
         });
         const QRCode = await loadQrCodeLibrary();
         const holder = document.createElement('div');
         holder.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:256px;height:256px;';
         document.body.appendChild(holder);
         try {
-            new QRCode(holder, { text: payload, width: 256, height: 256, correctLevel: QRCode.CorrectLevel.M });
+            new QRCode(holder, { text: payload, width: 320, height: 320, correctLevel: QRCode.CorrectLevel.H });
             const image = holder.querySelector('img');
             if (image?.src) return image.src;
             const canvas = holder.querySelector('canvas');
@@ -642,11 +654,9 @@
             mergeGeneratedContact(contact, parseGeneratedJson(content));
             contact.security.qrCode = await createContactQr(contact);
             data.contacts[contactIndex] = clone(contact);
-            persist();
-            await writeWechatContact(contact);
-            if (typeof window.wcReloadContactsFromStorage === 'function') await window.wcReloadContactsFromStorage();
+            await persist();
             renderGroups();
-            showToast('资料已生成并同步到微信');
+            showToast('资料和微信二维码已生成，请截图后到微信添加好友');
         } catch (error) {
             console.error('Contact generation failed:', error);
             showToast(error?.message || '角色资料生成失败');
@@ -1288,19 +1298,19 @@
         });
     }
 
-    function init(container) {
+    async function init(container) {
         root = container || document.getElementById('contactsAppUI');
         if (!root || root.dataset.initialized === 'true') return;
-        loadData();
+        await loadData();
         bindEvents();
         renderMain();
         root.dataset.initialized = 'true';
     }
 
-    function open() {
-        if (!root) init(document.getElementById('contactsAppUI'));
+    async function open() {
+        if (!root) await init(document.getElementById('contactsAppUI'));
         if (!root) return;
-        if (!data) loadData();
+        if (!data) await loadData();
         renderMain();
         root.style.display = 'block';
         root.setAttribute('aria-hidden', 'false');

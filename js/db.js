@@ -391,19 +391,18 @@
         wcContactsRequest.onsuccess = (e) => {
             const data = e.target.result;
             if (data) {
-                wcContactGroups = data.groups || [];
-                wcContactsList = data.contacts || [];
+                const sampleIds = new Set(['c1', 'c2', 'c3', 'c4']);
+                wcContactsList = (Array.isArray(data.contacts) ? data.contacts : []).filter(contact => !sampleIds.has(contact?.id));
+                wcContactGroups = Array.isArray(data.groups) ? data.groups.slice() : [];
+                const groupUsed = wcContactsList.some(contact => contact.groupId === 'g_group');
+                if (!groupUsed) wcContactGroups = wcContactGroups.filter(group => group.id !== 'g_group');
+                if (!wcContactGroups.some(group => group.id === 'g_member')) wcContactGroups.unshift({ id: 'g_member', name: 'Member' });
+                const cleaned = wcContactsList.length !== (Array.isArray(data.contacts) ? data.contacts.length : 0)
+                    || wcContactGroups.length !== (Array.isArray(data.groups) ? data.groups.length : 0);
+                if (cleaned) wcSaveContactsData();
             } else {
-                wcContactGroups = [
-                    { id: 'g_member', name: 'Member' },
-                    { id: 'g_group', name: 'Group' }
-                ];
-                wcContactsList = [
-                    { id: 'c1', name: '渔', desc: 'No description', avatar: '', groupId: 'g_member' },
-                    { id: 'c2', name: 'Alice Smith', desc: 'Hey there! I am using this app.', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80', groupId: 'g_member' },
-                    { id: 'c3', name: 'Bob Johnson', desc: 'Busy', avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=100&q=80', groupId: 'g_member' },
-                    { id: 'c4', name: 'Design Team', desc: 'UI updated.', avatar: '', groupId: 'g_group' }
-                ];
+                wcContactGroups = [{ id: 'g_member', name: 'Member' }];
+                wcContactsList = [];
             }
             if (typeof wcRenderContactTabs === 'function') {
                 wcRenderContactTabs();

@@ -448,7 +448,7 @@
 
             await loadContactsAppScript();
             if (!window.ContactsApp) throw new Error('联系人模块未正确初始化');
-            window.ContactsApp.init(container);
+            await window.ContactsApp.init(container);
             return window.ContactsApp;
         })().catch(error => {
             contactsAppLoadPromise = null;

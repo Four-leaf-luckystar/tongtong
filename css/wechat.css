@@ -13,6 +13,9 @@
         #wechatAppUI .list-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 12px 20px; padding-top: 45px; } /* 修复顶部重合 */
         #wechatAppUI .list-header .title { color: var(--tg-blue); font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
         #wechatAppUI .list-header .more-btn svg { width: 24px; height: 24px; fill: #000; cursor: pointer; }
+        #wechatAppUI .wc-contact-add-btn { width: 42px; height: 42px; padding: 0; border: 1px solid rgba(255,255,255,0.72); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-main); background: rgba(255,255,255,0.58); box-shadow: 0 5px 18px rgba(20,30,45,0.09), inset 0 1px 0 rgba(255,255,255,0.8); backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); cursor: pointer; flex: 0 0 42px; }
+        #wechatAppUI .wc-contact-add-btn:active { transform: scale(0.94); background: rgba(235,238,243,0.72); }
+        #wechatAppUI .wc-contact-add-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
         #wechatAppUI .search-container { padding: 0 16px 16px 16px; }
         #wechatAppUI .search-bar { position: relative; bottom: auto; left: auto; transform: none; width: 100%; background-color: var(--search-bg); border-radius: 20px; height: 40px; display: flex; align-items: center; padding: 0 14px; color: #8E8E93; font-size: 16px; font-weight: 600; } /* 修复搜索框跑偏 */
         #wechatAppUI .search-bar svg { width: 20px; height: 20px; stroke: #8E8E93; margin-right: 10px; }

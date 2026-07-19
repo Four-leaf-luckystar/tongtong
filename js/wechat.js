@@ -282,6 +282,174 @@
     }
     window.wcReloadContactsFromStorage = wcReloadContactsFromStorage;
 
+    function wcOpenAddFriendQr() {
+        const input = document.getElementById('wcContactQrInput');
+        if (input) input.click();
+    }
+    window.wcOpenAddFriendQr = wcOpenAddFriendQr;
+
+    function wcReadLayoutRecord(id) {
+        if (typeof db !== 'undefined' && db && typeof storeName !== 'undefined' && db.objectStoreNames.contains(storeName)) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], 'readonly');
+                const request = transaction.objectStore(storeName).get(id);
+                request.onsuccess = () => resolve(request.result || null);
+                request.onerror = () => reject(request.error || new Error('联系人数据读取失败'));
+                transaction.onerror = () => reject(transaction.error || new Error('联系人数据读取失败'));
+            });
+        }
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('iOSDesktopDB');
+            request.onerror = () => reject(request.error || new Error('数据库打开失败'));
+            request.onsuccess = () => {
+                const connection = request.result;
+                if (!connection.objectStoreNames.contains('layoutStore')) {
+                    connection.close();
+                    resolve(null);
+                    return;
+                }
+                const transaction = connection.transaction(['layoutStore'], 'readonly');
+                const getRequest = transaction.objectStore('layoutStore').get(id);
+                getRequest.onsuccess = () => resolve(getRequest.result || null);
+                getRequest.onerror = () => reject(getRequest.error || new Error('联系人数据读取失败'));
+                transaction.oncomplete = () => connection.close();
+            };
+        });
+    }
+
+    async function wcDecodeQrImage(file) {
+        if ('BarcodeDetector' in window) {
+            try {
+                const supported = await window.BarcodeDetector.getSupportedFormats();
+                if (supported.includes('qr_code')) {
+                    const bitmap = await createImageBitmap(file);
+                    try {
+                        const codes = await new window.BarcodeDetector({ formats: ['qr_code'] }).detect(bitmap);
+                        if (codes[0]?.rawValue) return codes[0].rawValue;
+                    } finally {
+                        bitmap.close();
+                    }
+                }
+            } catch (error) {
+                console.warn('Native QR detection failed, falling back to jsQR:', error);
+            }
+        }
+        return new Promise((resolve, reject) => {
+            const url = URL.createObjectURL(file);
+            const image = new Image();
+            image.onload = () => {
+                try {
+                    const maxSize = 1800;
+                    const scale = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
+                    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+                    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+                    const paddingOptions = [0, Math.max(24, Math.round(Math.max(width, height) * 0.12))];
+                    let result = null;
+                    for (const padding of paddingOptions) {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width + padding * 2;
+                        canvas.height = height + padding * 2;
+                        const context = canvas.getContext('2d', { willReadFrequently: true });
+                        context.fillStyle = '#fff';
+                        context.fillRect(0, 0, canvas.width, canvas.height);
+                        context.drawImage(image, padding, padding, width, height);
+                        const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+                        result = typeof window.jsQR === 'function'
+                            ? window.jsQR(pixels.data, pixels.width, pixels.height, { inversionAttempts: 'attemptBoth' })
+                            : null;
+                        if (result?.data) break;
+                    }
+                    URL.revokeObjectURL(url);
+                    if (result?.data) resolve(result.data);
+                    else reject(new Error('没有识别到二维码，请选择清晰的角色二维码截图'));
+                } catch (error) {
+                    URL.revokeObjectURL(url);
+                    reject(error);
+                }
+            };
+            image.onerror = () => {
+                URL.revokeObjectURL(url);
+                reject(new Error('二维码图片无法读取'));
+            };
+            image.src = url;
+        });
+    }
+
+    function wcParseContactQr(value) {
+        let payload;
+        try {
+            payload = JSON.parse(value);
+        } catch (error) {
+            throw new Error('这不是有效的角色二维码');
+        }
+        if (payload?.type !== 'tonghuaji-wechat-contact' || !payload.contactId) {
+            throw new Error('这不是小手机角色二维码');
+        }
+        return payload;
+    }
+
+    function wcSaveContactsDataAsync() {
+        if (!db || typeof storeName === 'undefined') return Promise.reject(new Error('微信数据库尚未准备好'));
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([storeName], 'readwrite');
+            transaction.objectStore(storeName).put({ id: 'wechatContactsData', groups: wcContactGroups, contacts: wcContactsList });
+            transaction.oncomplete = () => {
+                if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+                resolve(true);
+            };
+            transaction.onerror = () => reject(transaction.error || new Error('微信联系人保存失败'));
+        });
+    }
+
+    async function wcHandleContactQrFile(event) {
+        const input = event.target;
+        const file = input?.files?.[0];
+        if (input) input.value = '';
+        if (!file) return;
+        try {
+            const payload = wcParseContactQr(await wcDecodeQrImage(file));
+            const contactRecord = await wcReadLayoutRecord('contactsAppData');
+            const contacts = Array.isArray(contactRecord?.data?.contacts) ? contactRecord.data.contacts : [];
+            const contact = contacts.find(item => item && item.id === payload.contactId);
+            if (!contact) throw new Error('该角色已不存在，请重新生成角色二维码');
+
+            await wcReloadContactsFromStorage();
+            const linkedId = 'char_' + contact.id;
+            const existing = wcContactsList.find(item => item.id === linkedId || item.linkedContactId === contact.id);
+            if (existing) {
+                showToast('该角色已经在微信好友中');
+                return;
+            }
+            if (!wcContactGroups.length) wcContactGroups.push({ id: 'g_member', name: 'Member' });
+            const groupId = contact.wechatGroupId && wcContactGroups.some(group => group.id === contact.wechatGroupId)
+                ? contact.wechatGroupId
+                : wcContactGroups[0].id;
+            wcContactsList.push({
+                id: linkedId,
+                linkedContactId: contact.id,
+                name: contact.name || payload.name || '未命名角色',
+                desc: contact.persona ? contact.persona.replace(/\s+/g, ' ').slice(0, 80) : '角色联系人',
+                avatar: contact.avatar || '',
+                groupId,
+                account: contact.security?.account || '',
+                phone: contact.security?.phone || '',
+                password: contact.security?.password || '',
+                qrCode: contact.security?.qrCode || '',
+                persona: contact.persona || '',
+                npcs: Array.isArray(contact.npcs) ? JSON.parse(JSON.stringify(contact.npcs)) : []
+            });
+            wcCurrentContactTabId = groupId;
+            await wcSaveContactsDataAsync();
+            wcRenderContactTabs();
+            wcRenderContactList();
+            showToast('已通过二维码添加角色好友');
+        } catch (error) {
+            console.error('Contact QR import failed:', error);
+            showToast(error?.message || '二维码识别失败');
+        }
+    }
+    window.wcHandleContactQrFile = wcHandleContactQrFile;
+
     function wcSwitchContactTab(groupId) {
         wcCurrentContactTabId = groupId;
         wcRenderContactTabs();
