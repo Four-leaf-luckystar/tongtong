@@ -82,7 +82,15 @@
             appearance: '',
             worldbookIds: [],
             security: { account: '', password: '', paymentPassword: '', lockPassword: '', qrCode: '' },
-            voice: { provider: 'minimax', minimaxVoiceId: '', elevenlabsVoiceId: '', sovitsPath: '' },
+            voice: {
+                provider: 'minimax',
+                minimaxVoiceId: '',
+                elevenlabsVoiceId: '',
+                sovitsPath: '',
+                sovitsPromptText: '',
+                sovitsPromptLanguage: 'zh',
+                sovitsTextLanguage: 'zh'
+            },
             npcs: []
         };
     }
@@ -378,6 +386,9 @@
         setValue('#ctVoiceMinimax', contactDraft.voice.minimaxVoiceId);
         setValue('#ctVoiceElevenlabs', contactDraft.voice.elevenlabsVoiceId);
         setValue('#ctVoiceSovits', contactDraft.voice.sovitsPath);
+        setValue('#ctVoiceSovitsPromptText', contactDraft.voice.sovitsPromptText);
+        setValue('#ctVoiceSovitsPromptLanguage', contactDraft.voice.sovitsPromptLanguage || 'zh');
+        setValue('#ctVoiceSovitsTextLanguage', contactDraft.voice.sovitsTextLanguage || 'zh');
         setText('#ctSelectedGroup', groupName(contactDraft.groupId));
         updateWorldbookStatus();
         fillAvatar(el('#ctContactAvatarPreview'), contactDraft.avatar, '角色');
@@ -401,6 +412,9 @@
         contactDraft.voice.minimaxVoiceId = getValue('#ctVoiceMinimax');
         contactDraft.voice.elevenlabsVoiceId = getValue('#ctVoiceElevenlabs');
         contactDraft.voice.sovitsPath = getValue('#ctVoiceSovits');
+        contactDraft.voice.sovitsPromptText = getValue('#ctVoiceSovitsPromptText');
+        contactDraft.voice.sovitsPromptLanguage = getValue('#ctVoiceSovitsPromptLanguage') || 'zh';
+        contactDraft.voice.sovitsTextLanguage = getValue('#ctVoiceSovitsTextLanguage') || 'zh';
     }
 
     function saveContact() {
