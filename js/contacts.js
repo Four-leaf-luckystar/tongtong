@@ -531,6 +531,27 @@
         setText('#ctWorldbookStatus', count ? '已选 ' + count + ' 项' : '未选择');
     }
 
+    function openGroupSelect() {
+        if (!contactDraft) return;
+        if (typeof window.openUniversalSelect !== 'function') {
+            showToast('通用选择弹窗暂不可用');
+            return;
+        }
+        window.openUniversalSelect({
+            title: '选择分组',
+            items: [
+                { label: '所有联系人', value: 'all' },
+                ...data.groups.map(group => ({ label: group.name, value: group.id }))
+            ],
+            currentValue: contactDraft.groupId || 'all',
+            searchable: data.groups.length > 6,
+            onSelect: value => {
+                contactDraft.groupId = value === 'all' ? null : value;
+                setText('#ctSelectedGroup', groupName(contactDraft.groupId));
+            }
+        });
+    }
+
     function openPicker(mode) {
         pickerMode = mode;
         const list = el('#ctPickerList');
@@ -637,24 +658,27 @@
         closeDialog();
     }
 
-    function addGroup() {
-        showDialog({
-            title: '新建联系人分组',
-            message: '输入分组名称',
-            input: true,
-            placeholder: '分组名称',
-            onConfirm: name => {
-                if (!name) { showToast('分组名称不能为空'); return false; }
-                if (data.groups.some(group => group.name === name)) { showToast('分组名称已存在'); return false; }
-                const group = { id: makeId('group'), name };
-                data.groups.push(group);
-                data.expandedGroupIds.push(group.id);
-                persist();
-                renderGroups();
-                showToast('已创建分组');
-                return true;
-            }
-        });
+    async function addGroup() {
+        if (typeof window.showCustomPrompt !== 'function') {
+            showToast('通用输入弹窗暂不可用');
+            return;
+        }
+        const result = await window.showCustomPrompt('新建联系人分组', {
+            type: 'text',
+            placeholder: '输入分组名称',
+            value: ''
+        }, '创建');
+        if (result === null) return;
+
+        const name = String(result).trim();
+        if (!name) { showToast('分组名称不能为空'); return; }
+        if (data.groups.some(group => group.name === name)) { showToast('分组名称已存在'); return; }
+        const group = { id: makeId('group'), name };
+        data.groups.push(group);
+        data.expandedGroupIds.push(group.id);
+        persist();
+        renderGroups();
+        showToast('已创建分组');
     }
 
     function deleteGroup(groupId) {
@@ -983,7 +1007,7 @@
             case 'back-main': goMain(); break;
             case 'save-contact': saveContact(); break;
             case 'switch-section': switchEditorSection(actionElement.dataset.section); break;
-            case 'choose-group': syncContactDraft(); openPicker('group'); break;
+            case 'choose-group': syncContactDraft(); openGroupSelect(); break;
             case 'choose-worldbooks': syncContactDraft(); openPicker('worldbook'); break;
             case 'open-voice': syncContactDraft(); showPage('voice', 'forward'); break;
             case 'open-appearance': syncContactDraft(); showPage('appearance', 'forward'); break;

@@ -83,24 +83,40 @@
     position: absolute;
     top: 50px;
     right: 0;
-    width: 168px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.78);
-    border-radius: 8px;
-    background: rgba(246, 246, 249, 0.82);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    box-shadow: 0 12px 32px rgba(24, 28, 32, 0.16);
+    z-index: 30;
+    display: flex;
+    width: max-content;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
     transform: translateY(-6px) scale(0.96);
     transform-origin: top right;
     transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
 }
-#contactsAppUI .ct-header-menu.is-active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
-#contactsAppUI .ct-header-menu button { display: flex; align-items: center; gap: 11px; width: 100%; min-height: 48px; padding: 0 14px; font-size: 15px; font-weight: 600; text-align: left; }
-#contactsAppUI .ct-header-menu button + button { border-top: 1px solid var(--ct-line); }
-#contactsAppUI .ct-header-menu button:active { background: rgba(118, 118, 128, 0.1); }
+#contactsAppUI .ct-header-menu.is-active { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0) scale(1); }
+#contactsAppUI .ct-header-menu button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: max-content;
+    min-width: 154px;
+    min-height: 48px;
+    padding: 0 18px;
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.58);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    box-shadow: 0 10px 28px rgba(24, 28, 32, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.82);
+    font-size: 15px;
+    font-weight: 600;
+    text-align: left;
+    transition: transform 0.18s ease, background 0.18s ease;
+}
+#contactsAppUI .ct-header-menu button:active { background: rgba(255, 255, 255, 0.78); transform: scale(0.95); }
 #contactsAppUI .ct-header-menu svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 #contactsAppUI .ct-scroll {
@@ -222,6 +238,7 @@
 #contactsAppUI .ct-row-value { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--ct-subtext); font-size: 14px; }
 #contactsAppUI .ct-centered { justify-content: center; text-align: center; }
 #contactsAppUI .ct-textarea-card { height: 180px; padding: 0; }
+#contactsAppUI .ct-persona-textarea { height: clamp(320px, 46vh, 460px); }
 #contactsAppUI .ct-tall-textarea { height: 230px; }
 #contactsAppUI .ct-textarea-card textarea { width: 100%; height: 100%; resize: none; border: 0; outline: 0; background: transparent; padding: 16px; color: var(--ct-text); font-size: 15px; font-weight: 500; line-height: 1.55; }
 #contactsAppUI .ct-form-card label { position: relative; display: flex; align-items: center; min-height: 52px; padding: 8px 16px; }
@@ -278,6 +295,7 @@
 
 @media (prefers-color-scheme: dark) {
     #contactsAppUI .ct-glass-circle { border-color: rgba(255, 255, 255, 0.14); background: rgba(66, 66, 70, 0.58); color: #f5f5f7; box-shadow: 0 5px 18px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); }
-    #contactsAppUI .ct-header-menu { border-color: rgba(255, 255, 255, 0.12); background: rgba(45, 45, 49, 0.84); }
+    #contactsAppUI .ct-header-menu button { border-color: rgba(255, 255, 255, 0.14); background: rgba(45, 45, 49, 0.76); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.1); }
+    #contactsAppUI .ct-header-menu button:active { background: rgba(66, 66, 70, 0.86); }
     #contactsAppUI .ct-menu-pencil { fill: rgba(45, 45, 49, 0.96); }
 }
