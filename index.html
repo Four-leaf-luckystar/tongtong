@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="css/settings.css">
     <link rel="stylesheet" href="css/worldbook.css">
     <link rel="stylesheet" href="css/wechat.css">
+    <link rel="stylesheet" href="css/contacts.css" id="contactsAppStyles">
     <link rel="stylesheet" href="css/dialogs.css">
     <link rel="stylesheet" href="css/dark-mode.css">
 
@@ -2118,6 +2119,258 @@ fill="currentColor" viewBox="0 0 24 24" >
         </div>
 
         <div class="wechat-home-indicator" onclick="closeWechatApp()"></div>
+    </div>
+
+    <!-- 联系人 APP -->
+    <div class="contacts-app-container" id="contactsAppUI" aria-hidden="true">
+        <div class="ct-page is-active" data-page="main">
+            <header class="ct-header">
+                <button class="ct-glass-circle" type="button" data-action="close-app" aria-label="返回桌面">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>
+                </button>
+                <div class="ct-header-title">列表</div>
+                <div class="ct-header-menu-wrap">
+                    <button class="ct-glass-circle" type="button" data-action="toggle-main-menu" aria-label="联系人操作" aria-expanded="false">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 5v14M5 12h14"/>
+                            <path class="ct-menu-pencil" d="m14.8 16.7 3.9-3.9 1.5 1.5-3.9 3.9-2.1.6.6-2.1Z"/>
+                        </svg>
+                    </button>
+                    <div class="ct-header-menu" id="ctMainMenu" role="menu" aria-hidden="true">
+                        <button type="button" data-action="add-current" role="menuitem">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                            <span id="ctAddMenuLabel">添加联系人</span>
+                        </button>
+                        <button type="button" data-action="toggle-edit" role="menuitem" id="ctEditMenuItem">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-.7 4 4-.7L18.8 7.8l-3.3-3.3L4 16Z"/><path d="m13.8 6.2 3.3 3.3"/></svg>
+                            <span id="ctEditMenuLabel">编辑列表</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="ct-scroll ct-main-scroll">
+                <section class="ct-view is-active" data-view="char">
+                    <button class="ct-card ct-create-group" type="button" data-action="add-group">
+                        <span class="ct-plus">+</span>
+                        <span>新建联系人分组</span>
+                    </button>
+                    <div id="ctGroupsList"></div>
+                </section>
+
+                <section class="ct-view" data-view="user">
+                    <div class="ct-section-label">我的预设身份</div>
+                    <div id="ctUsersList"></div>
+                </section>
+            </main>
+
+            <nav class="ct-floating-tabs" aria-label="联系人类型">
+                <button class="ct-tab is-active" type="button" data-action="switch-tab" data-tab="char" aria-label="Char">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm0 2c-4.67 0-7 2.34-7 3.5V19h14v-2.5C15 15.34 12.67 13 8 13Zm8 0c-.35 0-.7.02-1.06.06 1.23.9 2.06 2.04 2.06 3.44V19h6v-2.5c0-1.16-2.33-3.5-7-3.5Z"/></svg>
+                </button>
+                <button class="ct-tab" type="button" data-action="switch-tab" data-tab="user" aria-label="User">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-5.33 0-8 2.67-8 4v2h16v-2c0-1.33-2.67-4-8-4Z"/></svg>
+                </button>
+            </nav>
+            <button class="ct-home-indicator" type="button" data-action="close-app" aria-label="关闭联系人"></button>
+        </div>
+
+        <div class="ct-page" data-page="contact-editor">
+            <header class="ct-header">
+                <button class="ct-text-button ct-primary" type="button" data-action="back-main">取消</button>
+                <div class="ct-title" id="ctContactEditorTitle">新建角色</div>
+                <button class="ct-text-button ct-primary ct-strong" type="button" data-action="save-contact">完成</button>
+            </header>
+            <main class="ct-scroll ct-editor-scroll">
+                <div class="ct-profile-editor">
+                    <button class="ct-avatar ct-avatar-large" type="button" data-action="pick-contact-avatar" aria-label="选择头像">
+                        <span id="ctContactAvatarPreview"></span>
+                        <span class="ct-camera-badge">+</span>
+                    </button>
+                    <input class="ct-name-input" id="ctContactName" type="text" maxlength="40" placeholder="输入角色名称">
+                </div>
+
+                <div class="ct-action-tabs" role="tablist">
+                    <button class="ct-action-tab is-active" type="button" data-action="switch-section" data-section="persona">
+                        <span class="ct-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2"/><path d="M5.8 19c.5-4 2.5-6 6.2-6s5.7 2 6.2 6"/></svg></span><span>人设基础</span>
+                    </button>
+                    <button class="ct-action-tab" type="button" data-action="switch-section" data-section="advanced">
+                        <span class="ct-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h8M16 7h4M4 17h4M12 17h8"/><circle cx="14" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span><span>高级设置</span>
+                    </button>
+                    <button class="ct-action-tab" type="button" data-action="switch-section" data-section="security">
+                        <span class="ct-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v2"/></svg></span><span>账号密码</span>
+                    </button>
+                    <button class="ct-action-tab" type="button" data-action="switch-section" data-section="npc">
+                        <span class="ct-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5h11a2 2 0 0 1 2 2V20H7a2 2 0 0 1-2-2V6.5a2 2 0 0 1 1-2Z"/><path d="M8 4v16M11 9h5M11 13h5"/></svg></span><span>NPC库</span>
+                    </button>
+                </div>
+
+                <section class="ct-editor-section is-active" data-section-panel="persona">
+                    <button class="ct-settings-card ct-settings-row ct-import-row" type="button" data-action="import-persona">
+                        <span class="ct-import-main">
+                            <span class="ct-import-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7Z"/><path d="M14 3v5h4M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg></span>
+                            <span><strong>导入人设文档</strong><small>支持 TXT、DOCX</small></span>
+                        </span>
+                        <span class="ct-chevron">›</span>
+                    </button>
+                    <button class="ct-settings-card ct-settings-row" type="button" data-action="choose-group">
+                        <span>所属分组</span><span class="ct-row-value"><span id="ctSelectedGroup">所有联系人</span><span class="ct-chevron">›</span></span>
+                    </button>
+                    <div class="ct-settings-card ct-textarea-card ct-persona-textarea">
+                        <textarea id="ctContactPersona" maxlength="10000" placeholder="点击此处输入角色人设、背景故事或性格设定..."></textarea>
+                    </div>
+                </section>
+
+                <section class="ct-editor-section" data-section-panel="advanced">
+                    <div class="ct-settings-card">
+                        <button class="ct-settings-row" type="button" data-action="open-voice"><span>语音设定</span><span class="ct-chevron">›</span></button>
+                        <button class="ct-settings-row" type="button" data-action="open-appearance"><span>生图外貌</span><span class="ct-chevron">›</span></button>
+                        <button class="ct-settings-row" type="button" data-action="choose-worldbooks">
+                            <span>世界书选择</span><span class="ct-row-value"><span id="ctWorldbookStatus">未选择</span><span class="ct-chevron">›</span></span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="ct-editor-section" data-section-panel="security">
+                    <div class="ct-settings-card ct-form-card">
+                        <label><span>账号</span><input id="ctSecurityAccount" type="text" autocomplete="off" placeholder="输入账号"></label>
+                        <label><span>手机号</span><input id="ctSecurityPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="输入手机号"></label>
+                        <label><span>密码</span><input id="ctSecurityPassword" type="password" autocomplete="new-password" placeholder="输入密码"></label>
+                        <label><span>支付密码</span><input id="ctSecurityPayment" type="password" inputmode="numeric" autocomplete="off" placeholder="输入支付密码"></label>
+                        <label><span>锁屏密码</span><input id="ctSecurityLock" type="password" inputmode="numeric" autocomplete="off" placeholder="输入锁屏密码"></label>
+                    </div>
+                    <div class="ct-section-label">专属二维码</div>
+                    <button class="ct-settings-card ct-qr-picker" type="button" data-action="pick-contact-qr">
+                        <span id="ctQrPreview"></span><span>点击添加二维码</span>
+                    </button>
+                </section>
+
+                <section class="ct-editor-section" data-section-panel="npc">
+                    <div class="ct-settings-card">
+                        <div id="ctNpcList"></div>
+                        <button class="ct-settings-row ct-centered ct-primary" type="button" data-action="add-npc">+ 添加 NPC</button>
+                    </div>
+                </section>
+
+                <button class="ct-danger-card" id="ctDeleteContactButton" type="button" data-action="delete-contact">删除联系人</button>
+            </main>
+        </div>
+
+        <div class="ct-page" data-page="voice">
+            <header class="ct-header">
+                <button class="ct-back-button" type="button" data-action="back-contact">‹ 返回</button>
+                <div class="ct-title">语音设定</div><span class="ct-header-spacer"></span>
+            </header>
+            <main class="ct-scroll ct-subpage-scroll">
+                <div class="ct-section-label">语音供应商</div>
+                <div class="ct-segmented" id="ctVoiceProviders">
+                    <button class="is-active" type="button" data-action="voice-provider" data-provider="minimax">MiniMax</button>
+                    <button type="button" data-action="voice-provider" data-provider="elevenlabs">ElevenLabs</button>
+                    <button type="button" data-action="voice-provider" data-provider="sovits">SoVITS</button>
+                </div>
+                <div class="ct-provider is-active" data-provider-panel="minimax">
+                    <div class="ct-section-label">全局音色配置</div>
+                    <div class="ct-settings-card ct-single-input"><input id="ctVoiceMinimax" type="text" placeholder="请输入全局音色标识符..."></div>
+                    <p class="ct-provider-tip">填写 MiniMax 控制台中的音色 ID，留空时使用全局默认音色。</p>
+                </div>
+                <div class="ct-provider" data-provider-panel="elevenlabs">
+                    <div class="ct-section-label">ElevenLabs 专属配置</div>
+                    <div class="ct-settings-card ct-single-input"><input id="ctVoiceElevenlabs" type="text" placeholder="请输入 Voice ID..."></div>
+                    <p class="ct-provider-tip">填写 ElevenLabs Voice Library 或自定义声音中的 Voice ID。</p>
+                </div>
+                <div class="ct-provider" data-provider-panel="sovits">
+                    <div class="ct-section-label">GPT-SoVITS 专属配置</div>
+                    <div class="ct-settings-card ct-form-card ct-voice-form">
+                        <label><span>参考音频</span><input id="ctVoiceSovits" type="text" placeholder="输入音频路径或 URL"></label>
+                        <label><span>参考文本</span><input id="ctVoiceSovitsPromptText" type="text" placeholder="输入参考音频对应文本"></label>
+                        <label><span>参考语言</span><select id="ctVoiceSovitsPromptLanguage">
+                            <option value="zh">中文</option><option value="en">英文</option><option value="ja">日文</option><option value="yue">粤语</option><option value="ko">韩文</option>
+                        </select></label>
+                        <label><span>合成语言</span><select id="ctVoiceSovitsTextLanguage">
+                            <option value="zh">中文</option><option value="en">英文</option><option value="ja">日文</option><option value="yue">粤语</option><option value="ko">韩文</option><option value="auto">自动识别</option>
+                        </select></label>
+                    </div>
+                    <p class="ct-provider-tip">参考文本需与音频内容一致；语言选择应与参考音频和待合成文本匹配。</p>
+                </div>
+            </main>
+        </div>
+
+        <div class="ct-page" data-page="appearance">
+            <header class="ct-header">
+                <button class="ct-back-button" type="button" data-action="back-contact">‹ 返回</button>
+                <div class="ct-title">生图外貌</div><span class="ct-header-spacer"></span>
+            </header>
+            <main class="ct-scroll ct-subpage-scroll">
+                <div class="ct-section-label">外貌特征描述</div>
+                <div class="ct-settings-card ct-textarea-card ct-tall-textarea">
+                    <textarea id="ctContactAppearance" maxlength="10000" placeholder="输入角色的外貌特征、服装、发型等 Prompt 提示词..."></textarea>
+                </div>
+            </main>
+        </div>
+
+        <div class="ct-page" data-page="npc-editor">
+            <header class="ct-header">
+                <button class="ct-text-button ct-primary" type="button" data-action="cancel-npc">取消</button>
+                <div class="ct-title" id="ctNpcEditorTitle">新建 NPC</div>
+                <button class="ct-text-button ct-primary ct-strong" type="button" data-action="save-npc">完成</button>
+            </header>
+            <main class="ct-scroll ct-editor-scroll">
+                <div class="ct-profile-editor ct-compact-profile">
+                    <div class="ct-avatar ct-avatar-large"><span class="ct-avatar-placeholder">NPC</span></div>
+                    <input class="ct-name-input" id="ctNpcName" type="text" maxlength="40" placeholder="输入 NPC 名称">
+                </div>
+                <div class="ct-settings-card ct-form-card">
+                    <label><span>身份/关系</span><input id="ctNpcRole" type="text" maxlength="80" placeholder="例如：店员、朋友、敌人..."></label>
+                </div>
+                <div class="ct-section-label">NPC 人设描述</div>
+                <div class="ct-settings-card ct-textarea-card ct-tall-textarea">
+                    <textarea id="ctNpcPersona" maxlength="10000" placeholder="输入该 NPC 的性格、背景、行为逻辑等..."></textarea>
+                </div>
+                <button class="ct-danger-card" id="ctDeleteNpcButton" type="button" data-action="delete-npc">删除 NPC</button>
+            </main>
+        </div>
+
+        <div class="ct-page" data-page="user-editor">
+            <header class="ct-header">
+                <button class="ct-text-button ct-primary" type="button" data-action="back-main">取消</button>
+                <div class="ct-title" id="ctUserEditorTitle">新建 User</div>
+                <button class="ct-text-button ct-primary ct-strong" type="button" data-action="save-user">完成</button>
+            </header>
+            <main class="ct-scroll ct-editor-scroll">
+                <div class="ct-profile-editor">
+                    <button class="ct-avatar ct-avatar-large" type="button" data-action="pick-user-avatar" aria-label="选择头像">
+                        <span id="ctUserAvatarPreview"></span><span class="ct-camera-badge">+</span>
+                    </button>
+                    <input class="ct-name-input" id="ctUserName" type="text" maxlength="40" placeholder="输入 User 名称">
+                </div>
+                <div class="ct-section-label">User 人设描述</div>
+                <div class="ct-settings-card ct-textarea-card ct-tall-textarea">
+                    <textarea id="ctUserPersona" maxlength="10000" placeholder="输入该身份的背景、性格与表达习惯..."></textarea>
+                </div>
+                <button class="ct-danger-card" id="ctDeleteUserButton" type="button" data-action="delete-user">删除 User</button>
+            </main>
+        </div>
+
+        <div class="ct-picker-overlay" id="ctPickerOverlay" aria-hidden="true">
+            <div class="ct-picker-sheet">
+                <div class="ct-picker-header"><button type="button" data-action="close-picker">取消</button><strong id="ctPickerTitle">选择</strong><button type="button" data-action="confirm-picker">完成</button></div>
+                <div class="ct-picker-list" id="ctPickerList"></div>
+            </div>
+        </div>
+
+        <div class="ct-dialog-overlay" id="ctDialogOverlay" aria-hidden="true">
+            <div class="ct-dialog">
+                <strong id="ctDialogTitle">提示</strong><p id="ctDialogMessage"></p>
+                <input id="ctDialogInput" type="text" maxlength="40">
+                <div class="ct-dialog-actions"><button type="button" data-action="cancel-dialog">取消</button><button class="ct-primary" type="button" data-action="confirm-dialog">确定</button></div>
+            </div>
+        </div>
+
+        <div class="ct-toast" id="ctToast" role="status"></div>
+        <input id="ctContactAvatarInput" type="file" accept="image/*" hidden>
+        <input id="ctUserAvatarInput" type="file" accept="image/*" hidden>
+        <input id="ctQrInput" type="file" accept="image/*" hidden>
+        <input id="ctPersonaImportInput" type="file" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
     </div>
 </div>
 

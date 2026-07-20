@@ -421,30 +421,8 @@
         if (contactsAppLoadPromise) return contactsAppLoadPromise;
 
         contactsAppLoadPromise = (async () => {
-            if (!document.getElementById('contactsAppStyles')) {
-                const link = document.createElement('link');
-                link.id = 'contactsAppStyles';
-                link.rel = 'stylesheet';
-                link.href = 'css/contacts.css';
-                document.head.appendChild(link);
-            }
-
-            let container = document.getElementById('contactsAppUI');
-            if (!container) {
-                const response = await fetch('pages/contacts.html', { cache: 'no-store' });
-                if (!response.ok) throw new Error('联系人页面加载失败 (' + response.status + ')');
-
-                const template = document.createElement('template');
-                template.innerHTML = (await response.text()).trim();
-                container = template.content.firstElementChild;
-                if (!container || container.id !== 'contactsAppUI') {
-                    throw new Error('联系人页面结构无效');
-                }
-
-                const iphone = document.querySelector('.iphone');
-                if (!iphone) throw new Error('未找到桌面容器');
-                iphone.appendChild(container);
-            }
+            const container = document.getElementById('contactsAppUI');
+            if (!container) throw new Error('主页面中未找到联系人页面结构');
 
             await loadContactsAppScript();
             if (!window.ContactsApp) throw new Error('联系人模块未正确初始化');
