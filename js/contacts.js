@@ -1214,16 +1214,13 @@
         input.value = '';
         if (!file) return;
         try {
-            const image = await fileToImage(file, target === 'qr' ? 720 : 420);
+            const image = await fileToImage(file, 420);
             if (target === 'contact' && contactDraft) {
                 contactDraft.avatar = image;
                 fillAvatar(el('#ctContactAvatarPreview'), image, '角色');
             } else if (target === 'user' && userDraft) {
                 userDraft.avatar = image;
                 fillAvatar(el('#ctUserAvatarPreview'), image, 'User');
-            } else if (target === 'qr' && contactDraft) {
-                contactDraft.security.qrCode = image;
-                renderQr();
             }
         } catch (error) {
             console.warn('Contacts image could not be loaded:', error);
@@ -1270,7 +1267,6 @@
             case 'delete-npc': deleteNpc(); break;
             case 'pick-contact-avatar': el('#ctContactAvatarInput')?.click(); break;
             case 'pick-user-avatar': el('#ctUserAvatarInput')?.click(); break;
-            case 'pick-contact-qr': el('#ctQrInput')?.click(); break;
             case 'import-persona': el('#ctPersonaImportInput')?.click(); break;
             case 'picker-item': togglePickerItem(actionElement.dataset.id, actionElement); break;
             case 'close-picker': closePicker(); break;
@@ -1288,7 +1284,6 @@
         });
         el('#ctContactAvatarInput')?.addEventListener('change', event => handleImageInput(event.target, 'contact'));
         el('#ctUserAvatarInput')?.addEventListener('change', event => handleImageInput(event.target, 'user'));
-        el('#ctQrInput')?.addEventListener('change', event => handleImageInput(event.target, 'qr'));
         el('#ctPersonaImportInput')?.addEventListener('change', event => handlePersonaImport(event.target));
         el('#ctDialogInput')?.addEventListener('keydown', event => {
             if (event.key === 'Enter') confirmDialog();

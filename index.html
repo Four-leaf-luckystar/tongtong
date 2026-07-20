@@ -2240,9 +2240,9 @@ fill="currentColor" viewBox="0 0 24 24" >
                         <label><span>锁屏密码</span><input id="ctSecurityLock" type="password" inputmode="numeric" autocomplete="off" placeholder="输入锁屏密码"></label>
                     </div>
                     <div class="ct-section-label">专属二维码</div>
-                    <button class="ct-settings-card ct-qr-picker" type="button" data-action="pick-contact-qr">
-                        <span id="ctQrPreview"></span><span>点击添加二维码</span>
-                    </button>
+                    <div class="ct-settings-card ct-qr-display">
+                        <span id="ctQrPreview"></span><span>由 API 生成</span>
+                    </div>
                 </section>
 
                 <section class="ct-editor-section" data-section-panel="npc">
@@ -2369,7 +2369,6 @@ fill="currentColor" viewBox="0 0 24 24" >
         <div class="ct-toast" id="ctToast" role="status"></div>
         <input id="ctContactAvatarInput" type="file" accept="image/*" hidden>
         <input id="ctUserAvatarInput" type="file" accept="image/*" hidden>
-        <input id="ctQrInput" type="file" accept="image/*" hidden>
         <input id="ctPersonaImportInput" type="file" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
     </div>
 </div>
