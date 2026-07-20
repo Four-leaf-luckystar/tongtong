@@ -5,7 +5,156 @@
         if (wechatUI) {
             wechatUI.style.display = 'flex';
             setTimeout(() => { wechatUI.classList.add('show'); }, 10);
+            
+            // 每次打开微信时，确保底部导航栏在登录/注册页是隐藏的
+            const activePage = document.querySelector('#wechatAppUI .page.active');
+            const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+            if (activePage && (activePage.id === 'page-wc-login' || activePage.id === 'page-wc-register')) {
+                if (bottomNav) bottomNav.style.display = 'none';
+            }
         }
+    }
+
+    function wcSwitchAuthPage(pageId) {
+        document.querySelectorAll('#wechatAppUI .page').forEach(el => el.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+    }
+
+    function wcTogglePasswordVisibility(iconContainer) {
+        const input = iconContainer.previousElementSibling;
+        const svg = iconContainer.querySelector('svg');
+        if (input.type === 'password') {
+            input.type = 'text';
+            // 闭眼图标 (隐藏密码)
+            svg.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+        } else {
+            input.type = 'password';
+            // 睁眼图标 (显示密码)
+            svg.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+        }
+    }
+
+    let wcSelectedUserMaskId = null;
+    let wcSelectedUserMaskAvatar = '';
+    let wcSelectedUserMaskName = '';
+
+    async function wcOpenUserMaskSelect() {
+        try {
+            const contactRecord = await wcReadLayoutRecord('contactsAppData');
+            const users = Array.isArray(contactRecord?.data?.users) ? contactRecord.data.users : [];
+            
+            if (users.length === 0) {
+                showToast('联系人库中暂无 User 面具，请先在 Contacts 中添加');
+                return;
+            }
+
+            const listContainer = document.getElementById('wcUserMaskDrawerList');
+            if (!listContainer) return;
+            
+            let html = '';
+            users.forEach(u => {
+                const avatarStyle = u.avatar ? `background-image: url('${u.avatar}');` : '';
+                const fallback = u.avatar ? '' : (u.name ? u.name.substring(0, 1) : 'U');
+                // 转义单引号防止 HTML 属性断裂
+                const safeName = (u.name || '未命名 User').replace(/'/g, "\\'");
+                const safeAvatar = (u.avatar || '').replace(/'/g, "\\'");
+                
+                html += `
+                    <div class="wc-user-drawer-item" onclick="wcSelectUserMask('${u.id}', '${safeName}', '${safeAvatar}')">
+                        <div class="wc-user-drawer-avatar" style="${avatarStyle}">${fallback}</div>
+                        <div class="wc-user-drawer-name">${u.name || '未命名 User'}</div>
+                    </div>
+                `;
+            });
+            
+            listContainer.innerHTML = html;
+            document.getElementById('wcUserMaskDrawerOverlay').classList.add('show');
+
+        } catch (error) {
+            console.error('读取 User 面具失败:', error);
+            showToast('读取 User 面具失败');
+        }
+    }
+
+    function wcCloseUserMaskDrawer() {
+        const overlay = document.getElementById('wcUserMaskDrawerOverlay');
+        if (overlay) overlay.classList.remove('show');
+    }
+
+    function wcSelectUserMask(id, name, avatar) {
+        wcSelectedUserMaskId = id;
+        wcSelectedUserMaskName = name;
+        wcSelectedUserMaskAvatar = avatar;
+        
+        const previewEl = document.getElementById('wc-register-avatar-preview');
+        if (previewEl) {
+            if (wcSelectedUserMaskAvatar) {
+                previewEl.style.backgroundImage = `url('${wcSelectedUserMaskAvatar}')`;
+                previewEl.style.backgroundSize = 'cover';
+                previewEl.style.backgroundPosition = 'center';
+                previewEl.innerHTML = ''; // 清除里面的相机图标
+            } else {
+                previewEl.style.backgroundImage = 'none';
+                previewEl.innerHTML = '<span style="font-size: 24px; font-weight: bold; color: #8E8E93;">' + wcSelectedUserMaskName.substring(0, 1) + '</span>';
+            }
+        }
+        showToast(`已绑定面具：${wcSelectedUserMaskName}`);
+        wcCloseUserMaskDrawer();
+    }
+
+    function wcRegisterAccount() {
+        const phone = document.getElementById('wc-reg-phone').value.trim();
+        const pwd = document.getElementById('wc-reg-pwd').value;
+        const pwdConfirm = document.getElementById('wc-reg-pwd-confirm').value;
+
+        if (!wcSelectedUserMaskId) {
+            showToast('请先绑定 User 面具');
+            return;
+        }
+        if (!phone) {
+            showToast('请输入手机号');
+            return;
+        }
+        if (!pwd) {
+            showToast('请输入密码');
+            return;
+        }
+        if (pwd !== pwdConfirm) {
+            showToast('两次输入的密码不一致');
+            return;
+        }
+
+        // 注册成功逻辑：保存绑定的面具信息到全局设置中
+        if (typeof appSettings !== 'undefined') {
+            appSettings.wc_current_user_id = wcSelectedUserMaskId;
+            appSettings.wc_current_user_name = wcSelectedUserMaskName;
+            appSettings.wc_current_user_avatar = wcSelectedUserMaskAvatar;
+            appSettings.wc_current_user_phone = phone; // 保存手机号用于展示
+            if (typeof saveAppSettings === 'function') saveAppSettings();
+        }
+
+        // 初始化朋友圈资料 (如果未设置，则默认使用绑定的 User 面具)
+        if (typeof wcMomentsProfile !== 'undefined') {
+            if (!wcMomentsProfile.name) wcMomentsProfile.name = wcSelectedUserMaskName;
+            if (!wcMomentsProfile.avatar) wcMomentsProfile.avatar = wcSelectedUserMaskAvatar;
+            if (typeof wcSaveMomentsProfileData === 'function') wcSaveMomentsProfileData();
+        }
+
+        showToast('注册成功！');
+        wcLoginSuccess();
+    }
+
+    function wcLoginSuccess() {
+        // 登录/注册成功后，跳转到聊天列表页，并显示底部导航栏
+        document.querySelectorAll('#wechatAppUI .page').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-chat-list').classList.add('active');
+        
+        const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+        if (bottomNav) bottomNav.style.display = 'block';
+        
+        // 激活底部的聊天 Tab 状态
+        document.querySelectorAll('#wechatAppUI .bottom-nav .nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById('wc-nav-chat').classList.add('active');
     }
 
     function wcSwitchTab(tabName) {
@@ -23,14 +172,36 @@
         } else if (tabName === 'moments') {
             document.getElementById('wc-nav-moments').classList.add('active');
             document.getElementById('page-moments').classList.add('active');
+            if (typeof wcRenderMomentsProfile === 'function') wcRenderMomentsProfile();
+            if (typeof wcRenderMoments === 'function') wcRenderMoments();
         } else if (tabName === 'profile') {
             document.getElementById('wc-nav-profile').classList.add('active');
             document.getElementById('page-profile').classList.add('active');
+            wcRenderProfilePage();
+        }
+    }
+
+    function wcRenderProfilePage() {
+        const nameEl = document.querySelector('#page-profile .wc-profile-name');
+        const idEl = document.querySelector('#page-profile .wc-profile-id');
+        const avatarEl = document.querySelector('#page-profile .wc-avatar-inner');
+        
+        if (typeof appSettings !== 'undefined') {
+            if (nameEl) nameEl.innerText = appSettings.wc_current_user_name || '未命名';
+            if (idEl) idEl.innerText = '微信号：' + (appSettings.wc_current_user_phone || '--');
+            if (avatarEl) {
+                if (appSettings.wc_current_user_avatar) {
+                    avatarEl.style.backgroundImage = `url('${appSettings.wc_current_user_avatar}')`;
+                    avatarEl.style.backgroundSize = 'cover';
+                    avatarEl.style.backgroundPosition = 'center';
+                } else {
+                    avatarEl.style.backgroundImage = 'none';
+                }
+            }
         }
     }
 
     // --- 微信朋友圈逻辑 ---
-
 
     function wcRenderMoments() {
         const container = document.getElementById('wc-moments-feed-list');
@@ -232,8 +403,8 @@
         wcContactsList.forEach(contact => {
             const avatarStyle = contact.avatar ? `background-image: url('${contact.avatar}'); border: none;` : '';
             html += `
-                <div class="chat-item" data-session-id="${contact.id}" onclick="wcOpenChatRoom('${contact.id}')" style="display: flex; padding: 12px 16px; align-items: center; border-bottom: 0.5px solid rgba(0,0,0,0.05); cursor: pointer;">
-                    <div class="avatar" style="width: 48px; height: 48px; border-radius: 8px; background-color: #E5E5EA; background-size: cover; background-position: center; flex-shrink: 0; margin-right: 12px; ${avatarStyle}"></div>
+                <div class="chat-item" data-session-id="${contact.id}" onclick="wcOpenChatRoom('${contact.id}')" style="display: flex; padding: 12px 16px; align-items: center; border-bottom: none; cursor: pointer;">
+                    <div class="avatar" style="width: 48px; height: 48px; border-radius: 50%; background-color: #E5E5EA; background-size: cover; background-position: center; flex-shrink: 0; margin-right: 12px; ${avatarStyle}"></div>
                     <div class="chat-info" style="flex: 1; overflow: hidden;">
                         <div class="chat-name-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                             <div class="name" style="font-size: 16px; font-weight: 500; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${contact.name}</div>
@@ -334,6 +505,8 @@
     }
     window.wcCloseAddFriendPanel = wcCloseAddFriendPanel;
 
+    let wcCurrentPendingContact = null;
+
     async function wcSearchFriend(event) {
         event?.preventDefault();
         const input = document.getElementById('wcAddFriendSearchInput');
@@ -347,10 +520,22 @@
             const contactRecord = await wcReadLayoutRecord('contactsAppData');
             const contacts = Array.isArray(contactRecord?.data?.contacts) ? contactRecord.data.contacts : [];
             
-            const contact = contacts.find(item =>
-                String(item.security?.account || '').trim().toLowerCase() === query ||
-                String(item.security?.phone || '').trim().toLowerCase() === query
-            );
+            // 模拟搜索：如果输入 123，使用测试数据，否则去数据库找
+            let contact = null;
+            if (query === '123') {
+                contact = {
+                    id: 'test_123',
+                    name: 'Alice (Test Character)',
+                    security: { account: 'alice_wonderland' },
+                    persona: 'A curious girl from wonderland.',
+                    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alice'
+                };
+            } else {
+                contact = contacts.find(item =>
+                    String(item.security?.account || '').trim().toLowerCase() === query ||
+                    String(item.security?.phone || '').trim().toLowerCase() === query
+                );
+            }
 
             if (!contact) {
                 showToast('未找到对应好友，请检查账号或手机号是否正确');
@@ -379,42 +564,29 @@
                 return;
             }
 
-            if (!wcContactGroups.length) wcContactGroups.push({ id: 'g_member', name: 'Member' });
-            const groupId = contact.wechatGroupId && wcContactGroups.some(group => group.id === contact.wechatGroupId)
-                ? contact.wechatGroupId
-                : wcContactGroups[0].id;
-                
-            wcContactsList.push({
-                id: linkedId,
-                linkedContactId: contact.id,
-                name: contact.name || '未命名角色',
-                desc: contact.persona ? contact.persona.replace(/\s+/g, ' ').slice(0, 80) : '角色联系人',
-                avatar: contact.avatar || '',
-                groupId,
-                account: contact.security?.account || '',
-                phone: contact.security?.phone || '',
-                password: contact.security?.password || '',
-                qrCode: contact.security?.qrCode || '',
-                persona: contact.persona || '',
-                npcs: Array.isArray(contact.npcs) ? JSON.parse(JSON.stringify(contact.npcs)) : []
-            });
+            // 保存到全局变量，供确认添加时使用
+            wcCurrentPendingContact = contact;
             
-            wcCurrentContactTabId = groupId;
-            await wcSaveContactsDataAsync();
+            // 填充详情页数据
+            const avatarEl = document.getElementById('afd-avatar');
+            if (avatarEl) {
+                if (contact.avatar) {
+                    avatarEl.style.backgroundImage = `url('${contact.avatar}')`;
+                } else {
+                    avatarEl.style.backgroundImage = 'none';
+                }
+            }
+            const nameEl = document.getElementById('afd-name');
+            if (nameEl) nameEl.innerText = contact.name || '未命名角色';
+            const accountEl = document.getElementById('afd-account');
+            if (accountEl) accountEl.innerText = `ID：${contact.security?.account || contact.security?.phone || '--'}`;
+
+            // 关闭搜索面板，隐藏底部导航，显示详情页
             wcCloseAddFriendPanel();
-            wcSwitchTab('contacts');
-            wcRenderContactTabs();
-            wcRenderContactList();
-            showToast('已通过账号/手机号添加角色好友');
-            
-            requestAnimationFrame(() => {
-                const card = Array.from(document.querySelectorAll('#wcDynamicContent .wc-character-card[data-id]'))
-                    .find(item => item.dataset.id === String(linkedId));
-                if (!card) return;
-                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                card.classList.add('wc-search-match');
-                setTimeout(() => card.classList.remove('wc-search-match'), 1600);
-            });
+            const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+            if (bottomNav) bottomNav.style.display = 'none';
+            document.querySelectorAll('#wechatAppUI .page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-add-friend-detail').classList.add('active');
 
         } catch (error) {
             console.error('WeChat friend search failed:', error);
@@ -422,6 +594,62 @@
         }
     }
     window.wcSearchFriend = wcSearchFriend;
+
+    function wcCloseAddFriendDetail() {
+        wcCurrentPendingContact = null;
+        const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+        if (bottomNav) bottomNav.style.display = 'block';
+        wcSwitchTab('chat'); // 返回主页
+    }
+    window.wcCloseAddFriendDetail = wcCloseAddFriendDetail;
+
+    async function wcConfirmAddFriend() {
+        if (!wcCurrentPendingContact) return;
+        const contact = wcCurrentPendingContact;
+        const linkedId = 'char_' + contact.id;
+
+        if (!wcContactGroups.length) wcContactGroups.push({ id: 'g_member', name: 'Member' });
+        const groupId = contact.wechatGroupId && wcContactGroups.some(group => group.id === contact.wechatGroupId)
+            ? contact.wechatGroupId
+            : wcContactGroups[0].id;
+            
+        wcContactsList.push({
+            id: linkedId,
+            linkedContactId: contact.id,
+            name: contact.name || '未命名角色',
+            desc: contact.persona ? contact.persona.replace(/\s+/g, ' ').slice(0, 80) : '角色联系人',
+            avatar: contact.avatar || '',
+            groupId,
+            account: contact.security?.account || '',
+            phone: contact.security?.phone || '',
+            password: contact.security?.password || '',
+            qrCode: contact.security?.qrCode || '',
+            persona: contact.persona || '',
+            npcs: Array.isArray(contact.npcs) ? JSON.parse(JSON.stringify(contact.npcs)) : []
+        });
+        
+        wcCurrentContactTabId = groupId;
+        await wcSaveContactsDataAsync();
+        
+        wcCurrentPendingContact = null;
+        const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+        if (bottomNav) bottomNav.style.display = 'block';
+        
+        wcSwitchTab('contacts');
+        wcRenderContactTabs();
+        wcRenderContactList();
+        showToast('添加成功');
+        
+        requestAnimationFrame(() => {
+            const card = Array.from(document.querySelectorAll('#wcDynamicContent .wc-character-card[data-id]'))
+                .find(item => item.dataset.id === String(linkedId));
+            if (!card) return;
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.classList.add('wc-search-match');
+            setTimeout(() => card.classList.remove('wc-search-match'), 1600);
+        });
+    }
+    window.wcConfirmAddFriend = wcConfirmAddFriend;
 
     function wcStartQrFriendImport() {
         wcOpenAddFriendQr();
@@ -807,6 +1035,8 @@
         }
     }
 
+    let wcRecentEmojis = [];
+
     // 切换表情面板显示/隐藏
     function wcToggleEmojiPanel(event) {
         if (event) event.stopPropagation();
@@ -814,9 +1044,14 @@
         const footer = document.getElementById('wcFooterCapsule');
         const chatArea = document.getElementById('wc-chat-area');
         
+        if (typeof appSettings !== 'undefined' && appSettings.wc_recent_emojis) {
+            wcRecentEmojis = appSettings.wc_recent_emojis;
+        }
+        
         if (panel.classList.contains('show')) {
             wcCloseEmojiPanel();
         } else {
+            wcRenderChatEmojiPanel();
             panel.classList.add('show');
             if(footer) footer.style.transform = 'translateY(-266px)';
             if(chatArea) chatArea.style.paddingBottom = '366px';
@@ -836,19 +1071,101 @@
         }
     }
 
+    function wcRenderChatEmojiPanel() {
+        const groupContainer = document.getElementById('wcEmojiCapsuleGroup');
+        if (!groupContainer) return;
+        
+        let html = `
+            <div class="wc-capsule-item wc-search-trigger" onclick="wcOpenEmojiSearch()">
+                <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <span>搜索</span>
+            </div>
+            <div class="wc-capsule-item active" onclick="wcSwitchEmojiGroup(this, 'all')">全部</div>
+            <div class="wc-capsule-item" onclick="wcSwitchEmojiGroup(this, 'recent')">最近</div>
+        `;
+        
+        wcEmojiGroups.forEach(g => {
+            html += `<div class="wc-capsule-item" onclick="wcSwitchEmojiGroup(this, '${g.id}')">${g.name}</div>`;
+        });
+        
+        groupContainer.innerHTML = html;
+        
+        wcRenderChatEmojiContent('all');
+    }
+
     // 切换表情分组
-    function wcSwitchEmojiGroup(item) {
+    function wcSwitchEmojiGroup(item, groupId) {
         const items = document.querySelectorAll('#wcEmojiPanel .wc-capsule-item:not(.wc-search-trigger)');
         items.forEach(i => i.classList.remove('active'));
         item.classList.add('active');
         item.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        
+        wcRenderChatEmojiContent(groupId);
+    }
+
+    function wcRenderChatEmojiContent(groupId) {
+        const content = document.getElementById('wcEmojiPanelContent');
+        if (!content) return;
+        
+        let emojis = [];
+        if (groupId === 'all') {
+            emojis = wcGetAllEmojis();
+        } else if (groupId === 'recent') {
+            emojis = wcRecentEmojis;
+        } else {
+            const group = wcEmojiGroups.find(g => g.id === groupId);
+            if (group) emojis = group.emojis;
+        }
+        
+        if (emojis.length === 0) {
+            content.innerHTML = '<div style="width: 100%; text-align: center; color: #888; font-size: 15px; font-weight: bold;">当前暂无表情包</div>';
+            content.style.display = 'flex';
+            return;
+        }
+        
+        content.style.display = 'grid';
+        content.style.gridTemplateColumns = 'repeat(5, 1fr)';
+        content.style.gap = '20px 12px';
+        content.style.padding = '16px';
+        content.style.overflowY = 'auto';
+        content.style.alignItems = 'start';
+        content.style.justifyItems = 'center';
+        content.style.alignContent = 'start';
+        
+        let html = '';
+        emojis.forEach(e => {
+            html += `
+                <div class="wc-chat-emoji-item" onclick="wcSendEmoji('${e.id}', '${e.url}', '${e.desc}')">
+                    <div class="wc-chat-emoji-img-wrap">
+                        <img src="${e.url}" alt="${e.desc}">
+                    </div>
+                    <div class="wc-chat-emoji-desc">${e.desc}</div>
+                </div>
+            `;
+        });
+        content.innerHTML = html;
+    }
+
+    function wcSendEmoji(id, url, desc) {
+        wcRecentEmojis = wcRecentEmojis.filter(e => e.id !== id);
+        wcRecentEmojis.unshift({ id, url, desc });
+        if (wcRecentEmojis.length > 20) wcRecentEmojis.pop();
+        
+        if (typeof appSettings !== 'undefined') {
+            appSettings.wc_recent_emojis = wcRecentEmojis;
+            if (typeof saveAppSettings === 'function') saveAppSettings();
+        }
+        
+        wcAppendChatMessage(`[表情] ${desc}`, 'sent', wcCurrentChatContactId, url);
+        wcCloseEmojiPanel();
     }
 
     // 打开表情搜索视图
     function wcOpenEmojiSearch() {
         document.getElementById('wcEmojiCapsuleGroup').style.display = 'none';
         document.getElementById('wcEmojiSearchView').classList.add('show');
-        document.getElementById('wcEmojiPanelContent').innerText = '搜索表情包...';
+        document.getElementById('wcEmojiPanelContent').innerHTML = '<div style="width: 100%; text-align: center; color: #888; font-size: 15px; font-weight: bold;">搜索表情包...</div>';
+        document.getElementById('wcEmojiPanelContent').style.display = 'flex';
     }
 
     // 关闭表情搜索视图
@@ -856,7 +1173,50 @@
         document.getElementById('wcEmojiSearchView').classList.remove('show');
         document.getElementById('wcEmojiCapsuleGroup').style.display = 'flex';
         document.getElementById('wcEmojiSearchInput').value = '';
-        document.getElementById('wcEmojiPanelContent').innerText = '当前暂无表情包';
+        wcRenderChatEmojiContent('all');
+    }
+
+    function wcHandleEmojiSearch() {
+        const keyword = document.getElementById('wcEmojiSearchInput').value.trim().toLowerCase();
+        const content = document.getElementById('wcEmojiPanelContent');
+        if (!content) return;
+        
+        if (!keyword) {
+            content.innerHTML = '<div style="width: 100%; text-align: center; color: #888; font-size: 15px; font-weight: bold;">请输入搜索关键字</div>';
+            content.style.display = 'flex';
+            return;
+        }
+        
+        const allEmojis = wcGetAllEmojis();
+        const results = allEmojis.filter(e => e.desc.toLowerCase().includes(keyword));
+        
+        if (results.length === 0) {
+            content.innerHTML = '<div style="width: 100%; text-align: center; color: #888; font-size: 15px; font-weight: bold;">未找到相关表情包</div>';
+            content.style.display = 'flex';
+            return;
+        }
+        
+        content.style.display = 'grid';
+        content.style.gridTemplateColumns = 'repeat(5, 1fr)';
+        content.style.gap = '20px 12px';
+        content.style.padding = '16px';
+        content.style.overflowY = 'auto';
+        content.style.alignItems = 'start';
+        content.style.justifyItems = 'center';
+        content.style.alignContent = 'start';
+        
+        let html = '';
+        results.forEach(e => {
+            html += `
+                <div class="wc-chat-emoji-item" onclick="wcSendEmoji('${e.id}', '${e.url}', '${e.desc}')">
+                    <div class="wc-chat-emoji-img-wrap">
+                        <img src="${e.url}" alt="${e.desc}">
+                    </div>
+                    <div class="wc-chat-emoji-desc">${e.desc}</div>
+                </div>
+            `;
+        });
+        content.innerHTML = html;
     }
 
     async function wcHandleMenuClick(action) {
@@ -1857,15 +2217,30 @@
         const avatar = document.createElement('div');
         avatar.className = 'msg-avatar';
         const avatarUrl = isSent
-            ? 'https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png'
+            ? (typeof appSettings !== 'undefined' && appSettings.wc_current_user_avatar ? appSettings.wc_current_user_avatar : '')
             : contact?.avatar;
         if (avatarUrl) avatar.style.backgroundImage = `url("${String(avatarUrl).replace(/"/g, '\\"')}")`;
 
         const bubble = document.createElement('div');
         bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
-        const messageText = document.createElement('div');
-        messageText.className = 'msg-text';
-        messageText.textContent = text;
+        
+        if (message.imageUrl) {
+            bubble.style.backgroundColor = 'transparent';
+            bubble.style.padding = '0';
+            const img = document.createElement('img');
+            img.src = message.imageUrl;
+            img.style.maxWidth = '120px';
+            img.style.maxHeight = '120px';
+            img.style.borderRadius = '8px';
+            img.style.objectFit = 'contain';
+            bubble.appendChild(img);
+        } else {
+            const messageText = document.createElement('div');
+            messageText.className = 'msg-text';
+            messageText.textContent = text;
+            bubble.appendChild(messageText);
+        }
+        
         const meta = document.createElement('div');
         meta.className = `msg-meta ${isSent ? 'sent' : 'received'}`;
         const time = document.createElement('span');
@@ -1874,7 +2249,7 @@
         if (isSent) {
             meta.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 24 24"><polyline points="18 6 7 17 2 12"></polyline><polyline points="22 6 12 16"></polyline></svg>');
         }
-        bubble.append(messageText, meta);
+        bubble.appendChild(meta);
         row.append(avatar, bubble);
         return row;
     }
@@ -1891,7 +2266,7 @@
         wcScrollToBottom();
     }
 
-    function wcAppendChatMessage(text, type, contactId = wcCurrentChatContactId) {
+    function wcAppendChatMessage(text, type, contactId = wcCurrentChatContactId, imageUrl = null) {
         if (!contactId) return;
         const message = {
             id: typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -1899,6 +2274,7 @@
                 : `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`,
             type: type === 'received' ? 'received' : 'sent',
             text: String(text),
+            imageUrl: imageUrl,
             createdAt: Date.now()
         };
         if (!Array.isArray(wcChatMessagesByContact[contactId])) wcChatMessagesByContact[contactId] = [];
@@ -1912,6 +2288,14 @@
         wcUpdateMessageGroupings();
         wcScrollToBottom();
     }
+
+    function wcHandleChatKeyDown(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            wcSendMessage();
+        }
+    }
+    window.wcHandleChatKeyDown = wcHandleChatKeyDown;
 
     function wcSendMessage() {
         const input = document.getElementById('wc-chat-input');
