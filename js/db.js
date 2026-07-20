@@ -38,6 +38,7 @@
     let wcCurrentFontFamily = 'default';
     let wcChatBgList = [];
     let wcCurrentChatBg = '';
+    let wcChatMessagesByContact = {};
     let wcEmojiGroups = [];
     let wbGroups = [];
     let wbEntries = [];
@@ -335,6 +336,26 @@
             }
         };
 
+        // --- 加载微信聊天记录 ---
+        const wcChatRequest = store.get("wechatChatData");
+        wcChatRequest.onsuccess = (e) => {
+            const conversations = e.target.result?.conversations;
+            wcChatMessagesByContact = {};
+            if (conversations && typeof conversations === 'object' && !Array.isArray(conversations)) {
+                Object.entries(conversations).forEach(([contactId, messages]) => {
+                    if (!Array.isArray(messages)) return;
+                    wcChatMessagesByContact[contactId] = messages.filter(message => (
+                        message
+                        && (message.type === 'sent' || message.type === 'received')
+                        && typeof message.text === 'string'
+                    ));
+                });
+            }
+            if (typeof wcRenderChatMessages === 'function' && typeof wcCurrentChatContactId !== 'undefined' && wcCurrentChatContactId) {
+                wcRenderChatMessages(wcCurrentChatContactId);
+            }
+        };
+
         // --- 加载微信朋友圈数据 ---
         const wcMomentsRequest = store.get("wechatMomentsData");
         wcMomentsRequest.onsuccess = (e) => {
@@ -533,6 +554,15 @@
         const transaction = db.transaction([storeName], "readwrite");
         const store = transaction.objectStore(storeName);
         store.put({ id: "wechatBgData", list: wcChatBgList, current: wcCurrentChatBg });
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+    }
+
+
+    function wcSaveChatData() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "wechatChatData", conversations: wcChatMessagesByContact });
         if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
     }
 

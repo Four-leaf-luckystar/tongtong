@@ -779,9 +779,8 @@
         chatRoom.classList.add('active');
         const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
         if (bottomNav) bottomNav.style.display = 'none';
-        
-        wcUpdateMessageGroupings(); 
-        wcScrollToBottom();
+
+        wcRenderChatMessages(contactId);
     }
 
     function wcCloseChat() {
@@ -860,9 +859,18 @@
         document.getElementById('wcEmojiPanelContent').innerText = '当前暂无表情包';
     }
 
-    function wcHandleMenuClick(action) {
+    async function wcHandleMenuClick(action) {
         wcCloseMenu();
         if (action === '聊天美化') wcOpenThemeModal();
+        if (action === '清空聊天记录') {
+            if (!wcCurrentChatContactId) return;
+            const confirmed = await showCustomConfirm('清空聊天记录', '确定清空当前联系人的全部聊天记录吗？', '清空', true);
+            if (!confirmed) return;
+            delete wcChatMessagesByContact[wcCurrentChatContactId];
+            wcSaveChatData();
+            wcRenderChatMessages(wcCurrentChatContactId);
+            showToast('聊天记录已清空');
+        }
     }
 
     function wcOpenThemeModal() {
@@ -1835,12 +1843,13 @@
         wcSendMessage();
     }
 
-    function wcAppendChatMessage(text, type) {
-        const chatArea = document.getElementById('wc-chat-area');
-        if (!chatArea) return;
+    function wcCreateChatMessageElement(message) {
+        const text = message.text;
+        const type = message.type;
         const isSent = type === 'sent';
         const contact = wcContactsList.find(item => item.id === wcCurrentChatContactId);
-        const now = new Date();
+        const createdAt = Number(message.createdAt);
+        const now = Number.isFinite(createdAt) ? new Date(createdAt) : new Date();
         const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         const row = document.createElement('div');
         row.className = `message-row ${isSent ? 'sent' : 'received'}`;
@@ -1867,7 +1876,39 @@
         }
         bubble.append(messageText, meta);
         row.append(avatar, bubble);
-        chatArea.appendChild(row);
+        return row;
+    }
+
+    function wcRenderChatMessages(contactId) {
+        const chatArea = document.getElementById('wc-chat-area');
+        if (!chatArea) return;
+        chatArea.replaceChildren();
+        const messages = Array.isArray(wcChatMessagesByContact[contactId])
+            ? wcChatMessagesByContact[contactId]
+            : [];
+        messages.forEach(message => chatArea.appendChild(wcCreateChatMessageElement(message)));
+        wcUpdateMessageGroupings();
+        wcScrollToBottom();
+    }
+
+    function wcAppendChatMessage(text, type, contactId = wcCurrentChatContactId) {
+        if (!contactId) return;
+        const message = {
+            id: typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+                ? crypto.randomUUID()
+                : `msg_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+            type: type === 'received' ? 'received' : 'sent',
+            text: String(text),
+            createdAt: Date.now()
+        };
+        if (!Array.isArray(wcChatMessagesByContact[contactId])) wcChatMessagesByContact[contactId] = [];
+        wcChatMessagesByContact[contactId].push(message);
+        wcSaveChatData();
+
+        if (contactId !== wcCurrentChatContactId) return;
+        const chatArea = document.getElementById('wc-chat-area');
+        if (!chatArea) return;
+        chatArea.appendChild(wcCreateChatMessageElement(message));
         wcUpdateMessageGroupings();
         wcScrollToBottom();
     }
@@ -1887,6 +1928,7 @@
 
     async function wcRequestApiReply() {
         if (wcApiReplyPending) return;
+        const chatContactId = wcCurrentChatContactId;
         const api = apiDataList.find(item => item.id === apiConnectedId);
         if (!api?.url || !api?.key || !api?.model) {
             showToast('请先在 API 连接中配置并连接一个模型');
@@ -1903,7 +1945,7 @@
             return;
         }
 
-        const contact = wcContactsList.find(item => item.id === wcCurrentChatContactId);
+        const contact = wcContactsList.find(item => item.id === chatContactId);
         const systemContent = contact
             ? `你正在微信中扮演${contact.name || '当前联系人'}。请始终以该角色的口吻直接回复，不要解释你在扮演角色。角色设定：${contact.persona || contact.desc || '自然交流。'}`
             : '你正在微信聊天中回复用户。请直接、自然地回复，不要解释系统设定。';
@@ -1929,7 +1971,7 @@
             const content = result?.choices?.[0]?.message?.content ?? result?.choices?.[0]?.text ?? result?.output_text;
             const reply = typeof content === 'string' ? content.trim() : '';
             if (!reply) throw new Error('API 未返回有效回复');
-            wcAppendChatMessage(reply, 'received');
+            wcAppendChatMessage(reply, 'received', chatContactId);
         } catch (error) {
             console.error('WeChat API reply failed:', error);
             showToast(error?.message || '获取 API 回复失败');

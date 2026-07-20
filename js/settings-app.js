@@ -433,7 +433,7 @@
             // show three-dots button; click to expand vertical capsule menu
         const photoSize = wallpaperSize; // 壁纸归为照片
         const appsSize = presetSize + layoutSize + worldbookSize; // 新增：世界书归为应用程序
-        const chatSize = 0; // 聊天数据暂无，显示0
+        const chatSize = await getStoreSize("wechatChatData");
         const systemSize = fontSize + profileSize + apiSize; // 字体、配置等归为系统数据
 
         const themeSize = presetSize + wallpaperSize + fontSize;
