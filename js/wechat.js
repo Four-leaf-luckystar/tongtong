@@ -1806,6 +1806,29 @@
     }
 
     let wcApiReplyPending = false;
+    let wcApiTypingElement = null;
+    let wcApiTypingOriginalText = '';
+
+    function wcSetApiTypingStatus(isTyping) {
+        const sub = document.querySelector('#page-chat-room .room-info-text .sub');
+        if (isTyping) {
+            if (wcApiTypingElement !== sub) {
+                wcApiTypingElement = sub;
+                wcApiTypingOriginalText = sub?.textContent || '';
+            }
+            if (sub) {
+                sub.textContent = '对方正在输入中';
+                sub.classList.add('wc-api-typing');
+            }
+            return;
+        }
+        if (wcApiTypingElement) {
+            wcApiTypingElement.textContent = wcApiTypingOriginalText;
+            wcApiTypingElement.classList.remove('wc-api-typing');
+            wcApiTypingElement = null;
+            wcApiTypingOriginalText = '';
+        }
+    }
 
     function wcHandleChatSubmit(event) {
         event.preventDefault();
@@ -1886,6 +1909,7 @@
             : '你正在微信聊天中回复用户。请直接、自然地回复，不要解释系统设定。';
         const button = document.getElementById('wc-api-reply-btn');
         wcApiReplyPending = true;
+        wcSetApiTypingStatus(true);
         if (button) {
             button.setAttribute('aria-busy', 'true');
             button.style.pointerEvents = 'none';
@@ -1911,6 +1935,7 @@
             showToast(error?.message || '获取 API 回复失败');
         } finally {
             wcApiReplyPending = false;
+            wcSetApiTypingStatus(false);
             if (button) {
                 button.removeAttribute('aria-busy');
                 button.style.pointerEvents = '';
