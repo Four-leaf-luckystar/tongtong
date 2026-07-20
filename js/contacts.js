@@ -148,6 +148,7 @@
             avatar: '',
             persona: '',
             appearance: '',
+            referenceImage: '',
             worldbookIds: [],
             security: { account: '', phone: '', password: '', paymentPassword: '', lockPassword: '', qrCode: '' },
             voice: {
@@ -460,6 +461,7 @@
         setValue('#ctSecurityPassword', contactDraft.security.password);
         setValue('#ctSecurityPayment', contactDraft.security.paymentPassword);
         setValue('#ctSecurityLock', contactDraft.security.lockPassword);
+        resetPasswordVisibility();
         setValue('#ctVoiceMinimax', contactDraft.voice.minimaxVoiceId);
         setValue('#ctVoiceElevenlabs', contactDraft.voice.elevenlabsVoiceId);
         setValue('#ctVoiceSovits', contactDraft.voice.sovitsPath);
@@ -469,6 +471,7 @@
         setText('#ctSelectedGroup', groupName(contactDraft.groupId));
         updateWorldbookStatus();
         fillAvatar(el('#ctContactAvatarPreview'), contactDraft.avatar, '角色');
+        renderReferenceImage();
         renderQr();
         renderNpcs();
         el('#ctDeleteContactButton')?.classList.toggle('is-visible', Boolean(existing));
@@ -563,7 +566,7 @@
         };
     }
 
-    function mergeGeneratedContact(contact, generated) {
+    function mergeGeneratedContact(contact, generated, options = {}) {
         const source = generated?.character || generated?.contact || generated;
         const security = source?.security || source?.accountInfo || {};
         contact.security.account = contact.security.account || String(firstGenerated(security, ['account', 'username', '账号']) || firstGenerated(source, ['account', 'username', '账号'])).trim();
@@ -572,7 +575,7 @@
         contact.security.paymentPassword = contact.security.paymentPassword || String(firstGenerated(security, ['paymentPassword', 'payment_password', '支付密码']) || firstGenerated(source, ['paymentPassword', 'payment_password', '支付密码'])).trim();
         contact.security.lockPassword = contact.security.lockPassword || String(firstGenerated(security, ['lockPassword', 'lock_password', '锁屏密码']) || firstGenerated(source, ['lockPassword', 'lock_password', '锁屏密码'])).trim();
         if (!contact.persona) contact.persona = String(firstGenerated(source, ['persona', 'character', '人设', '人设基础']) || '').trim();
-        if (!contact.appearance) contact.appearance = String(firstGenerated(source, ['appearance', '外貌']) || '').trim();
+        if (options.allowAppearance !== false && !contact.appearance) contact.appearance = String(firstGenerated(source, ['appearance', '外貌']) || '').trim();
         const generatedNpcs = Array.isArray(source?.npcs) ? source.npcs : (Array.isArray(generated?.npcs) ? generated.npcs : []);
         const existingNames = new Set(contact.npcs.map(npc => String(npc.name || '').trim().toLowerCase()));
         generatedNpcs.map(normalizeGeneratedNpc).filter(Boolean).forEach(npc => {
@@ -581,6 +584,18 @@
                 existingNames.add(npc.name.toLowerCase());
             }
         });
+    }
+
+    function isNameOnlyContact(contact) {
+        const security = contact.security || {};
+        return !String(contact.persona || '').trim()
+            && !String(contact.appearance || '').trim()
+            && !String(security.account || '').trim()
+            && !String(security.phone || '').trim()
+            && !String(security.password || '').trim()
+            && !String(security.paymentPassword || '').trim()
+            && !String(security.lockPassword || '').trim()
+            && (!Array.isArray(contact.npcs) || contact.npcs.length === 0);
     }
 
     function getApiCompletionUrl(url) {
@@ -633,7 +648,15 @@
             const api = apiList.find(item => item.id === apiRecord?.connectedId) || apiList[0];
             if (!api?.url || !api?.key || !api?.model) throw new Error('请先在 API 连接中配置并连接一个模型');
             showToast('正在生成角色资料…');
-            const prompt = [
+            const nameOnly = isNameOnlyContact(contact);
+            const prompt = nameOnly ? [
+                '请只根据下面成年虚构角色的名字生成与名字自然相关的角色资料，只返回一个合法 JSON 对象，不要 Markdown，不要解释。',
+                '字段必须包含：account、phone、password、paymentPassword、lockPassword、persona、npcs。',
+                '禁止生成 appearance、外貌、生图提示词或任何生图外貌字段。',
+                'npcs 必须是数组，每项包含 name、role、persona；请生成 2 到 4 个与角色名字设定相关的 NPC。',
+                '不要重复或改写角色姓名。',
+                JSON.stringify({ name: contact.name })
+            ].join('\n') : [
                 '请为下面的成年虚构角色补全资料，只返回一个合法 JSON 对象，不要 Markdown，不要解释。',
                 '字段必须包含：account、phone、password、paymentPassword、lockPassword、persona、appearance、npcs。',
                 'npcs 必须是数组，每项包含 name、role、persona；请生成 2 到 4 个与角色有关的 NPC。',
@@ -651,7 +674,7 @@
             if (!response.ok) throw new Error('API 请求失败：HTTP ' + response.status);
             const result = await response.json();
             const content = result?.choices?.[0]?.message?.content ?? result?.choices?.[0]?.text ?? result?.output_text;
-            mergeGeneratedContact(contact, parseGeneratedJson(content));
+            mergeGeneratedContact(contact, parseGeneratedJson(content), { allowAppearance: !nameOnly });
             contact.security.qrCode = await createContactQr(contact);
             data.contacts[contactIndex] = clone(contact);
             await persist();
@@ -1005,6 +1028,43 @@
         }
     }
 
+    function resetPasswordVisibility() {
+        all('.ct-password-toggle').forEach(button => {
+            const input = el('#' + button.dataset.target);
+            if (input) input.type = 'password';
+            button.setAttribute('aria-pressed', 'false');
+            button.setAttribute('aria-label', '显示' + (button.closest('label')?.querySelector('span')?.textContent || '密码'));
+        });
+    }
+
+    function togglePassword(button) {
+        const input = el('#' + button.dataset.target);
+        if (!input) return;
+        const visible = input.type === 'password';
+        input.type = visible ? 'text' : 'password';
+        button.setAttribute('aria-pressed', String(visible));
+        button.setAttribute('aria-label', (visible ? '隐藏' : '显示') + (button.closest('label')?.querySelector('span')?.textContent || '密码'));
+    }
+
+    function renderReferenceImage() {
+        const preview = el('#ctReferencePreview');
+        const remove = el('#ctReferenceRemove');
+        const hasImage = Boolean(contactDraft?.referenceImage);
+        if (preview) {
+            preview.replaceChildren();
+            preview.classList.toggle('is-visible', hasImage);
+            preview.setAttribute('aria-hidden', String(!hasImage));
+            if (hasImage) {
+                const image = document.createElement('img');
+                image.src = contactDraft.referenceImage;
+                image.alt = '角色生图参考图';
+                preview.appendChild(image);
+            }
+        }
+        remove?.classList.toggle('is-visible', hasImage);
+        setText('#ctReferenceActionText', hasImage ? '替换参考图' : '上传参考图');
+    }
+
     function fileToImage(file, maxSize) {
         return new Promise((resolve, reject) => {
             if (!file || !file.type.startsWith('image/')) return reject(new Error('invalid image'));
@@ -1214,13 +1274,17 @@
         input.value = '';
         if (!file) return;
         try {
-            const image = await fileToImage(file, 420);
+            const image = await fileToImage(file, target === 'reference' ? 1024 : 420);
             if (target === 'contact' && contactDraft) {
                 contactDraft.avatar = image;
                 fillAvatar(el('#ctContactAvatarPreview'), image, '角色');
             } else if (target === 'user' && userDraft) {
                 userDraft.avatar = image;
                 fillAvatar(el('#ctUserAvatarPreview'), image, 'User');
+            } else if (target === 'reference' && contactDraft) {
+                contactDraft.referenceImage = image;
+                renderReferenceImage();
+                showToast('已添加参考图');
             }
         } catch (error) {
             console.warn('Contacts image could not be loaded:', error);
@@ -1251,6 +1315,7 @@
             case 'back-main': goMain(); break;
             case 'save-contact': saveContact(); break;
             case 'switch-section': switchEditorSection(actionElement.dataset.section); break;
+            case 'toggle-password': togglePassword(actionElement); break;
             case 'choose-group': syncContactDraft(); openGroupSelect(); break;
             case 'choose-worldbooks': syncContactDraft(); openPicker('worldbook'); break;
             case 'open-voice': syncContactDraft(); showPage('voice', 'forward'); break;
@@ -1267,6 +1332,14 @@
             case 'delete-npc': deleteNpc(); break;
             case 'pick-contact-avatar': el('#ctContactAvatarInput')?.click(); break;
             case 'pick-user-avatar': el('#ctUserAvatarInput')?.click(); break;
+            case 'pick-reference-image': el('#ctReferenceImageInput')?.click(); break;
+            case 'remove-reference-image':
+                if (contactDraft) {
+                    contactDraft.referenceImage = '';
+                    renderReferenceImage();
+                    showToast('已删除参考图');
+                }
+                break;
             case 'import-persona': el('#ctPersonaImportInput')?.click(); break;
             case 'picker-item': togglePickerItem(actionElement.dataset.id, actionElement); break;
             case 'close-picker': closePicker(); break;
@@ -1284,6 +1357,7 @@
         });
         el('#ctContactAvatarInput')?.addEventListener('change', event => handleImageInput(event.target, 'contact'));
         el('#ctUserAvatarInput')?.addEventListener('change', event => handleImageInput(event.target, 'user'));
+        el('#ctReferenceImageInput')?.addEventListener('change', event => handleImageInput(event.target, 'reference'));
         el('#ctPersonaImportInput')?.addEventListener('change', event => handlePersonaImport(event.target));
         el('#ctDialogInput')?.addEventListener('keydown', event => {
             if (event.key === 'Enter') confirmDialog();

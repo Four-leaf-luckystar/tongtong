@@ -2235,9 +2235,9 @@ fill="currentColor" viewBox="0 0 24 24" >
                     <div class="ct-settings-card ct-form-card">
                         <label><span>账号</span><input id="ctSecurityAccount" type="text" autocomplete="off" placeholder="输入账号"></label>
                         <label><span>手机号</span><input id="ctSecurityPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="输入手机号"></label>
-                        <label><span>密码</span><input id="ctSecurityPassword" type="password" autocomplete="new-password" placeholder="输入密码"></label>
-                        <label><span>支付密码</span><input id="ctSecurityPayment" type="password" inputmode="numeric" autocomplete="off" placeholder="输入支付密码"></label>
-                        <label><span>锁屏密码</span><input id="ctSecurityLock" type="password" inputmode="numeric" autocomplete="off" placeholder="输入锁屏密码"></label>
+                        <label><span>密码</span><input id="ctSecurityPassword" type="password" autocomplete="new-password" placeholder="输入密码"><button class="ct-password-toggle" type="button" data-action="toggle-password" data-target="ctSecurityPassword" aria-label="显示密码" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/><path class="ct-password-slash" d="m4 4 16 16"/></svg></button></label>
+                        <label><span>支付密码</span><input id="ctSecurityPayment" type="password" inputmode="numeric" autocomplete="off" placeholder="输入支付密码"><button class="ct-password-toggle" type="button" data-action="toggle-password" data-target="ctSecurityPayment" aria-label="显示支付密码" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/><path class="ct-password-slash" d="m4 4 16 16"/></svg></button></label>
+                        <label><span>锁屏密码</span><input id="ctSecurityLock" type="password" inputmode="numeric" autocomplete="off" placeholder="输入锁屏密码"><button class="ct-password-toggle" type="button" data-action="toggle-password" data-target="ctSecurityLock" aria-label="显示锁屏密码" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/><path class="ct-password-slash" d="m4 4 16 16"/></svg></button></label>
                     </div>
                     <div class="ct-section-label">专属二维码</div>
                     <div class="ct-settings-card ct-qr-display">
@@ -2305,6 +2305,14 @@ fill="currentColor" viewBox="0 0 24 24" >
                 <div class="ct-settings-card ct-textarea-card ct-tall-textarea">
                     <textarea id="ctContactAppearance" maxlength="10000" placeholder="输入角色的外貌特征、服装、发型等 Prompt 提示词..."></textarea>
                 </div>
+                <div class="ct-section-label">参考图</div>
+                <div class="ct-settings-card ct-reference-card" id="ctReferenceCard">
+                    <div class="ct-reference-preview" id="ctReferencePreview" aria-hidden="true"></div>
+                    <div class="ct-reference-actions">
+                        <button class="ct-primary" type="button" data-action="pick-reference-image"><span id="ctReferenceActionText">上传参考图</span></button>
+                        <button class="ct-reference-remove" id="ctReferenceRemove" type="button" data-action="remove-reference-image">删除</button>
+                    </div>
+                </div>
             </main>
         </div>
 
@@ -2369,6 +2377,7 @@ fill="currentColor" viewBox="0 0 24 24" >
         <div class="ct-toast" id="ctToast" role="status"></div>
         <input id="ctContactAvatarInput" type="file" accept="image/*" hidden>
         <input id="ctUserAvatarInput" type="file" accept="image/*" hidden>
+        <input id="ctReferenceImageInput" type="file" accept="image/*" hidden>
         <input id="ctPersonaImportInput" type="file" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
     </div>
 </div>
