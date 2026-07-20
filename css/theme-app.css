@@ -299,32 +299,44 @@
             will-change: flex, background-color;
         }
         
+        .theme-tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            flex: 1;
+            height: 50px;
+            border-radius: 999px;
+            transition: flex 0.35s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.2s ease, color 0.2s ease;
+            will-change: flex, background-color;
+            color: rgba(0, 0, 0, 0.35); /* 统一控制未选中时的默认颜色（加深一点的灰色） */
+        }
+        
         .theme-tab-item svg {
             width: 24px;
             height: 24px;
-            stroke: none;
-            fill: #8e8e93;
-            transition: fill 0.2s ease;
+            transition: color 0.2s ease;
+        }
+
+        /* 关键修复：强制穿透 SVG，让内部所有路径都跟随父级的 color */
+        .theme-tab-item svg * {
+            fill: currentColor !important;
+            stroke: none !important;
         }
         
         .theme-tab-item.active {
             background-color: rgba(0, 122, 255, 0.12);
             flex: 1.4;
-        }
-        
-        .theme-tab-item.active svg {
-            fill: #007aff;
+            color: #007aff; /* 统一控制选中时的蓝色 */
         }
         
         .theme-tab-text {
             font-size: 8px;
             font-weight: 600;
-            color: #8e8e93;
+            color: inherit; /* 文字颜色自动跟随父级，不需要再单独写色号 */
             transition: color 0.2s ease;
-        }
-
-        .theme-tab-item.active .theme-tab-text {
-            color: #007aff;
         }
         
         .nav-capsule-standalone .theme-tab-item {
