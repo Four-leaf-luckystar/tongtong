@@ -3,18 +3,18 @@
     "short_name":  "童话机",
     "background_color":  "#fdfbfb",
     "icons":  [
-                  {
-                      "purpose":  "any maskable",
-                      "type":  "image/png",
-                      "sizes":  "192x192",
-                      "src":  "https://img.heliar.top/file/1781748288512_IMG_20260618_095839.png"
-                  },
-                  {
-                      "purpose":  "any maskable",
-                      "type":  "image/png",
-                      "sizes":  "512x512",
-                      "src":  "https://img.heliar.top/file/1781748288512_IMG_20260618_095839.png"
-                  }
+                 {
+                     "purpose":  "any maskable",
+                     "type":  "image/png",
+                     "sizes":  "192x192",
+                     "src":  "https://nos.netease.com/ysf/39cad7c5aef80d006becb9c7b22b43cf.png"
+                 },
+                 {
+                     "purpose":  "any maskable",
+                     "type":  "image/png",
+                     "sizes":  "512x512",
+                     "src":  "https://nos.netease.com/ysf/39cad7c5aef80d006becb9c7b22b43cf.png"
+                 }
               ],
     "lang":  "zh-CN",
     "description":  "童话机 Web App",
