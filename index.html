@@ -498,10 +498,20 @@
             <div class="set-card set-profile-card" onclick="openAppleIdApp()" style="cursor: pointer;">
                 <div class="set-avatar" id="settingsAvatarPreview">
                     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                        <defs><clipPath id="finalClip"><circle cx="50" cy="50" r="44"/></clipPath></defs>
-                        <circle cx="50" cy="50" r="50" fill="#8E939D"/>
-                        <circle cx="50" cy="36" r="16" fill="#FFFFFF"/>
-                        <path d="M 50 59 C 20 59 10 82 8 106 L 92 106 C 90 82 80 59 50 59 Z" fill="#FFFFFF" clip-path="url(#finalClip)"/>
+                        <defs>
+                            <clipPath id="finalClip"><circle cx="50" cy="50" r="44"/></clipPath>
+                            <linearGradient id="avatarBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#A3A8B0" />
+                                <stop offset="100%" stop-color="#7A7F88" />
+                            </linearGradient>
+                            <linearGradient id="avatarFigureGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#FFFFFF" />
+                                <stop offset="100%" stop-color="#E5E5EA" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="50" fill="url(#avatarBgGrad)"/>
+                        <circle cx="50" cy="36" r="16" fill="url(#avatarFigureGrad)"/>
+                        <path d="M 50 59 C 20 59 10 82 8 106 L 92 106 C 90 82 80 59 50 59 Z" fill="url(#avatarFigureGrad)" clip-path="url(#finalClip)"/>
                     </svg>
                 </div>
                 <div class="set-profile-info">
@@ -652,10 +662,20 @@
             <div class="apple-id-profile-header">
                 <div class="apple-id-avatar" id="appleIdAvatarPreview" onclick="openIconMenu(event, 'appleIdAvatar')" style="cursor: pointer;">
                     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="pointer-events: none;">
-                        <defs><clipPath id="appleIdClip"><circle cx="50" cy="50" r="44"/></clipPath></defs>
-                        <circle cx="50" cy="50" r="50" fill="#8E939D"/>
-                        <circle cx="50" cy="36" r="16" fill="#FFFFFF"/>
-                        <path d="M 50 59 C 20 59 10 82 8 106 L 92 106 C 90 82 80 59 50 59 Z" fill="#FFFFFF" clip-path="url(#appleIdClip)"/>
+                        <defs>
+                            <clipPath id="appleIdClip"><circle cx="50" cy="50" r="44"/></clipPath>
+                            <linearGradient id="appleIdBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#A3A8B0" />
+                                <stop offset="100%" stop-color="#7A7F88" />
+                            </linearGradient>
+                            <linearGradient id="appleIdFigureGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#FFFFFF" />
+                                <stop offset="100%" stop-color="#E5E5EA" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="50" fill="url(#appleIdBgGrad)"/>
+                        <circle cx="50" cy="36" r="16" fill="url(#appleIdFigureGrad)"/>
+                        <path d="M 50 59 C 20 59 10 82 8 106 L 92 106 C 90 82 80 59 50 59 Z" fill="url(#appleIdFigureGrad)" clip-path="url(#appleIdClip)"/>
                     </svg>
                 </div>
                 <div class="apple-id-name-container">
