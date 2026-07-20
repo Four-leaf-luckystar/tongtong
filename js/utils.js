@@ -198,9 +198,10 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
     }
-    function makeWidgetFrameHTML(content, styleAttrs) {
+    function makeWidgetFrameHTML(content, interactive) {
         const encoded = escapeWidgetSrcdoc(content);
-        const style = styleAttrs || 'position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:transparent;pointer-events:none;';
+        const pe = interactive ? 'auto' : 'none';
+        const style = 'position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:transparent;pointer-events:' + pe + ';';
         return '<iframe class="widget-render-frame" srcdoc="<style>html,body{margin:0;padding:0;width:100%;height:100%;box-sizing:border-box;}</style>' + encoded + '" sandbox="allow-scripts" style="' + style + '" title="组件"></iframe>';
     }
     window.escapeWidgetSrcdoc = escapeWidgetSrcdoc;
