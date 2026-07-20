@@ -1807,8 +1807,7 @@
 
     let wcApiReplyPending = false;
 
-    function wcHandleChatKeyDown(event) {
-        if (event.key !== 'Enter' || event.isComposing || event.keyCode === 229) return;
+    function wcHandleChatSubmit(event) {
         event.preventDefault();
         wcSendMessage();
     }
