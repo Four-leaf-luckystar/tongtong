@@ -224,6 +224,30 @@
         container.innerHTML = html;
     }
 
+    function wcRenderChatList() {
+        const chatList = document.querySelector('#wechatAppUI .chat-list');
+        if (!chatList) return;
+        let html = '';
+        wcContactsList.forEach(contact => {
+            const avatarStyle = contact.avatar ? `background-image: url('${contact.avatar}'); border: none;` : '';
+            html += `
+                <div class="chat-item" data-session-id="${contact.id}" onclick="wcOpenChatRoom('${contact.id}')" style="display: flex; padding: 12px 16px; align-items: center; border-bottom: 0.5px solid rgba(0,0,0,0.05); cursor: pointer;">
+                    <div class="avatar" style="width: 48px; height: 48px; border-radius: 8px; background-color: #E5E5EA; background-size: cover; background-position: center; flex-shrink: 0; margin-right: 12px; ${avatarStyle}"></div>
+                    <div class="chat-info" style="flex: 1; overflow: hidden;">
+                        <div class="chat-name-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <div class="name" style="font-size: 16px; font-weight: 500; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${contact.name}</div>
+                            <div class="time" style="font-size: 12px; color: #8e8e93;">刚刚</div>
+                        </div>
+                        <div class="chat-msg-row">
+                            <div class="msg" style="font-size: 14px; color: #8e8e93; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">你们已添加为好友，现在可以开始聊天了。</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        chatList.innerHTML = html;
+    }
+
     function wcRenderContactList() {
         const container = document.getElementById('wcDynamicContent');
         if (!container) return;
@@ -239,7 +263,7 @@
                         <div class="wc-swipe-actions">
                             <div class="wc-swipe-btn" onclick="wcOpenMoveSheet('${contact.id}')">分组</div>
                         </div>
-                        <div class="wc-character-card wc-swipe-content" data-id="${contact.id}">
+                        <div class="wc-character-card wc-swipe-content" data-id="${contact.id}" onclick="wcOpenChatRoom('${contact.id}')">
                             <div class="avatar" style="${avatarStyle}"></div>
                             <div class="info-wrapper">
                                 <div class="name">${contact.name}</div>
@@ -256,6 +280,7 @@
 
         container.innerHTML = html;
         wcInitContactSwipe();
+        wcRenderChatList();
     }
 
     function wcReloadContactsFromStorage() {
@@ -318,29 +343,78 @@
         }
 
         try {
-            await wcReloadContactsFromStorage();
-            const contact = wcContactsList.find(item =>
-                String(item.account || '').trim().toLowerCase() === query ||
-                String(item.phone || '').trim().toLowerCase() === query
+            const contactRecord = await wcReadLayoutRecord('contactsAppData');
+            const contacts = Array.isArray(contactRecord?.data?.contacts) ? contactRecord.data.contacts : [];
+            
+            const contact = contacts.find(item =>
+                String(item.security?.account || '').trim().toLowerCase() === query ||
+                String(item.security?.phone || '').trim().toLowerCase() === query
             );
+
             if (!contact) {
-                showToast('未找到对应好友');
+                showToast('未找到对应好友，请检查账号或手机号是否正确');
                 return;
             }
 
-            wcCurrentContactTabId = contact.groupId;
+            await wcReloadContactsFromStorage();
+            const linkedId = 'char_' + contact.id;
+            const existing = wcContactsList.find(item => item.id === linkedId || item.linkedContactId === contact.id);
+            
+            if (existing) {
+                showToast('该角色已经在微信好友中');
+                wcCurrentContactTabId = existing.groupId;
+                wcCloseAddFriendPanel();
+                wcSwitchTab('contacts');
+                wcRenderContactTabs();
+                wcRenderContactList();
+                requestAnimationFrame(() => {
+                    const card = Array.from(document.querySelectorAll('#wcDynamicContent .wc-character-card[data-id]'))
+                        .find(item => item.dataset.id === String(existing.id));
+                    if (!card) return;
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    card.classList.add('wc-search-match');
+                    setTimeout(() => card.classList.remove('wc-search-match'), 1600);
+                });
+                return;
+            }
+
+            if (!wcContactGroups.length) wcContactGroups.push({ id: 'g_member', name: 'Member' });
+            const groupId = contact.wechatGroupId && wcContactGroups.some(group => group.id === contact.wechatGroupId)
+                ? contact.wechatGroupId
+                : wcContactGroups[0].id;
+                
+            wcContactsList.push({
+                id: linkedId,
+                linkedContactId: contact.id,
+                name: contact.name || '未命名角色',
+                desc: contact.persona ? contact.persona.replace(/\s+/g, ' ').slice(0, 80) : '角色联系人',
+                avatar: contact.avatar || '',
+                groupId,
+                account: contact.security?.account || '',
+                phone: contact.security?.phone || '',
+                password: contact.security?.password || '',
+                qrCode: contact.security?.qrCode || '',
+                persona: contact.persona || '',
+                npcs: Array.isArray(contact.npcs) ? JSON.parse(JSON.stringify(contact.npcs)) : []
+            });
+            
+            wcCurrentContactTabId = groupId;
+            await wcSaveContactsDataAsync();
             wcCloseAddFriendPanel();
             wcSwitchTab('contacts');
             wcRenderContactTabs();
             wcRenderContactList();
+            showToast('已通过账号/手机号添加角色好友');
+            
             requestAnimationFrame(() => {
                 const card = Array.from(document.querySelectorAll('#wcDynamicContent .wc-character-card[data-id]'))
-                    .find(item => item.dataset.id === String(contact.id));
+                    .find(item => item.dataset.id === String(linkedId));
                 if (!card) return;
                 card.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 card.classList.add('wc-search-match');
                 setTimeout(() => card.classList.remove('wc-search-match'), 1600);
             });
+
         } catch (error) {
             console.error('WeChat friend search failed:', error);
             showToast('联系人数据读取失败');
@@ -678,6 +752,34 @@
         const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
         if (bottomNav) bottomNav.style.display = 'none';
         wcUpdateMessageGroupings(); wcScrollToBottom();
+    }
+
+    function wcOpenChatRoom(contactId) {
+        const contact = wcContactsList.find(c => c.id === contactId);
+        if (!contact) return;
+        
+        const chatRoom = document.getElementById('page-chat-room');
+        const nameEl = chatRoom.querySelector('.room-info-text .name');
+        const avatarEl = chatRoom.querySelector('.room-info-capsule .avatar');
+        
+        if (nameEl) nameEl.innerText = contact.name;
+        if (avatarEl) {
+            if (contact.avatar) {
+                avatarEl.style.backgroundImage = `url('${contact.avatar}')`;
+                avatarEl.style.border = 'none';
+            } else {
+                avatarEl.style.backgroundImage = '';
+                avatarEl.style.border = '';
+            }
+        }
+        
+        document.querySelectorAll('#wechatAppUI .page').forEach(el => el.classList.remove('active'));
+        chatRoom.classList.add('active');
+        const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+        if (bottomNav) bottomNav.style.display = 'none';
+        
+        wcUpdateMessageGroupings(); 
+        wcScrollToBottom();
     }
 
     function wcCloseChat() {
