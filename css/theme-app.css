@@ -302,10 +302,9 @@
         .theme-tab-item svg {
             width: 24px;
             height: 24px;
-            stroke: #8e8e93;
-            stroke-width: 2;
-            fill: none;
-            transition: stroke 0.2s ease;
+            stroke: none;
+            fill: #8e8e93;
+            transition: fill 0.2s ease;
         }
         
         .theme-tab-item.active {
@@ -314,7 +313,7 @@
         }
         
         .theme-tab-item.active svg {
-            stroke: #007aff;
+            fill: #007aff;
         }
         
         .theme-tab-text {
