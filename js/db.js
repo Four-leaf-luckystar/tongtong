@@ -186,6 +186,9 @@
             renderWallpapers();
         };
 
+        // 加载自定义小组件（用户创建的组件库）
+        loadCustomWidgetsData();
+
             // show three-dots button; click to expand vertical capsule menu
         const presetRequest = store.get("presetData");
         presetRequest.onsuccess = (e) => {
@@ -612,3 +615,41 @@
         });
     }
 
+
+    // ===== 自定义小组件持久化 =====
+    function saveCustomWidgetsData() {
+        if (!db) return;
+        const list = Array.isArray(window.customWidgets) ? window.customWidgets.map(function (w) {
+            return {
+                name: w.name || '',
+                preview: w.preview || '',
+                content: w.content || '',
+                width: w.width || '',
+                height: w.height || '',
+                presetSize: w.presetSize || ''
+            };
+        }) : [];
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "customWidgets", items: list });
+    }
+    window.saveCustomWidgetsData = saveCustomWidgetsData;
+
+    function loadCustomWidgetsData() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readonly");
+        const store = transaction.objectStore(storeName);
+        const request = store.get("customWidgets");
+        request.onsuccess = (e) => {
+            const rec = e.target.result;
+            if (rec && Array.isArray(rec.items)) {
+                const target = window.customWidgets;
+                if (Array.isArray(target)) {
+                    target.length = 0;
+                    rec.items.forEach(function (w) { target.push(w); });
+                    if (typeof window.renderWidgetViews === 'function') window.renderWidgetViews();
+                }
+            }
+        };
+    }
+    window.loadCustomWidgetsData = loadCustomWidgetsData;

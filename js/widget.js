@@ -237,6 +237,7 @@
                 currentWidgets.splice(index, 1);
                 if (activeWidgetIndex >= currentWidgets.length) activeWidgetIndex = currentWidgets.length - 1;
                 renderWidgetViews();
+                if (typeof window.saveCustomWidgetsData === 'function') window.saveCustomWidgetsData();
             }
         }
         window.deleteWidget = deleteWidget;
@@ -268,6 +269,7 @@
                     // switch to custom tab so the user sees imports immediately
                     if (typeof switchWidgetTab === 'function') switchWidgetTab(1);
                     else { currentWidgets = customWidgets; renderWidgetViews(); }
+                    if (typeof window.saveCustomWidgetsData === 'function') window.saveCustomWidgetsData();
                     alert('imported ' + added + ' widget(s)');
                 } catch (err) { alert('JSON parse failed: ' + err.message); }
             };
@@ -414,6 +416,7 @@
                     widget.presetSize = '';
                 }
                 renderWidgetViews();
+                if (typeof window.saveCustomWidgetsData === 'function') window.saveCustomWidgetsData();
             }
             closeWidgetEditor();
         }
@@ -440,6 +443,7 @@
             });
             targetProgress = currentWidgets.length - 1;
             renderWidgetViews();
+            if (typeof window.saveCustomWidgetsData === 'function') window.saveCustomWidgetsData();
             openWidgetEditor(targetProgress);
         }
         window.handleAddWidget = handleAddWidget;
@@ -456,7 +460,7 @@
 
             currentWidgets.forEach((widget, i) => {
                 const card = document.createElement('div'); card.className = 'widget-card';
-                card.innerHTML = '<div class="widget-card-more-btn" onclick="openWidgetContextMenu(' + i + ', event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></div><div class="widget-card-preview">' + (widget.content || '') + '</div><div class="widget-card-name">' + widget.name + '</div><div class="widget-card-size">' + formatWidgetSizeLabel(widget) + '</div>';
+                card.innerHTML = '<div class="widget-card-more-btn" onclick="openWidgetContextMenu(' + i + ', event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></div><div class="widget-card-preview">' + makeWidgetFrameHTML(widget.content) + '</div><div class="widget-card-name">' + widget.name + '</div><div class="widget-card-size">' + formatWidgetSizeLabel(widget) + '</div>';
                 widgetTrack.appendChild(card);
 
                 const dot = document.createElement('div'); dot.className = 'widget-dot'; widgetPagination.appendChild(dot);

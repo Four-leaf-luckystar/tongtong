@@ -187,3 +187,21 @@
     }
 
             // show three-dots button; click to expand vertical capsule menu
+
+
+    // ===== 小组件渲染隔离辅助 (iframe srcdoc) =====
+    // 将组件 HTML 内容放入独立 iframe，避免其 <style>/<script> 污染全局 DOM
+    function escapeWidgetSrcdoc(content) {
+        return String(content == null ? '' : content)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+    function makeWidgetFrameHTML(content, styleAttrs) {
+        const encoded = escapeWidgetSrcdoc(content);
+        const style = styleAttrs || 'width:100%;height:100%;border:0;display:block;background:transparent;';
+        return '<iframe class="widget-render-frame" srcdoc="<style>html,body{margin:0;padding:0;width:100%;height:100%;box-sizing:border-box;}</style>' + encoded + '" sandbox="allow-scripts" style="' + style + '" title="组件"></iframe>';
+    }
+    window.escapeWidgetSrcdoc = escapeWidgetSrcdoc;
+    window.makeWidgetFrameHTML = makeWidgetFrameHTML;
