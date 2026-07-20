@@ -200,7 +200,7 @@
     }
     function makeWidgetFrameHTML(content, styleAttrs) {
         const encoded = escapeWidgetSrcdoc(content);
-        const style = styleAttrs || 'width:100%;height:100%;border:0;display:block;background:transparent;';
+        const style = styleAttrs || 'position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:transparent;pointer-events:none;';
         return '<iframe class="widget-render-frame" srcdoc="<style>html,body{margin:0;padding:0;width:100%;height:100%;box-sizing:border-box;}</style>' + encoded + '" sandbox="allow-scripts" style="' + style + '" title="组件"></iframe>';
     }
     window.escapeWidgetSrcdoc = escapeWidgetSrcdoc;

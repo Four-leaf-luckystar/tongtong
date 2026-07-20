@@ -116,7 +116,7 @@
             const dims1 = getWidgetDimensions(widgetData);
             app.style.width = dims1.width + 'px';
             app.style.height = dims1.height + 'px';
-            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims1.width}px; height: ${dims1.height}px; position: absolute; left: 0; top: 0; z-index: 10; display: flex;">${makeWidgetFrameHTML(widgetData.content)}</div><div class="app-name" style="display:none;">${widgetData.name || "组件"}</div>`;
+            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims1.width}px; height: ${dims1.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${makeWidgetFrameHTML(widgetData.content)}</div><div class="app-name" style="display:none;">${widgetData.name || "组件"}</div>`;
 
             if (isEditMode) app.classList.add('jiggling');
             emptySlot.appendChild(app);
@@ -185,7 +185,7 @@
             const dims2 = getWidgetDimensions({ width, height, presetSize });
             app.style.width = dims2.width + 'px';
             app.style.height = dims2.height + 'px';
-            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims2.width}px; height: ${dims2.height}px; position: absolute; left: 0; top: 0; z-index: 10; display: flex;">${makeWidgetFrameHTML(widgetContent)}</div><div class="app-name" style="display:none;">组件</div>`;
+            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims2.width}px; height: ${dims2.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${makeWidgetFrameHTML(widgetContent)}</div><div class="app-name" style="display:none;">组件</div>`;
         } else {
             app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon"></div><div class="app-name">${name}</div>`;
             if (icon) {
