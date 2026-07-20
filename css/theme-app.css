@@ -255,30 +255,33 @@
         /* 左侧主胶囊 */
         .nav-capsule-main {
             flex: 1;
-            height: 64px;
-            background-color: rgba(242, 242, 247, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 32px;
+            height: 62px;
+            background: rgba(255, 255, 255, 0.01);
+            backdrop-filter: blur(8px) saturate(150%);
+            -webkit-backdrop-filter: blur(8px) saturate(150%);
+            border-radius: 999px;
             display: flex;
             justify-content: space-around;
             align-items: center;
             padding: 0 6px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            gap: 4px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            border: 0.5px solid rgba(0, 0, 0, 0.03);
         }
 
         /* 右侧独立按钮 */
         .nav-capsule-standalone {
-            width: 64px;
-            height: 64px;
-            background-color: rgba(242, 242, 247, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            width: 62px;
+            height: 62px;
+            background: rgba(255, 255, 255, 0.01);
+            backdrop-filter: blur(8px) saturate(150%);
+            -webkit-backdrop-filter: blur(8px) saturate(150%);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            border: 0.5px solid rgba(0, 0, 0, 0.03);
             flex-shrink: 0;
         }
 
@@ -289,15 +292,16 @@
             justify-content: center;
             gap: 3px;
             cursor: pointer;
-            width: 54px;
-            height: 54px;
-            border-radius: 27px;
-            transition: all 0.2s ease;
+            flex: 1;
+            height: 50px;
+            border-radius: 999px;
+            transition: flex 0.35s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.2s ease, color 0.2s ease;
+            will-change: flex, background-color;
         }
         
         .theme-tab-item svg {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             stroke: #8e8e93;
             stroke-width: 2;
             fill: none;
@@ -305,11 +309,12 @@
         }
         
         .theme-tab-item.active {
-            background-color: #e5e5ea;
+            background-color: rgba(0, 122, 255, 0.12);
+            flex: 1.4;
         }
         
         .theme-tab-item.active svg {
-            stroke: #000;
+            stroke: #007aff;
         }
         
         .theme-tab-text {
