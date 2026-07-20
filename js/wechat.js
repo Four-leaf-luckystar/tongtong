@@ -211,6 +211,7 @@
 
     let wcCurrentContactTabId = 'g_member';
     let wcCurrentMoveContactId = null;
+    let wcCurrentChatContactId = null;
 
     function wcRenderContactTabs() {
         const container = document.getElementById('wcTopTabsContainer');
@@ -757,6 +758,7 @@
     function wcOpenChatRoom(contactId) {
         const contact = wcContactsList.find(c => c.id === contactId);
         if (!contact) return;
+        wcCurrentChatContactId = contactId;
         
         const chatRoom = document.getElementById('page-chat-room');
         const nameEl = chatRoom.querySelector('.room-info-text .name');
@@ -1803,15 +1805,119 @@
         wcActiveSwipeItem = null;
     }
 
-    function wcHandleKeyPress(event) { if (event.key === 'Enter') wcSendMessage(); }
-    function wcSendMessage() {
-        const input = document.getElementById('wc-chat-input'); const text = input.value.trim(); if (!text) return;
+    let wcApiReplyPending = false;
+
+    function wcHandleChatKeyDown(event) {
+        if (event.key !== 'Enter' || event.isComposing || event.keyCode === 229) return;
+        event.preventDefault();
+        wcSendMessage();
+    }
+
+    function wcAppendChatMessage(text, type) {
         const chatArea = document.getElementById('wc-chat-area');
-        const now = new Date(); const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-        const row = document.createElement('div'); row.className = 'message-row sent';
-        const avatarHtml = `<div class="msg-avatar" style="background-image: url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')"></div>`;
-        row.innerHTML = `${avatarHtml}<div class="message-bubble sent"><div class="msg-text">${text}</div><div class="msg-meta sent"><span>${timeStr}</span><svg viewBox="0 0 24 24"><polyline points="18 6 7 17 2 12"></polyline><polyline points="22 6 12 16"></polyline></svg></div></div>`;
-        chatArea.appendChild(row); input.value = ''; wcUpdateMessageGroupings(); wcScrollToBottom(); 
+        if (!chatArea) return;
+        const isSent = type === 'sent';
+        const contact = wcContactsList.find(item => item.id === wcCurrentChatContactId);
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        const row = document.createElement('div');
+        row.className = `message-row ${isSent ? 'sent' : 'received'}`;
+
+        const avatar = document.createElement('div');
+        avatar.className = 'msg-avatar';
+        const avatarUrl = isSent
+            ? 'https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png'
+            : contact?.avatar;
+        if (avatarUrl) avatar.style.backgroundImage = `url("${String(avatarUrl).replace(/"/g, '\\"')}")`;
+
+        const bubble = document.createElement('div');
+        bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
+        const messageText = document.createElement('div');
+        messageText.className = 'msg-text';
+        messageText.textContent = text;
+        const meta = document.createElement('div');
+        meta.className = `msg-meta ${isSent ? 'sent' : 'received'}`;
+        const time = document.createElement('span');
+        time.textContent = timeStr;
+        meta.appendChild(time);
+        if (isSent) {
+            meta.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 24 24"><polyline points="18 6 7 17 2 12"></polyline><polyline points="22 6 12 16"></polyline></svg>');
+        }
+        bubble.append(messageText, meta);
+        row.append(avatar, bubble);
+        chatArea.appendChild(row);
+        wcUpdateMessageGroupings();
+        wcScrollToBottom();
+    }
+
+    function wcSendMessage() {
+        const input = document.getElementById('wc-chat-input');
+        const text = input?.value.trim();
+        if (!text) return;
+        wcAppendChatMessage(text, 'sent');
+        input.value = '';
+    }
+
+    function wcGetApiCompletionUrl(url) {
+        const base = String(url || '').trim().replace(/\/+$/, '');
+        return /\/chat\/completions$/i.test(base) ? base : base + '/chat/completions';
+    }
+
+    async function wcRequestApiReply() {
+        if (wcApiReplyPending) return;
+        const api = apiDataList.find(item => item.id === apiConnectedId);
+        if (!api?.url || !api?.key || !api?.model) {
+            showToast('请先在 API 连接中配置并连接一个模型');
+            return;
+        }
+
+        const chatArea = document.getElementById('wc-chat-area');
+        const history = Array.from(chatArea?.querySelectorAll('.message-row') || []).map(row => ({
+            role: row.classList.contains('sent') ? 'user' : 'assistant',
+            content: row.querySelector('.msg-text')?.textContent?.trim() || ''
+        })).filter(message => message.content).slice(-40);
+        if (!history.some(message => message.role === 'user')) {
+            showToast('请先按回车发送消息');
+            return;
+        }
+
+        const contact = wcContactsList.find(item => item.id === wcCurrentChatContactId);
+        const systemContent = contact
+            ? `你正在微信中扮演${contact.name || '当前联系人'}。请始终以该角色的口吻直接回复，不要解释你在扮演角色。角色设定：${contact.persona || contact.desc || '自然交流。'}`
+            : '你正在微信聊天中回复用户。请直接、自然地回复，不要解释系统设定。';
+        const button = document.getElementById('wc-api-reply-btn');
+        wcApiReplyPending = true;
+        if (button) {
+            button.setAttribute('aria-busy', 'true');
+            button.style.pointerEvents = 'none';
+            button.style.opacity = '0.55';
+        }
+        try {
+            const response = await fetch(wcGetApiCompletionUrl(api.url), {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + api.key, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: api.model,
+                    messages: [{ role: 'system', content: systemContent }, ...history]
+                })
+            });
+            if (!response.ok) throw new Error('API 请求失败：HTTP ' + response.status);
+            const result = await response.json();
+            const content = result?.choices?.[0]?.message?.content ?? result?.choices?.[0]?.text ?? result?.output_text;
+            const reply = typeof content === 'string' ? content.trim() : '';
+            if (!reply) throw new Error('API 未返回有效回复');
+            wcAppendChatMessage(reply, 'received');
+        } catch (error) {
+            console.error('WeChat API reply failed:', error);
+            showToast(error?.message || '获取 API 回复失败');
+        } finally {
+            wcApiReplyPending = false;
+            if (button) {
+                button.removeAttribute('aria-busy');
+                button.style.pointerEvents = '';
+                button.style.opacity = '';
+            }
+        }
     }
     function wcScrollToBottom() { const chatArea = document.getElementById('wc-chat-area'); chatArea.scrollTop = chatArea.scrollHeight; }
     function wcUpdateMessageGroupings() {
