@@ -313,6 +313,22 @@
         .api-settings-select { background-color: #f2f2f7; border-radius: 10px; padding: 10px 14px; border: none; outline: none; font-size: 15px; color: #000; font-weight: 600; appearance: none; -webkit-appearance: none; }
         .api-settings-inline { display: flex; gap: 10px; }
         .api-settings-inline .api-settings-row { flex: 1; margin-bottom: 0; }
+        .api-check-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 34px; margin-bottom: 10px; }
+        .api-check-row:last-child { margin-bottom: 0; }
+        .api-check-row .api-settings-label { margin: 0; }
+        .api-check-input { position: absolute; opacity: 0; pointer-events: none; }
+        .api-check-control { width: 42px; height: 26px; border-radius: 13px; background: #e9e9eb; position: relative; flex: none; transition: background-color 0.2s; cursor: pointer; }
+        .api-check-control::after { content: ''; position: absolute; width: 22px; height: 22px; top: 2px; left: 2px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.22); transition: transform 0.2s; }
+        .api-check-input:checked + .api-check-control { background: #34c759; }
+        .api-check-input:checked + .api-check-control::after { transform: translateX(16px); }
+        .api-field-row { display: flex; gap: 8px; align-items: stretch; }
+        .api-field-row .api-form-input-wrapper { flex: 1; }
+        .api-mini-fetch { flex: none; min-width: 64px; padding: 0 14px; background-color: #007aff; color: #fff; border-radius: 12px; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; cursor: pointer; white-space: nowrap; margin-bottom: 0; }
+        .api-mini-fetch:active { opacity: 0.8; }
+        .api-gen-fetched { margin: 0 16px 16px; border-radius: 14px; max-height: 180px; overflow: auto; -webkit-overflow-scrolling: touch; }
+        .api-gen-fetched-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background-color: #fff; border-bottom: 0.5px solid #e5e5ea; font-size: 15px; color: #000; font-weight: 600; cursor: pointer; }
+        .api-gen-fetched-item:active { background-color: #f2f2f7; }
+        .api-gen-fetched-close { text-align: center; color: #007aff; font-weight: 600; padding: 14px; background-color: #fff; border-radius: 0 0 14px 14px; cursor: pointer; }
        .icloud-app-container.show { transform: translateX(0); }
         .ic-page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; display: block; transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .ic-page::-webkit-scrollbar { display: none; }

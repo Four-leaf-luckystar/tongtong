@@ -646,13 +646,13 @@
                         sampler: s.sampler || 'k_euler',
                         steps: parseInt(s.steps, 10) || 28,
                         seed: seedVal,
-                        n_samples: 1,
+                        n_samples: parseInt(s.n, 10) || 1,
                         ucPreset: 0,
-                        quality_toggle: true,
+                        quality_toggle: s.qualityToggle !== false,
                         negative_prompt: negative,
-                        sm: false,
-                        sm_dyn: false,
-                        noise_schedule: 'native'
+                        sm: !!s.sm,
+                        sm_dyn: !!s.smDyn,
+                        noise_schedule: s.noiseSchedule || 'native'
                     }
                 };
                 const resp = await fetch(base + '/ai/generate-image', {
@@ -672,6 +672,11 @@
                 flags.push('--ar ' + (s.aspectRatio || '1:1'));
                 flags.push('--q ' + String(s.quality || '1'));
                 if (s.seed != null && String(s.seed).trim() !== '') flags.push('--seed ' + String(s.seed).trim());
+                if (s.version) flags.push('--v ' + String(s.version));
+                if (s.stylize != null && String(s.stylize).trim() !== '') flags.push('--s ' + String(s.stylize));
+                if (s.mode === 'relax') flags.push('--relax');
+                else if (s.mode === 'turbo') flags.push('--turbo');
+                else flags.push('--fast');
                 const fullPrompt = positive + ' ' + flags.join(' ');
                 const authHeaders = { 'Content-Type': 'application/json' };
                 if (key) { authHeaders['mj-api-key'] = key; authHeaders['Authorization'] = 'Bearer ' + key; }
@@ -747,4 +752,397 @@
         _vigInitSeg('imggen-add-provider');
         _vigInitSeg('imggen-edit-provider');
     });
+})();
+
+/* 服务商专属参数增强层：保留上方已有列表/页面逻辑，只覆盖表单、保存和真实调用。 */
+(function () {
+    'use strict';
+
+    var voiceEditingId = null;
+    var imageEditingId = null;
+
+    function el(id) { return document.getElementById(id); }
+    function val(id) { var node = el(id); return node ? String(node.value || '').trim() : ''; }
+    function num(id, fallback) { var n = Number(val(id)); return Number.isFinite(n) ? n : fallback; }
+    function checked(id) { var node = el(id); return !!(node && node.checked); }
+    function trimSlash(url) { return String(url || '').replace(/\/+$/, ''); }
+    function active(segId) {
+        var node = el(segId);
+        var item = node && node.querySelector('.api-segment-item.active');
+        return item ? item.dataset.provider : '';
+    }
+    function setActive(segId, provider) {
+        var node = el(segId);
+        if (!node) return;
+        node.querySelectorAll('.api-segment-item').forEach(function (item) {
+            item.classList.toggle('active', item.dataset.provider === provider);
+        });
+    }
+    function esc(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+        });
+    }
+    function options(items, selected) {
+        return items.map(function (item) {
+            var value = typeof item === 'string' ? item : item[0];
+            var label = typeof item === 'string' ? item : item[1];
+            return '<option value="' + esc(value) + '"' + (String(value) === String(selected) ? ' selected' : '') + '>' + esc(label) + '</option>';
+        }).join('');
+    }
+    function group(label, control, last) {
+        return '<div class="api-form-group"' + (last ? ' style="margin-bottom:0;"' : '') + '><div class="api-form-label">' + label + '</div>' + control + '</div>';
+    }
+    function input(id, value, placeholder, type, attrs) {
+        return '<div class="api-form-input-wrapper"><input class="api-form-input" id="' + id + '" type="' + (type || 'text') + '" value="' + esc(value) + '" placeholder="' + esc(placeholder || '') + '" ' + (attrs || '') + '></div>';
+    }
+    function select(id, items, selected) {
+        return '<select class="api-settings-select" id="' + id + '" style="width:100%;">' + options(items, selected) + '</select>';
+    }
+    function fetchInput(id, value, placeholder, onclick, text) {
+        return '<div class="api-field-row"><div class="api-form-input-wrapper"><input class="api-form-input" id="' + id + '" value="' + esc(value) + '" placeholder="' + esc(placeholder) + '"></div><button class="api-mini-fetch" type="button" onclick="' + onclick + '">' + (text || '拉取') + '</button></div>';
+    }
+    function settingInput(id, value, type, attrs, placeholder) {
+        return '<input class="api-settings-input" id="' + id + '" type="' + (type || 'text') + '" value="' + esc(value) + '" ' + (attrs || '') + ' placeholder="' + esc(placeholder || '') + '">';
+    }
+    function settingRow(label, control) {
+        return '<div class="api-settings-row"><div class="api-settings-label">' + label + '</div>' + control + '</div>';
+    }
+    function toggle(id, label, value) {
+        return '<label class="api-check-row"><span class="api-settings-label">' + label + '</span><span><input class="api-check-input" id="' + id + '" type="checkbox"' + (value ? ' checked' : '') + '><span class="api-check-control"></span></span></label>';
+    }
+    function providerDefaults(kind, provider) {
+        var table = kind === 'voice' ? {
+            minimax: { url: 'https://api.minimax.io', model: 'speech-02-hd', voiceId: 'male-qn-qingse' },
+            elevenlabs: { url: 'https://api.elevenlabs.io', model: 'eleven_multilingual_v2', voiceId: '' },
+            sovits: { url: 'http://127.0.0.1:9880', model: '', voiceId: '' }
+        } : {
+            openai: { url: 'https://api.openai.com/v1', model: 'gpt-image-1' },
+            nai: { url: 'https://image.novelai.net', model: 'nai-diffusion-4-curated-preview' },
+            mj: { url: '', model: '' }
+        };
+        return table[provider];
+    }
+    function fillDefaultUrl(kind, scope, provider) {
+        var node = el((kind === 'voice' ? 'voice-' : 'imggen-') + scope + '-url');
+        var defaults = providerDefaults(kind, provider);
+        var providers = kind === 'voice' ? ['minimax', 'elevenlabs', 'sovits'] : ['openai', 'nai', 'mj'];
+        var knownDefaults = providers.map(function (name) { return providerDefaults(kind, name).url; }).filter(Boolean);
+        if (node && defaults.url && (!node.value || knownDefaults.indexOf(node.value) !== -1)) node.value = defaults.url;
+        if (node) node.placeholder = defaults.url || '填写兼容接口地址';
+    }
+
+    function renderVoiceFields(scope, provider, data) {
+        data = data || {};
+        var p = data.params || {};
+        var root = el('voice-' + scope + '-fields');
+        if (!root) return;
+        var prefix = 'voice-' + scope + '-';
+        var html = '';
+        if (provider === 'minimax') {
+            html += group('MODEL（语音模型）', fetchInput(prefix + 'model', data.model || 'speech-02-hd', 'speech-02-hd', "vigFetchModels('voice','" + scope + "','model')"));
+            html += group('VOICE ID（音色 ID）', input(prefix + 'voiceid', data.voiceId || 'male-qn-qingse', 'male-qn-qingse'));
+            html += group('语速 / 音量', '<div class="api-settings-inline">' + settingInput(prefix + 'speed', p.speed == null ? 1 : p.speed, 'number', 'min="0.5" max="2" step="0.1"') + settingInput(prefix + 'vol', p.vol == null ? 1 : p.vol, 'number', 'min="0" max="10" step="0.1"') + '</div>');
+            html += group('音调 / 情绪', '<div class="api-settings-inline">' + settingInput(prefix + 'pitch', p.pitch == null ? 0 : p.pitch, 'number', 'min="-12" max="12" step="1"') + select(prefix + 'emotion', [['', '自动'], ['happy', '开心'], ['sad', '悲伤'], ['angry', '愤怒'], ['fearful', '恐惧'], ['disgusted', '厌恶'], ['surprised', '惊讶'], ['calm', '平静']], p.emotion || '') + '</div>');
+            html += group('格式 / 采样率', '<div class="api-settings-inline">' + select(prefix + 'format', ['mp3', 'wav', 'pcm', 'flac'], p.audioFormat || 'mp3') + select(prefix + 'sample', ['16000', '24000', '32000', '44100'], String(p.sampleRate || 32000)) + '</div>', true);
+        } else if (provider === 'elevenlabs') {
+            html += group('MODEL（语音模型）', fetchInput(prefix + 'model', data.model || 'eleven_multilingual_v2', 'eleven_multilingual_v2', "vigFetchModels('voice','" + scope + "','model')"));
+            html += group('VOICE ID（音色）', fetchInput(prefix + 'voiceid', data.voiceId || '', '填写或拉取 Voice ID', "vigFetchModels('voice','" + scope + "','voice')", '拉取'));
+            html += group('稳定度 / 相似度', '<div class="api-settings-inline">' + settingInput(prefix + 'stability', p.stability == null ? 0.5 : p.stability, 'number', 'min="0" max="1" step="0.05"') + settingInput(prefix + 'similarity', p.similarityBoost == null ? 0.75 : p.similarityBoost, 'number', 'min="0" max="1" step="0.05"') + '</div>');
+            html += group('风格强度', settingInput(prefix + 'style', p.style == null ? 0 : p.style, 'number', 'min="0" max="1" step="0.05"'));
+            html += group('说话者增强', toggle(prefix + 'speaker', 'USE SPEAKER BOOST', p.useSpeakerBoost !== false), true);
+        } else {
+            html += group('参考音频（REF AUDIO PATH）', input(prefix + 'voiceid', data.voiceId || p.refAudioPath || '', '本地路径或服务端可访问 URL'));
+            html += group('参考音频文本', input(prefix + 'prompttext', p.promptText || '', '参考音频对应的文字，可留空'));
+            html += group('参考语言 / 目标语言', '<div class="api-settings-inline">' + select(prefix + 'promptlang', ['zh', 'en', 'ja', 'ko', 'yue'], p.promptLang || 'zh') + select(prefix + 'textlang', ['zh', 'en', 'ja', 'ko', 'yue'], p.textLang || 'zh') + '</div>');
+            html += group('切句方式', select(prefix + 'split', [['cut0', '不切'], ['cut1', '四句一切'], ['cut2', '50 字一切'], ['cut3', '按中文句号切'], ['cut4', '按英文句号切'], ['cut5', '按标点切']], p.textSplitMethod || 'cut5'));
+            html += group('TOP P / 温度', '<div class="api-settings-inline">' + settingInput(prefix + 'topp', p.topP == null ? 1 : p.topP, 'number', 'min="0" max="1" step="0.05"') + settingInput(prefix + 'temperature', p.temperature == null ? 1 : p.temperature, 'number', 'min="0" max="2" step="0.05"') + '</div>');
+            html += group('语速 / 输出格式', '<div class="api-settings-inline">' + settingInput(prefix + 'speed', p.speed == null ? 1 : p.speed, 'number', 'min="0.5" max="2" step="0.05"') + select(prefix + 'format', ['wav', 'mp3', 'flac', 'ogg', 'aac'], p.mediaFormat || 'wav') + '</div>', true);
+        }
+        root.innerHTML = html;
+        fillDefaultUrl('voice', scope, provider);
+    }
+
+    function readVoice(scope, provider) {
+        var prefix = 'voice-' + scope + '-';
+        var result = { model: val(prefix + 'model'), voiceId: val(prefix + 'voiceid'), params: {} };
+        if (provider === 'minimax') {
+            result.params = { speed: num(prefix + 'speed', 1), vol: num(prefix + 'vol', 1), pitch: num(prefix + 'pitch', 0), emotion: val(prefix + 'emotion'), audioFormat: val(prefix + 'format') || 'mp3', sampleRate: num(prefix + 'sample', 32000) };
+        } else if (provider === 'elevenlabs') {
+            result.params = { stability: num(prefix + 'stability', 0.5), similarityBoost: num(prefix + 'similarity', 0.75), style: num(prefix + 'style', 0), useSpeakerBoost: checked(prefix + 'speaker') };
+        } else {
+            result.params = { refAudioPath: result.voiceId, promptText: val(prefix + 'prompttext'), promptLang: val(prefix + 'promptlang') || 'zh', textLang: val(prefix + 'textlang') || 'zh', textSplitMethod: val(prefix + 'split') || 'cut5', topP: num(prefix + 'topp', 1), temperature: num(prefix + 'temperature', 1), speed: num(prefix + 'speed', 1), mediaFormat: val(prefix + 'format') || 'wav' };
+        }
+        return result;
+    }
+
+    function imageDefaults(provider) {
+        if (provider === 'openai') return { positivePrompt: '', negativePrompt: '', size: '1024x1024', quality: 'auto', n: 1, background: 'auto', outputFormat: 'png', style: 'vivid' };
+        if (provider === 'nai') return { positivePrompt: '', negativePrompt: '', width: 832, height: 1216, sampler: 'k_euler_ancestral', steps: 28, scale: 5, seed: '', n: 1, qualityToggle: true, sm: false, smDyn: false, noiseSchedule: 'native' };
+        return { positivePrompt: '', negativePrompt: '', aspectRatio: '1:1', quality: '1', seed: '', version: '7', stylize: 100, mode: 'fast' };
+    }
+    function renderImageFields(scope, provider, data) {
+        data = data || {};
+        var root = el('imggen-' + scope + '-fields');
+        if (!root) return;
+        var id = 'imggen-' + scope + '-model';
+        if (provider === 'openai') {
+            root.innerHTML = group('MODEL（图像模型）', fetchInput(id, data.model || 'gpt-image-1', 'gpt-image-1', "vigFetchModels('image','" + scope + "','model')"), true);
+        } else if (provider === 'nai') {
+            root.innerHTML = group('MODEL（NovelAI 模型）', select(id, ['nai-diffusion-4-curated-preview', 'nai-diffusion-4-full', 'nai-diffusion-3', 'nai-diffusion-furry-3'], data.model || 'nai-diffusion-4-curated-preview'), true);
+        } else {
+            root.innerHTML = '<div class="api-form-label" style="line-height:1.5;">Midjourney 代理通过版本参数选择模型，不提供通用模型列表。</div>';
+        }
+        fillDefaultUrl('image', scope, provider);
+        renderImageParams('imggen-' + scope + '-gen', provider, data.params || {});
+    }
+    function renderImageParams(containerId, provider, values) {
+        var root = el(containerId);
+        if (!root) return;
+        var p = Object.assign(imageDefaults(provider), values || {});
+        var pre = containerId + '-';
+        var html = '<div class="api-settings-card">';
+        html += settingRow('正面提示词', '<div class="api-textarea-wrapper"><textarea class="api-textarea" id="' + pre + 'positive" placeholder="描述要生成的画面">' + esc(p.positivePrompt) + '</textarea></div>');
+        var negativeLabel = provider === 'mj' ? '排除内容（--no）' : (provider === 'openai' ? '排除约束（拼入提示词）' : '负面提示词');
+        html += settingRow(negativeLabel, '<div class="api-textarea-wrapper"><textarea class="api-textarea" id="' + pre + 'negative" placeholder="不希望出现的内容">' + esc(p.negativePrompt) + '</textarea></div>');
+        html += '</div><div class="api-settings-card">';
+        if (provider === 'openai') {
+            html += settingRow('图片尺寸', select(pre + 'size', ['auto', '1024x1024', '1536x1024', '1024x1536', '1792x1024', '1024x1792'], p.size));
+            html += settingRow('质量', select(pre + 'quality', [['auto', '自动'], ['low', '低'], ['medium', '中'], ['high', '高'], ['standard', '标准'], ['hd', 'HD']], p.quality));
+            html += settingRow('数量', settingInput(pre + 'n', p.n, 'number', 'min="1" max="10" step="1"'));
+            html += settingRow('背景', select(pre + 'background', [['auto', '自动'], ['transparent', '透明'], ['opaque', '不透明']], p.background));
+            html += settingRow('输出格式', select(pre + 'format', ['png', 'jpeg', 'webp'], p.outputFormat));
+            html += settingRow('DALL-E 3 风格', select(pre + 'style', [['vivid', '生动'], ['natural', '自然']], p.style));
+        } else if (provider === 'nai') {
+            html += settingRow('宽度 / 高度', '<div class="api-settings-inline">' + settingInput(pre + 'width', p.width, 'number', 'min="64" max="2048" step="64"') + settingInput(pre + 'height', p.height, 'number', 'min="64" max="2048" step="64"') + '</div>');
+            html += settingRow('采样器', select(pre + 'sampler', ['k_euler', 'k_euler_ancestral', 'k_dpmpp_2s_ancestral', 'k_dpmpp_2m', 'k_dpmpp_sde', 'ddim'], p.sampler));
+            html += settingRow('步数 / CFG', '<div class="api-settings-inline">' + settingInput(pre + 'steps', p.steps, 'number', 'min="1" max="50" step="1"') + settingInput(pre + 'scale', p.scale, 'number', 'min="0" max="10" step="0.1"') + '</div>');
+            html += settingRow('种子 / 数量', '<div class="api-settings-inline">' + settingInput(pre + 'seed', p.seed, 'text', '', '留空随机') + settingInput(pre + 'n', p.n, 'number', 'min="1" max="4" step="1"') + '</div>');
+            html += settingRow('噪声计划', select(pre + 'noise', ['native', 'karras', 'exponential', 'polyexponential'], p.noiseSchedule));
+            html += toggle(pre + 'qualitytoggle', '质量标签', p.qualityToggle) + toggle(pre + 'sm', 'SMEA', p.sm) + toggle(pre + 'smdyn', 'SMEA DYN', p.smDyn);
+        } else {
+            html += settingRow('宽高比（--ar）', select(pre + 'ar', ['1:1', '4:3', '3:4', '16:9', '9:16', '3:2', '2:3'], p.aspectRatio));
+            html += settingRow('质量（--q）', select(pre + 'quality', ['0.5', '1', '2'], String(p.quality)));
+            html += settingRow('版本（--v）', select(pre + 'version', ['5', '5.1', '5.2', '6', '6.1', '7'], String(p.version)));
+            html += settingRow('风格化（--s）', settingInput(pre + 'stylize', p.stylize, 'number', 'min="0" max="1000" step="1"'));
+            html += settingRow('种子', settingInput(pre + 'seed', p.seed, 'text', '', '留空随机'));
+            html += settingRow('模式', select(pre + 'mode', [['fast', 'Fast'], ['relax', 'Relax'], ['turbo', 'Turbo']], p.mode));
+        }
+        html += '</div>';
+        root.innerHTML = html;
+    }
+    function readImageParams(containerId, provider) {
+        var pre = containerId + '-';
+        var p = { positivePrompt: val(pre + 'positive'), negativePrompt: val(pre + 'negative') };
+        if (provider === 'openai') Object.assign(p, { size: val(pre + 'size'), quality: val(pre + 'quality'), n: num(pre + 'n', 1), background: val(pre + 'background'), outputFormat: val(pre + 'format'), style: val(pre + 'style') });
+        else if (provider === 'nai') Object.assign(p, { width: num(pre + 'width', 832), height: num(pre + 'height', 1216), sampler: val(pre + 'sampler'), steps: num(pre + 'steps', 28), scale: num(pre + 'scale', 5), seed: val(pre + 'seed'), n: num(pre + 'n', 1), noiseSchedule: val(pre + 'noise'), qualityToggle: checked(pre + 'qualitytoggle'), sm: checked(pre + 'sm'), smDyn: checked(pre + 'smdyn') });
+        else Object.assign(p, { aspectRatio: val(pre + 'ar'), quality: val(pre + 'quality'), version: val(pre + 'version'), stylize: num(pre + 'stylize', 100), seed: val(pre + 'seed'), mode: val(pre + 'mode') });
+        return p;
+    }
+    function selectFetched(title, items, current, callback) {
+        if (!items.length) { showToast('没有找到可用项'); return; }
+        if (typeof openUniversalSelect === 'function') {
+            openUniversalSelect({ title: title, items: items.map(function (x) { return { label: x.label || x.value || x, value: x.value || x }; }), currentValue: current, searchable: true, onSelect: callback });
+        } else callback(items[0].value || items[0]);
+    }
+    async function fetchModels(kind, scope, target) {
+        var prefix = kind === 'voice' ? 'voice-' : 'imggen-';
+        var provider = active(prefix + scope + '-provider');
+        var url = trimSlash(val(prefix + scope + '-url'));
+        var key = val(prefix + scope + '-key');
+        if (!url || !key) { showCustomAlert('提示', '请先填写 URL 和 Key'); return; }
+        try {
+            showToast('正在拉取…');
+            var endpoint, headers = {}, data, list = [];
+            if (kind === 'voice' && provider === 'minimax') {
+                endpoint = url + '/v1/list_model?type=audio'; headers.Authorization = 'Bearer ' + key;
+            } else if (kind === 'voice' && provider === 'elevenlabs') {
+                endpoint = url + (target === 'voice' ? '/v1/voices' : '/v1/models'); headers['xi-api-key'] = key;
+            } else if (kind === 'image' && provider === 'openai') {
+                endpoint = url + '/models'; headers.Authorization = 'Bearer ' + key;
+            } else {
+                showCustomAlert('提示', provider === 'nai' ? 'NovelAI 官方接口不提供模型列表端点，请直接选择页面中的官方模型。' : '该服务商没有通用模型列表端点。'); return;
+            }
+            var response = await fetch(endpoint, { headers: headers });
+            if (!response.ok) throw new Error('HTTP ' + response.status + ' ' + (await response.text()).slice(0, 180));
+            data = await response.json();
+            if (provider === 'elevenlabs' && target === 'voice') list = (data.voices || []).map(function (x) { return { label: x.name + ' · ' + x.voice_id, value: x.voice_id }; });
+            else if (provider === 'elevenlabs') list = (Array.isArray(data) ? data : (data.models || [])).map(function (x) { return { label: x.name || x.model_id, value: x.model_id }; });
+            else {
+                var rows = data.data || data.models || data.model_list || [];
+                list = rows.map(function (x) { var id = typeof x === 'string' ? x : (x.id || x.model || x.model_id); return { label: id, value: id }; }).filter(function (x) { return x.value; });
+                if (kind === 'image') list = list.filter(function (x) { return /image|dall-e|gpt-image/i.test(x.value); });
+            }
+            var inputId = prefix + scope + '-' + (target === 'voice' ? 'voiceid' : 'model');
+            selectFetched(target === 'voice' ? '选择音色' : '选择模型', list, val(inputId), function (chosen) { if (el(inputId)) el(inputId).value = chosen; });
+            showToast('拉取成功');
+        } catch (error) {
+            showCustomAlert('拉取失败', '请检查 URL、Key、接口兼容性或 CORS 设置。\n\n' + error.message);
+        }
+    }
+    window.vigFetchModels = fetchModels;
+
+    function bindSegments() {
+        [['voice', 'add'], ['voice', 'edit'], ['image', 'add'], ['image', 'edit']].forEach(function (pair) {
+            var kind = pair[0], scope = pair[1], base = kind === 'voice' ? 'voice-' : 'imggen-';
+            var segment = el(base + scope + '-provider');
+            if (!segment || segment.dataset.vigEnhanced) return;
+            segment.dataset.vigEnhanced = '1';
+            segment.addEventListener('click', function (event) {
+                var item = event.target.closest('.api-segment-item');
+                if (!item) return;
+                setTimeout(function () {
+                    if (kind === 'voice') renderVoiceFields(scope, item.dataset.provider, {});
+                    else renderImageFields(scope, item.dataset.provider, {});
+                }, 0);
+            });
+        });
+    }
+
+    var oldOpenVoiceAdd = window.openVoiceAddPage;
+    window.openVoiceAddPage = function () {
+        oldOpenVoiceAdd();
+        setActive('voice-add-provider', 'minimax');
+        renderVoiceFields('add', 'minimax', {});
+    };
+    window.saveNewVoice = function () {
+        var provider = active('voice-add-provider') || 'minimax';
+        var fields = readVoice('add', provider);
+        var name = val('voice-add-name'), url = val('voice-add-url'), key = val('voice-add-key');
+        if (!name || !url) { showCustomAlert('提示', '请填写预设名称和接口地址'); return; }
+        var item = { id: Date.now(), name: name, provider: provider, url: url, key: key, model: fields.model, voiceId: fields.voiceId, params: fields.params };
+        voiceDataList.push(item); if (!voiceConnectedId) voiceConnectedId = item.id;
+        saveVoiceData(); renderVoiceList(); closeVoiceAddPage();
+    };
+    window.openVoiceDrawer = function (event, id) {
+        if (event) event.stopPropagation();
+        var item = (voiceDataList || []).find(function (x) { return x.id === id; }); if (!item) return;
+        voiceEditingId = id; setActive('voice-edit-provider', item.provider || 'minimax');
+        el('voice-edit-name').value = item.name || ''; el('voice-edit-url').value = item.url || ''; el('voice-edit-key').value = item.key || '';
+        renderVoiceFields('edit', item.provider || 'minimax', item);
+        el('voiceDrawerOverlay').classList.add('show'); el('voiceDrawer').classList.add('show');
+    };
+    window.closeVoiceDrawer = function () { el('voiceDrawerOverlay').classList.remove('show'); el('voiceDrawer').classList.remove('show'); voiceEditingId = null; };
+    window.saveVoiceDrawer = function () {
+        var item = (voiceDataList || []).find(function (x) { return x.id === voiceEditingId; }); if (!item) return window.closeVoiceDrawer();
+        var provider = active('voice-edit-provider') || item.provider; var fields = readVoice('edit', provider);
+        Object.assign(item, { name: val('voice-edit-name') || item.name, provider: provider, url: val('voice-edit-url'), key: val('voice-edit-key'), model: fields.model, voiceId: fields.voiceId, params: fields.params });
+        saveVoiceData(); renderVoiceList(); window.closeVoiceDrawer();
+    };
+    window.deleteVoiceDrawer = function () {
+        if (!voiceEditingId) return;
+        var deletingId = voiceEditingId;
+        showCustomConfirm('删除语音接口', '确定要删除这个语音预设吗？', '删除', true).then(function (ok) {
+            if (!ok) return;
+            voiceDataList = voiceDataList.filter(function (x) { return x.id !== deletingId; });
+            if (voiceConnectedId === deletingId) voiceConnectedId = voiceDataList.length ? voiceDataList[0].id : null;
+            saveVoiceData(); renderVoiceList(); window.closeVoiceDrawer();
+        });
+    };
+
+    async function enhancedTestVoice(scope) {
+        var provider = active('voice-' + scope + '-provider') || 'minimax'; var fields = readVoice(scope, provider); var p = fields.params;
+        var base = trimSlash(val('voice-' + scope + '-url')); var key = val('voice-' + scope + '-key'); var text = val('voice-' + scope + '-testtext') || '你好，这是一段语音合成的试听示例。';
+        if (!base) return showCustomAlert('提示', '请填写接口地址');
+        try {
+            showToast('正在合成语音…'); var response, headers, body;
+            if (provider === 'minimax') {
+                body = { model: fields.model || 'speech-02-hd', text: text, voice_setting: { voice_id: fields.voiceId || 'male-qn-qingse', speed: p.speed, vol: p.vol, pitch: p.pitch }, audio_setting: { audio_format: p.audioFormat, sample_rate: p.sampleRate } };
+                if (p.emotion) body.voice_setting.emotion = p.emotion;
+                response = await fetch(base + '/v1/t2a_v2', { method: 'POST', headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                if (!response.ok) throw new Error('HTTP ' + response.status + ' ' + (await response.text()).slice(0, 180));
+                var json = await response.json(); var hex = json && json.data && json.data.audio; if (!hex) throw new Error('返回数据缺少 data.audio');
+                var bytes = new Uint8Array(hex.length / 2); for (var i = 0; i < bytes.length; i++) bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+                playAudio(scope, bytes, p.audioFormat === 'wav' ? 'audio/wav' : 'audio/mpeg');
+            } else {
+                headers = { 'Content-Type': 'application/json' };
+                if (provider === 'elevenlabs') {
+                    if (!fields.voiceId) throw new Error('请填写 Voice ID'); headers['xi-api-key'] = key; headers.Accept = 'audio/mpeg';
+                    body = { text: text, model_id: fields.model || 'eleven_multilingual_v2', voice_settings: { stability: p.stability, similarity_boost: p.similarityBoost, style: p.style, use_speaker_boost: p.useSpeakerBoost } };
+                    response = await fetch(base + '/v1/text-to-speech/' + encodeURIComponent(fields.voiceId), { method: 'POST', headers: headers, body: JSON.stringify(body) });
+                } else {
+                    if (!fields.voiceId) throw new Error('请填写参考音频路径'); if (key) headers.Authorization = 'Bearer ' + key; headers.Accept = 'audio/' + p.mediaFormat;
+                    body = { text: text, text_lang: p.textLang, ref_audio_path: fields.voiceId, prompt_text: p.promptText, prompt_lang: p.promptLang, text_split_method: p.textSplitMethod, top_p: p.topP, temperature: p.temperature, speed_factor: p.speed, media_type: p.mediaFormat, streaming_mode: false };
+                    response = await fetch(base + '/tts', { method: 'POST', headers: headers, body: JSON.stringify(body) });
+                }
+                if (!response.ok) throw new Error('HTTP ' + response.status + ' ' + (await response.text()).slice(0, 180));
+                playAudio(scope, new Uint8Array(await response.arrayBuffer()), provider === 'elevenlabs' ? 'audio/mpeg' : 'audio/' + p.mediaFormat);
+            }
+            showToast('试听已就绪');
+        } catch (error) { showCustomAlert('合成失败', '请检查接口参数或 CORS 设置。\n\n' + error.message); }
+    }
+    function playAudio(scope, bytes, mime) {
+        var audio = el('voice-' + scope + '-audio'); var url = URL.createObjectURL(new Blob([bytes], { type: mime })); audio.src = url; audio.style.display = 'block'; audio.play().catch(function () {});
+    }
+    window.testVoice = enhancedTestVoice;
+
+    var oldOpenImageAdd = window.openImageGenAddPage;
+    window.openImageGenAddPage = function () { oldOpenImageAdd(); setActive('imggen-add-provider', 'openai'); renderImageFields('add', 'openai', {}); };
+    window.saveNewImageGen = function () {
+        var provider = active('imggen-add-provider') || 'openai'; var name = val('imggen-add-name'), url = val('imggen-add-url'), key = val('imggen-add-key');
+        if (!name || !url) { showCustomAlert('提示', '请填写预设名称和接口地址'); return; }
+        var item = { id: Date.now(), name: name, provider: provider, url: url, key: key, model: val('imggen-add-model'), params: readImageParams('imggen-add-gen', provider) };
+        imageGenDataList.push(item); if (!imageGenConnectedId) imageGenConnectedId = item.id;
+        saveImageGenData(); renderImageGenList(); renderConnectedSettings(); closeImageGenAddPage();
+    };
+    window.openImageGenDrawer = function (event, id) {
+        if (event) event.stopPropagation(); var item = (imageGenDataList || []).find(function (x) { return x.id === id; }); if (!item) return;
+        imageEditingId = id; setActive('imggen-edit-provider', item.provider || 'openai');
+        el('imggen-edit-name').value = item.name || ''; el('imggen-edit-url').value = item.url || ''; el('imggen-edit-key').value = item.key || '';
+        renderImageFields('edit', item.provider || 'openai', item); el('imggenDrawerOverlay').classList.add('show'); el('imggenDrawer').classList.add('show');
+    };
+    window.closeImageGenDrawer = function () { el('imggenDrawerOverlay').classList.remove('show'); el('imggenDrawer').classList.remove('show'); imageEditingId = null; };
+    window.saveImageGenDrawer = function () {
+        var item = (imageGenDataList || []).find(function (x) { return x.id === imageEditingId; }); if (!item) return window.closeImageGenDrawer();
+        var provider = active('imggen-edit-provider') || item.provider;
+        Object.assign(item, { name: val('imggen-edit-name') || item.name, provider: provider, url: val('imggen-edit-url'), key: val('imggen-edit-key'), model: val('imggen-edit-model'), params: readImageParams('imggen-edit-gen', provider) });
+        saveImageGenData(); renderImageGenList(); renderConnectedSettings(); window.closeImageGenDrawer();
+    };
+    window.deleteImageGenDrawer = function () {
+        if (!imageEditingId) return;
+        var deletingId = imageEditingId;
+        showCustomConfirm('删除生图接口', '确定要删除这个生图预设吗？', '删除', true).then(function (ok) {
+            if (!ok) return;
+            imageGenDataList = imageGenDataList.filter(function (x) { return x.id !== deletingId; });
+            if (imageGenConnectedId === deletingId) imageGenConnectedId = imageGenDataList.length ? imageGenDataList[0].id : null;
+            saveImageGenData(); renderImageGenList(); renderConnectedSettings(); window.closeImageGenDrawer();
+        });
+    };
+    var originalConnectImage = window.connectImageGen;
+    window.connectImageGen = function (id) { originalConnectImage(id); renderConnectedSettings(); };
+    function renderConnectedSettings() {
+        var item = (imageGenDataList || []).find(function (x) { return x.id === imageGenConnectedId; }); var root = el('imggen-settings-container');
+        if (!root) return; if (!item) { root.innerHTML = '<div class="api-settings-card" style="text-align:center;color:#8e8e93;">请先连接一个生图接口</div>'; return; }
+        renderImageParams('imggen-settings-container', item.provider || 'openai', item.params || {});
+        root.querySelectorAll('input,select,textarea').forEach(function (node) { node.addEventListener('change', persist); node.addEventListener('input', persist); });
+        function persist() { item.params = readImageParams('imggen-settings-container', item.provider || 'openai'); saveImageGenData(); }
+    }
+    window.renderImageGenSettings = renderConnectedSettings;
+    var originalOpenImageApp = window.openImageGenApp;
+    window.openImageGenApp = function () { originalOpenImageApp(); renderConnectedSettings(); };
+
+    var legacyGenerate = window.generateImage;
+    window.generateImage = async function () {
+        var item = (imageGenDataList || []).find(function (x) { return x.id === imageGenConnectedId; }); if (!item) return showCustomAlert('提示', '请先连接一个生图接口');
+        item.params = readImageParams('imggen-settings-container', item.provider || 'openai'); saveImageGenData();
+        var p = item.params; if (!p.positivePrompt) return showCustomAlert('提示', '请填写正面提示词');
+        if (item.provider === 'openai') return generateOpenAI(item, p);
+        imageGenSettings = Object.assign({}, p); return legacyGenerate();
+    };
+    async function generateOpenAI(item, p) {
+        try {
+            var model = item.model || 'gpt-image-1'; var dalle = /dall-e/i.test(model); var prompt = p.positivePrompt + (p.negativePrompt ? '\nAvoid the following: ' + p.negativePrompt : '');
+            var body = { model: model, prompt: prompt, n: p.n || 1, size: p.size || '1024x1024', quality: p.quality || 'auto' };
+            if (dalle) { body.style = p.style || 'vivid'; body.response_format = 'b64_json'; delete body.background; }
+            else { body.background = p.background || 'auto'; body.output_format = p.outputFormat || 'png'; }
+            el('imggen-result').innerHTML = '<span class="api-gen-loading">生成中…</span>';
+            var response = await fetch(trimSlash(item.url) + '/images/generations', { method: 'POST', headers: { Authorization: 'Bearer ' + item.key, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (!response.ok) throw new Error('HTTP ' + response.status + ' ' + (await response.text()).slice(0, 200));
+            var data = await response.json(); var result = data.data && data.data[0]; if (!result) throw new Error('接口没有返回图片');
+            var src = result.b64_json ? 'data:image/' + (p.outputFormat || 'png') + ';base64,' + result.b64_json : result.url;
+            el('imggen-result').innerHTML = '<img class="api-image-preview" alt="生成结果" src="' + esc(src) + '">';
+        } catch (error) { el('imggen-result').innerHTML = '<span class="api-gen-error">生成失败：' + esc(error.message) + '</span>'; showCustomAlert('生成失败', error.message); }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () { bindSegments(); renderVoiceFields('add', 'minimax', {}); renderImageFields('add', 'openai', {}); });
 })();

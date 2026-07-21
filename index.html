@@ -1329,21 +1329,10 @@
                     <div class="api-form-group">
                         <div class="api-form-label">KEY（接口密钥）</div>
                         <div class="api-form-input-wrapper">
-                            <input type="password" class="api-form-input" id="voice-add-key" placeholder="API Key / xi-api-key / 令牌">
-                        </div>
-                    </div>
-                    <div class="api-form-group">
-                        <div class="api-form-label">MODEL（模型）</div>
-                        <div class="api-form-input-wrapper">
-                            <input type="text" class="api-form-input" id="voice-add-model" placeholder="speech-01-hd">
-                        </div>
-                    </div>
-                    <div class="api-form-group">
-                        <div class="api-form-label">VOICE ID（音色/参考）</div>
-                        <div class="api-form-input-wrapper">
-                            <input type="text" class="api-form-input" id="voice-add-voiceid" placeholder="音色 ID 或参考音频路径">
-                        </div>
-                    </div>
+                           <input type="password" class="api-form-input" id="voice-add-key" placeholder="API Key / xi-api-key / 令牌">
+                       </div>
+                   </div>
+                    <div id="voice-add-fields" style="margin-top: 12px;"></div>
                 </div>
                 <div class="api-form-card">
                     <div class="api-form-group" style="margin-bottom: 12px;">
@@ -1387,16 +1376,9 @@
                     </div>
                     <div class="api-form-group">
                         <div class="api-form-label">KEY（接口密钥）</div>
-                        <div class="api-form-input-wrapper"><input type="password" class="api-form-input" id="voice-edit-key" placeholder="API Key / xi-api-key / 令牌"></div>
-                    </div>
-                    <div class="api-form-group">
-                        <div class="api-form-label">MODEL（模型）</div>
-                        <div class="api-form-input-wrapper"><input type="text" class="api-form-input" id="voice-edit-model" placeholder="speech-01-hd"></div>
-                    </div>
-                    <div class="api-form-group">
-                        <div class="api-form-label">VOICE ID（音色/参考）</div>
-                        <div class="api-form-input-wrapper"><input type="text" class="api-form-input" id="voice-edit-voiceid" placeholder="音色 ID 或参考音频路径"></div>
-                    </div>
+                       <div class="api-form-input-wrapper"><input type="password" class="api-form-input" id="voice-edit-key" placeholder="API Key / xi-api-key / 令牌"></div>
+                   </div>
+                    <div id="voice-edit-fields" style="margin-top: 12px;"></div>
                 </div>
                 <div class="api-form-card">
                     <div class="api-form-group" style="margin-bottom: 12px;">
@@ -1473,13 +1455,12 @@
                     </div>
                     <div class="api-form-group">
                         <div class="api-form-label">KEY（接口密钥）</div>
-                        <div class="api-form-input-wrapper"><input type="password" class="api-form-input" id="imggen-add-key" placeholder="sk-..."></div>
-                    </div>
-                    <div class="api-form-group" style="margin-bottom: 0;">
-                        <div class="api-form-label">MODEL（模型，可选）</div>
-                        <div class="api-form-input-wrapper"><input type="text" class="api-form-input" id="imggen-add-model" placeholder="gpt-image-1"></div>
-                    </div>
+                       <div class="api-form-input-wrapper"><input type="password" class="api-form-input" id="imggen-add-key" placeholder="sk-..."></div>
+                   </div>
+                    <div id="imggen-add-fields" style="margin-top: 12px;"></div>
                 </div>
+                <div class="api-list-title">生成设定</div>
+                <div id="imggen-add-gen"></div>
             </div>
         </div>
         <!-- 底部抽屉 -->
@@ -1512,13 +1493,12 @@
                     </div>
                     <div class="api-form-group">
                         <div class="api-form-label">KEY（接口密钥）</div>
-                        <div class="api-form-input-wrapper"><input type="password" class="api-form-input" id="imggen-edit-key" placeholder="sk-..."></div>
-                    </div>
-                    <div class="api-form-group" style="margin-bottom: 0;">
-                        <div class="api-form-label">MODEL（模型，可选）</div>
-                        <div class="api-form-input-wrapper"><input type="text" class="api-form-input" id="imggen-edit-model" placeholder="gpt-image-1"></div>
-                    </div>
+                       <div class="api-form-input-wrapper"><input type="password" class="api-form-input" id="imggen-edit-key" placeholder="sk-..."></div>
+                   </div>
+                    <div id="imggen-edit-fields" style="margin-top: 12px;"></div>
                 </div>
+                <div class="api-list-title">生成设定</div>
+                <div id="imggen-edit-gen"></div>
                 <div class="api-form-btn danger" onclick="deleteImageGenDrawer()">删除此接口</div>
             </div>
         </div>
