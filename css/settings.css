@@ -323,8 +323,14 @@
         .api-check-input:checked + .api-check-control::after { transform: translateX(16px); }
         .api-field-row { display: flex; gap: 8px; align-items: stretch; }
         .api-field-row .api-form-input-wrapper { flex: 1; }
-        .api-mini-fetch { flex: none; min-width: 64px; padding: 0 14px; background-color: #007aff; color: #fff; border-radius: 12px; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; cursor: pointer; white-space: nowrap; margin-bottom: 0; }
+        .api-mini-fetch { flex: none; min-width: 64px; padding: 0 14px; background-color: #007aff; color: #fff; border: none; outline: none; appearance: none; -webkit-appearance: none; border-radius: 12px; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; cursor: pointer; white-space: nowrap; margin-bottom: 0; }
         .api-mini-fetch:active { opacity: 0.8; }
+        .api-prompt-preset-row { display: flex; gap: 8px; align-items: stretch; }
+        .api-prompt-preset-row .api-settings-select { min-width: 0; flex: 1; }
+        .api-prompt-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .api-prompt-action { flex: 1; min-height: 38px; border: none; outline: none; appearance: none; -webkit-appearance: none; border-radius: 10px; background-color: #e9f2ff; color: #007aff; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .api-prompt-action.danger { background-color: #fff0ef; color: #ff3b30; }
+        .api-prompt-action:active { opacity: 0.7; }
         .api-gen-fetched { margin: 0 16px 16px; border-radius: 14px; max-height: 180px; overflow: auto; -webkit-overflow-scrolling: touch; }
         .api-gen-fetched-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background-color: #fff; border-bottom: 0.5px solid #e5e5ea; font-size: 15px; color: #000; font-weight: 600; cursor: pointer; }
         .api-gen-fetched-item:active { background-color: #f2f2f7; }

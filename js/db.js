@@ -53,6 +53,7 @@
     let voiceConnectedId = null;
     let imageGenDataList = [];
     let imageGenConnectedId = null;
+    let imagePromptPresets = [];
     let imageGenSettings = {
         positivePrompt: '',
         negativePrompt: '',
@@ -279,6 +280,7 @@
             if (igData && igData.list) {
                 imageGenDataList = igData.list;
                 imageGenConnectedId = igData.connectedId;
+                imagePromptPresets = Array.isArray(igData.promptPresets) ? igData.promptPresets : [];
             }
         };
         const imageGenSettingsRequest = store.get("imageGenSettings");
@@ -649,7 +651,7 @@
         if (!db) return;
         const transaction = db.transaction([storeName], "readwrite");
         const store = transaction.objectStore(storeName);
-        store.put({ id: "imageGenData", list: imageGenDataList, connectedId: imageGenConnectedId });
+        store.put({ id: "imageGenData", list: imageGenDataList, connectedId: imageGenConnectedId, promptPresets: imagePromptPresets });
         if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
     }
     function saveImageGenSettings() {

@@ -826,10 +826,7 @@
     function fillDefaultUrl(kind, scope, provider) {
         var node = el((kind === 'voice' ? 'voice-' : 'imggen-') + scope + '-url');
         var defaults = providerDefaults(kind, provider);
-        var providers = kind === 'voice' ? ['minimax', 'elevenlabs', 'sovits'] : ['openai', 'nai', 'mj'];
-        var knownDefaults = providers.map(function (name) { return providerDefaults(kind, name).url; }).filter(Boolean);
-        if (node && defaults.url && (!node.value || knownDefaults.indexOf(node.value) !== -1)) node.value = defaults.url;
-        if (node) node.placeholder = defaults.url || '填写兼容接口地址';
+        if (node) node.placeholder = defaults.url || (provider === 'mj' ? '填写 Midjourney 代理接口地址' : '填写兼容接口地址');
     }
 
     function renderVoiceFields(scope, provider, data) {
@@ -894,18 +891,35 @@
             root.innerHTML = '<div class="api-form-label" style="line-height:1.5;">Midjourney 代理通过版本参数选择模型，不提供通用模型列表。</div>';
         }
         fillDefaultUrl('image', scope, provider);
-        renderImageParams('imggen-' + scope + '-gen', provider, data.params || {});
+        renderImageParams('imggen-' + scope + '-gen', provider, data.params || {}, { showPrompts: true });
     }
-    function renderImageParams(containerId, provider, values) {
+    function promptPresetOptions(selectedId) {
+        var html = '<option value="">选择提示词预设</option>';
+        (imagePromptPresets || []).forEach(function (preset) {
+            html += '<option value="' + esc(preset.id) + '"' + (String(preset.id) === String(selectedId) ? ' selected' : '') + '>' + esc(preset.name) + '</option>';
+        });
+        return html;
+    }
+    function promptPresetControls(containerId) {
+        return '<div class="api-prompt-preset-row"><select class="api-settings-select" id="' + containerId + '-promptpreset" onchange="vigApplyPromptPreset(\'' + containerId + '\')">' + promptPresetOptions('') + '</select></div>' +
+            '<div class="api-prompt-actions"><button class="api-prompt-action" type="button" onclick="vigSavePromptPreset(\'' + containerId + '\')">保存当前</button><button class="api-prompt-action danger" type="button" onclick="vigDeletePromptPreset(\'' + containerId + '\')">删除预设</button></div>';
+    }
+    function renderImageParams(containerId, provider, values, config) {
         var root = el(containerId);
         if (!root) return;
+        config = config || {};
         var p = Object.assign(imageDefaults(provider), values || {});
         var pre = containerId + '-';
-        var html = '<div class="api-settings-card">';
-        html += settingRow('正面提示词', '<div class="api-textarea-wrapper"><textarea class="api-textarea" id="' + pre + 'positive" placeholder="描述要生成的画面">' + esc(p.positivePrompt) + '</textarea></div>');
-        var negativeLabel = provider === 'mj' ? '排除内容（--no）' : (provider === 'openai' ? '排除约束（拼入提示词）' : '负面提示词');
-        html += settingRow(negativeLabel, '<div class="api-textarea-wrapper"><textarea class="api-textarea" id="' + pre + 'negative" placeholder="不希望出现的内容">' + esc(p.negativePrompt) + '</textarea></div>');
-        html += '</div><div class="api-settings-card">';
+        var html = '';
+        if (config.showPrompts !== false) {
+            html += '<div class="api-settings-card">';
+            html += settingRow('提示词预设', promptPresetControls(containerId));
+            html += settingRow('正面提示词', '<div class="api-textarea-wrapper"><textarea class="api-textarea" id="' + pre + 'positive" placeholder="描述要生成的画面">' + esc(p.positivePrompt) + '</textarea></div>');
+            var negativeLabel = provider === 'mj' ? '排除内容（--no）' : (provider === 'openai' ? '排除约束（拼入提示词）' : '负面提示词');
+            html += settingRow(negativeLabel, '<div class="api-textarea-wrapper"><textarea class="api-textarea" id="' + pre + 'negative" placeholder="不希望出现的内容">' + esc(p.negativePrompt) + '</textarea></div>');
+            html += '</div>';
+        }
+        html += '<div class="api-settings-card">';
         if (provider === 'openai') {
             html += settingRow('图片尺寸', select(pre + 'size', ['auto', '1024x1024', '1536x1024', '1024x1536', '1792x1024', '1024x1792'], p.size));
             html += settingRow('质量', select(pre + 'quality', [['auto', '自动'], ['low', '低'], ['medium', '中'], ['high', '高'], ['standard', '标准'], ['hd', 'HD']], p.quality));
@@ -931,14 +945,67 @@
         html += '</div>';
         root.innerHTML = html;
     }
-    function readImageParams(containerId, provider) {
+    function readImageParams(containerId, provider, previous) {
         var pre = containerId + '-';
-        var p = { positivePrompt: val(pre + 'positive'), negativePrompt: val(pre + 'negative') };
+        previous = previous || {};
+        var positiveNode = el(pre + 'positive');
+        var negativeNode = el(pre + 'negative');
+        var p = {
+            positivePrompt: positiveNode ? val(pre + 'positive') : (previous.positivePrompt || ''),
+            negativePrompt: negativeNode ? val(pre + 'negative') : (previous.negativePrompt || '')
+        };
         if (provider === 'openai') Object.assign(p, { size: val(pre + 'size'), quality: val(pre + 'quality'), n: num(pre + 'n', 1), background: val(pre + 'background'), outputFormat: val(pre + 'format'), style: val(pre + 'style') });
         else if (provider === 'nai') Object.assign(p, { width: num(pre + 'width', 832), height: num(pre + 'height', 1216), sampler: val(pre + 'sampler'), steps: num(pre + 'steps', 28), scale: num(pre + 'scale', 5), seed: val(pre + 'seed'), n: num(pre + 'n', 1), noiseSchedule: val(pre + 'noise'), qualityToggle: checked(pre + 'qualitytoggle'), sm: checked(pre + 'sm'), smDyn: checked(pre + 'smdyn') });
         else Object.assign(p, { aspectRatio: val(pre + 'ar'), quality: val(pre + 'quality'), version: val(pre + 'version'), stylize: num(pre + 'stylize', 100), seed: val(pre + 'seed'), mode: val(pre + 'mode') });
         return p;
     }
+    function refreshPromptPresetSelect(containerId, selectedId) {
+        var node = el(containerId + '-promptpreset');
+        if (node) node.innerHTML = promptPresetOptions(selectedId);
+    }
+    window.vigApplyPromptPreset = function (containerId) {
+        var presetId = val(containerId + '-promptpreset');
+        var preset = (imagePromptPresets || []).find(function (item) { return String(item.id) === String(presetId); });
+        if (!preset) return;
+        var positive = el(containerId + '-positive');
+        var negative = el(containerId + '-negative');
+        if (positive) positive.value = preset.positivePrompt || '';
+        if (negative) negative.value = preset.negativePrompt || '';
+    };
+    window.vigSavePromptPreset = async function (containerId) {
+        var positivePrompt = val(containerId + '-positive');
+        var negativePrompt = val(containerId + '-negative');
+        if (!positivePrompt && !negativePrompt) { showCustomAlert('提示', '请先填写正面词或负面词'); return; }
+        var selectedId = val(containerId + '-promptpreset');
+        var selected = (imagePromptPresets || []).find(function (item) { return String(item.id) === String(selectedId); });
+        var name = await showCustomPrompt('保存提示词预设', { placeholder: '输入预设名称', value: selected ? selected.name : '' }, '保存');
+        name = String(name == null ? '' : name).trim();
+        if (!name) return;
+        var preset = selected || (imagePromptPresets || []).find(function (item) { return item.name === name; });
+        if (preset) {
+            preset.name = name;
+            preset.positivePrompt = positivePrompt;
+            preset.negativePrompt = negativePrompt;
+        } else {
+            preset = { id: Date.now(), name: name, positivePrompt: positivePrompt, negativePrompt: negativePrompt };
+            imagePromptPresets.push(preset);
+        }
+        saveImageGenData();
+        refreshPromptPresetSelect(containerId, preset.id);
+        showToast('提示词预设已保存');
+    };
+    window.vigDeletePromptPreset = function (containerId) {
+        var presetId = val(containerId + '-promptpreset');
+        var preset = (imagePromptPresets || []).find(function (item) { return String(item.id) === String(presetId); });
+        if (!preset) { showCustomAlert('提示', '请先选择要删除的提示词预设'); return; }
+        showCustomConfirm('删除提示词预设', '确定要删除“' + preset.name + '”吗？', '删除', true).then(function (ok) {
+            if (!ok) return;
+            imagePromptPresets = imagePromptPresets.filter(function (item) { return String(item.id) !== String(presetId); });
+            saveImageGenData();
+            refreshPromptPresetSelect(containerId, '');
+            showToast('提示词预设已删除');
+        });
+    };
     function selectFetched(title, items, current, callback) {
         if (!items.length) { showToast('没有找到可用项'); return; }
         if (typeof openUniversalSelect === 'function') {
@@ -1113,9 +1180,9 @@
     function renderConnectedSettings() {
         var item = (imageGenDataList || []).find(function (x) { return x.id === imageGenConnectedId; }); var root = el('imggen-settings-container');
         if (!root) return; if (!item) { root.innerHTML = '<div class="api-settings-card" style="text-align:center;color:#8e8e93;">请先连接一个生图接口</div>'; return; }
-        renderImageParams('imggen-settings-container', item.provider || 'openai', item.params || {});
+        renderImageParams('imggen-settings-container', item.provider || 'openai', item.params || {}, { showPrompts: false });
         root.querySelectorAll('input,select,textarea').forEach(function (node) { node.addEventListener('change', persist); node.addEventListener('input', persist); });
-        function persist() { item.params = readImageParams('imggen-settings-container', item.provider || 'openai'); saveImageGenData(); }
+        function persist() { item.params = readImageParams('imggen-settings-container', item.provider || 'openai', item.params); saveImageGenData(); }
     }
     window.renderImageGenSettings = renderConnectedSettings;
     var originalOpenImageApp = window.openImageGenApp;
@@ -1124,7 +1191,7 @@
     var legacyGenerate = window.generateImage;
     window.generateImage = async function () {
         var item = (imageGenDataList || []).find(function (x) { return x.id === imageGenConnectedId; }); if (!item) return showCustomAlert('提示', '请先连接一个生图接口');
-        item.params = readImageParams('imggen-settings-container', item.provider || 'openai'); saveImageGenData();
+        item.params = readImageParams('imggen-settings-container', item.provider || 'openai', item.params); saveImageGenData();
         var p = item.params; if (!p.positivePrompt) return showCustomAlert('提示', '请填写正面提示词');
         if (item.provider === 'openai') return generateOpenAI(item, p);
         imageGenSettings = Object.assign({}, p); return legacyGenerate();
