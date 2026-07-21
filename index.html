@@ -1726,6 +1726,12 @@
                 <div class="room-icon-btn fill-icon frosted-glass" onclick="wcToggleMenu(event)"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg></div>
             </div>
             <div class="dropdown-menu" id="wc-dropdown-menu">
+                <div class="menu-item" onclick="wcHandleMenuClick('聊天设置')">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z" />
+                    </svg>
+                    <span>聊天设置</span>
+                </div>
                 <div class="menu-item" onclick="wcHandleMenuClick('聊天美化')"><svg viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg><span>聊天美化</span></div>
                 <div class="menu-item" onclick="wcHandleMenuClick('搜索聊天记录')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><span>搜索聊天记录</span></div>
                 <div class="menu-item" onclick="wcHandleMenuClick('清空聊天记录')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg><span>清空聊天记录</span></div>
@@ -1912,6 +1918,154 @@
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                         <span>使用 URL</span>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 聊天设置 Modal -->
+        <div class="modal-wrapper" id="wc-settings-modal">
+            <div class="modal-overlay" onclick="wcHandleSettingsBack()"></div>
+            <div class="theme-header">
+                <div class="theme-back" onclick="wcHandleSettingsBack()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v.5"/></svg></div>
+                <div class="theme-title" id="wc-settings-modal-title">WeSettings</div>
+            </div>
+            
+            <!-- 双头像容器（主设置列表时显示） -->
+            <div class="wc-settings-avatars-header" id="wc-settings-avatars-header">
+                <div class="wc-settings-avatar-btn" onclick="wcShowCharSettings()">
+                    <div class="avatar-circle" id="wc-settings-char-circle" style="background-color: #ff9500;">A</div>
+                    <div class="avatar-label" id="wc-settings-char-name">Char</div>
+                </div>
+                <div class="wc-settings-avatar-btn" onclick="wcShowUserSettings()">
+                    <div class="avatar-circle" id="wc-settings-user-circle" style="background-color: #34c759;">U</div>
+                    <div class="avatar-label" id="wc-settings-user-name">User</div>
+                </div>
+            </div>
+
+            <!-- 悬浮在外部的单头像（进入设定时显示） -->
+            <div class="wc-settings-avatar-floating" id="wc-settings-avatar-floating" onclick="wcChangeSettingsAvatar()">
+                <div class="settings-avatar-preview" id="wc-floating-avatar-preview" style="background-color: #ff9500;">A</div>
+                <div class="settings-cam-icon">
+                    <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                </div>
+            </div>
+            
+            <div class="theme-cards-container">
+                <div class="theme-card-bg"></div>
+                <div class="theme-card-main">
+                    <div class="modal-drag-bar"></div>
+                    
+                    <!-- 主设置列表视图 -->
+                    <div class="view-container" id="wc-main-settings-view">
+                        <!-- 1. 时间感知开关 -->
+                        <div class="modal-item" onclick="wcToggleSwitch(this.querySelector('.custom-toggle'))">
+                            <div class="modal-item-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" id="Calendar-Clock-Fill--Streamline-Rounded-Fill-Material" style="width: 22px; height: 22px; stroke: none;">
+                                  <path fill="currentColor" d="M4.5 22c-0.4 0 -0.75 -0.15 -1.05 -0.45 -0.3 -0.3 -0.45 -0.65 -0.45 -1.05V5c0 -0.4 0.15 -0.75 0.45 -1.05C3.75 3.65 4.1 3.5 4.5 3.5h1.625V2.8c0 -0.226665 0.079 -0.416665 0.237 -0.57 0.158 -0.153335 0.35385 -0.23 0.5875 -0.23 0.23365 0 0.4255 0.076665 0.5755 0.23 0.15 0.153335 0.225 0.343335 0.225 0.57V3.5h8.5V2.8c0 -0.226665 0.079 -0.416665 0.237 -0.57 0.158 -0.153335 0.35385 -0.23 0.5875 -0.23 0.23365 0 0.4255 0.076665 0.5755 0.23 0.15 0.153335 0.225 0.343335 0.225 0.57V3.5H19.5c0.4 0 0.75 0.15 1.05 0.45 0.3 0.3 0.45 0.65 0.45 1.05v6.925c0 0.2125 -0.07235 0.3906 -0.217 0.53425 -0.1445 0.14385 -0.32365 0.21575 -0.5375 0.21575 -0.21365 0 -0.39135 -0.0719 -0.533 -0.21575 -0.14165 -0.14365 -0.2125 -0.32175 -0.2125 -0.53425V9.75H4.5V20.5h7.65c0.2125 0 0.39065 0.07235 0.5345 0.217 0.14365 0.1445 0.2155 0.32365 0.2155 0.5375 0 0.21365 -0.07185 0.39135 -0.2155 0.533 -0.14385 0.14165 -0.322 0.2125 -0.5345 0.2125H4.5Zm13.775 1c-1.30715 0 -2.4215 -0.46065 -3.343 -1.382 -0.92135 -0.9215 -1.382 -2.03585 -1.382 -3.343s0.46065 -2.4215 1.382 -3.343c0.9215 -0.92135 2.03585 -1.382 3.343 -1.382s2.4215 0.46065 3.343 1.382C22.53935 15.8535 23 16.96785 23 18.275s-0.46065 2.4215 -1.382 3.343C20.6965 22.53935 19.58215 23 18.275 23Zm0.275 -4.775v-2.323c0 -0.13465 -0.0475 -0.24785 -0.1425 -0.3395 -0.095 -0.09165 -0.20585 -0.1375 -0.3325 -0.1375 -0.13335 0 -0.25 0.0475 -0.35 0.1425 -0.1 0.095 -0.15 0.20585 -0.15 0.3325v2.375c0 0.09285 0.01665 0.18265 0.05 0.2695 0.03335 0.087 0.08335 0.17215 0.15 0.2555l1.6 1.65c0.1 0.1 0.21665 0.15 0.35 0.15 0.13335 0 0.25 -0.05 0.35 -0.15 0.1 -0.1 0.15 -0.21665 0.15 -0.35 0 -0.13335 -0.05 -0.25 -0.15 -0.35l-1.525 -1.525Z" stroke-width="0.5"></path>
+                                </svg>
+                            </div>
+                            <div class="modal-item-text">时间感知</div>
+                            <div class="custom-toggle active"><div class="thumb"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div></div>
+                        </div>
+
+                        <!-- 2. 天气感知开关 -->
+                        <div class="modal-item" onclick="wcToggleSwitch(this.querySelector('.custom-toggle'))">
+                            <div class="modal-item-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
+                            </div>
+                            <div class="modal-item-text">天气感知</div>
+                            <div class="custom-toggle active"><div class="thumb"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div></div>
+                        </div>
+
+                        <!-- 3. 心声系统开关 -->
+                        <div class="modal-item" onclick="wcToggleSwitch(this.querySelector('.custom-toggle'))">
+                            <div class="modal-item-icon">
+                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 22px; height: 22px;">
+                                  <!-- 强制 stroke="none" 防止全局 CSS 给填充路径加上描边导致糊掉 -->
+                                  <path d="m9.26556 20.6154 0.45502 -0.5962 -0.45502 0.5962ZM12 8.93062l-0.5319 0.52878c0.1408 0.1416 0.3322 0.22122 0.5319 0.22122 0.1997 0 0.3911 -0.07962 0.5319 -0.22122L12 8.93062Zm2.7344 11.68478 0.4551 0.5962 -0.4551 -0.5962Zm-7.19542 -2.2516c-0.32395 -0.2581 -0.79582 -0.2048 -1.05394 0.1192 -0.25812 0.3239 -0.20476 0.7958 0.11919 1.0539l0.93475 -1.1731ZM3.247 15.8789c0.20373 0.3606 0.66125 0.4878 1.0219 0.2841 0.36064 -0.2037 0.48784 -0.6613 0.2841 -1.0219l-1.306 0.7378Zm0.503 -3.7797c0 -1.8244 1.06485 -3.3645 2.53482 -4.01502 1.42875 -0.63228 3.35259 -0.46623 5.18328 1.37522l1.0638 -1.05756C10.3127 6.16968 7.73658 5.8014 5.67779 6.7125 3.66023 7.60535 2.25 9.68634 2.25 12.0992h1.5Zm5.06054 9.1124c0.46045 0.3514 0.95933 0.7297 1.46586 1.0163 0.5068 0.2867 1.0892 0.5221 1.7236 0.5221v-1.5c-0.2656 0 -0.5832 -0.1004 -0.985 -0.3277 -0.4021 -0.2274 -0.8204 -0.5414 -1.29442 -0.9031l-0.91004 1.1924Zm6.37896 0c1.2789 -0.9762 2.9293 -2.1054 4.2234 -3.5163 1.32 -1.4389 2.3371 -3.2353 2.3371 -5.5961h-1.5c0 1.8764 -0.7916 3.3276 -1.9424 4.5822 -1.1767 1.2826 -2.6591 2.2929 -4.0282 3.3378l0.9101 1.1924Zm6.5605 -9.1124c0 -2.41286 -1.4102 -4.49385 -3.4278 -5.3867 -2.0588 -0.9111 -4.6349 -0.54282 -6.8541 1.68934l1.0638 1.05756c1.8307 -1.84145 3.7545 -2.0075 5.1833 -1.37522 1.47 0.65052 2.5348 2.19062 2.5348 4.01502h1.5Zm-7.4706 7.92c-0.474 0.3617 -0.8923 0.6757 -1.2944 0.9031 -0.4018 0.2273 -0.7194 0.3277 -0.985 0.3277v1.5c0.6344 0 1.2168 -0.2354 1.7236 -0.5221 0.5065 -0.2866 1.0054 -0.6649 1.4659 -1.0163l-0.9101 -1.1924Zm-4.55882 0c-0.71908 -0.5489 -1.4435 -1.0673 -2.1816 -1.6554l-0.93475 1.1731c0.74776 0.5958 1.54064 1.1666 2.20631 1.6747l0.91004 -1.1924ZM4.553 15.1411c-0.49712 -0.88 -0.803 -1.8738 -0.803 -3.0419h-1.5c0 1.4491 0.3842 2.6949 0.997 3.7797l1.306 -0.7378Z" fill="currentColor" stroke="none"></path>
+                                  <!-- 强制 fill="none" 和 stroke="currentColor" 保证线条正常显示 -->
+                                  <path d="M17 7c0 -3.31371 -1.9875 -5 -5 -5 -3.01246 0 -5 1.68629 -5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"></path>
+                                  <path d="M12 12v2.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"></path>
+                                </svg>
+                            </div>
+                            <div class="modal-item-text">心声系统</div>
+                            <div class="custom-toggle"><div class="thumb"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div></div>
+                        </div>
+
+                        <!-- 聊天上下文记忆条数 -->
+                        <div class="modal-item" style="padding-right: 16px; cursor: default;">
+                            <div class="modal-item-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <div class="modal-item-text">聊天上下文记忆</div>
+                            <input type="number" id="wc-context-memory-limit" placeholder="默认" style="width: 80px; text-align: right; border: none; background: transparent; font-size: 16px; color: #8e8e93; outline: none;" onchange="wcSaveContextMemoryLimit()">
+                        </div>
+
+                        <!-- 气泡限制 -->
+                        <div class="modal-item" style="padding-right: 16px; cursor: default;">
+                            <div class="modal-item-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            </div>
+                            <div class="modal-item-text">气泡限制</div>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <input type="number" id="wc-min-bubble-limit" placeholder="最小" style="width: 50px; text-align: center; border: none; background: rgba(0,0,0,0.05); border-radius: 6px; padding: 4px; font-size: 14px; color: #000; outline: none;" onchange="wcSaveBubbleLimits()">
+                                <span style="color: #8e8e93;">-</span>
+                                <input type="number" id="wc-max-bubble-limit" placeholder="最大" style="width: 50px; text-align: center; border: none; background: rgba(0,0,0,0.05); border-radius: 6px; padding: 4px; font-size: 14px; color: #000; outline: none;" onchange="wcSaveBubbleLimits()">
+                            </div>
+                        </div>
+
+                        <!-- 4. 关联表情包 -->
+                        <div class="modal-item" onclick="showToast('进入关联表情包设置')">
+                            <div class="modal-item-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" id="Sticker-Smile-Square--Streamline-Solar" style="width: 22px; height: 22px; stroke: none;">
+                                  <g id="Bold Duotone/Faces Emotions Stickers/Sticker Smile Square">
+                                    <path id="Vector" fill="#737374" d="M20.0714 13.0097C20.6165 13 21.2494 13 22 13v-1c0 -4.71404 0 -7.07107 -1.4645 -8.53553C19.0711 2 16.714 2 12 2 7.28596 2 4.92893 2 3.46447 3.46447 2 4.92893 2 7.28596 2 12c0 4.714 0 7.0711 1.46447 8.5355C4.92893 22 7.28596 22 12 22h1c0 -0.7506 0 -1.3835 0.0097 -1.9286 0.0195 -1.094 0.0781 -1.8342 0.2544 -2.4621l0.0026 -0.0094c0.0132 -0.0465 0.027 -0.0925 0.0415 -0.1379l0.0064 -0.02c0.219 -0.6738 0.5444 -1.2975 0.9569 -1.8517 0.0368 -0.0494 0.0743 -0.0983 0.1125 -0.1466 0.7768 -0.9832 1.8348 -1.7316 3.058 -2.1291 0.6647 -0.2159 1.4368 -0.2836 2.6294 -0.3049Z" stroke-width="1"></path>
+                                    <path id="Vector_2" fill="currentColor" d="m14.8793 21.8034 -0.0045 0.001 -0.061 0.0127 -0.0019 0.0004c-0.5853 0.1196 -1.1913 0.1824 -1.8119 0.1824h-1l0.344 -0.3436c0.4208 -0.4203 0.6551 -0.9902 0.6657 -1.585 0.0213 -1.1926 0.089 -1.9647 0.3049 -2.6294 0.6359 -1.9571 2.1703 -3.4915 4.1274 -4.1274 0.6647 -0.2159 1.4368 -0.2836 2.6294 -0.3049 0.5947 -0.0106 1.1646 -0.2447 1.5852 -0.6653L22 12.001v0.9989c0 0.662 -0.0715 1.3073 -0.2071 1.9286 -0.7473 3.4225 -3.4418 6.1171 -6.8643 6.8643l-0.0493 0.0106Z" stroke-width="1"></path>
+                                    <path id="Vector_3" fill="currentColor" d="M15 12c0.5523 0 1 -0.6716 1 -1.5 0 -0.82843 -0.4477 -1.5 -1 -1.5s-1 0.67157 -1 1.5c0 0.8284 0.4477 1.5 1 1.5Z" stroke-width="1"></path>
+                                    <path id="Vector_4" fill="currentColor" d="M9 12c0.55228 0 1 -0.6716 1 -1.5C10 9.67157 9.55228 9 9 9s-1 0.67157 -1 1.5c0 0.8284 0.44772 1.5 1 1.5Z" stroke-width="1"></path>
+                                    <path id="Vector_5" fill="currentColor" d="M13.3146 17.442c0.219 -0.6738 0.5444 -1.2975 0.9569 -1.8517 -0.6687 0.4208 -1.4446 0.6597 -2.2715 0.6597 -0.9459 0 -1.825 -0.3126 -2.55334 -0.8525 -0.33277 -0.2466 -0.80248 -0.1768 -1.04914 0.1559 -0.24666 0.3328 -0.17685 0.8025 0.15591 1.0492C9.52585 17.3234 10.7151 17.75 12 17.75c0.4338 0 0.8567 -0.0486 1.2641 -0.1407l0.0026 -0.0094c0.0132 -0.0465 0.027 -0.0925 0.0415 -0.1379l0.0064 -0.02Z" stroke-width="1"></path>
+                                  </g>
+                                </svg>
+                            </div>
+                            <div class="modal-item-text">关联表情包</div>
+                            <svg class="modal-item-arrow" viewBox="0 0 24 24" style="fill: none; stroke: #A1A1AA; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </div>
+
+                        <!-- 5. 自定义聊天提示词 -->
+                        <div class="modal-item" onclick="showToast('进入自定义聊天提示词设置')">
+                            <div class="modal-item-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 22px; height: 22px; fill: currentColor; stroke: none;">
+                                    <path d="M18 3a3 3 0 1 0 0 6 3 3 0 1 0 0-6"></path>
+                                    <path d="M18 11c-2.76 0-5-2.24-5-5a5 5 0 0 1 .9-2.85C13.28 3.05 12.65 3 12 3 6.49 3 2 6.59 2 11c0 2.91 1.9 5.51 5 6.93V21c0 .38.21.73.55.89.14.07.29.11.45.11.21 0 .42-.07.6-.2l3.74-2.8c5.36-.14 9.66-3.68 9.66-8 0-.6-.09-1.18-.24-1.74C20.84 10.31 19.51 11 18 11"></path>
+                                </svg>
+                            </div>
+                            <div class="modal-item-text">自定义聊天提示词</div>
+                            <svg class="modal-item-arrow" viewBox="0 0 24 24" style="fill: none; stroke: #A1A1AA; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </div>
+                    </div>
+
+                    <!-- Char 设定视图 -->
+                    <div class="view-container" id="wc-char-settings-view" style="display: none;">
+                        <div class="custom-textarea-wrapper">
+                            <textarea placeholder="在此输入 Char 的人设、背景故事或性格设定..."></textarea>
+                        </div>
+                        <div class="custom-actions" style="flex-direction: row;">
+                            <button class="btn-secondary" style="flex: 1;" onclick="wcShowMainSettings()">取消</button>
+                            <button class="btn-primary" style="flex: 1;" onclick="wcShowMainSettings()">保存</button>
+                        </div>
+                    </div>
+
+                    <!-- User 设定视图 -->
+                    <div class="view-container" id="wc-user-settings-view" style="display: none;">
+                        <div class="custom-textarea-wrapper">
+                            <textarea placeholder="在此输入 User 的身份背景、性格与表达习惯..."></textarea>
+                        </div>
+                        <div class="custom-actions" style="flex-direction: row;">
+                            <button class="btn-secondary" style="flex: 1;" onclick="wcShowMainSettings()">取消</button>
+                            <button class="btn-primary" style="flex: 1;" onclick="wcShowMainSettings()">保存</button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
