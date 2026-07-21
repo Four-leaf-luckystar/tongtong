@@ -240,7 +240,7 @@
         .api-nav-btn-circle.text-btn { width: auto; padding: 0 16px; border-radius: 18px; }
         .api-nav-title { position: absolute; left: 0; right: 0; text-align: center; font-size: 17px; font-weight: 700; color: #000; pointer-events: none; }
         
-        .api-content { flex: 1; overflow-y: auto; padding-bottom: 40px; }
+        .api-content { flex: 1; min-width: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: 40px; }
         .api-content::-webkit-scrollbar { display: none; }
         .api-hero-card { background-color: #fff; border-radius: 20px; margin: 10px 16px 0; padding-top: 24px; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
         .api-hero-icon-bg { width: 64px; height: 64px; border-radius: 18px; background: linear-gradient(135deg, #4eb3ff 0%, #007aff 100%); box-shadow: inset 1.5px 1.5px 3px rgba(255, 255, 255, 0.5), inset -1.5px -1.5px 3px rgba(0, 0, 0, 0.15); display: flex; justify-content: center; align-items: center; }
@@ -268,14 +268,14 @@
         /* 抽屉样式 */
         .api-drawer-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 100; }
         .api-drawer-overlay.show { opacity: 1; pointer-events: auto; }
-        .api-drawer { position: absolute; bottom: 0; left: 0; width: 100%; height: 88%; background: #f2f2f7; border-radius: 20px 20px 0 0; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); z-index: 101; display: flex; flex-direction: column; overflow: hidden; }
+        .api-drawer { position: absolute; bottom: 0; left: 0; width: 100%; min-width: 0; height: 88%; background: #f2f2f7; border-radius: 20px 20px 0 0; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); z-index: 101; display: flex; flex-direction: column; overflow: hidden; }
         .api-drawer.show { transform: translateY(0); }
         .api-drawer-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; position: relative; background: #f2f2f7; z-index: 10; }
         .api-drawer-handle { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 36px; height: 5px; background: #c7c7cc; border-radius: 3px; }
         .api-drawer-title { font-size: 17px; font-weight: 700; position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; }
         
         /* 新增：图1风格表单样式 (卡片包裹) */
-        .api-form-card { background-color: #fff; border-radius: 20px; padding: 20px 16px; margin: 0 16px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .api-form-card { min-width: 0; background-color: #fff; border-radius: 20px; padding: 20px 16px; margin: 0 16px 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
         .api-form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px; }
         .api-form-title { font-size: 15px; font-weight: 700; color: #333; text-transform: uppercase; letter-spacing: 0.5px; }
         .api-form-fetch-btn { font-size: 13px; color: #007aff; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
@@ -305,14 +305,21 @@
         .api-image-preview.hidden { display: none; }
         .api-gen-loading { color: #007aff; font-weight: 600; }
         .api-gen-error { color: #ff3b30; }
-        .api-settings-card { background-color: #fff; border-radius: 20px; margin: 0 16px 16px; padding: 16px; }
+        .api-settings-card { min-width: 0; background-color: #fff; border-radius: 20px; margin: 0 16px 16px; padding: 16px; }
         .api-settings-row { display: flex; flex-direction: column; margin-bottom: 14px; }
         .api-settings-row:last-child { margin-bottom: 0; }
         .api-settings-label { font-size: 12px; color: #8e8e93; margin-bottom: 6px; margin-left: 4px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
         .api-settings-input { background-color: #f2f2f7; border-radius: 10px; padding: 10px 14px; border: none; outline: none; font-size: 15px; color: #000; font-weight: 600; }
-        .api-settings-select { background-color: #f2f2f7; border-radius: 10px; padding: 10px 14px; border: none; outline: none; font-size: 15px; color: #000; font-weight: 600; appearance: none; -webkit-appearance: none; }
-        .api-settings-inline { display: flex; gap: 10px; }
-        .api-settings-inline .api-settings-row { flex: 1; margin-bottom: 0; }
+        .api-settings-select { background-color: #f2f2f7; border-radius: 10px; padding: 10px 14px; border: none; outline: none; font-family: inherit; font-size: 15px; color: #000; font-weight: 600; appearance: none; -webkit-appearance: none; }
+        .api-universal-select-trigger { width: 100%; min-width: 0; min-height: 40px; display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left; cursor: pointer; }
+        .api-universal-select-trigger:active { background-color: #e5e5ea; }
+        .api-universal-select-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .api-universal-select-chevron { width: 7px; height: 7px; flex: none; margin-right: 2px; border-right: 2px solid #007aff; border-bottom: 2px solid #007aff; transform: translateY(-2px) rotate(45deg); }
+        .api-settings-inline { display: flex; width: 100%; min-width: 0; gap: 10px; }
+        .api-settings-inline .api-settings-row { flex: 1 1 0; min-width: 0; margin-bottom: 0; }
+        .api-settings-inline > .api-settings-input,
+        .api-settings-inline > .api-settings-select,
+        .api-settings-inline > .api-universal-select-trigger { flex: 1 1 0; width: 0; min-width: 0; box-sizing: border-box; }
         .api-check-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 34px; margin-bottom: 10px; cursor: pointer; }
         .api-check-row:last-child { margin-bottom: 0; }
         .api-check-row .api-settings-label { margin: 0; }
@@ -327,7 +334,6 @@
         .api-mini-fetch { flex: none; min-width: 64px; padding: 0 14px; background-color: #007aff; color: #fff; border: none; outline: none; appearance: none; -webkit-appearance: none; border-radius: 12px; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; cursor: pointer; white-space: nowrap; margin-bottom: 0; }
         .api-mini-fetch:active { opacity: 0.8; }
         .api-prompt-preset-row { position: relative; display: flex; gap: 8px; align-items: stretch; }
-        .api-prompt-preset-row::after { content: ''; position: absolute; top: 50%; right: 17px; width: 7px; height: 7px; border-right: 2px solid #007aff; border-bottom: 2px solid #007aff; transform: translateY(-65%) rotate(45deg); pointer-events: none; }
         .api-prompt-preset-row .api-settings-select { min-width: 0; width: 100%; height: 44px; flex: 1; padding: 0 42px 0 14px; border: 0.5px solid rgba(60, 60, 67, 0.18); border-radius: 10px; background-color: rgba(255, 255, 255, 0.78); color: #000; font-family: inherit; font-size: 15px; font-weight: 500; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); transition: background-color 0.15s ease, opacity 0.15s ease; }
         .api-prompt-preset-row .api-settings-select:active { background-color: rgba(242, 242, 247, 0.92); }
         .api-prompt-preset-row .api-settings-select:focus-visible { box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.18); }

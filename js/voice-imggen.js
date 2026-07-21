@@ -796,9 +796,54 @@
     function input(id, value, placeholder, type, attrs) {
         return '<div class="api-form-input-wrapper"><input class="api-form-input" id="' + id + '" type="' + (type || 'text') + '" value="' + esc(value) + '" placeholder="' + esc(placeholder || '') + '" ' + (attrs || '') + '></div>';
     }
-    function select(id, items, selected) {
-        return '<select class="api-settings-select" id="' + id + '" style="width:100%;">' + options(items, selected) + '</select>';
+    function selectedOptionLabel(items, selected) {
+        var match = items.find(function (item) {
+            var value = typeof item === 'string' ? item : item[0];
+            return String(value) === String(selected);
+        });
+        if (!match) return '请选择';
+        return typeof match === 'string' ? match : match[1];
     }
+    function select(id, items, selected, attrs) {
+        return '<button class="api-settings-select api-universal-select-trigger" type="button" data-select-for="' + id + '" onclick="vigOpenFieldSelect(\'' + id + '\')"><span class="api-universal-select-value">' + esc(selectedOptionLabel(items, selected)) + '</span><span class="api-universal-select-chevron" aria-hidden="true"></span></button>' +
+            '<select class="api-universal-select-source" id="' + id + '" hidden ' + (attrs || '') + '>' + options(items, selected) + '</select>';
+    }
+    function syncUniversalSelectTrigger(source) {
+        if (!source) return;
+        var trigger = document.querySelector('[data-select-for="' + source.id + '"]');
+        var value = trigger && trigger.querySelector('.api-universal-select-value');
+        var selected = source.options[source.selectedIndex];
+        if (value) value.textContent = selected ? selected.textContent : '请选择';
+    }
+    window.vigOpenFieldSelect = function (id) {
+        var source = el(id);
+        if (!source) return;
+        var emptyValue = '__vig_empty_value__';
+        var items = Array.from(source.options).map(function (option) {
+            return { label: esc(option.textContent), value: String(option.value || emptyValue) };
+        });
+        if (!items.length) {
+            showToast('没有可选择的选项');
+            return;
+        }
+        var section = source.closest('.api-settings-row, .api-form-group');
+        var label = section && section.querySelector('.api-settings-label, .api-form-label');
+        if (typeof openUniversalSelect !== 'function') {
+            showToast('选择弹窗暂不可用');
+            return;
+        }
+        openUniversalSelect({
+            title: label ? '选择' + label.textContent.trim() : '选择选项',
+            items: items,
+            currentValue: String(source.value || emptyValue),
+            searchable: items.length > 8,
+            onSelect: function (value) {
+                source.value = value === emptyValue ? '' : value;
+                syncUniversalSelectTrigger(source);
+                source.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+    };
     function fetchInput(id, value, placeholder, onclick, text) {
         return '<div class="api-field-row"><div class="api-form-input-wrapper"><input class="api-form-input" id="' + id + '" value="' + esc(value) + '" placeholder="' + esc(placeholder) + '"></div><button class="api-mini-fetch" type="button" onclick="' + onclick + '">' + (text || '拉取') + '</button></div>';
     }
@@ -901,7 +946,8 @@
         return html;
     }
     function promptPresetControls(containerId) {
-        return '<div class="api-prompt-preset-row"><select class="api-settings-select" id="' + containerId + '-promptpreset" onchange="vigApplyPromptPreset(\'' + containerId + '\')">' + promptPresetOptions('') + '</select></div>' +
+        var id = containerId + '-promptpreset';
+        return '<div class="api-prompt-preset-row"><button class="api-settings-select api-universal-select-trigger" type="button" data-select-for="' + id + '" onclick="vigOpenFieldSelect(\'' + id + '\')"><span class="api-universal-select-value">选择提示词预设</span><span class="api-universal-select-chevron" aria-hidden="true"></span></button><select class="api-universal-select-source" id="' + id + '" hidden onchange="vigApplyPromptPreset(\'' + containerId + '\')">' + promptPresetOptions('') + '</select></div>' +
             '<div class="api-prompt-actions"><button class="api-prompt-action" type="button" onclick="vigSavePromptPreset(\'' + containerId + '\')">保存当前</button><button class="api-prompt-action danger" type="button" onclick="vigDeletePromptPreset(\'' + containerId + '\')">删除预设</button></div>';
     }
     function renderImageParams(containerId, provider, values, config) {
@@ -961,7 +1007,10 @@
     }
     function refreshPromptPresetSelect(containerId, selectedId) {
         var node = el(containerId + '-promptpreset');
-        if (node) node.innerHTML = promptPresetOptions(selectedId);
+        if (node) {
+            node.innerHTML = promptPresetOptions(selectedId);
+            syncUniversalSelectTrigger(node);
+        }
     }
     window.vigApplyPromptPreset = function (containerId) {
         var presetId = val(containerId + '-promptpreset');
