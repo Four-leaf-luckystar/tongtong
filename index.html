@@ -531,14 +531,14 @@
                     </div>
                     <div class="set-item-content"><span>API连接</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
-                <div class="set-list-item">
-                    <div class="set-item-icon set-bg-blue" style="animation-delay: 0.4s;"><svg viewBox="0 0 24 24"><path d="M17.71 7.71L12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm1.88 10.46L13 18.17v-3.76l1.88 1.88z"/></svg></div>
-                    <div class="set-item-content"><span>蓝牙</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
-                </div>
-                <div class="set-list-item">
-                    <div class="set-item-icon set-bg-green" style="animation-delay: 0.6s;"><svg viewBox="0 0 24 24"><path d="M12 11c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 2c0-3.31-2.69-6-6-6s-6 2.69-6 6c0 2.22 1.21 4.15 3 5.19l1-1.74c-1.19-.7-2-1.97-2-3.45 0-2.21 1.79-4 4-4s4 1.79 4 4c0 1.48-.81 2.75-2 3.45l1 1.74c1.79-1.04 3-2.97 3-5.19zM12 3C6.48 3 2 7.48 2 13c0 3.7 2.01 6.92 4.99 8.65l1-1.73C5.61 18.53 4 15.96 4 13c0-4.42 3.58-8 8-8s8 3.58 8 8c0 2.96-1.61 5.53-4 6.92l1 1.73c2.99-1.73 5-4.95 5-8.65 0-5.52-4.48-10-10-10z"/></svg></div>
-                    <div class="set-item-content"><span>蜂窝网络</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
-                </div>
+                <div class="set-list-item" onclick="openVoiceApp()" style="cursor: pointer;">
+                   <div class="set-item-icon set-bg-blue" style="animation-delay: 0.4s;"><svg viewBox="0 0 24 24"><path d="M17.71 7.71L12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm1.88 10.46L13 18.17v-3.76l1.88 1.88z"/></svg></div>
+                    <div class="set-item-content"><span>语音设定</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+               </div>
+                <div class="set-list-item" onclick="openImageGenApp()" style="cursor: pointer;">
+                   <div class="set-item-icon set-bg-green" style="animation-delay: 0.6s;"><svg viewBox="0 0 24 24"><path d="M12 11c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 2c0-3.31-2.69-6-6-6s-6 2.69-6 6c0 2.22 1.21 4.15 3 5.19l1-1.74c-1.19-.7-2-1.97-2-3.45 0-2.21 1.79-4 4-4s4 1.79 4 4c0 1.48-.81 2.75-2 3.45l1 1.74c1.79-1.04 3-2.97 3-5.19zM12 3C6.48 3 2 7.48 2 13c0 3.7 2.01 6.92 4.99 8.65l1-1.73C5.61 18.53 4 15.96 4 13c0-4.42 3.58-8 8-8s8 3.58 8 8c0 2.96-1.61 5.53-4 6.92l1 1.73c2.99-1.73 5-4.95 5-8.65 0-5.52-4.48-10-10-10z"/></svg></div>
+                    <div class="set-item-content"><span>生图</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+               </div>
                 <div class="set-list-item">
                     <div class="set-item-icon set-bg-green" style="animation-delay: 0.8s;"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="fill: none !important; stroke: white; width: 18px; height: 18px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></div>
                     <div class="set-item-content"><span>个人热点</span><svg class="set-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
@@ -1271,7 +1271,260 @@
     </div>
 
     <!-- 世界书 APP 容器 -->
-    <div class="wb-app-container" id="worldbookAppUI">
+    <!-- 语音设定 APP 容器 -->
+    <div class="voice-app-container" id="voiceAppUI">
+        <!-- 主页面 -->
+        <div id="voice-page-main" class="api-page active">
+            <div class="api-nav-bar">
+                <div class="api-nav-btn-circle" onclick="closeVoiceApp()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </div>
+                <div class="api-nav-btn-circle text-btn">编辑</div>
+            </div>
+            <div class="api-content">
+                <div class="api-hero-card">
+                    <div class="api-hero-icon-bg" style="background: linear-gradient(135deg, #b06bff 0%, #7a3cff 100%);">
+                        <svg viewBox="0 0 24 24"><path fill="#ffffff" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                    </div>
+                    <div class="api-hero-title">语音设定</div>
+                    <div class="api-hero-desc">接入 MiniMax、ElevenLabs、SoVITS 语音合成，管理预设并试听效果。<span>进一步了解 ..</span></div>
+                    <div style="width: 100%; border-top: 0.5px solid #c6c6c8;">
+                        <div style="width: 100%;" id="voice-connected-container"></div>
+                    </div>
+                </div>
+                <div class="api-list-title">预设</div>
+                <div class="api-list-group" id="voice-preset-container"></div>
+            </div>
+        </div>
+        <!-- 添加语音接口页面 -->
+        <div id="voice-page-add" class="api-page slide-right">
+            <div class="api-nav-bar">
+                <div class="api-nav-btn-circle" onclick="closeVoiceAddPage()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </div>
+                <div class="api-nav-title">添加语音接口</div>
+                <div class="api-nav-btn-circle text-btn" onclick="saveNewVoice()">保存</div>
+            </div>
+            <div class="api-content" style="padding-top: 20px;">
+                <div class="api-form-card" style="padding: 12px 16px; margin-bottom: 16px;">
+                    <div class="api-form-input-wrapper" style="background: transparent; padding: 0;">
+                        <input type="text" class="api-form-input" id="voice-add-name" placeholder="预设名称（例如：MiniMax 官方）">
+                    </div>
+                </div>
+                <div class="api-form-card">
+                    <div class="api-form-group">
+                        <div class="api-form-label">服务商（PROVIDER）</div>
+                        <div class="api-segment" id="voice-add-provider">
+                            <div class="api-segment-item active" data-provider="minimax">MiniMax</div>
+                            <div class="api-segment-item" data-provider="elevenlabs">ElevenLabs</div>
+                            <div class="api-segment-item" data-provider="sovits">SoVITS</div>
+                        </div>
+                    </div>
+                    <div class="api-form-group">
+                        <div class="api-form-label">URL（接口地址）</div>
+                        <div class="api-form-input-wrapper">
+                            <input type="text" class="api-form-input" id="voice-add-url" placeholder="https://api.minimax.chat">
+                        </div>
+                    </div>
+                    <div class="api-form-group">
+                        <div class="api-form-label">KEY（接口密钥）</div>
+                        <div class="api-form-input-wrapper">
+                            <input type="password" class="api-form-input" id="voice-add-key" placeholder="API Key / xi-api-key / 令牌">
+                        </div>
+                    </div>
+                    <div class="api-form-group">
+                        <div class="api-form-label">MODEL（模型）</div>
+                        <div class="api-form-input-wrapper">
+                            <input type="text" class="api-form-input" id="voice-add-model" placeholder="speech-01-hd">
+                        </div>
+                    </div>
+                    <div class="api-form-group">
+                        <div class="api-form-label">VOICE ID（音色/参考）</div>
+                        <div class="api-form-input-wrapper">
+                            <input type="text" class="api-form-input" id="voice-add-voiceid" placeholder="音色 ID 或参考音频路径">
+                        </div>
+                    </div>
+                </div>
+                <div class="api-form-card">
+                    <div class="api-form-group" style="margin-bottom: 12px;">
+                        <div class="api-form-label">试听文本</div>
+                        <div class="api-textarea-wrapper">
+                            <textarea class="api-textarea" id="voice-add-testtext" placeholder="输入一段文字试听语音合成效果…">你好，这是一段语音合成的试听示例。</textarea>
+                        </div>
+                    </div>
+                    <div class="api-form-btn" onclick="testVoice('add')">试听合成</div>
+                    <audio class="api-audio-preview" id="voice-add-audio" controls style="display: none; width: 100%;"></audio>
+                </div>
+            </div>
+        </div>
+        <!-- 底部抽屉 -->
+        <div class="api-drawer-overlay" id="voiceDrawerOverlay" onclick="closeVoiceDrawer()"></div>
+        <div class="api-drawer" id="voiceDrawer">
+            <div class="api-drawer-header">
+                <div class="api-drawer-handle"></div>
+                <div class="api-nav-btn-circle text-btn" onclick="closeVoiceDrawer()" style="font-weight: 400; background: rgba(0,0,0,0.05); box-shadow: none;">取消</div>
+                <div class="api-drawer-title">编辑语音接口</div>
+                <div class="api-nav-btn-circle text-btn" onclick="saveVoiceDrawer()" style="background: rgba(0,0,0,0.05); box-shadow: none;">保存</div>
+            </div>
+            <div class="api-content" style="padding-top: 20px;">
+                <div class="api-form-card" style="padding: 12px 16px; margin-bottom: 16px;">
+                    <div class="api-form-input-wrapper" style="background: transparent; padding: 0;">
+                        <input type="text" class="api-form-input" id="voice-edit-name" placeholder="预设名称">
+                    </div>
+                </div>
+                <div class="api-form-card">
+                    <div class="api-form-group">
+                        <div class="api-form-label">服务商（PROVIDER）</div>
+                        <div class="api-segment" id="voice-edit-provider">
+                            <div class="api-segment-item active" data-provider="minimax">MiniMax</div>
+                            <div class="api-segment-item" data-provider="elevenlabs">ElevenLabs</div>
+                            <div class="api-segment-item" data-provider="sovits">SoVITS</div>
+                        </div>
+                    </div>
+                    <div class="api-form-group">
+                        <div class="api-form-label">URL（接口地址）</div>
+                        <div class="api-form-input-wrapper"><input type="text" class="api-form-input" id="voice-edit-url" placeholder="https://api.minimax.chat"></div>
+                    </div>
+                    <div class="api-form-group">
+                        <div class="api-form-label">KEY（接口密钥）</div>
+                        <div class="api-form-input-wrapper"><input type="password" class="api-form-input" id="voice-edit-key" placeholder="API Key / xi-api-key / 令牌"></div>
+                    </div>
+                    <div class="api-form-group">
+                        <div class="api-form-label">MODEL（模型）</div>
+                        <div class="api-form-input-wrapper"><input type="text" class="api-form-input" id="voice-edit-model" placeholder="speech-01-hd"></div>
+                    </div>
+                    <div class="api-form-group">
+                        <div class="api-form-label">VOICE ID（音色/参考）</div>
+                        <div class="api-form-input-wrapper"><input type="text" class="api-form-input" id="voice-edit-voiceid" placeholder="音色 ID 或参考音频路径"></div>
+                    </div>
+                </div>
+                <div class="api-form-card">
+                    <div class="api-form-group" style="margin-bottom: 12px;">
+                        <div class="api-form-label">试听文本</div>
+                        <div class="api-textarea-wrapper"><textarea class="api-textarea" id="voice-edit-testtext" placeholder="输入一段文字试听语音合成效果…">你好，这是一段语音合成的试听示例。</textarea></div>
+                    </div>
+                    <div class="api-form-btn" onclick="testVoice('edit')">试听合成</div>
+                    <audio class="api-audio-preview" id="voice-edit-audio" controls style="display: none; width: 100%;"></audio>
+                </div>
+                <div class="api-form-btn danger" onclick="deleteVoiceDrawer()">删除此接口</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 生图 APP 容器 -->
+    <div class="imggen-app-container" id="imageGenAppUI">
+        <!-- 主页面 -->
+        <div id="imggen-page-main" class="api-page active">
+            <div class="api-nav-bar">
+                <div class="api-nav-btn-circle" onclick="closeImageGenApp()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </div>
+                <div class="api-nav-btn-circle text-btn">编辑</div>
+            </div>
+            <div class="api-content">
+                <div class="api-hero-card">
+                    <div class="api-hero-icon-bg" style="background: linear-gradient(135deg, #ff8a3c 0%, #ff3b6c 100%);">
+                        <svg viewBox="0 0 24 24"><path fill="#ffffff" d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                    </div>
+                    <div class="api-hero-title">生图</div>
+                    <div class="api-hero-desc">接入 OpenAI、NovelAI、Midjourney 生图接口，保存 URL 与 Key 预设，配置生成参数。<span>进一步了解 ..</span></div>
+                    <div style="width: 100%; border-top: 0.5px solid #c6c6c8;">
+                        <div style="width: 100%;" id="imggen-connected-container"></div>
+                    </div>
+                </div>
+                <div class="api-list-title">预设</div>
+                <div class="api-list-group" id="imggen-preset-container"></div>
+                <!-- 生成设定 -->
+                <div class="api-list-title">生成设定</div>
+                <div id="imggen-settings-container"></div>
+                <div class="api-preview-area">
+                    <div class="api-form-btn" onclick="generateImage()" id="imggen-generate-btn">生成图片</div>
+                    <div class="api-gen-result" id="imggen-result">生成的图片将显示在这里</div>
+                </div>
+            </div>
+        </div>
+        <!-- 添加生图接口页面 -->
+        <div id="imggen-page-add" class="api-page slide-right">
+            <div class="api-nav-bar">
+                <div class="api-nav-btn-circle" onclick="closeImageGenAddPage()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </div>
+                <div class="api-nav-title">添加生图接口</div>
+                <div class="api-nav-btn-circle text-btn" onclick="saveNewImageGen()">保存</div>
+            </div>
+            <div class="api-content" style="padding-top: 20px;">
+                <div class="api-form-card" style="padding: 12px 16px; margin-bottom: 16px;">
+                    <div class="api-form-input-wrapper" style="background: transparent; padding: 0;">
+                        <input type="text" class="api-form-input" id="imggen-add-name" placeholder="预设名称（例如：OpenAI 官方）">
+                    </div>
+                </div>
+                <div class="api-form-card">
+                    <div class="api-form-group">
+                        <div class="api-form-label">服务商（PROVIDER）</div>
+                        <div class="api-segment" id="imggen-add-provider">
+                            <div class="api-segment-item active" data-provider="openai">OpenAI</div>
+                            <div class="api-segment-item" data-provider="nai">NovelAI</div>
+                            <div class="api-segment-item" data-provider="mj">Midjourney</div>
+                        </div>
+                    </div>
+                    <div class="api-form-group">
+                        <div class="api-form-label">URL（接口地址）</div>
+                        <div class="api-form-input-wrapper"><input type="text" class="api-form-input" id="imggen-add-url" placeholder="https://api.openai.com/v1"></div>
+                    </div>
+                    <div class="api-form-group">
+                        <div class="api-form-label">KEY（接口密钥）</div>
+                        <div class="api-form-input-wrapper"><input type="password" class="api-form-input" id="imggen-add-key" placeholder="sk-..."></div>
+                    </div>
+                    <div class="api-form-group" style="margin-bottom: 0;">
+                        <div class="api-form-label">MODEL（模型，可选）</div>
+                        <div class="api-form-input-wrapper"><input type="text" class="api-form-input" id="imggen-add-model" placeholder="gpt-image-1"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 底部抽屉 -->
+        <div class="api-drawer-overlay" id="imggenDrawerOverlay" onclick="closeImageGenDrawer()"></div>
+        <div class="api-drawer" id="imggenDrawer">
+            <div class="api-drawer-header">
+                <div class="api-drawer-handle"></div>
+                <div class="api-nav-btn-circle text-btn" onclick="closeImageGenDrawer()" style="font-weight: 400; background: rgba(0,0,0,0.05); box-shadow: none;">取消</div>
+                <div class="api-drawer-title">编辑生图接口</div>
+                <div class="api-nav-btn-circle text-btn" onclick="saveImageGenDrawer()" style="background: rgba(0,0,0,0.05); box-shadow: none;">保存</div>
+            </div>
+            <div class="api-content" style="padding-top: 20px;">
+                <div class="api-form-card" style="padding: 12px 16px; margin-bottom: 16px;">
+                    <div class="api-form-input-wrapper" style="background: transparent; padding: 0;">
+                        <input type="text" class="api-form-input" id="imggen-edit-name" placeholder="预设名称">
+                    </div>
+                </div>
+                <div class="api-form-card">
+                    <div class="api-form-group">
+                        <div class="api-form-label">服务商（PROVIDER）</div>
+                        <div class="api-segment" id="imggen-edit-provider">
+                            <div class="api-segment-item active" data-provider="openai">OpenAI</div>
+                            <div class="api-segment-item" data-provider="nai">NovelAI</div>
+                            <div class="api-segment-item" data-provider="mj">Midjourney</div>
+                        </div>
+                    </div>
+                    <div class="api-form-group">
+                        <div class="api-form-label">URL（接口地址）</div>
+                        <div class="api-form-input-wrapper"><input type="text" class="api-form-input" id="imggen-edit-url" placeholder="https://api.openai.com/v1"></div>
+                    </div>
+                    <div class="api-form-group">
+                        <div class="api-form-label">KEY（接口密钥）</div>
+                        <div class="api-form-input-wrapper"><input type="password" class="api-form-input" id="imggen-edit-key" placeholder="sk-..."></div>
+                    </div>
+                    <div class="api-form-group" style="margin-bottom: 0;">
+                        <div class="api-form-label">MODEL（模型，可选）</div>
+                        <div class="api-form-input-wrapper"><input type="text" class="api-form-input" id="imggen-edit-model" placeholder="gpt-image-1"></div>
+                    </div>
+                </div>
+                <div class="api-form-btn danger" onclick="deleteImageGenDrawer()">删除此接口</div>
+            </div>
+        </div>
+    </div>
+
+   <div class="wb-app-container" id="worldbookAppUI">
         <!-- 1. 主页面：世界书分组列表 -->
         <div class="wb-page active" id="wbMainPage">
             <div class="wb-scroll-area">
@@ -2761,10 +3014,12 @@ fill="currentColor" viewBox="0 0 24 24" >
     }
 </script>
 <script src="js/widget.js"></script>
-<script src="js/settings-app.js"></script>
-<script src="js/worldbook.js"></script>
-<script src="js/vendor/jsQR.min.js"></script>
-<script src="js/wechat.js"></script>
+   <script src="js/settings-app.js"></script>
+   <script src="js/worldbook.js"></script>
+   <script src="js/vendor/jsQR.min.js"></script>
+    <script src="js/vendor/pako_inflate.min.js"></script>
+    <script src="js/voice-imggen.js"></script>
+   <script src="js/wechat.js"></script>
 <script src="js/search.js"></script>
 <script src="js/universal-select.js"></script>
     <!-- Widget Picker Modal -->

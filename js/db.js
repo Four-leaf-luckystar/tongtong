@@ -47,9 +47,28 @@
             ? wbGroups.filter(group => group && group.id).map(group => ({ id: group.id, name: group.name }))
             : [];
     };
-    let apiDataList = [];
-    let apiConnectedId = null;
-    let localDriveHandle = null;
+   let apiDataList = [];
+   let apiConnectedId = null;
+    let voiceDataList = [];
+    let voiceConnectedId = null;
+    let imageGenDataList = [];
+    let imageGenConnectedId = null;
+    let imageGenSettings = {
+        positivePrompt: '',
+        negativePrompt: '',
+        size: '1024x1024',
+        quality: 'medium',
+        n: 1,
+        style: 'vivid',
+        steps: 28,
+        scale: 5,
+        sampler: 'k_euler',
+        seed: '',
+        aspectRatio: '1:1',
+        outputFormat: 'png',
+        background: 'auto'
+    };
+   let localDriveHandle = null;
     let localDriveMode = null;
     let localDriveFileName = '童话机备份.json';
     let autoBackupEnabled = false;
@@ -238,12 +257,35 @@
         };
 
             // show three-dots button; click to expand vertical capsule menu
-        const apiRequest = store.get("apiData");
-        apiRequest.onsuccess = (e) => {
-            const aData = e.target.result;
-            if (aData && aData.list) {
-                apiDataList = aData.list;
-                apiConnectedId = aData.connectedId;
+       const apiRequest = store.get("apiData");
+       apiRequest.onsuccess = (e) => {
+           const aData = e.target.result;
+           if (aData && aData.list) {
+               apiDataList = aData.list;
+               apiConnectedId = aData.connectedId;
+           }
+       };
+        const voiceRequest = store.get("voiceData");
+        voiceRequest.onsuccess = (e) => {
+            const vData = e.target.result;
+            if (vData && vData.list) {
+                voiceDataList = vData.list;
+                voiceConnectedId = vData.connectedId;
+            }
+        };
+        const imageGenDataRequest = store.get("imageGenData");
+        imageGenDataRequest.onsuccess = (e) => {
+            const igData = e.target.result;
+            if (igData && igData.list) {
+                imageGenDataList = igData.list;
+                imageGenConnectedId = igData.connectedId;
+            }
+        };
+        const imageGenSettingsRequest = store.get("imageGenSettings");
+        imageGenSettingsRequest.onsuccess = (e) => {
+            const igSet = e.target.result;
+            if (igSet && igSet.data) {
+                imageGenSettings = Object.assign(imageGenSettings, igSet.data);
             }
         };
 
@@ -588,12 +630,33 @@
     }
 
 
-    function saveApiData() {
+   function saveApiData() {
+       if (!db) return;
+       const transaction = db.transaction([storeName], "readwrite");
+       const store = transaction.objectStore(storeName);
+       store.put({ id: "apiData", list: apiDataList, connectedId: apiConnectedId });
+       
+       if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+   }
+    function saveVoiceData() {
         if (!db) return;
         const transaction = db.transaction([storeName], "readwrite");
         const store = transaction.objectStore(storeName);
-        store.put({ id: "apiData", list: apiDataList, connectedId: apiConnectedId });
-        
+        store.put({ id: "voiceData", list: voiceDataList, connectedId: voiceConnectedId });
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+    }
+    function saveImageGenData() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "imageGenData", list: imageGenDataList, connectedId: imageGenConnectedId });
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+    }
+    function saveImageGenSettings() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "imageGenSettings", data: imageGenSettings });
         if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
     }
 
