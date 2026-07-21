@@ -313,10 +313,11 @@
         .api-settings-select { background-color: #f2f2f7; border-radius: 10px; padding: 10px 14px; border: none; outline: none; font-size: 15px; color: #000; font-weight: 600; appearance: none; -webkit-appearance: none; }
         .api-settings-inline { display: flex; gap: 10px; }
         .api-settings-inline .api-settings-row { flex: 1; margin-bottom: 0; }
-        .api-check-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 34px; margin-bottom: 10px; }
+        .api-check-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 34px; margin-bottom: 10px; cursor: pointer; }
         .api-check-row:last-child { margin-bottom: 0; }
         .api-check-row .api-settings-label { margin: 0; }
-        .api-check-input { position: absolute; opacity: 0; pointer-events: none; }
+        .api-check-row > span:last-child { position: relative; display: flex; width: 42px; height: 26px; flex: none; }
+        .api-check-input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
         .api-check-control { width: 42px; height: 26px; border-radius: 13px; background: #e9e9eb; position: relative; flex: none; transition: background-color 0.2s; cursor: pointer; }
         .api-check-control::after { content: ''; position: absolute; width: 22px; height: 22px; top: 2px; left: 2px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.22); transition: transform 0.2s; }
         .api-check-input:checked + .api-check-control { background: #34c759; }
