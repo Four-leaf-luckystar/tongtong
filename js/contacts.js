@@ -27,6 +27,7 @@
     let dialogConfirm = null;
     let toastTimer = null;
     let mainMenuOpen = false;
+    let contactAvatarMenuOpen = false;
     let persistQueue = Promise.resolve();
     let migratedFromLocalStorage = false;
     let externalReturnCallback = null;
@@ -960,6 +961,61 @@
         dialogConfirm = null;
     }
 
+    function openContactAvatarMenu(trigger) {
+        if (!contactDraft) return;
+        const overlay = el('#ctContactAvatarMenuOverlay');
+        const menu = el('#ctContactAvatarMenu');
+        if (!overlay || !menu || !trigger) return;
+        const rootRect = root.getBoundingClientRect();
+        const triggerRect = trigger.getBoundingClientRect();
+        const menuWidth = 240;
+        const menuHeight = 116;
+        let top = triggerRect.bottom - rootRect.top + 10;
+        let left = triggerRect.left - rootRect.left + (triggerRect.width - menuWidth) / 2;
+        if (top + menuHeight > rootRect.height - 12) top = triggerRect.top - rootRect.top - menuHeight - 10;
+        left = Math.max(12, Math.min(left, rootRect.width - menuWidth - 12));
+        menu.style.top = Math.max(12, top) + 'px';
+        menu.style.left = left + 'px';
+        contactAvatarMenuOpen = true;
+        overlay.classList.add('is-active');
+        overlay.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeContactAvatarMenu() {
+        const overlay = el('#ctContactAvatarMenuOverlay');
+        contactAvatarMenuOpen = false;
+        overlay?.classList.remove('is-active');
+        overlay?.setAttribute('aria-hidden', 'true');
+    }
+
+    function setContactAvatarFromUrl(url) {
+        const value = String(url || '').trim();
+        if (!value || !contactDraft) return false;
+        if (!/^(https?:\/\/|data:image\/|blob:)/i.test(value)) {
+            showToast('请输入有效的图片 URL');
+            return false;
+        }
+        contactDraft.avatar = value;
+        fillAvatar(el('#ctContactAvatarPreview'), value, '角色');
+        return true;
+    }
+
+    async function openContactAvatarUrlPrompt() {
+        closeContactAvatarMenu();
+        if (typeof window.showCustomPrompt !== 'function') {
+            showToast('通用输入弹窗暂不可用');
+            return;
+        }
+        const url = await window.showCustomPrompt('修改头像', {
+            type: 'url',
+            placeholder: '输入图片 URL',
+            value: ''
+        }, '确定');
+        if (url && url.trim() && setContactAvatarFromUrl(url)) {
+            showToast('头像已更新，保存联系人后生效');
+        }
+    }
+
     function confirmDialog() {
         const callback = dialogConfirm;
         const value = getValue('#ctDialogInput').trim();
@@ -1370,7 +1426,9 @@
             case 'delete-contact': deleteContact(); break;
             case 'delete-user': deleteUser(); break;
             case 'delete-npc': deleteNpc(); break;
-            case 'pick-contact-avatar': el('#ctContactAvatarInput')?.click(); break;
+            case 'pick-contact-avatar': openContactAvatarMenu(actionElement); break;
+            case 'pick-contact-avatar-file': closeContactAvatarMenu(); el('#ctContactAvatarInput')?.click(); break;
+            case 'pick-contact-avatar-url': openContactAvatarUrlPrompt(); break;
             case 'pick-user-avatar': el('#ctUserAvatarInput')?.click(); break;
             case 'pick-reference-image': el('#ctReferenceImageInput')?.click(); break;
             case 'remove-reference-image':
@@ -1394,6 +1452,7 @@
             const actionElement = event.target.closest('[data-action]');
             if (actionElement && root.contains(actionElement)) handleAction(actionElement, event);
             else if (mainMenuOpen && !event.target.closest('.ct-header-menu-wrap')) setMainMenu(false);
+            else if (contactAvatarMenuOpen && event.target === el('#ctContactAvatarMenuOverlay')) closeContactAvatarMenu();
         });
         el('#ctContactAvatarInput')?.addEventListener('change', event => handleImageInput(event.target, 'contact'));
         el('#ctUserAvatarInput')?.addEventListener('change', event => handleImageInput(event.target, 'user'));
@@ -1404,6 +1463,7 @@
         });
         root.addEventListener('keydown', event => {
             if (event.key === 'Escape' && mainMenuOpen) setMainMenu(false);
+            if (event.key === 'Escape' && contactAvatarMenuOpen) closeContactAvatarMenu();
         });
     }
 
