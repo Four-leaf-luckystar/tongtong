@@ -1581,7 +1581,7 @@
                 <div class="wc-auth-form-group">
                     <div class="wc-auth-form-input-wrapper">
                         <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        <input type="text" class="wc-auth-form-input" placeholder="账号 / 手机号">
+                        <input type="text" class="wc-auth-form-input" placeholder="微信号 / 手机号">
                     </div>
                 </div>
                 <div class="wc-auth-form-group">
@@ -1594,7 +1594,7 @@
                     </div>
                 </div>
                 
-                <button class="wc-auth-btn-primary" onclick="wcLoginSuccess()">登录</button>
+                <button class="wc-auth-btn-primary" onclick="wcPerformLogin()">登录</button>
                 
                 <div class="wc-auth-switch-link">
                     还没有账号？ <span onclick="wcSwitchAuthPage('page-wc-register')">注册</span>
@@ -1648,7 +1648,7 @@
                     </div>
                 </div>
                 
-                <button class="wc-auth-btn-primary" onclick="wcLoginSuccess()">注册</button>
+                <button class="wc-auth-btn-primary" onclick="wcRegisterAccount()">注册</button>
                 
                 <div class="wc-auth-switch-link">
                     已有账号？ <span onclick="wcSwitchAuthPage('page-wc-login')">登录</span>
@@ -1727,7 +1727,7 @@
             </div>
             <div class="dropdown-menu" id="wc-dropdown-menu">
                 <div class="menu-item" onclick="wcHandleMenuClick('聊天美化')"><svg viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg><span>聊天美化</span></div>
-                <div class="menu-item" onclick="wcHandleMenuClick('搜索')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><span>搜索</span></div>
+                <div class="menu-item" onclick="wcHandleMenuClick('搜索聊天记录')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><span>搜索聊天记录</span></div>
                 <div class="menu-item" onclick="wcHandleMenuClick('清空聊天记录')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg><span>清空聊天记录</span></div>
             </div>
             <div class="chat-area" id="wc-chat-area">
@@ -1759,6 +1759,20 @@
                     </div>
                 </div>
                 <div class="wc-panel-content" id="wcEmojiPanelContent">当前暂无表情包</div>
+            </div>
+        </div>
+
+        <!-- 微信聊天记录搜索页 -->
+        <div id="page-wc-chat-search" class="page" style="background-color: #ffffff; z-index: 150;">
+            <div class="wc-search-header" style="padding-top: 45px; display: flex; align-items: center; padding-left: 16px; padding-right: 16px; padding-bottom: 10px; background: #ffffff; border-bottom: 0.5px solid rgba(0,0,0,0.05);">
+                <div class="wc-search-bar-wrapper" style="flex: 1; display: flex; align-items: center; background: #f2f2f7; border-radius: 10px; padding: 8px 12px;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="#8e8e93" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="wcChatSearchInput" placeholder="搜索聊天记录" style="border: none; outline: none; width: 100%; margin-left: 8px; font-size: 15px; background: transparent;" oninput="wcPerformChatSearch()">
+                </div>
+                <div class="wc-search-cancel-btn" onclick="wcCloseChatSearch()" style="margin-left: 16px; font-size: 16px; color: var(--tg-blue); cursor: pointer; font-weight: 500;">取消</div>
+            </div>
+            <div class="wc-scroll-area" id="wcChatSearchResults" style="background: #ffffff; flex: 1; overflow-y: auto;">
+                <div style="text-align: center; color: #8e8e93; margin-top: 40px; font-size: 14px;">请输入搜索内容</div>
             </div>
         </div>
 
@@ -1805,10 +1819,10 @@
 
             <div class="wc-profile-section">
                 <div class="wc-profile-main">
-                    <div class="wc-avatar-wrapper">
+                    <div class="wc-avatar-wrapper" onclick="wcOpenProfileEditModal()" style="cursor: pointer;">
                         <div class="wc-avatar-inner"></div>
                     </div>
-                    <div class="wc-profile-info-wrap">
+                    <div class="wc-profile-info-wrap" onclick="wcOpenProfileEditModal()" style="cursor: pointer;">
                         <div class="wc-profile-name"></div>
                         <div class="wc-profile-id"></div>
                     </div>
@@ -1817,12 +1831,11 @@
                         <svg class="wc-chevron-right" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
                     </div>
                 </div>
-                <div class="wc-profile-bio">
+                <div class="wc-profile-bio" onclick="wcOpenProfileEditModal()" style="cursor: pointer;">
                     <div class="wc-bio-line1">Oㅈo：뭐?</div>
                     <div class="wc-bio-line2">ㅎㅇ…iam>iwas🖤🤍</div>
                 </div>
             </div>
-
 
             <div class="wc-list-group">
                 <div class="wc-list-item">
@@ -1852,6 +1865,53 @@
                     </div>
                     <div class="wc-item-text">设置</div>
                     <svg class="wc-chevron-right" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                </div>
+                <div class="wc-list-item" onclick="wcLogout()">
+                    <div class="wc-item-icon" style="color: #ff3b30;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" id="Following-1--Streamline-Ultimate" height="24" width="24">
+                          <desc>Following 1 Streamline Icon: https://streamlinehq.com</desc>
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M9.43224 10.5705c2.60586 0 4.71836 -2.11245 4.71836 -4.71834 0 -2.60588 -2.1125 -4.71837 -4.71836 -4.71837 -2.60589 0 -4.71837 2.11249 -4.71837 4.71837 0 2.60589 2.11248 4.71834 4.71837 4.71834Z" stroke-width="1.5"></path>
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" d="M1.04785 19.8471c1.09576 -3.5901 4.48935 -6.2817 8.38762 -6.2817 2.45473 0 4.70933 1.0673 6.31613 2.7541" stroke-width="1.5"></path>
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M12.9229 19.4326h10.0292" stroke-width="1.5"></path>
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m19.5186 15.9971 3.4342 3.4342 -3.4342 3.4342" stroke-width="1.5"></path>
+                        </svg>
+                    </div>
+                    <div class="wc-item-text" style="color: #ff3b30;">退出登录</div>
+                </div>
+            </div>
+
+            <!-- 微信个人信息编辑弹窗 -->
+            <div class="wc-moments-edit-overlay" id="wcProfileEditOverlay">
+                <div class="wc-moments-edit-card">
+                    <div class="edit-header">编辑个人信息</div>
+                    <div class="edit-avatar-wrapper" style="margin: 20px auto 10px;">
+                        <div class="edit-avatar-preview" id="wcProfileEditAvatarPreview" onclick="wcOpenProfileAvatarMenu(event)"></div>
+                        <div class="edit-cam-icon small"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></div>
+                    </div>
+                    <div class="edit-form">
+                        <input type="text" id="wcProfileEditName" placeholder="名称">
+                        <input type="text" id="wcProfileEditWxid" placeholder="微信号">
+                        <textarea id="wcProfileEditBio" placeholder="Oㅈo：뭐?&#10;ㅎㅇ…iam>iwas🖤🤍"></textarea>
+                    </div>
+                    <div class="edit-actions">
+                        <button class="cancel" onclick="wcCloseProfileEditModal()">取消</button>
+                        <button class="save" onclick="wcSaveProfileEdit()">保存</button>
+                    </div>
+                </div>
+            </div>
+            <input type="file" id="wcProfileAvatarInput" accept="image/*" style="display: none;" onchange="wcHandleProfileAvatarUpload(event)">
+            
+            <!-- 微信个人信息头像菜单 -->
+            <div class="icon-menu-overlay" id="wcProfileAvatarMenuOverlay" onclick="wcCloseProfileAvatarMenu()" style="z-index: 2001;">
+                <div class="icon-menu" id="wcProfileAvatarMenu" onclick="event.stopPropagation()">
+                    <div class="icon-menu-item" onclick="document.getElementById('wcProfileAvatarInput').click(); wcCloseProfileAvatarMenu();">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16V6a2 2 0 0 1 2-2h10"></path><rect x="8" y="8" width="14" height="14" rx="2" ry="2"></rect><circle cx="13.5" cy="13.5" r="1.5"></circle><path d="M8 18l4-4 2 2 3-3 5 5"></path></svg>
+                        <span>照片图库</span>
+                    </div>
+                    <div class="icon-menu-item" onclick="wcHandleProfileAvatarUrl();">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                        <span>使用 URL</span>
+                    </div>
                 </div>
             </div>
         </div>
