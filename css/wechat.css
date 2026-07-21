@@ -143,6 +143,7 @@
         #wechatAppUI .modal-item-icon svg { width: 22px; height: 22px; fill: currentColor; }
         #wechatAppUI .modal-item-text { flex: 1; font-size: 17px; font-weight: 700; color: #000; }
         #wechatAppUI .modal-item-dot { width: 14px; height: 14px; background: #A1A1AA; border-radius: 50%; }
+        #wechatAppUI .modal-item-arrow { width: 20px; height: 20px; flex-shrink: 0; } /* 新增：限制箭头大小并防止压缩 */
         #wechatAppUI .custom-toggle { position: relative; width: 52px; height: 30px; background: #A1A1AA; border-radius: 15px; cursor: pointer; transition: background 0.3s; flex-shrink: 0; }
         #wechatAppUI .custom-toggle.active { background: #333333; }
         #wechatAppUI .custom-toggle .thumb { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; background: #fff; border-radius: 50%; transition: transform 0.3s; display: flex; justify-content: center; align-items: center; }
@@ -504,3 +505,106 @@
         #wechatAppUI .wc-chat-search-time { font-size: 12px; color: #8e8e93; }
         #wechatAppUI .wc-chat-search-text { font-size: 14px; color: #8e8e93; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         #wechatAppUI .wc-chat-search-highlight { color: var(--tg-blue); font-weight: 600; }
+
+        /* 聊天设置双头像容器 */
+        #wechatAppUI .wc-settings-avatars-header {
+            position: absolute;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 40px;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+        #wechatAppUI .wc-settings-avatar-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #wechatAppUI .wc-settings-avatar-btn:active {
+            transform: scale(0.95);
+        }
+        #wechatAppUI .wc-settings-avatar-btn .avatar-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            background-size: cover;
+            background-position: center;
+        }
+        #wechatAppUI .wc-settings-avatar-btn .avatar-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #333;
+            background: rgba(255,255,255,0.9);
+            padding: 4px 12px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        /* 悬浮在外部的单头像（进入设定时显示） */
+        #wechatAppUI .wc-settings-avatar-floating {
+            position: absolute;
+            top: 95px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 84px;
+            height: 84px;
+            z-index: 10;
+            display: none;
+            cursor: pointer;
+        }
+        #wechatAppUI .wc-settings-avatar-floating .settings-avatar-preview {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: #fff;
+            transition: transform 0.2s;
+        }
+        #wechatAppUI .wc-settings-avatar-floating:active .settings-avatar-preview {
+            transform: scale(0.95);
+        }
+        #wechatAppUI .wc-settings-avatar-floating .settings-cam-icon {
+            position: absolute;
+            bottom: 0;
+            right: -4px;
+            width: 28px;
+            height: 28px;
+            background: #007aff;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        #wechatAppUI .wc-settings-avatar-floating .settings-cam-icon svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
