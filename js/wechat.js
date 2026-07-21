@@ -1,17 +1,58 @@
     // 微信 APP 逻辑 (已进行命名空间隔离)
     // ==========================================
-    function openWechatApp() {
+    
+    // 数据库操作：获取微信账号认证数据
+    async function wcGetAuthData() {
+        const data = await wcReadLayoutRecord('wechatAuthData');
+        return data || { id: 'wechatAuthData', accounts: [], currentLoginWxid: null };
+    }
+
+    // 数据库操作：保存微信账号认证数据
+    function wcSaveAuthData(data) {
+        if (!db || typeof storeName === 'undefined') return Promise.reject(new Error('数据库尚未准备好'));
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([storeName], 'readwrite');
+            // 必须将 id 包含在对象内部，不能作为 put 的第二个参数
+            data.id = 'wechatAuthData';
+            transaction.objectStore(storeName).put(data);
+            transaction.oncomplete = () => resolve(true);
+            transaction.onerror = () => reject(transaction.error);
+        });
+    }
+
+    async function openWechatApp() {
         const wechatUI = document.getElementById('wechatAppUI');
         if (wechatUI) {
             wechatUI.style.display = 'flex';
             setTimeout(() => { wechatUI.classList.add('show'); }, 10);
             
-            // 每次打开微信时，确保底部导航栏在登录/注册页是隐藏的
-            const activePage = document.querySelector('#wechatAppUI .page.active');
-            const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
-            if (activePage && (activePage.id === 'page-wc-login' || activePage.id === 'page-wc-register')) {
-                if (bottomNav) bottomNav.style.display = 'none';
+            // 检查登录状态
+            try {
+                const authData = await wcGetAuthData();
+                if (authData.currentLoginWxid) {
+                    const currentUser = authData.accounts.find(a => a.wxid === authData.currentLoginWxid);
+                    if (currentUser) {
+                        // 恢复全局变量
+                        if (typeof appSettings !== 'undefined') {
+                            appSettings.wc_current_user_id = currentUser.maskId;
+                            appSettings.wc_current_user_name = currentUser.name;
+                            appSettings.wc_current_user_avatar = currentUser.avatar;
+                            appSettings.wc_current_user_phone = currentUser.wxid; // 用 wxid 替代 phone 展示
+                        }
+                        wcSwitchTab('chat');
+                        const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+                        if (bottomNav) bottomNav.style.display = 'block';
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('读取微信登录状态失败', e);
             }
+            
+            // 未登录，显示登录页
+            wcSwitchAuthPage('page-wc-login');
+            const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+            if (bottomNav) bottomNav.style.display = 'none';
         }
     }
 
@@ -102,7 +143,7 @@
         wcCloseUserMaskDrawer();
     }
 
-    function wcRegisterAccount() {
+    async function wcRegisterAccount() {
         const phone = document.getElementById('wc-reg-phone').value.trim();
         const pwd = document.getElementById('wc-reg-pwd').value;
         const pwdConfirm = document.getElementById('wc-reg-pwd-confirm').value;
@@ -124,24 +165,123 @@
             return;
         }
 
-        // 注册成功逻辑：保存绑定的面具信息到全局设置中
-        if (typeof appSettings !== 'undefined') {
-            appSettings.wc_current_user_id = wcSelectedUserMaskId;
-            appSettings.wc_current_user_name = wcSelectedUserMaskName;
-            appSettings.wc_current_user_avatar = wcSelectedUserMaskAvatar;
-            appSettings.wc_current_user_phone = phone; // 保存手机号用于展示
-            if (typeof saveAppSettings === 'function') saveAppSettings();
+        try {
+            const authData = await wcGetAuthData();
+            if (authData.accounts.some(a => a.phone === phone)) {
+                showToast('该手机号已注册');
+                return;
+            }
+
+            // 生成随机微信号
+            const randomStr = Math.random().toString(36).substring(2, 10);
+            const wxid = 'wxid_' + randomStr;
+
+            const newAccount = {
+                wxid: wxid,
+                phone: phone,
+                password: pwd,
+                maskId: wcSelectedUserMaskId,
+                name: wcSelectedUserMaskName, // 默认使用面具名称
+                avatar: wcSelectedUserMaskAvatar
+            };
+
+            authData.accounts.push(newAccount);
+            authData.currentLoginWxid = wxid;
+            await wcSaveAuthData(authData);
+
+            // 更新全局设置
+            if (typeof appSettings !== 'undefined') {
+                appSettings.wc_current_user_id = newAccount.maskId;
+                appSettings.wc_current_user_name = newAccount.name;
+                appSettings.wc_current_user_avatar = newAccount.avatar;
+                appSettings.wc_current_user_phone = newAccount.wxid; // 展示微信号
+                if (typeof saveAppSettings === 'function') saveAppSettings();
+            }
+
+            // 初始化朋友圈资料
+            if (typeof wcMomentsProfile !== 'undefined') {
+                wcMomentsProfile.name = newAccount.name;
+                wcMomentsProfile.avatar = newAccount.avatar;
+                wcMomentsProfile.id = newAccount.wxid;
+                if (typeof wcSaveMomentsProfileData === 'function') wcSaveMomentsProfileData();
+            }
+
+            showToast('注册成功！微信号：' + wxid);
+            wcLoginSuccess();
+        } catch (e) {
+            console.error('注册失败', e);
+            showToast('注册失败，请重试');
+        }
+    }
+
+    async function wcPerformLogin() {
+        // 兼容获取输入框的值
+        const accountEl = document.querySelector('#page-wc-login input[placeholder="微信号 / 手机号"]') || document.querySelector('#page-wc-login input[placeholder="账号 / 手机号"]');
+        const accountInput = accountEl ? accountEl.value.trim() : '';
+        const pwdInput = document.querySelector('#page-wc-login input[placeholder="密码"]').value;
+
+        if (!accountInput || !pwdInput) {
+            showToast('请输入账号和密码');
+            return;
         }
 
-        // 初始化朋友圈资料 (如果未设置，则默认使用绑定的 User 面具)
-        if (typeof wcMomentsProfile !== 'undefined') {
-            if (!wcMomentsProfile.name) wcMomentsProfile.name = wcSelectedUserMaskName;
-            if (!wcMomentsProfile.avatar) wcMomentsProfile.avatar = wcSelectedUserMaskAvatar;
-            if (typeof wcSaveMomentsProfileData === 'function') wcSaveMomentsProfileData();
-        }
+        try {
+            const authData = await wcGetAuthData();
+            // 核心逻辑：同时匹配 phone (手机号) 或 wxid (微信号)
+            const user = authData.accounts.find(a => (a.phone === accountInput || a.wxid === accountInput) && a.password === pwdInput);
 
-        showToast('注册成功！');
-        wcLoginSuccess();
+            if (user) {
+                authData.currentLoginWxid = user.wxid;
+                await wcSaveAuthData(authData);
+
+                if (typeof appSettings !== 'undefined') {
+                    appSettings.wc_current_user_id = user.maskId;
+                    appSettings.wc_current_user_name = user.name;
+                    appSettings.wc_current_user_avatar = user.avatar;
+                    appSettings.wc_current_user_phone = user.wxid;
+                    if (typeof saveAppSettings === 'function') saveAppSettings();
+                }
+                
+                if (typeof wcMomentsProfile !== 'undefined') {
+                    wcMomentsProfile.name = user.name;
+                    wcMomentsProfile.avatar = user.avatar;
+                    wcMomentsProfile.id = user.wxid;
+                    if (typeof wcSaveMomentsProfileData === 'function') wcSaveMomentsProfileData();
+                }
+
+                showToast('登录成功');
+                wcLoginSuccess();
+            } else {
+                showToast('账号或密码错误');
+            }
+        } catch (e) {
+            console.error('登录失败', e);
+            showToast('登录失败，请重试');
+        }
+    }
+
+    async function wcLogout() {
+        try {
+            const authData = await wcGetAuthData();
+            authData.currentLoginWxid = null;
+            await wcSaveAuthData(authData);
+            
+            // 清除当前内存中的用户信息
+            if (typeof appSettings !== 'undefined') {
+                appSettings.wc_current_user_id = null;
+                appSettings.wc_current_user_name = '';
+                appSettings.wc_current_user_avatar = '';
+                appSettings.wc_current_user_phone = '';
+                if (typeof saveAppSettings === 'function') saveAppSettings();
+            }
+            
+            wcSwitchAuthPage('page-wc-login');
+            const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+            if (bottomNav) bottomNav.style.display = 'none';
+            showToast('已退出登录');
+        } catch (e) {
+            console.error('退出登录失败', e);
+        }
     }
 
     function wcLoginSuccess() {
@@ -185,6 +325,7 @@
         const nameEl = document.querySelector('#page-profile .wc-profile-name');
         const idEl = document.querySelector('#page-profile .wc-profile-id');
         const avatarEl = document.querySelector('#page-profile .wc-avatar-inner');
+        const bioContainer = document.querySelector('#page-profile .wc-profile-bio');
         
         if (typeof appSettings !== 'undefined') {
             if (nameEl) nameEl.innerText = appSettings.wc_current_user_name || '未命名';
@@ -198,6 +339,149 @@
                     avatarEl.style.backgroundImage = 'none';
                 }
             }
+            
+            // 处理动态签名：如果有自定义签名则替换，否则显示默认占位文案
+            if (bioContainer) {
+                if (appSettings.wc_current_user_bio) {
+                    bioContainer.style.whiteSpace = 'pre-wrap'; // 支持换行显示
+                    bioContainer.innerText = appSettings.wc_current_user_bio;
+                } else {
+                    bioContainer.style.whiteSpace = 'normal';
+                    bioContainer.innerHTML = `
+                        <div class="wc-bio-line1">Oㅈo：뭐?</div>
+                        <div class="wc-bio-line2">ㅎㅇ…iam>iwas🖤🤍</div>
+                    `;
+                }
+            }
+        }
+    }
+
+    // --- 微信个人信息编辑逻辑 ---
+    let wcTempProfileAvatar = '';
+
+    async function wcOpenProfileEditModal() {
+        const authData = await wcGetAuthData();
+        const currentUser = authData.accounts.find(a => a.wxid === authData.currentLoginWxid);
+        if (!currentUser) return;
+
+        document.getElementById('wcProfileEditName').value = currentUser.name || '';
+        document.getElementById('wcProfileEditWxid').value = currentUser.wxid || '';
+        // 如果没有自定义签名，输入框留空，让 placeholder 显示默认文案
+        document.getElementById('wcProfileEditBio').value = currentUser.bio || '';
+        
+        wcTempProfileAvatar = currentUser.avatar || '';
+        const avatarPreview = document.getElementById('wcProfileEditAvatarPreview');
+        if (wcTempProfileAvatar) {
+            avatarPreview.style.backgroundImage = `url('${wcTempProfileAvatar}')`;
+        } else {
+            avatarPreview.style.backgroundImage = 'none';
+        }
+
+        document.getElementById('wcProfileEditOverlay').classList.add('show');
+    }
+
+    function wcCloseProfileEditModal() {
+        document.getElementById('wcProfileEditOverlay').classList.remove('show');
+    }
+
+    function wcHandleProfileAvatarUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            wcTempProfileAvatar = e.target.result;
+            document.getElementById('wcProfileEditAvatarPreview').style.backgroundImage = `url('${wcTempProfileAvatar}')`;
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+    }
+
+    function wcOpenProfileAvatarMenu(event) {
+        const overlay = document.getElementById('wcProfileAvatarMenuOverlay');
+        const menu = document.getElementById('wcProfileAvatarMenu');
+        overlay.style.display = 'block';
+        const rect = event.currentTarget.getBoundingClientRect();
+        let top = rect.bottom + 10;
+        let left = rect.left + (rect.width / 2) - 75; // 居中对齐菜单
+        if (top + 130 > window.innerHeight) top = rect.top - 120;
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+    }
+
+    function wcCloseProfileAvatarMenu() {
+        document.getElementById('wcProfileAvatarMenuOverlay').style.display = 'none';
+    }
+
+    function wcHandleProfileAvatarUrl() {
+        wcCloseProfileAvatarMenu();
+        showCustomPrompt('修改头像', { placeholder: '输入图片 URL' }, '确定').then(url => {
+            if (url && url.trim()) {
+                wcTempProfileAvatar = url.trim();
+                document.getElementById('wcProfileEditAvatarPreview').style.backgroundImage = `url('${wcTempProfileAvatar}')`;
+                showToast('头像已更新，请点击保存');
+            }
+        });
+    }
+
+    async function wcSaveProfileEdit() {
+        const newName = document.getElementById('wcProfileEditName').value.trim();
+        const newWxid = document.getElementById('wcProfileEditWxid').value.trim();
+        const newBio = document.getElementById('wcProfileEditBio').value.trim();
+
+        if (!newName || !newWxid) {
+            showToast('名称和微信号不能为空');
+            return;
+        }
+
+        try {
+            const authData = await wcGetAuthData();
+            const currentUserIndex = authData.accounts.findIndex(a => a.wxid === authData.currentLoginWxid);
+            
+            if (currentUserIndex === -1) return;
+
+            // 检查微信号是否冲突 (如果修改了微信号)
+            if (newWxid !== authData.currentLoginWxid) {
+                const isConflict = authData.accounts.some((a, idx) => a.wxid === newWxid && idx !== currentUserIndex);
+                if (isConflict) {
+                    showToast('该微信号已存在');
+                    return;
+                }
+            }
+
+            // 更新数据
+            authData.accounts[currentUserIndex].name = newName;
+            authData.accounts[currentUserIndex].wxid = newWxid;
+            authData.accounts[currentUserIndex].bio = newBio;
+            authData.accounts[currentUserIndex].avatar = wcTempProfileAvatar;
+            
+            authData.currentLoginWxid = newWxid; // 更新当前登录的 wxid
+
+            await wcSaveAuthData(authData);
+
+            // 更新全局变量
+            if (typeof appSettings !== 'undefined') {
+                appSettings.wc_current_user_name = newName;
+                appSettings.wc_current_user_phone = newWxid;
+                appSettings.wc_current_user_avatar = wcTempProfileAvatar;
+                appSettings.wc_current_user_bio = newBio;
+                if (typeof saveAppSettings === 'function') saveAppSettings();
+            }
+
+            // 同步更新朋友圈资料
+            if (typeof wcMomentsProfile !== 'undefined') {
+                wcMomentsProfile.name = newName;
+                wcMomentsProfile.avatar = wcTempProfileAvatar;
+                wcMomentsProfile.id = newWxid;
+                if (typeof wcSaveMomentsProfileData === 'function') wcSaveMomentsProfileData();
+            }
+
+            showToast('个人信息已更新');
+            wcCloseProfileEditModal();
+            wcRenderProfilePage();
+
+        } catch (e) {
+            console.error('保存个人信息失败', e);
+            showToast('保存失败');
         }
     }
 
@@ -1222,6 +1506,9 @@
     async function wcHandleMenuClick(action) {
         wcCloseMenu();
         if (action === '聊天美化') wcOpenThemeModal();
+        if (action === '搜索聊天记录') {
+            wcOpenChatSearch();
+        }
         if (action === '清空聊天记录') {
             if (!wcCurrentChatContactId) return;
             const confirmed = await showCustomConfirm('清空聊天记录', '确定清空当前联系人的全部聊天记录吗？', '清空', true);
@@ -2213,6 +2500,7 @@
         const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         const row = document.createElement('div');
         row.className = `message-row ${isSent ? 'sent' : 'received'}`;
+        row.setAttribute('data-id', message.id);
 
         const avatar = document.createElement('div');
         avatar.className = 'msg-avatar';
@@ -2387,9 +2675,110 @@
         });
     }
 
+    // --- 微信聊天记录搜索逻辑 ---
+    function wcOpenChatSearch() {
+        if (!wcCurrentChatContactId) return;
+        document.getElementById('wcChatSearchInput').value = '';
+        document.getElementById('wcChatSearchResults').innerHTML = '<div style="text-align: center; color: #8e8e93; margin-top: 40px; font-size: 14px;">请输入搜索内容</div>';
+        
+        document.querySelectorAll('#wechatAppUI .page').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-wc-chat-search').classList.add('active');
+        
+        const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+        if (bottomNav) bottomNav.style.display = 'none';
+        
+        setTimeout(() => {
+            document.getElementById('wcChatSearchInput').focus();
+        }, 300);
+    }
+
+    function wcCloseChatSearch() {
+        document.querySelectorAll('#wechatAppUI .page').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-chat-room').classList.add('active');
+    }
+
+    function wcPerformChatSearch() {
+        const keyword = document.getElementById('wcChatSearchInput').value.trim().toLowerCase();
+        const resultsContainer = document.getElementById('wcChatSearchResults');
+        
+        if (!keyword) {
+            resultsContainer.innerHTML = '<div style="text-align: center; color: #8e8e93; margin-top: 40px; font-size: 14px;">请输入搜索内容</div>';
+            return;
+        }
+
+        const messages = wcChatMessagesByContact[wcCurrentChatContactId] || [];
+        const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
+        const myAvatar = typeof appSettings !== 'undefined' && appSettings.wc_current_user_avatar ? appSettings.wc_current_user_avatar : '';
+        const myName = typeof appSettings !== 'undefined' && appSettings.wc_current_user_name ? appSettings.wc_current_user_name : '我';
+        
+        const contactAvatar = contact ? contact.avatar : '';
+        const contactName = contact ? contact.name : '对方';
+
+        const results = messages.filter(msg => msg.text && msg.text.toLowerCase().includes(keyword));
+
+        if (results.length === 0) {
+            resultsContainer.innerHTML = '<div style="text-align: center; color: #8e8e93; margin-top: 40px; font-size: 14px;">无搜索结果</div>';
+            return;
+        }
+
+        let html = '';
+        // 倒序显示，最新的在最上面
+        results.slice().reverse().forEach(msg => {
+            const isSent = msg.type === 'sent';
+            const avatar = isSent ? myAvatar : contactAvatar;
+            const name = isSent ? myName : contactName;
+            
+            const createdAt = Number(msg.createdAt);
+            const dateObj = Number.isFinite(createdAt) ? new Date(createdAt) : new Date();
+            const timeStr = `${(dateObj.getMonth()+1).toString().padStart(2, '0')}-${dateObj.getDate().toString().padStart(2, '0')} ${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
+
+            // 高亮关键字
+            const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')})`, 'gi');
+            const highlightedText = msg.text.replace(regex, '<span class="wc-chat-search-highlight">$1</span>');
+
+            const avatarStyle = avatar ? `background-image: url('${avatar.replace(/'/g, "\\'")}');` : '';
+
+            html += `
+                <div class="wc-chat-search-result-item" onclick="wcJumpToMessage('${msg.id}')">
+                    <div class="wc-chat-search-avatar" style="${avatarStyle}"></div>
+                    <div class="wc-chat-search-info">
+                        <div class="wc-chat-search-name-time">
+                            <div class="wc-chat-search-name">${name}</div>
+                            <div class="wc-chat-search-time">${timeStr}</div>
+                        </div>
+                        <div class="wc-chat-search-text">${highlightedText}</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        resultsContainer.innerHTML = html;
+    }
+
+    function wcJumpToMessage(msgId) {
+        wcCloseChatSearch();
+        setTimeout(() => {
+            const chatArea = document.getElementById('wc-chat-area');
+            const msgEl = chatArea.querySelector(`.message-row[data-id="${msgId}"]`);
+            if (msgEl) {
+                msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const bubble = msgEl.querySelector('.message-bubble');
+                if (bubble) {
+                    const originalBg = bubble.style.backgroundColor;
+                    bubble.style.transition = 'background-color 0.5s';
+                    bubble.style.backgroundColor = 'rgba(0, 122, 255, 0.3)';
+                    setTimeout(() => {
+                        bubble.style.backgroundColor = originalBg || '';
+                        setTimeout(() => { bubble.style.transition = ''; }, 500);
+                    }, 1000);
+                }
+            } else {
+                if (typeof showToast === 'function') showToast('无法定位到该消息');
+            }
+        }, 300);
+    }
+
     // --- 微信聊天壁纸逻辑 ---
-
-
 
     function wcApplyChatBg() {
         const chatArea = document.getElementById('wc-chat-area');
