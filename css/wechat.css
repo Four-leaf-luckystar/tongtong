@@ -425,9 +425,9 @@
         /* 微信朋友圈编辑弹窗样式 */
         .wc-moments-edit-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); z-index: 2000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .wc-moments-edit-overlay.show { opacity: 1; pointer-events: auto; }
-        .wc-moments-edit-card { width: 280px; background: rgba(242, 242, 247, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .wc-moments-edit-card { width: 280px; background: rgba(255, 255, 255, 0.55); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
         .wc-moments-edit-overlay.show .wc-moments-edit-card { transform: scale(1); }
-        .wc-moments-edit-card .edit-header { padding: 16px; text-align: center; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.1); color: #000; }
+        .wc-moments-edit-card .edit-header { padding: 16px; text-align: center; font-size: 16px; font-weight: 600; border-bottom: none; color: #000; }
         .wc-moments-edit-card .edit-bg-preview { height: 120px; background: #ccc; position: relative; cursor: pointer; background-size: cover; background-position: center; }
         .wc-moments-edit-card .edit-avatar-wrapper { position: relative; width: 70px; height: 70px; margin: -35px auto 10px; z-index: 2; }
         .wc-moments-edit-card .edit-avatar-preview { width: 100%; height: 100%; border-radius: 50%; border: 3px solid #fff; background: #eee; cursor: pointer; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; overflow: hidden; }
@@ -492,3 +492,15 @@
         #wechatAppUI .wc-auth-avatar-badge { position: absolute; bottom: 0; right: 0; width: 26px; height: 26px; background-color: var(--tg-blue); border-radius: 50%; border: 2px solid var(--bg-color); display: flex; justify-content: center; align-items: center; }
         #wechatAppUI .wc-auth-avatar-badge svg { width: 14px; height: 14px; stroke: #fff; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
         #wechatAppUI .wc-auth-avatar-label { font-size: 14px; color: var(--text-sub); font-weight: 600; }
+
+        /* 微信聊天记录搜索页样式 */
+        #wechatAppUI .wc-chat-search-result-item { display: flex; padding: 12px 16px; cursor: pointer; background: #ffffff; position: relative; }
+        #wechatAppUI .wc-chat-search-result-item::after { content: ''; position: absolute; bottom: 0; left: 68px; right: 0; height: 0.5px; background-color: rgba(0,0,0,0.05); }
+        #wechatAppUI .wc-chat-search-result-item:active { background: #f2f2f7; }
+        #wechatAppUI .wc-chat-search-avatar { width: 40px; height: 40px; border-radius: 4px; background-color: #e5e5ea; background-size: cover; background-position: center; margin-right: 12px; flex-shrink: 0; }
+        #wechatAppUI .wc-chat-search-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+        #wechatAppUI .wc-chat-search-name-time { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        #wechatAppUI .wc-chat-search-name { font-size: 16px; font-weight: 500; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #wechatAppUI .wc-chat-search-time { font-size: 12px; color: #8e8e93; }
+        #wechatAppUI .wc-chat-search-text { font-size: 14px; color: #8e8e93; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #wechatAppUI .wc-chat-search-highlight { color: var(--tg-blue); font-weight: 600; }
