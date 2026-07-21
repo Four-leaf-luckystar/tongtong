@@ -29,6 +29,7 @@
     let mainMenuOpen = false;
     let persistQueue = Promise.resolve();
     let migratedFromLocalStorage = false;
+    let externalReturnCallback = null;
 
     function makeId(prefix) {
         if (window.crypto && typeof window.crypto.randomUUID === 'function') {
@@ -253,6 +254,35 @@
     }
 
     function goMain() {
+        if (externalReturnCallback) {
+            const cb = externalReturnCallback;
+            externalReturnCallback = null;
+            
+            // 隐藏 ContactsApp
+            setMainMenu(false);
+            root.classList.remove('show');
+            root.setAttribute('aria-hidden', 'true');
+            setTimeout(() => {
+                if (!root.classList.contains('show')) root.style.display = 'none';
+            }, 320);
+            
+            // 悄悄重置回 main 页面，以便下次正常打开
+            editingContactId = null;
+            editingUserId = null;
+            editingNpcId = null;
+            contactDraft = null;
+            userDraft = null;
+            npcDraft = null;
+            all('.ct-page').forEach(page => page.classList.remove('is-active', 'is-behind'));
+            const mainPage = el('[data-page="main"]');
+            if (mainPage) mainPage.classList.add('is-active');
+            currentPage = 'main';
+            previousPage = null;
+            
+            cb();
+            return;
+        }
+
         editingContactId = null;
         editingUserId = null;
         editingNpcId = null;
@@ -261,6 +291,16 @@
         npcDraft = null;
         showPage('main', 'back');
         renderMain();
+    }
+
+    function openContactExternal(contactId, callback) {
+        externalReturnCallback = callback;
+        openContact(contactId);
+    }
+
+    function openUserExternal(userId, callback) {
+        externalReturnCallback = callback;
+        openUser(userId);
     }
 
     function closeApp() {
@@ -1386,5 +1426,5 @@
         requestAnimationFrame(() => root.classList.add('show'));
     }
 
-    window.ContactsApp = { init, open, close: closeApp };
+    window.ContactsApp = { init, open, close: closeApp, openContact, openUser, openContactExternal, openUserExternal };
 })();
