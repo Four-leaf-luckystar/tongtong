@@ -2895,12 +2895,19 @@
     }
 
     function wcHandleChatKeyDown(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            wcSendMessage();
-        }
+        if (event.key !== 'Enter' || event.shiftKey || event.isComposing || event.keyCode === 229) return;
+        event.preventDefault();
+        wcSendMessage();
     }
     window.wcHandleChatKeyDown = wcHandleChatKeyDown;
+
+    function wcInitChatInput() {
+        const input = document.getElementById('wc-chat-input');
+        if (!input || input.dataset.enterSendBound === 'true') return;
+        input.addEventListener('keydown', wcHandleChatKeyDown);
+        input.dataset.enterSendBound = 'true';
+    }
+    wcInitChatInput();
 
     function wcSendMessage() {
         const input = document.getElementById('wc-chat-input');
