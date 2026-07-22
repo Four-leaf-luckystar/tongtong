@@ -2081,10 +2081,15 @@
         wcCloseSettingsModal();
         const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
         if (contact && contact.linkedContactId) {
-            if (window.ContactsApp && window.ContactsApp.openContactExternal) {
-                // 加上 await，等待角色库初始化和数据加载完成
-                await window.ContactsApp.open();
-                window.ContactsApp.openContactExternal(contact.linkedContactId, async () => {
+            try {
+                const contactsApp = typeof window.loadContactsApp === 'function'
+                    ? await window.loadContactsApp()
+                    : window.ContactsApp;
+                if (!contactsApp || typeof contactsApp.openContactExternal !== 'function') {
+                    throw new Error('角色库模块未正确初始化');
+                }
+                await contactsApp.open();
+                contactsApp.openContactExternal(contact.linkedContactId, async () => {
                     // 当从角色库返回时，重新同步数据并刷新聊天室
                     await wcReloadContactsFromStorage();
                     const contactRecord = await wcReadLayoutRecord('contactsAppData');
@@ -2098,6 +2103,9 @@
                         wcOpenChatRoom(wcCurrentChatContactId);
                     }
                 });
+            } catch (error) {
+                console.error('Contacts character editor could not be opened:', error);
+                if (typeof showToast === 'function') showToast('角色库加载失败，请稍后重试');
             }
         } else {
             if (typeof showToast === 'function') showToast('未找到关联的角色数据');
@@ -2108,10 +2116,15 @@
         wcCloseSettingsModal();
         const userId = typeof appSettings !== 'undefined' ? appSettings.wc_current_user_id : null;
         if (userId) {
-            if (window.ContactsApp && window.ContactsApp.openUserExternal) {
-                // 加上 await，等待角色库初始化和数据加载完成
-                await window.ContactsApp.open();
-                window.ContactsApp.openUserExternal(userId, async () => {
+            try {
+                const contactsApp = typeof window.loadContactsApp === 'function'
+                    ? await window.loadContactsApp()
+                    : window.ContactsApp;
+                if (!contactsApp || typeof contactsApp.openUserExternal !== 'function') {
+                    throw new Error('角色库模块未正确初始化');
+                }
+                await contactsApp.open();
+                contactsApp.openUserExternal(userId, async () => {
                     // 当从角色库返回时，重新同步 User 数据
                     const contactRecord = await wcReadLayoutRecord('contactsAppData');
                     const users = Array.isArray(contactRecord?.data?.users) ? contactRecord.data.users : [];
@@ -2133,6 +2146,9 @@
                         wcRenderChatMessages(wcCurrentChatContactId);
                     }
                 });
+            } catch (error) {
+                console.error('Contacts user editor could not be opened:', error);
+                if (typeof showToast === 'function') showToast('角色库加载失败，请稍后重试');
             }
         } else {
             if (typeof showToast === 'function') showToast('未找到关联的 User 数据');

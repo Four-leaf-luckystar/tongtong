@@ -454,6 +454,7 @@
 
         return contactsAppLoadPromise;
     }
+    window.loadContactsApp = loadContactsApp;
 
     function openContactsApp() {
         loadContactsApp()
