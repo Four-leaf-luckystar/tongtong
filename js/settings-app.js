@@ -176,6 +176,7 @@
         const url = document.getElementById('api-add-url').value.trim();
         const key = document.getElementById('api-add-key').value.trim();
         const model = document.getElementById('api-add-model').value;
+        const temp = parseFloat(document.getElementById('api-add-temp').value) || 0.8;
 
         if (!name || !url || !key) {
             showCustomAlert('提示', '请填写完整信息');
@@ -184,7 +185,7 @@
 
         const newApi = {
             id: Date.now(),
-            name, url, key, model: model || ''
+            name, url, key, model: model || '', temperature: temp
         };
 
         apiDataList.push(newApi);
@@ -199,6 +200,8 @@
         document.getElementById('api-add-key').value = '';
         document.getElementById('api-add-model').value = '';
         document.getElementById('api-add-model').placeholder = '请先拉取模型';
+        document.getElementById('api-add-temp').value = 0.8;
+        document.getElementById('api-add-temp-val').innerText = '0.8';
     }
 
     function deleteApiDrawer() {
@@ -216,10 +219,38 @@
         });
     }
 
+    let apiStreamEnabled = false;
+
+    function toggleApiStream() {
+        const toggleBtn = document.getElementById('apiStreamToggle');
+        apiStreamEnabled = !apiStreamEnabled;
+        if (apiStreamEnabled) {
+            toggleBtn.classList.remove('off');
+            if(typeof showToast === 'function') showToast("流式输出已开启");
+        } else {
+            toggleBtn.classList.add('off');
+            if(typeof showToast === 'function') showToast("流式输出已关闭");
+        }
+        if (typeof appSettings !== 'undefined') {
+            appSettings.api_stream_enabled = apiStreamEnabled;
+            if (typeof saveAppSettings === 'function') saveAppSettings();
+        }
+    }
+
     function openApiApp() {
         const apiAppUI = document.getElementById('apiAppUI');
         apiAppUI.style.display = 'flex';
         renderApiList();
+        
+        if (typeof appSettings !== 'undefined' && appSettings.api_stream_enabled !== undefined) {
+            apiStreamEnabled = appSettings.api_stream_enabled;
+        }
+        const toggleBtn = document.getElementById('apiStreamToggle');
+        if (toggleBtn) {
+            if (apiStreamEnabled) toggleBtn.classList.remove('off');
+            else toggleBtn.classList.add('off');
+        }
+
         setTimeout(() => {
             apiAppUI.classList.add('show');
         }, 10);
@@ -298,6 +329,10 @@
         inputEl.value = api.model || '';
         inputEl.placeholder = api.model ? api.model : '未选择模型';
         
+        const temp = api.temperature !== undefined ? api.temperature : 0.8;
+        document.getElementById('api-edit-temp').value = temp;
+        document.getElementById('api-edit-temp-val').innerText = temp;
+        
         document.getElementById('apiDrawerOverlay').classList.add('show');
         document.getElementById('apiDrawer').classList.add('show');
     }
@@ -315,6 +350,7 @@
             api.url = document.getElementById('api-edit-url').value;
             api.key = document.getElementById('api-edit-key').value;
             api.model = document.getElementById('api-edit-model').value;
+            api.temperature = parseFloat(document.getElementById('api-edit-temp').value) || 0.8;
             saveApiData();
             renderApiList();
         }

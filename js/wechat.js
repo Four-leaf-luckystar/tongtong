@@ -1426,9 +1426,82 @@
         if (emojiPanel && emojiPanel.classList.contains('show') && event && !event.target.closest('#wcEmojiPanel') && !event.target.closest('.tool-icon')) {
             wcCloseEmojiPanel();
         }
+        
+        const functionPanel = document.getElementById('wcFunctionPanel');
+        if (functionPanel && functionPanel.classList.contains('show') && event && !event.target.closest('#wcFunctionPanel') && !event.target.closest('.tool-icon')) {
+            wcCloseFunctionPanel();
+        }
     }
 
     let wcRecentEmojis = [];
+
+    // 切换功能面板显示/隐藏
+    function wcToggleFunctionPanel(event) {
+        if (event) event.stopPropagation();
+        const panel = document.getElementById('wcFunctionPanel');
+        const footer = document.getElementById('wcFooterCapsule');
+        const chatArea = document.getElementById('wc-chat-area');
+        
+        wcCloseEmojiPanel();
+        
+        if (panel.classList.contains('show')) {
+            wcCloseFunctionPanel();
+        } else {
+            panel.classList.add('show');
+            if(footer) footer.style.transform = 'translateY(-266px)';
+            if(chatArea) chatArea.style.paddingBottom = '366px';
+            wcScrollToBottom();
+        }
+    }
+
+    // 收起功能面板
+    function wcCloseFunctionPanel() {
+        const panel = document.getElementById('wcFunctionPanel');
+        const footer = document.getElementById('wcFooterCapsule');
+        const chatArea = document.getElementById('wc-chat-area');
+        if (panel && panel.classList.contains('show')) {
+            panel.classList.remove('show');
+            if(footer) footer.style.transform = 'translateY(0)';
+            if(chatArea) chatArea.style.paddingBottom = '100px';
+        }
+    }
+
+    async function wcRegenerateLastMessage() {
+        wcCloseFunctionPanel();
+        
+        if (!wcCurrentChatContactId) return;
+        const messages = wcChatMessagesByContact[wcCurrentChatContactId];
+        if (!messages || messages.length === 0) {
+            if(typeof showToast === 'function') showToast('没有可重新生成的消息');
+            return;
+        }
+        
+        // 找到最后一条 sent 消息
+        let lastSentIndex = -1;
+        for (let i = messages.length - 1; i >= 0; i--) {
+            if (messages[i].type === 'sent') {
+                lastSentIndex = i;
+                break;
+            }
+        }
+        
+        if (lastSentIndex !== -1) {
+            // 删除 lastSentIndex 之后的所有消息 (即最后一次回复的 received 消息)
+            if (lastSentIndex < messages.length - 1) {
+                messages.splice(lastSentIndex + 1);
+                if(typeof wcSaveChatData === 'function') wcSaveChatData();
+                wcRenderChatMessages(wcCurrentChatContactId);
+            }
+        } else {
+            // 如果没有 sent 消息，说明全是 received，清空
+            messages.splice(0);
+            if(typeof wcSaveChatData === 'function') wcSaveChatData();
+            wcRenderChatMessages(wcCurrentChatContactId);
+        }
+        
+        // 重新请求 API
+        wcRequestApiReply();
+    }
 
     // 切换表情面板显示/隐藏
     function wcToggleEmojiPanel(event) {
@@ -1436,6 +1509,8 @@
         const panel = document.getElementById('wcEmojiPanel');
         const footer = document.getElementById('wcFooterCapsule');
         const chatArea = document.getElementById('wc-chat-area');
+        
+        wcCloseFunctionPanel();
         
         if (typeof appSettings !== 'undefined' && appSettings.wc_recent_emojis) {
             wcRecentEmojis = appSettings.wc_recent_emojis;
@@ -1549,8 +1624,9 @@
             if (typeof saveAppSettings === 'function') saveAppSettings();
         }
         
-        wcAppendChatMessage(`[表情] ${desc}`, 'sent', wcCurrentChatContactId, url);
+        wcAppendChatMessage(`[表情] ${desc}`, 'sent', wcCurrentChatContactId, url, wcCurrentReplyMsgId);
         wcCloseEmojiPanel();
+        wcCloseReplyPreview();
     }
 
     // 打开表情搜索视图
@@ -3227,6 +3303,37 @@
         const bubble = document.createElement('div');
         bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
         
+        let pressTimer;
+        let isLongPress = false;
+        bubble.addEventListener('touchstart', (e) => {
+            isLongPress = false;
+            pressTimer = setTimeout(() => {
+                isLongPress = true;
+                if (navigator.vibrate) navigator.vibrate(50);
+                wcOpenBubbleMenu(message.id, e.touches[0].clientX, e.touches[0].clientY);
+            }, 500);
+        }, {passive: true});
+        bubble.addEventListener('touchmove', () => clearTimeout(pressTimer), {passive: true});
+        bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
+        bubble.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            wcOpenBubbleMenu(message.id, e.clientX, e.clientY);
+        });
+
+        if (message.replyTo) {
+            const replyMsg = wcChatMessagesByContact[wcCurrentChatContactId]?.find(m => m.id === message.replyTo);
+            if (replyMsg) {
+                const replyName = replyMsg.type === 'sent' ? (typeof appSettings !== 'undefined' && appSettings.wc_current_user_name ? appSettings.wc_current_user_name : '我') : (contact?.name || '对方');
+                const replyHtml = `
+                    <div class="wc-bubble-reply" onclick="wcJumpToMessage('${replyMsg.id}')">
+                        <div class="wc-bubble-reply-name">${replyName}</div>
+                        <div class="wc-bubble-reply-text">${replyMsg.text || '[图片]'}</div>
+                    </div>
+                `;
+                bubble.insertAdjacentHTML('afterbegin', replyHtml);
+            }
+        }
+        
         if (message.imageUrl) {
             bubble.style.backgroundColor = 'transparent';
             bubble.style.padding = '0';
@@ -3253,6 +3360,16 @@
             meta.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 24 24"><polyline points="18 6 7 17 2 12"></polyline><polyline points="22 6 12 16"></polyline></svg>');
         }
         bubble.appendChild(meta);
+        
+        if (message.reactions && message.reactions.length > 0) {
+            const reactionsHtml = `
+                <div class="wc-bubble-reactions">
+                    ${message.reactions.map(r => `<span class="wc-bubble-reaction">${r}</span>`).join('')}
+                </div>
+            `;
+            bubble.insertAdjacentHTML('beforeend', reactionsHtml);
+        }
+        
         row.append(avatar, bubble);
         return row;
     }
@@ -3269,7 +3386,7 @@
         wcScrollToBottom();
     }
 
-    function wcAppendChatMessage(text, type, contactId = wcCurrentChatContactId, imageUrl = null) {
+    function wcAppendChatMessage(text, type, contactId = wcCurrentChatContactId, imageUrl = null, replyTo = null) {
         if (!contactId) return;
         const message = {
             id: typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -3278,6 +3395,7 @@
             type: type === 'received' ? 'received' : 'sent',
             text: String(text),
             imageUrl: imageUrl,
+            replyTo: replyTo,
             createdAt: Date.now()
         };
         if (!Array.isArray(wcChatMessagesByContact[contactId])) wcChatMessagesByContact[contactId] = [];
@@ -3311,8 +3429,177 @@
         const input = document.getElementById('wc-chat-input');
         const text = input?.value.trim();
         if (!text) return;
-        wcAppendChatMessage(text, 'sent');
+        wcAppendChatMessage(text, 'sent', wcCurrentChatContactId, null, wcCurrentReplyMsgId);
         input.value = '';
+        wcCloseReplyPreview();
+    }
+
+    let wcCurrentLongPressMsgId = null;
+    let wcCurrentReplyMsgId = null;
+    let wcHighlightedBubbleRow = null;
+
+    function wcToggleEmojiExpand(isExpand) {
+        const capsule = document.getElementById('wcBubbleEmojisCapsule');
+        const container = document.getElementById('wcBubbleMenuContainer');
+        if (isExpand) {
+            capsule.classList.add('expanded');
+            container.classList.add('emoji-expanded');
+        } else {
+            capsule.classList.remove('expanded');
+            container.classList.remove('emoji-expanded');
+            // 滚动回顶部
+            const scrollArea = document.getElementById('wcBubbleEmojisScroll');
+            if (scrollArea) scrollArea.scrollTop = 0;
+        }
+    }
+
+    function wcOpenBubbleMenu(msgId, x, y) {
+        wcCurrentLongPressMsgId = msgId;
+        const overlay = document.getElementById('wcBubbleMenuOverlay');
+        const menuContainer = document.getElementById('wcBubbleMenuContainer');
+        
+        // 找到对应的气泡行并添加高亮特写
+        const chatArea = document.getElementById('wc-chat-area');
+        wcHighlightedBubbleRow = chatArea.querySelector(`.message-row[data-id="${msgId}"]`);
+        if (wcHighlightedBubbleRow) {
+            wcHighlightedBubbleRow.classList.add('highlighted-bubble');
+        }
+
+        overlay.classList.add('show');
+        
+        // 计算整体容器位置
+        const rect = wcHighlightedBubbleRow ? wcHighlightedBubbleRow.getBoundingClientRect() : {top: y, bottom: y, left: x, right: x, width: 0, height: 0};
+        
+        // 默认放在气泡上方
+        let containerTop = rect.top - 340; // 预估整体高度 (胶囊展开时需要更多空间)
+        if (containerTop < 60) {
+            // 如果上方空间不够，放在气泡下方
+            containerTop = rect.bottom + 10;
+            menuContainer.style.flexDirection = 'column-reverse'; // 翻转顺序，让尾巴靠近气泡
+            // 调整尾巴位置到顶部
+            const tail1 = menuContainer.querySelector('.wc-bubble-emojis-tail-1');
+            const tail2 = menuContainer.querySelector('.wc-bubble-emojis-tail-2');
+            if(tail1) { tail1.style.bottom = 'auto'; tail1.style.top = '-6px'; }
+            if(tail2) { tail2.style.bottom = 'auto'; tail2.style.top = '-14px'; }
+            menuContainer.style.transformOrigin = 'top right';
+        } else {
+            menuContainer.style.flexDirection = 'column';
+            // 恢复尾巴位置到底部
+            const tail1 = menuContainer.querySelector('.wc-bubble-emojis-tail-1');
+            const tail2 = menuContainer.querySelector('.wc-bubble-emojis-tail-2');
+            if(tail1) { tail1.style.top = 'auto'; tail1.style.bottom = '-6px'; }
+            if(tail2) { tail2.style.top = 'auto'; tail2.style.bottom = '-14px'; }
+            menuContainer.style.transformOrigin = 'bottom right';
+        }
+        
+        menuContainer.style.top = containerTop + 'px';
+        
+        // 左右对齐逻辑：胶囊宽度固定为 310px
+        let containerLeft = rect.right - 310; 
+        if (containerLeft < 10) containerLeft = 10;
+        menuContainer.style.left = containerLeft + 'px';
+    }
+
+    function wcCloseBubbleMenu() {
+        const overlay = document.getElementById('wcBubbleMenuOverlay');
+        if (overlay) overlay.classList.remove('show');
+        if (wcHighlightedBubbleRow) {
+            wcHighlightedBubbleRow.classList.remove('highlighted-bubble');
+            wcHighlightedBubbleRow = null;
+        }
+        wcCurrentLongPressMsgId = null;
+        // 关闭时重置展开状态
+        wcToggleEmojiExpand(false);
+    }
+
+    function wcAddReaction(emoji) {
+        if (!wcCurrentLongPressMsgId || !wcCurrentChatContactId) return;
+        const messages = wcChatMessagesByContact[wcCurrentChatContactId];
+        const msg = messages.find(m => m.id === wcCurrentLongPressMsgId);
+        if (msg) {
+            // 每个气泡只能贴一个 emoji，直接覆盖
+            msg.reactions = [emoji];
+            wcSaveChatData();
+            wcRenderChatMessages(wcCurrentChatContactId);
+        }
+        wcCloseBubbleMenu();
+    }
+
+    function wcMenuAction(action) {
+        if (!wcCurrentLongPressMsgId || !wcCurrentChatContactId) return;
+        const messages = wcChatMessagesByContact[wcCurrentChatContactId];
+        const msgIndex = messages.findIndex(m => m.id === wcCurrentLongPressMsgId);
+        if (msgIndex === -1) return;
+        const msg = messages[msgIndex];
+
+        if (action === 'copy') {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(msg.text).then(() => {
+                    if (typeof showToast === 'function') showToast('已复制');
+                });
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = msg.text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try { document.execCommand('copy'); if (typeof showToast === 'function') showToast('已复制'); } catch (err) {}
+                document.body.removeChild(textArea);
+            }
+        } else if (action === 'delete') {
+            showCustomConfirm('删除消息', '确定要删除这条消息吗？', '删除', true).then(confirmed => {
+                if (confirmed) {
+                    wcChatMessagesByContact[wcCurrentChatContactId] = messages.filter(m => m.id !== wcCurrentLongPressMsgId);
+                    wcSaveChatData();
+                    wcRenderChatMessages(wcCurrentChatContactId);
+                    if (typeof showToast === 'function') showToast('已删除');
+                }
+            });
+        } else if (action === 'reply') {
+            wcCurrentReplyMsgId = msg.id;
+            const preview = document.getElementById('wcReplyPreview');
+            const nameEl = document.getElementById('wcReplyPreviewName');
+            const textEl = document.getElementById('wcReplyPreviewText');
+            
+            const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
+            const name = msg.type === 'sent' ? (typeof appSettings !== 'undefined' && appSettings.wc_current_user_name ? appSettings.wc_current_user_name : '我') : (contact?.name || '对方');
+            
+            if (nameEl) nameEl.innerText = name;
+            if (textEl) textEl.innerText = msg.text || '[图片]';
+            if (preview) preview.classList.add('show');
+            
+            const input = document.getElementById('wc-chat-input');
+            if (input) input.focus();
+        } else if (action === 'rewind') {
+            showCustomConfirm('回溯消息', '确定要回溯到这条消息吗？此消息之后的所有记录将被删除。', '回溯', true).then(confirmed => {
+                if (confirmed) {
+                    wcChatMessagesByContact[wcCurrentChatContactId] = messages.slice(0, msgIndex + 1);
+                    wcSaveChatData();
+                    wcRenderChatMessages(wcCurrentChatContactId);
+                    if (typeof showToast === 'function') showToast('已回溯');
+                }
+            });
+        } else if (action === 'favorite') {
+            if (typeof showToast === 'function') showToast('收藏功能开发中');
+        } else if (action === 'edit') {
+            if (msg.type === 'sent') {
+                const input = document.getElementById('wc-chat-input');
+                if (input) {
+                    input.value = msg.text;
+                    input.focus();
+                }
+                if (typeof showToast === 'function') showToast('已填入输入框');
+            } else {
+                if (typeof showToast === 'function') showToast('只能编辑自己发送的消息');
+            }
+        }
+        
+        wcCloseBubbleMenu();
+    }
+
+    function wcCloseReplyPreview() {
+        const preview = document.getElementById('wcReplyPreview');
+        if (preview) preview.classList.remove('show');
+        wcCurrentReplyMsgId = null;
     }
 
     function wcGetApiCompletionUrl(url) {
@@ -3328,6 +3615,7 @@
             showToast('请先在 API 连接中配置并连接一个模型');
             return;
         }
+        const temperature = api.temperature !== undefined ? api.temperature : 0.8;
 
         const button = document.getElementById('wc-api-reply-btn');
         wcApiReplyPending = true;
@@ -3336,6 +3624,27 @@
             button.setAttribute('aria-busy', 'true');
             button.style.pointerEvents = 'none';
             button.style.opacity = '0.55';
+        }
+
+        const chatArea = document.getElementById('wc-chat-area');
+        const thinkingId = 'thinking_' + Date.now();
+        const contact = wcContactsList.find(item => item.id === chatContactId);
+        const avatarUrl = contact?.avatar ? `url("${String(contact.avatar).replace(/"/g, '\\"')}")` : 'none';
+        const avatarContent = contact?.avatar ? '' : getWcDefaultAvatarSvg();
+        
+        const thinkingHtml = `
+            <div class="message-row received" id="${thinkingId}">
+                <div class="msg-avatar" style="background-image: ${avatarUrl}; background-color: transparent;">${avatarContent}</div>
+                <div class="message-bubble received tail">
+                    <div class="msg-text wc-thinking-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+        `;
+        if (chatArea) {
+            chatArea.insertAdjacentHTML('beforeend', thinkingHtml);
+            wcScrollToBottom();
         }
 
         try {
@@ -3353,9 +3662,22 @@
                 const isSent = row.classList.contains('sent');
                 const msgId = row.getAttribute('data-id');
                 const msgData = wcChatMessagesByContact[chatContactId]?.find(m => m.id === msgId);
+                
+                let contentStr = msgData ? msgData.text : (row.querySelector('.msg-text')?.textContent?.trim() || '');
+                
+                if (msgData && msgData.replyTo) {
+                    const repliedMsg = wcChatMessagesByContact[chatContactId]?.find(m => m.id === msgData.replyTo);
+                    if (repliedMsg) {
+                        contentStr = `[引用了消息: "${repliedMsg.text}"]\n` + contentStr;
+                    }
+                }
+                if (msgData && msgData.reactions && msgData.reactions.length > 0) {
+                    contentStr += `\n[收到了表情反应: ${msgData.reactions.join(', ')}]`;
+                }
+
                 return {
                     role: isSent ? 'user' : 'assistant',
-                    content: msgData ? msgData.text : (row.querySelector('.msg-text')?.textContent?.trim() || '')
+                    content: contentStr
                 };
             }).filter(message => message.content).slice(-contextLimit);
 
@@ -3579,31 +3901,122 @@
                 systemPrompt += finalPromptText;
             }
 
+            systemPrompt += `【高级交互指南】\n`;
+            systemPrompt += `- 识别引用：如果用户的消息包含 [引用了消息: "..."]，说明用户在针对那句话回复。\n`;
+            systemPrompt += `- 识别反应：如果消息包含 [收到了表情反应: ...]，说明有人对这句话贴了表情。\n`;
+            systemPrompt += `- 你的引用：如果你想引用某条历史消息，可以在 JSON 中添加 "replyTo" 字段，值为你想引用的消息内容（原话）。\n`;
+            systemPrompt += `- 你的反应：如果你想对用户的某句话贴表情（如点赞、比心），可以在 JSON 中输出 {"type":"reaction", "target":"你想贴表情的用户原话", "emoji":"👍"}。\n\n`;
+
             systemPrompt += `【回复格式要求】\n`;
             systemPrompt += `你的回复必须严格拆分为 ${minReply} 到 ${maxReply} 个独立的气泡（即 messages 数组中的对象数量）！\n`;
             systemPrompt += `- Message Splitting (Natural Speech): Break your response into multiple independent short messages. Cut at natural speech pauses or breath marks. Do NOT cram multiple clauses or long paragraphs into one message.\n`;
             systemPrompt += `你必须严格输出合法的 JSON 格式，格式如下：\n`;
             if (availableEmojis.length > 0) {
-                systemPrompt += `{\n  "messages": [\n    {"type":"text", "content":"完整的一句话。"}, \n    {"type":"emoji", "content":"表情包描述"} \n  ]\n}\n`;
+                systemPrompt += `{\n  "messages": [\n    {"type":"text", "content":"完整的一句话。", "replyTo":"可选，引用的原话"}, \n    {"type":"emoji", "content":"表情包描述"}, \n    {"type":"reaction", "target":"用户的原话", "emoji":"❤️"}\n  ]\n}\n`;
             } else {
-                systemPrompt += `{\n  "messages": [\n    {"type":"text", "content":"完整的一句话。"}, \n    {"type":"text", "content":"另一句话。"} \n  ]\n}\n`;
+                systemPrompt += `{\n  "messages": [\n    {"type":"text", "content":"完整的一句话。", "replyTo":"可选，引用的原话"}, \n    {"type":"text", "content":"另一句话。"}, \n    {"type":"reaction", "target":"用户的原话", "emoji":"❤️"}\n  ]\n}\n`;
             }
             systemPrompt += `注意：只输出 JSON，不要包含任何 Markdown 标记（如 \`\`\`json）或其他说明文字。`;
 
             // 7. 发起 API 请求 (使用注入了世界书的 finalHistory)
-            const response = await fetch(wcGetApiCompletionUrl(api.url), {
-                method: 'POST',
-                headers: { 'Authorization': 'Bearer ' + api.key, 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: api.model,
-                    messages: [{ role: 'system', content: systemPrompt }, ...finalHistory]
-                })
-            });
-            
-            if (!response.ok) throw new Error('API 请求失败：HTTP ' + response.status);
-            const result = await response.json();
-            let content = result?.choices?.[0]?.message?.content ?? result?.choices?.[0]?.text ?? result?.output_text;
-            content = typeof content === 'string' ? content.trim() : '';
+            const payload = {
+                model: api.model,
+                temperature: temperature,
+                messages: [{ role: 'system', content: systemPrompt }, ...finalHistory]
+            };
+
+            let content = '';
+
+            if (typeof apiStreamEnabled !== 'undefined' && apiStreamEnabled) {
+                payload.stream = true;
+                const response = await fetch(wcGetApiCompletionUrl(api.url), {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + api.key, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error('API 请求失败：HTTP ' + response.status);
+
+                // 移除思考气泡
+                const thinkingEl = document.getElementById(thinkingId);
+                if (thinkingEl) thinkingEl.remove();
+
+                // 创建临时流式气泡
+                const streamMsgId = 'stream_' + Date.now();
+                const streamHtml = `
+                    <div class="message-row received" id="${streamMsgId}">
+                        <div class="msg-avatar" style="background-image: ${avatarUrl}; background-color: transparent;">${avatarContent}</div>
+                        <div class="message-bubble received tail">
+                            <div class="msg-text" id="${streamMsgId}_text">...</div>
+                        </div>
+                    </div>
+                `;
+                chatArea.insertAdjacentHTML('beforeend', streamHtml);
+                const streamTextEl = document.getElementById(`${streamMsgId}_text`);
+                wcScrollToBottom();
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let fullContent = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                const delta = data.choices[0].delta?.content;
+                                if (delta) {
+                                    fullContent += delta;
+                                    // 提取文本用于实时显示 (过滤掉 JSON 结构)
+                                    let text = '';
+                                    const regex = /"content"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"/g;
+                                    let match;
+                                    let lastIndex = 0;
+                                    while ((match = regex.exec(fullContent)) !== null) {
+                                        text += match[1] + ' ';
+                                        lastIndex = regex.lastIndex;
+                                    }
+                                    const unclosedMatch = fullContent.slice(lastIndex).match(/"content"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)$/);
+                                    if (unclosedMatch) {
+                                        text += unclosedMatch[1];
+                                    }
+                                    try { text = JSON.parse(`"${text}"`); } catch(e) { text = text.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\'); }
+                                    
+                                    streamTextEl.textContent = text || '...';
+                                    wcScrollToBottom();
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                }
+
+                // 流结束，移除临时气泡
+                const streamMsgEl = document.getElementById(streamMsgId);
+                if (streamMsgEl) streamMsgEl.remove();
+                
+                content = fullContent.trim();
+
+            } else {
+                const response = await fetch(wcGetApiCompletionUrl(api.url), {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + api.key, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) throw new Error('API 请求失败：HTTP ' + response.status);
+                const result = await response.json();
+                content = result?.choices?.[0]?.message?.content ?? result?.choices?.[0]?.text ?? result?.output_text;
+                content = typeof content === 'string' ? content.trim() : '';
+                
+                // 移除思考气泡
+                const thinkingEl = document.getElementById(thinkingId);
+                if (thinkingEl) thinkingEl.remove();
+            }
+
             if (!content) throw new Error('API 未返回有效回复');
 
             // 8. 解析 JSON 与智能兜底方案
@@ -3659,10 +4072,40 @@
                 messages = [{ type: 'text', content: content }]; // 终极兜底
             }
 
+            // 处理 AI 的反应动作 (reaction)
+            let hasReactionUpdate = false;
+            messages.forEach(msgObj => {
+                if (msgObj.type === 'reaction' && msgObj.target && msgObj.emoji) {
+                    const targetMsg = wcChatMessagesByContact[chatContactId]?.slice().reverse().find(m => m.text && m.text.includes(msgObj.target));
+                    if (targetMsg) {
+                        targetMsg.reactions = [msgObj.emoji];
+                        hasReactionUpdate = true;
+                    }
+                }
+            });
+            if (hasReactionUpdate) {
+                wcSaveChatData();
+                wcRenderChatMessages(chatContactId);
+            }
+            
+            // 过滤掉 reaction，只保留要发送的文本/表情包
+            messages = messages.filter(m => m.type !== 'reaction');
+
+            // 处理 replyTo 转换为 ID
+            messages.forEach(msgObj => {
+                if (msgObj.replyTo) {
+                    const targetMsg = wcChatMessagesByContact[chatContactId]?.slice().reverse().find(m => m.text && m.text.includes(msgObj.replyTo));
+                    if (targetMsg) {
+                        msgObj.replyToId = targetMsg.id;
+                    }
+                }
+            });
+
             let finalMessages = [];
             messages.forEach(msgObj => {
                 const type = msgObj.type;
                 const msgContent = msgObj.content;
+                const replyToId = msgObj.replyToId || null;
 
                 if (type === 'emoji') {
                     // 处理 emoji 类型
@@ -3686,10 +4129,10 @@
                         }
                     }
                     if (foundUrl) {
-                        finalMessages.push({ text: `[表情] ${cleanMsgContent}`, imageUrl: foundUrl });
+                        finalMessages.push({ text: `[表情] ${cleanMsgContent}`, imageUrl: foundUrl, replyToId: replyToId });
                     } else {
                         // 如果没找到对应 URL，退化为文本
-                        finalMessages.push({ text: `[表情] ${cleanMsgContent}`, imageUrl: null });
+                        finalMessages.push({ text: `[表情] ${cleanMsgContent}`, imageUrl: null, replyToId: replyToId });
                     }
                 } else {
                     // 处理 text 类型，兼容 AI 偶尔还是在文本里混排 [表情: xxx] 的情况
@@ -3699,7 +4142,7 @@
                     while ((match = emojiRegex.exec(msgContent)) !== null) {
                         const textBefore = msgContent.substring(lastIndex, match.index).trim();
                         if (textBefore) {
-                            finalMessages.push({ text: textBefore, imageUrl: null });
+                            finalMessages.push({ text: textBefore, imageUrl: null, replyToId: replyToId });
                         }
                         
                         const desc = match[1].trim().replace(/^\[|\]$/g, '').trim(); // 去除可能存在的首尾中括号
@@ -3723,9 +4166,9 @@
                         }
                         
                         if (foundUrl) {
-                            finalMessages.push({ text: `[表情] ${desc}`, imageUrl: foundUrl });
+                            finalMessages.push({ text: `[表情] ${desc}`, imageUrl: foundUrl, replyToId: replyToId });
                         } else {
-                            finalMessages.push({ text: match[0], imageUrl: null });
+                            finalMessages.push({ text: match[0], imageUrl: null, replyToId: replyToId });
                         }
                         
                         lastIndex = emojiRegex.lastIndex;
@@ -3733,14 +4176,14 @@
                     
                     const textAfter = msgContent.substring(lastIndex).trim();
                     if (textAfter) {
-                        finalMessages.push({ text: textAfter, imageUrl: null });
+                        finalMessages.push({ text: textAfter, imageUrl: null, replyToId: replyToId });
                     }
                 }
             });
 
             // 9. 逐个渲染气泡
             for (let i = 0; i < finalMessages.length; i++) {
-                wcAppendChatMessage(finalMessages[i].text, 'received', chatContactId, finalMessages[i].imageUrl);
+                wcAppendChatMessage(finalMessages[i].text, 'received', chatContactId, finalMessages[i].imageUrl, finalMessages[i].replyToId);
                 if (i < finalMessages.length - 1) {
                     wcSetApiTypingStatus(true);
                     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
@@ -3751,6 +4194,9 @@
             console.error('WeChat API reply failed:', error);
             showToast(error?.message || '获取 API 回复失败');
         } finally {
+            const thinkingEl = document.getElementById(thinkingId);
+            if (thinkingEl) thinkingEl.remove();
+            
             wcApiReplyPending = false;
             wcSetApiTypingStatus(false);
             if (button) {
