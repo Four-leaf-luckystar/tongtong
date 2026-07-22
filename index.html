@@ -1740,6 +1740,11 @@
         </div>
     </div>
 
+    <!-- 关联表情包复古弹窗容器 -->
+    <div class="wc-bind-emoji-overlay" id="wcBindEmojiOverlay" onclick="this.classList.remove('show')">
+        <!-- 内容由 JS 动态生成 -->
+    </div>
+
     <!-- 通用选择弹窗 -->
     <div class="univ-sel-overlay" id="univSelOverlay" onclick="closeUniversalSelect()">
         <div class="univ-sel-frame" onclick="event.stopPropagation()">
@@ -2165,21 +2170,13 @@
             
             <!-- 双头像容器（主设置列表时显示） -->
             <div class="wc-settings-avatars-header" id="wc-settings-avatars-header">
-                <div class="wc-settings-avatar-btn" onclick="wcShowCharSettings()">
+                <div class="wc-settings-avatar-btn" onclick="wcJumpToContactsChar()">
                     <div class="avatar-circle" id="wc-settings-char-circle" style="background-color: #ff9500;">A</div>
                     <div class="avatar-label" id="wc-settings-char-name">Char</div>
                 </div>
-                <div class="wc-settings-avatar-btn" onclick="wcShowUserSettings()">
+                <div class="wc-settings-avatar-btn" onclick="wcJumpToContactsUser()">
                     <div class="avatar-circle" id="wc-settings-user-circle" style="background-color: #34c759;">U</div>
                     <div class="avatar-label" id="wc-settings-user-name">User</div>
-                </div>
-            </div>
-
-            <!-- 悬浮在外部的单头像（进入设定时显示） -->
-            <div class="wc-settings-avatar-floating" id="wc-settings-avatar-floating" onclick="wcChangeSettingsAvatar()">
-                <div class="settings-avatar-preview" id="wc-floating-avatar-preview" style="background-color: #ff9500;">A</div>
-                <div class="settings-cam-icon">
-                    <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
                 </div>
             </div>
             
@@ -2248,7 +2245,7 @@
                         </div>
 
                         <!-- 4. 关联表情包 -->
-                        <div class="modal-item" onclick="showToast('进入关联表情包设置')">
+                        <div class="modal-item" onclick="wcOpenBindEmojiGroups()">
                             <div class="modal-item-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" id="Sticker-Smile-Square--Streamline-Solar" style="width: 22px; height: 22px; stroke: none;">
                                   <g id="Bold Duotone/Faces Emotions Stickers/Sticker Smile Square">
@@ -2277,27 +2274,7 @@
                         </div>
                     </div>
 
-                    <!-- Char 设定视图 -->
-                    <div class="view-container" id="wc-char-settings-view" style="display: none;">
-                        <div class="custom-textarea-wrapper">
-                            <textarea placeholder="在此输入 Char 的人设、背景故事或性格设定..."></textarea>
-                        </div>
-                        <div class="custom-actions" style="flex-direction: row;">
-                            <button class="btn-secondary" style="flex: 1;" onclick="wcShowMainSettings()">取消</button>
-                            <button class="btn-primary" style="flex: 1;" onclick="wcShowMainSettings()">保存</button>
-                        </div>
-                    </div>
-
-                    <!-- User 设定视图 -->
-                    <div class="view-container" id="wc-user-settings-view" style="display: none;">
-                        <div class="custom-textarea-wrapper">
-                            <textarea placeholder="在此输入 User 的身份背景、性格与表达习惯..."></textarea>
-                        </div>
-                        <div class="custom-actions" style="flex-direction: row;">
-                            <button class="btn-secondary" style="flex: 1;" onclick="wcShowMainSettings()">取消</button>
-                            <button class="btn-primary" style="flex: 1;" onclick="wcShowMainSettings()">保存</button>
-                        </div>
-                    </div>
+                    <!-- Char 和 User 设定视图已移除，点击头像直接跳转角色库 -->
 
                 </div>
             </div>
