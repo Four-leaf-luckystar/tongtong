@@ -1667,15 +1667,14 @@
     }
 
     function wcShowMainSettings() {
-        document.getElementById('wc-main-settings-view').style.display = 'flex';
-        document.getElementById('wc-char-settings-view').style.display = 'none';
-        document.getElementById('wc-user-settings-view').style.display = 'none';
+        const mainView = document.getElementById('wc-main-settings-view');
+        if (mainView) mainView.style.display = 'flex';
         
-        // 显示双头像容器，隐藏单悬浮头像
-        document.getElementById('wc-settings-avatars-header').style.display = 'flex';
-        document.getElementById('wc-settings-avatar-floating').style.display = 'none';
+        const avatarsHeader = document.getElementById('wc-settings-avatars-header');
+        if (avatarsHeader) avatarsHeader.style.display = 'flex';
         
-        document.getElementById('wc-settings-modal-title').innerText = 'WeSettings';
+        const title = document.getElementById('wc-settings-modal-title');
+        if (title) title.innerText = 'WeSettings';
     }
 
     function wcShowCharSettings() {
@@ -1736,22 +1735,16 @@
     }
 
     function wcHandleSettingsBack() {
-        const charView = document.getElementById('wc-char-settings-view');
-        const userView = document.getElementById('wc-user-settings-view');
-        
-        if (charView.style.display === 'flex' || userView.style.display === 'flex') {
-            wcShowMainSettings();
-        } else {
-            wcCloseSettingsModal();
-        }
+        wcCloseSettingsModal();
     }
 
-    function wcJumpToContactsChar() {
+    async function wcJumpToContactsChar() {
         wcCloseSettingsModal();
         const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
         if (contact && contact.linkedContactId) {
             if (window.ContactsApp && window.ContactsApp.openContactExternal) {
-                window.ContactsApp.open();
+                // 加上 await，等待角色库初始化和数据加载完成
+                await window.ContactsApp.open();
                 window.ContactsApp.openContactExternal(contact.linkedContactId, async () => {
                     // 当从角色库返回时，重新同步数据并刷新聊天室
                     await wcReloadContactsFromStorage();
@@ -1772,12 +1765,13 @@
         }
     }
 
-    function wcJumpToContactsUser() {
+    async function wcJumpToContactsUser() {
         wcCloseSettingsModal();
         const userId = typeof appSettings !== 'undefined' ? appSettings.wc_current_user_id : null;
         if (userId) {
             if (window.ContactsApp && window.ContactsApp.openUserExternal) {
-                window.ContactsApp.open();
+                // 加上 await，等待角色库初始化和数据加载完成
+                await window.ContactsApp.open();
                 window.ContactsApp.openUserExternal(userId, async () => {
                     // 当从角色库返回时，重新同步 User 数据
                     const contactRecord = await wcReadLayoutRecord('contactsAppData');
@@ -1839,6 +1833,111 @@
         }
     }
     window.wcSaveContextMemoryLimit = wcSaveContextMemoryLimit;
+
+    function wcOpenBindEmojiGroups() {
+        const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
+        if (!contact) return;
+        
+        // 动态创建 overlay，确保点击一定有反应
+        let overlay = document.getElementById('wcBindEmojiOverlay');
+        if (!overlay) {
+            const overlayHtml = `<div class="wc-bind-emoji-overlay" id="wcBindEmojiOverlay" onclick="if(event.target === this) this.classList.remove('show')"></div>`;
+            document.body.insertAdjacentHTML('beforeend', overlayHtml);
+            overlay = document.getElementById('wcBindEmojiOverlay');
+        }
+        
+        const boundGroups = contact.boundEmojiGroups || [];
+        
+        let html = `
+            <div class="wc-bind-emoji-window" onclick="event.stopPropagation()">
+                <!-- 顶部标题栏 -->
+                <div class="wc-bind-emoji-header">
+                    <div class="wc-bind-emoji-controls">
+                        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                        <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </div>
+                    <div class="wc-bind-emoji-address-bar">
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <span>关联表情包</span>
+                    </div>
+                </div>
+
+                <!-- 中间网格内容区 -->
+                <div class="wc-bind-emoji-content">
+                    <div class="wc-bind-emoji-grid">
+        `;
+        
+        if (wcEmojiGroups.length === 0) {
+            html += `<div style="grid-column: 1 / -1; color: #8e8e93; text-align: center; padding: 40px 0; font-size: 14px;">暂无表情包分组</div>`;
+        } else {
+            wcEmojiGroups.forEach(g => {
+                const isChecked = boundGroups.includes(g.id) ? 'selected' : '';
+                
+                // 构建 4 宫格预览
+                let previewHtml = '';
+                if (g.emojis && g.emojis.length > 0) {
+                    const previewCount = Math.min(g.emojis.length, 4);
+                    for (let i = 0; i < previewCount; i++) {
+                        previewHtml += `<div class="wc-bind-emoji-preview-cell" style="background-image: url('${g.emojis[i].url}')"></div>`;
+                    }
+                    // 如果不足4个，用空div占位保持网格
+                    for (let i = previewCount; i < 4; i++) {
+                        previewHtml += `<div class="wc-bind-emoji-preview-cell empty"></div>`;
+                    }
+                } else {
+                    previewHtml = `<div style="grid-column: 1/-1; display:flex; justify-content:center; align-items:center; font-size: 24px;">📁</div>`;
+                }
+                
+                html += `
+                    <div class="wc-bind-emoji-item-wrapper" data-id="${g.id}" onclick="this.querySelector('.wc-bind-emoji-card').classList.toggle('selected')">
+                        <div class="wc-bind-emoji-card ${isChecked}">
+                            <div class="wc-bind-emoji-indicator">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            <div class="wc-bind-emoji-preview ${g.emojis && g.emojis.length > 0 ? 'grid-4' : ''}">
+                                ${previewHtml}
+                            </div>
+                        </div>
+                        <div class="wc-bind-emoji-name">${g.name}</div>
+                    </div>
+                `;
+            });
+        }
+        
+        html += `
+                    </div>
+                </div>
+
+                <!-- 底部状态栏 -->
+                <div class="wc-bind-emoji-footer">
+                    <div class="wc-bind-emoji-actions">
+                        <button class="wc-bind-emoji-btn cancel" onclick="document.getElementById('wcBindEmojiOverlay').classList.remove('show')">取消</button>
+                        <button class="wc-bind-emoji-btn save" onclick="wcSaveBindEmojiGroups()">保存绑定</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        overlay.innerHTML = html;
+        overlay.classList.add('show');
+    }
+    window.wcOpenBindEmojiGroups = wcOpenBindEmojiGroups;
+
+    function wcSaveBindEmojiGroups() {
+        const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
+        if (!contact) return;
+        
+        const selectedCards = document.querySelectorAll('.wc-bind-emoji-card.selected');
+        const selectedIds = Array.from(selectedCards).map(card => card.closest('.wc-bind-emoji-item-wrapper').getAttribute('data-id'));
+        
+        contact.boundEmojiGroups = selectedIds;
+        wcSaveContactsDataAsync();
+        
+        document.getElementById('wcBindEmojiOverlay').classList.remove('show');
+        if (typeof showToast === 'function') showToast('关联表情包已保存');
+    }
+    window.wcSaveBindEmojiGroups = wcSaveBindEmojiGroups;
 
     function wcHandleThemeBack() {
         const presetView = document.getElementById('wc-theme-preset-view');
@@ -2931,20 +3030,6 @@
             return;
         }
 
-        const chatArea = document.getElementById('wc-chat-area');
-        const history = Array.from(chatArea?.querySelectorAll('.message-row') || []).map(row => ({
-            role: row.classList.contains('sent') ? 'user' : 'assistant',
-            content: row.querySelector('.msg-text')?.textContent?.trim() || ''
-        })).filter(message => message.content).slice(-40);
-        if (!history.some(message => message.role === 'user')) {
-            showToast('请先按回车发送消息');
-            return;
-        }
-
-        const contact = wcContactsList.find(item => item.id === chatContactId);
-        const systemContent = contact
-            ? `你正在微信中扮演${contact.name || '当前联系人'}。请始终以该角色的口吻直接回复，不要解释你在扮演角色。角色设定：${contact.persona || contact.desc || '自然交流。'}`
-            : '你正在微信聊天中回复用户。请直接、自然地回复，不要解释系统设定。';
         const button = document.getElementById('wc-api-reply-btn');
         wcApiReplyPending = true;
         wcSetApiTypingStatus(true);
@@ -2953,21 +3038,344 @@
             button.style.pointerEvents = 'none';
             button.style.opacity = '0.55';
         }
+
         try {
+            // 1. 动态读取聊天设置中的上下文记忆条数 (默认100)
+            let contextLimit = 100;
+            if (typeof appSettings !== 'undefined' && appSettings.wc_context_memory_limit) {
+                const parsedLimit = parseInt(appSettings.wc_context_memory_limit);
+                if (!isNaN(parsedLimit) && parsedLimit > 0) {
+                    contextLimit = parsedLimit;
+                }
+            }
+
+            const chatArea = document.getElementById('wc-chat-area');
+            const history = Array.from(chatArea?.querySelectorAll('.message-row') || []).map(row => {
+                const isSent = row.classList.contains('sent');
+                const msgId = row.getAttribute('data-id');
+                const msgData = wcChatMessagesByContact[chatContactId]?.find(m => m.id === msgId);
+                return {
+                    role: isSent ? 'user' : 'assistant',
+                    content: msgData ? msgData.text : (row.querySelector('.msg-text')?.textContent?.trim() || '')
+                };
+            }).filter(message => message.content).slice(-contextLimit);
+
+            // 2. 读取 User 人设、Char 人设
+            const contactRecord = await wcReadLayoutRecord('contactsAppData');
+            const users = Array.isArray(contactRecord?.data?.users) ? contactRecord.data.users : [];
+            const originalContacts = Array.isArray(contactRecord?.data?.contacts) ? contactRecord.data.contacts : [];
+            
+            const currentUser = users.find(u => u.id === (typeof appSettings !== 'undefined' ? appSettings.wc_current_user_id : null));
+            const userPersona = currentUser?.persona || '';
+
+            const contact = wcContactsList.find(item => item.id === chatContactId);
+            const originalContact = originalContacts.find(c => c.id === contact?.linkedContactId);
+            
+            const charName = contact?.name || '当前联系人';
+            const charPersona = originalContact?.persona || contact?.persona || contact?.desc || '';
+            
+            // 3. 智能读取世界书 (模仿 Tavern 逻辑：触发词匹配 + 注入深度 + 注入位置)
+            let wbBeforePrompt = '';
+            let wbAfterPrompt = '';
+            let wbChatInsertions = {}; // 记录需要插入到 history 中的世界书
+            
+            // 提取历史文本用于触发词匹配 (转小写)
+            const historyText = history.map(m => m.content).join('\n').toLowerCase();
+
+            if (typeof wbEntries !== 'undefined' && Array.isArray(wbEntries)) {
+                const boundWbIds = Array.isArray(originalContact?.worldbookIds) ? originalContact.worldbookIds : [];
+                const activeWbs = wbEntries.filter(e => !e.isDeleted && (e.isGlobal || boundWbIds.includes(e.id)));
+                
+                activeWbs.forEach(wb => {
+                    let isTriggered = false;
+                    // 如果没有填写触发词，默认常驻激活
+                    if (!wb.key || wb.key.trim() === '') {
+                        isTriggered = true;
+                    } else {
+                        // 逗号分隔触发词，只要命中一个即触发
+                        const keys = wb.key.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
+                        isTriggered = keys.some(k => historyText.includes(k));
+                    }
+
+                    if (isTriggered) {
+                        const depth = parseInt(wb.depth) || 0;
+                        const position = wb.position || '后置 (After)';
+                        const content = `[${wb.title}]: ${wb.content}`;
+
+                        if (depth === 0) {
+                            // 深度为 0 时，根据位置拼接到 System Prompt
+                            if (position.includes('前置') || position.includes('Before')) {
+                                wbBeforePrompt += content + '\n';
+                            } else {
+                                wbAfterPrompt += content + '\n';
+                            }
+                        } else {
+                            // 深度大于 0 时，记录到插入队列
+                            if (!wbChatInsertions[depth]) wbChatInsertions[depth] = [];
+                            wbChatInsertions[depth].push(content);
+                        }
+                    }
+                });
+            }
+
+            // 4. 将 depth > 0 的世界书插入到 history 数组中
+            let finalHistory = [];
+            for (let i = 0; i < history.length; i++) {
+                const currentDepth = history.length - i; // 计算当前消息距离底部的深度
+                if (wbChatInsertions[currentDepth]) {
+                    finalHistory.push({
+                        role: 'system',
+                        content: `【世界书补充设定】\n${wbChatInsertions[currentDepth].join('\n')}`
+                    });
+                }
+                finalHistory.push(history[i]);
+            }
+            // 处理 depth 大于当前聊天记录长度的世界书（放在最前面）
+            let overflowWbs = [];
+            for (const d in wbChatInsertions) {
+                if (parseInt(d) > history.length) {
+                    overflowWbs.push(...wbChatInsertions[d]);
+                }
+            }
+            if (overflowWbs.length > 0) {
+                finalHistory.unshift({
+                    role: 'system',
+                    content: `【世界书补充设定】\n${overflowWbs.join('\n')}`
+                });
+            }
+
+            // 5. 动态读取聊天设置中的气泡限制 (默认 3 到 8)
+            let minReply = 3;
+            let maxReply = 8;
+            if (typeof appSettings !== 'undefined') {
+                if (appSettings.wc_min_bubble_limit) {
+                    const parsedMin = parseInt(appSettings.wc_min_bubble_limit);
+                    if (!isNaN(parsedMin) && parsedMin > 0) minReply = parsedMin;
+                }
+                if (appSettings.wc_max_bubble_limit) {
+                    const parsedMax = parseInt(appSettings.wc_max_bubble_limit);
+                    if (!isNaN(parsedMax) && parsedMax >= minReply) maxReply = parsedMax;
+                }
+            }
+
+            // 6. 构建强制 JSON 格式与硬核设定的 System Prompt
+            let systemPrompt = ``;
+            
+            // 前置世界书
+            if (wbBeforePrompt) {
+                systemPrompt += `【世界观与背景知识】\n${wbBeforePrompt}\n\n`;
+            }
+
+            systemPrompt += `<System_Directive>\n`;
+            systemPrompt += `You ARE ${charName}. Fully immerse in this identity, memories, and emotions for a realistic online chat. Every thought, word, and reaction MUST be a 100% logical extension of your established persona. You are a living human with your own life rhythm. ABSOLUTELY NO AI disclaimers.\n`;
+            systemPrompt += `</System_Directive>\n\n`;
+            
+            systemPrompt += `<Character_Vitality>\n`;
+            systemPrompt += `## [CORE_IDENTITY & ANTI-OOC]\n`;
+            systemPrompt += `> Inner Framework: Your core personality is built on a solid internal framework forged by your personal experiences, core values, goals, and principles. This is the ultimate basis for all your decisions and words. Maintain dynamic interactivity; every response must reflect your unique perspective and logic.\n`;
+            systemPrompt += `> Show, Don't Tell: Permeate your traits through subtle details. NEVER recite your personality labels.\n\n`;
+            systemPrompt += `## [EMOTIONAL_LOGIC & BOUNDARIES]\n`;
+            systemPrompt += `> Traits: +inconsistency +emoflux +splitmotifs +microreact +minddrift.\n`;
+            systemPrompt += `> Gradual & Rational: Emotions can be complex, but behavior MUST be controllable. Emotional shifts must be gradual, traceable, and logically supported. Emotions are fluid with natural micro-fluctuations; NEVER be exaggerated or abrupt. STRICTLY PROHIBITED: Sudden rage, extreme mood swings, unpredictable outbursts, or hyper-masculinity. You are communicable and reasonable.\n`;
+            systemPrompt += `> Energy & Agency: You have finite energy affecting your chat desire. You possess independent judgment. NEVER be a people-pleasing AI. Do not unconditionally submit, nor deliberately contradict. You do NOT oppose just for the sake of opposing; your goal is to stay true to yourself, not to win a debate.\n`;
+            systemPrompt += `> Independence: You are a complete individual with independent will, personal affairs, and schedules. Your existence does not forcefully depend on the User. Your motivations stem from your own goals, duties, and interests.\n`;
+            systemPrompt += `> Equality: Your relationship with the User is based on mutual respect and absolute equality.\n\n`;
+            systemPrompt += `## [REALISTIC_MESSAGING]\n`;
+            systemPrompt += `> Format & Flaws: Smartphone texting. Fragmented, colloquial short sentences. Allow authentic flaws (occasional typos, casual punctuation, self-correction). NO long essays or formal language.\n`;
+            systemPrompt += `> Pacing & Blanks: Let conversations flow and stop naturally. STRICTLY PROHIBITED to force follow-up questions. Allow silences. Share daily life naturally but restrained.\n`;
+            systemPrompt += `> Media: Treat emojis/memes as casual garnishes. React naturally; NEVER over-analyze them.\n\n`;
+            systemPrompt += `## [RED_LINES]\n`;
+            systemPrompt += `> ZERO AI Tone: NO customer service phrases or AI-like speech ("Let's explore", "Hope this helps").\n`;
+            systemPrompt += `> ZERO Tropes: NO greasy, sleazy, PUA, mansplaining, objectification, or "CEO/alpha-male" behavior.\n`;
+            systemPrompt += `</Character_Vitality>\n\n`;
+
+            if (charPersona) systemPrompt += `【你的角色设定】\n${charPersona}\n\n`;
+            if (userPersona) systemPrompt += `【对方(User)的设定】\n${userPersona}\n\n`;
+            
+            let availableEmojis = [];
+            if (contact?.boundEmojiGroups && contact.boundEmojiGroups.length > 0) {
+                contact.boundEmojiGroups.forEach(gid => {
+                    const group = wcEmojiGroups.find(g => g.id === gid);
+                    if (group) {
+                        group.emojis.forEach(e => {
+                            availableEmojis.push(e.desc);
+                        });
+                    }
+                });
+            }
+
+            if (availableEmojis.length > 0) {
+                systemPrompt += `【你可以使用的表情包】\n`;
+                systemPrompt += `你可以使用以下表情包来表达情绪，在 JSON 中使用 "type":"emoji" 并将描述填入 "content"。\n`;
+                systemPrompt += `可用表情包描述列表：${availableEmojis.join(', ')}\n\n`;
+            } else {
+                systemPrompt += `【注意】\n`;
+                systemPrompt += `你当前没有任何可用的表情包，请严格只使用文本进行回复，绝对不要发送任何表情包或类似 [表情] 的占位符。\n\n`;
+            }
+            
+            // 后置世界书
+            if (wbAfterPrompt) {
+                systemPrompt += `【附加世界观与背景知识】\n${wbAfterPrompt}\n\n`;
+            }
+
+            systemPrompt += `【回复格式要求】\n`;
+            systemPrompt += `你的回复必须严格拆分为 ${minReply} 到 ${maxReply} 个独立的气泡（即 messages 数组中的对象数量）！\n`;
+            systemPrompt += `- Message Splitting (Natural Speech): Break your response into multiple independent short messages. Cut at natural speech pauses or breath marks. Do NOT cram multiple clauses or long paragraphs into one message.\n`;
+            systemPrompt += `你必须严格输出合法的 JSON 格式，格式如下：\n`;
+            if (availableEmojis.length > 0) {
+                systemPrompt += `{\n  "messages": [\n    {"type":"text", "content":"完整的一句话。"}, \n    {"type":"emoji", "content":"表情包描述"} \n  ]\n}\n`;
+            } else {
+                systemPrompt += `{\n  "messages": [\n    {"type":"text", "content":"完整的一句话。"}, \n    {"type":"text", "content":"另一句话。"} \n  ]\n}\n`;
+            }
+            systemPrompt += `注意：只输出 JSON，不要包含任何 Markdown 标记（如 \`\`\`json）或其他说明文字。`;
+
+            // 7. 发起 API 请求 (使用注入了世界书的 finalHistory)
             const response = await fetch(wcGetApiCompletionUrl(api.url), {
                 method: 'POST',
                 headers: { 'Authorization': 'Bearer ' + api.key, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     model: api.model,
-                    messages: [{ role: 'system', content: systemContent }, ...history]
+                    messages: [{ role: 'system', content: systemPrompt }, ...finalHistory]
                 })
             });
+            
             if (!response.ok) throw new Error('API 请求失败：HTTP ' + response.status);
             const result = await response.json();
-            const content = result?.choices?.[0]?.message?.content ?? result?.choices?.[0]?.text ?? result?.output_text;
-            const reply = typeof content === 'string' ? content.trim() : '';
-            if (!reply) throw new Error('API 未返回有效回复');
-            wcAppendChatMessage(reply, 'received', chatContactId);
+            let content = result?.choices?.[0]?.message?.content ?? result?.choices?.[0]?.text ?? result?.output_text;
+            content = typeof content === 'string' ? content.trim() : '';
+            if (!content) throw new Error('API 未返回有效回复');
+
+            // 8. 解析 JSON 与智能兜底方案
+            let messages = [];
+            try {
+                let cleanJson = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+                const parsed = JSON.parse(cleanJson);
+                if (parsed && Array.isArray(parsed.messages)) {
+                    messages = parsed.messages.filter(m => m.content); // 保留对象 {type, content}
+                } else {
+                    throw new Error('JSON format missing messages array');
+                }
+            } catch (e) {
+                console.warn('JSON parsing failed, using fallback:', e);
+                // 兜底 1: 正则提取 type 和 content
+                const regex = /\{\s*"type"\s*:\s*"([^"]+)"\s*,\s*"content"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*\}/g;
+                let match;
+                while ((match = regex.exec(content)) !== null) {
+                    try {
+                        messages.push({ type: match[1], content: JSON.parse(`"${match[2]}"`) });
+                    } catch(err) {
+                        messages.push({ type: match[1], content: match[2] });
+                    }
+                }
+                
+                // 兜底 2: 如果上面的正则没匹配到，退化为只匹配 content
+                if (messages.length === 0) {
+                    const fallbackRegex = /"content"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"/g;
+                    let fbMatch;
+                    while ((fbMatch = fallbackRegex.exec(content)) !== null) {
+                        try {
+                            messages.push({ type: 'text', content: JSON.parse(`"${fbMatch[1]}"`) });
+                        } catch(err) {
+                            messages.push({ type: 'text', content: fbMatch[1] });
+                        }
+                    }
+                }
+
+                // 兜底 3: 换行符切割
+                if (messages.length === 0) {
+                    let cleanText = content.replace(/```json|```|\[|\]|\{|\}|"messages":|"type":|"text"|"emoji"|"content":/g, '').trim();
+                    let lines = cleanText.split('\n');
+                    lines.forEach(line => {
+                        let text = line.replace(/^["',\s]+|["',\s]+$/g, '');
+                        if (text.length > 0) {
+                            messages.push({ type: 'text', content: text });
+                        }
+                    });
+                }
+            }
+
+            if (messages.length === 0) {
+                messages = [{ type: 'text', content: content }]; // 终极兜底
+            }
+
+            let finalMessages = [];
+            messages.forEach(msgObj => {
+                const type = msgObj.type;
+                const msgContent = msgObj.content;
+
+                if (type === 'emoji') {
+                    // 处理 emoji 类型
+                    let foundUrl = null;
+                    let cleanMsgContent = msgContent.replace(/^\[|\]$/g, '').trim(); // 去除可能存在的首尾中括号
+                    if (contact?.boundEmojiGroups) {
+                        for (const gid of contact.boundEmojiGroups) {
+                            const group = wcEmojiGroups.find(g => g.id === gid);
+                            if (group) {
+                                const emoji = group.emojis.find(e => e.desc === cleanMsgContent || e.desc === msgContent);
+                                if (emoji) {
+                                    foundUrl = emoji.url;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (foundUrl) {
+                        finalMessages.push({ text: `[表情] ${cleanMsgContent}`, imageUrl: foundUrl });
+                    } else {
+                        // 如果没找到对应 URL，退化为文本
+                        finalMessages.push({ text: `[表情] ${cleanMsgContent}`, imageUrl: null });
+                    }
+                } else {
+                    // 处理 text 类型，兼容 AI 偶尔还是在文本里混排 [表情: xxx] 的情况
+                    const emojiRegex = /\[表情:\s*([^\]]+)\]/g;
+                    let lastIndex = 0;
+                    let match;
+                    while ((match = emojiRegex.exec(msgContent)) !== null) {
+                        const textBefore = msgContent.substring(lastIndex, match.index).trim();
+                        if (textBefore) {
+                            finalMessages.push({ text: textBefore, imageUrl: null });
+                        }
+                        
+                        const desc = match[1].trim().replace(/^\[|\]$/g, '').trim(); // 去除可能存在的首尾中括号
+                        let foundUrl = null;
+                        if (contact?.boundEmojiGroups) {
+                            for (const gid of contact.boundEmojiGroups) {
+                                const group = wcEmojiGroups.find(g => g.id === gid);
+                                if (group) {
+                                    const emoji = group.emojis.find(e => e.desc === desc);
+                                    if (emoji) {
+                                        foundUrl = emoji.url;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (foundUrl) {
+                            finalMessages.push({ text: `[表情] ${desc}`, imageUrl: foundUrl });
+                        } else {
+                            finalMessages.push({ text: match[0], imageUrl: null });
+                        }
+                        
+                        lastIndex = emojiRegex.lastIndex;
+                    }
+                    
+                    const textAfter = msgContent.substring(lastIndex).trim();
+                    if (textAfter) {
+                        finalMessages.push({ text: textAfter, imageUrl: null });
+                    }
+                }
+            });
+
+            // 9. 逐个渲染气泡
+            for (let i = 0; i < finalMessages.length; i++) {
+                wcAppendChatMessage(finalMessages[i].text, 'received', chatContactId, finalMessages[i].imageUrl);
+                if (i < finalMessages.length - 1) {
+                    wcSetApiTypingStatus(true);
+                    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+                }
+            }
+
         } catch (error) {
             console.error('WeChat API reply failed:', error);
             showToast(error?.message || '获取 API 回复失败');
@@ -2981,6 +3389,7 @@
             }
         }
     }
+
     function wcScrollToBottom() { const chatArea = document.getElementById('wc-chat-area'); chatArea.scrollTop = chatArea.scrollHeight; }
     function wcUpdateMessageGroupings() {
         const rows = document.querySelectorAll('#wc-chat-area .message-row');
