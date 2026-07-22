@@ -23,7 +23,7 @@
         currentEditingApps = [];
         
             // show three-dots button; click to expand vertical capsule menu
-        const allApps = document.querySelectorAll('#desktopGrid .app-item, #dock .app-item');
+        const allApps = document.querySelectorAll('#desktopGrid .app-item:not(.is-widget), #dock .app-item:not(.is-widget)');
         allApps.forEach((appEl, index) => {
             const nameEl = appEl.querySelector('.app-name');
             const iconEl = appEl.querySelector('.app-icon');

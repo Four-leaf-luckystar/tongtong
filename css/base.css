@@ -385,25 +385,15 @@
             width: 24px;
             height: 24px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.75);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-            border: 1px solid rgba(255,255,255,0.4);
+            background: transparent;
+            box-shadow: none;
+            border: 0;
             z-index: 30;
             display: none;
             cursor: default;
         }
         .widget-edit-hotzone::before {
-            content: '';
-            position: absolute;
-            left: 6px;
-            top: 11px;
-            width: 3px;
-            height: 3px;
-            border-radius: 50%;
-            background: #8a8a8e;
-            box-shadow: 6px 0 0 #8a8a8e, 12px 0 0 #8a8a8e;
+            display: none;
         }
         .app-item.is-widget:not(.jiggling) .widget-edit-hotzone { display: flex; }
         .app-item.is-widget.jiggling .widget-edit-hotzone { display: none !important; }

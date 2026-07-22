@@ -32,6 +32,23 @@
             };
         }
         window.getWidgetDimensions = getWidgetDimensions;
+        function normalizeStoredWidgetContent(content) {
+            const original = String(content == null ? '' : content);
+            let decoded = original;
+
+            for (let attempt = 0; attempt < 20 && !/<[^>]+>/.test(decoded); attempt++) {
+                try {
+                    const next = decodeURIComponent(decoded);
+                    if (next === decoded) break;
+                    decoded = next;
+                } catch (error) {
+                    return original;
+                }
+            }
+
+            return /<[^>]+>/.test(decoded) ? decoded : original;
+        }
+
         function getWidgetGridSpan(widgetData) {
             const legacyWidth = parseInt(widgetData.width, 10);
             const legacyHeight = parseInt(widgetData.height, 10);
@@ -103,10 +120,11 @@
         const emptySlot = findAvailableWidgetSlot(span.columns, span.rows);
 
         if (emptySlot) {
+            const widgetContent = normalizeStoredWidgetContent(widgetData.content);
             const app = document.createElement('div');
             app.className = 'app-item is-widget';
             app.setAttribute('data-app-id', 'widget-' + Date.now());
-            app.setAttribute('data-widget-content', encodeURIComponent(widgetData.content || ''));
+            app.setAttribute('data-widget-content', encodeURIComponent(widgetContent));
             app.setAttribute('data-widget-width', widgetData.width || '');
             app.setAttribute('data-widget-height', widgetData.height || '');
             app.setAttribute('data-widget-preset-size', widgetData.presetSize || '');
@@ -116,7 +134,7 @@
             const dims1 = getWidgetDimensions(widgetData);
             app.style.width = dims1.width + 'px';
             app.style.height = dims1.height + 'px';
-            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="widget-edit-hotzone" aria-label="长按进入编辑模式"></div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims1.width}px; height: ${dims1.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${makeWidgetFrameHTML(widgetData.content, true)}</div><div class="app-name" style="display:none;">${widgetData.name || "组件"}</div>`;
+            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="widget-edit-hotzone" aria-label="长按进入编辑模式"></div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims1.width}px; height: ${dims1.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${makeWidgetFrameHTML(widgetContent, true)}</div><div class="app-name" style="display:none;">${widgetData.name || "组件"}</div>`;
 
             if (isEditMode) app.classList.add('jiggling');
             emptySlot.appendChild(app);
@@ -175,7 +193,8 @@
         }
         
         if (isWidget) {
-            app.setAttribute('data-widget-content', encodeURIComponent(widgetContent));
+            const normalizedWidgetContent = normalizeStoredWidgetContent(widgetContent);
+            app.setAttribute('data-widget-content', encodeURIComponent(normalizedWidgetContent));
             app.setAttribute('data-widget-width', width || '');
             app.setAttribute('data-widget-height', height || '');
             app.setAttribute('data-widget-preset-size', presetSize || '');
@@ -185,7 +204,7 @@
             const dims2 = getWidgetDimensions({ width, height, presetSize });
             app.style.width = dims2.width + 'px';
             app.style.height = dims2.height + 'px';
-            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="widget-edit-hotzone" aria-label="长按进入编辑模式"></div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims2.width}px; height: ${dims2.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${makeWidgetFrameHTML(widgetContent, true)}</div><div class="app-name" style="display:none;">组件</div>`;
+            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="widget-edit-hotzone" aria-label="长按进入编辑模式"></div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims2.width}px; height: ${dims2.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${makeWidgetFrameHTML(normalizedWidgetContent, true)}</div><div class="app-name" style="display:none;">组件</div>`;
         } else {
             app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon"></div><div class="app-name">${name}</div>`;
             if (icon) {
