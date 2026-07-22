@@ -190,6 +190,22 @@
         .iphone.dark-mode .wc-chat-search-name { color: #ffffff !important; }
         .iphone.dark-mode .wc-chat-search-avatar { background-color: #2c2c2e !important; }
 
+        /* 关联表情包复古弹窗深色模式 */
+        .iphone.dark-mode .wc-bind-emoji-window { background-color: #1c1c1e; border-color: #38383a; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
+        .iphone.dark-mode .wc-bind-emoji-header { background-color: #2c2c2e; border-bottom-color: #38383a; }
+        .iphone.dark-mode .wc-bind-emoji-address-bar { background-color: #1c1c1e; border-color: #38383a; color: #aaa; }
+        .iphone.dark-mode .wc-bind-emoji-content { background-color: #1c1c1e; }
+        .iphone.dark-mode .wc-bind-emoji-card { background-color: #2c2c2e; border-color: #38383a; box-shadow: 6px 6px 0px #111; }
+        .iphone.dark-mode .wc-bind-emoji-item-wrapper:active .wc-bind-emoji-card { box-shadow: 8px 8px 0px #000; }
+        .iphone.dark-mode .wc-bind-emoji-card.selected { border-color: #0a84ff; box-shadow: 6px 6px 0px rgba(10, 132, 255, 0.2); }
+        .iphone.dark-mode .wc-bind-emoji-preview-cell { background-color: #1c1c1e; }
+        .iphone.dark-mode .wc-bind-emoji-name { color: #fff; }
+        .iphone.dark-mode .wc-bind-emoji-indicator { background: #1c1c1e; border-color: #555; }
+        .iphone.dark-mode .wc-bind-emoji-card.selected .wc-bind-emoji-indicator { background: #0a84ff; border-color: #0a84ff; }
+        .iphone.dark-mode .wc-bind-emoji-footer { background-color: #2c2c2e; border-top-color: #38383a; }
+        .iphone.dark-mode .wc-bind-emoji-btn.cancel { background-color: #3a3a3c; color: #ccc; }
+        .iphone.dark-mode .wc-bind-emoji-btn.save { background-color: #0a84ff; color: #fff; }
+
         /* 批量导入弹窗深色模式适配 */
         .iphone.dark-mode .wc-batch-import-card { background-color: #1c1c1e; }
         .iphone.dark-mode .wc-batch-header { background-color: #1c1c1e; border-bottom-color: #38383a; }
