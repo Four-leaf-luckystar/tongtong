@@ -3418,10 +3418,13 @@
     window.wcHandleChatKeyDown = wcHandleChatKeyDown;
 
     function wcInitChatInput() {
-        const input = document.getElementById('wc-chat-input');
-        if (!input || input.dataset.enterSendBound === 'true') return;
-        input.addEventListener('keydown', wcHandleChatKeyDown);
-        input.dataset.enterSendBound = 'true';
+        if (window.__wcEnterDelegated === true) return;
+        window.__wcEnterDelegated = true;
+        document.addEventListener('keydown', function (event) {
+            const target = event.target;
+            if (!target || (target.id !== 'wc-chat-input')) return;
+            wcHandleChatKeyDown(event);
+        }, true);
     }
     wcInitChatInput();
 
