@@ -70,6 +70,7 @@
         .wb-editor-nav { height: 44px; margin-top: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
         .wb-editor-nav-right { display: flex; gap: 10px; align-items: center; }
         .wb-nav-capsule { height: 36px; background-color: #f2f2f7; border-radius: 18px; display: flex; align-items: center; padding: 0 12px; gap: 12px; }
+        .wb-entry-import-trigger { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .wb-nav-capsule svg { width: 20px; height: 20px; stroke: #000; stroke-width: 2; fill: none; cursor: pointer; }
         .wb-nav-btn-circle.yellow { background-color: #e4af0a; }
         .wb-nav-btn-circle.yellow svg { stroke: #fff; }

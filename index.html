@@ -1613,7 +1613,9 @@
                 </div>
                 <div class="wb-editor-nav-right">
                     <div class="wb-nav-capsule">
-                        <svg viewBox="0 0 24 24" role="button" tabindex="0" aria-label="导入 TXT 或 DOCX 文档" title="导入 TXT 或 DOCX 文档" onclick="wbOpenEntryImport()" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); wbOpenEntryImport(); }"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                        <label class="wb-entry-import-trigger" for="wbEntryImportInput" aria-label="导入 TXT 或 DOCX 文档" title="导入 TXT 或 DOCX 文档">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                        </label>
                         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5" fill="currentColor"></circle><circle cx="19" cy="12" r="1.5" fill="currentColor"></circle><circle cx="5" cy="12" r="1.5" fill="currentColor"></circle></svg>
                     </div>
                     <div class="wb-nav-btn-circle yellow" onclick="wbSaveEntry()">

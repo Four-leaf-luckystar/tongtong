@@ -31,15 +31,6 @@
     let wbIsEditMode = false;
     let wbPakoLoadPromise = null;
 
-    function wbOpenEntryImport() {
-        const input = document.getElementById('wbEntryImportInput');
-        if (!input) {
-            if (typeof showToast === 'function') showToast('导入功能暂不可用');
-            return;
-        }
-        input.click();
-    }
-
     function wbDecodePlainText(buffer) {
         const bytes = new Uint8Array(buffer);
         if (bytes[0] === 0xff && bytes[1] === 0xfe) return new TextDecoder('utf-16le').decode(bytes.subarray(2));
