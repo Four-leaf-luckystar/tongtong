@@ -239,3 +239,26 @@
         .iphone.dark-mode .univ-sel-search { background-color: rgba(255, 255, 255, 0.1); }
         .iphone.dark-mode .univ-sel-search input { color: #fff; }
         .iphone.dark-mode .univ-sel-name { color: #fff; }
+
+        /* 微信气泡长按菜单与引用深色模式 */
+        .iphone.dark-mode #wechatAppUI .wc-bubble-emojis-capsule { background: #2c2c2e; }
+        .iphone.dark-mode #wechatAppUI .wc-bubble-emojis-tail-1,
+        .iphone.dark-mode #wechatAppUI .wc-bubble-emojis-tail-2 { background: #2c2c2e; }
+        .iphone.dark-mode #wechatAppUI .wc-bubble-menu-more { background: #3a3a3c; }
+        .iphone.dark-mode #wechatAppUI .wc-bubble-emojis-capsule.expanded .collapse-btn { background: #3a3a3c; }
+        .iphone.dark-mode #wechatAppUI .wc-bubble-action-menu { background: #2c2c2e; }
+        .iphone.dark-mode #wechatAppUI .wc-bubble-menu-item { color: #ffffff; border-bottom-color: #38383a; }
+        .iphone.dark-mode #wechatAppUI .wc-bubble-menu-item svg { stroke: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-bubble-menu-item:active { background: #3a3a3c; }
+        .iphone.dark-mode #wechatAppUI .wc-bubble-reactions { background: #2c2c2e; border-color: #38383a; }
+        .iphone.dark-mode #wechatAppUI .wc-reply-preview { background: rgba(28, 28, 30, 0.75); border-color: rgba(255, 255, 255, 0.1); }
+        .iphone.dark-mode #wechatAppUI .wc-reply-preview-close { background: rgba(255, 255, 255, 0.1); color: #aaa; }
+        .iphone.dark-mode #wechatAppUI .wc-bubble-reply { background: rgba(255, 255, 255, 0.1); color: #ccc; }
+
+        /* 微信功能面板深色模式 */
+        .iphone.dark-mode #wechatAppUI .wc-function-panel { background-color: rgba(28, 28, 30, 0.95); border-top-color: rgba(255,255,255,0.1); }
+        .iphone.dark-mode #wechatAppUI .wc-function-icon { background-color: #2c2c2e; }
+        .iphone.dark-mode #wechatAppUI .wc-function-icon svg { stroke: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-function-item:active .wc-function-icon { background-color: #3a3a3c; }
+
+
