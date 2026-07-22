@@ -1157,7 +1157,7 @@
                         <div class="api-row">
                             <div class="api-row-left"></div>
                             <div class="api-row-text"><div class="api-row-title-text">流式输出</div></div>
-                            <div class="api-toggle" onclick="this.classList.toggle('off')"></div>
+                            <div class="api-toggle off" id="apiStreamToggle" onclick="toggleApiStream()"></div>
                         </div>
                     </div>
                     <div style="width: 100%;" id="api-connected-container"></div>
@@ -1216,6 +1216,15 @@
                             <svg style="width: 12px; height: 12px; stroke: #8e8e93; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; margin-left: 10px;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </div>
                     </div>
+                    <div class="api-form-group" style="margin-top: 16px; margin-bottom: 0;">
+                        <div class="api-form-label" style="display: flex; justify-content: space-between;">
+                            <span>TEMPERATURE (温度)</span>
+                            <span id="api-add-temp-val">0.8</span>
+                        </div>
+                        <div style="padding: 12px 0;">
+                            <input type="range" id="api-add-temp" min="0" max="2" step="0.1" value="0.8" style="width: 100%; accent-color: #007aff;" oninput="document.getElementById('api-add-temp-val').innerText = this.value">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1261,6 +1270,15 @@
                         <div class="api-form-input-wrapper" onclick="openApiModelSelect('edit')" style="cursor: pointer;">
                             <input type="text" class="api-form-input" id="api-edit-model" placeholder="请先拉取模型" readonly style="cursor: pointer; pointer-events: none;">
                             <svg style="width: 12px; height: 12px; stroke: #8e8e93; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; margin-left: 10px;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                    </div>
+                    <div class="api-form-group" style="margin-top: 16px; margin-bottom: 0;">
+                        <div class="api-form-label" style="display: flex; justify-content: space-between;">
+                            <span>TEMPERATURE (温度)</span>
+                            <span id="api-edit-temp-val">0.8</span>
+                        </div>
+                        <div style="padding: 12px 0;">
+                            <input type="range" id="api-edit-temp" min="0" max="2" step="0.1" value="0.8" style="width: 100%; accent-color: #007aff;" oninput="document.getElementById('api-edit-temp-val').innerText = this.value">
                         </div>
                     </div>
                 </div>
@@ -1976,13 +1994,125 @@
             </div>
             <div class="chat-area" id="wc-chat-area">
             </div>
+            
+            <!-- 气泡长按菜单 -->
+            <div class="wc-bubble-menu-overlay" id="wcBubbleMenuOverlay" onclick="wcCloseBubbleMenu()">
+                <div class="wc-bubble-menu-container" id="wcBubbleMenuContainer">
+                    <!-- Emoji 悬浮胶囊 -->
+                    <div class="wc-bubble-emojis-capsule" id="wcBubbleEmojisCapsule" onclick="event.stopPropagation()">
+                        <div class="wc-bubble-emojis-scroll-area" id="wcBubbleEmojisScroll">
+                            <span class="wc-bubble-menu-emoji" onclick="wcAddReaction('💩')">💩</span>
+                            <span class="wc-bubble-menu-emoji" onclick="wcAddReaction('❤️')">❤️</span>
+                            <span class="wc-bubble-menu-emoji" onclick="wcAddReaction('👍')">👍</span>
+                            <span class="wc-bubble-menu-emoji" onclick="wcAddReaction('👎')">👎</span>
+                            <span class="wc-bubble-menu-emoji" onclick="wcAddReaction('🔥')">🔥</span>
+                            <span class="wc-bubble-menu-emoji" onclick="wcAddReaction('🥰')">🥰</span>
+                            
+                            <!-- 展开后显示的更多 Emoji -->
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('👏')">👏</span>
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('😂')">😂</span>
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('😭')">😭</span>
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('🥺')">🥺</span>
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('😡')">😡</span>
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('🤔')">🤔</span>
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('😎')">😎</span>
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('🙏')">🙏</span>
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('🎉')">🎉</span>
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('💔')">💔</span>
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('💯')">💯</span>
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('✨')">✨</span>
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('👀')">👀</span>
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('🤮')">🤮</span>
+                            <span class="wc-bubble-menu-emoji extra-emoji" onclick="wcAddReaction('🤡')">🤡</span>
+                        </div>
+                        <!-- 展开按钮 -->
+                        <div class="wc-bubble-menu-more" id="wcBubbleMenuExpandBtn" onclick="wcToggleEmojiExpand(true)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <!-- 收起按钮 -->
+                        <div class="wc-bubble-menu-more collapse-btn" id="wcBubbleMenuCollapseBtn" onclick="wcToggleEmojiExpand(false)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                        </div>
+                        <div class="wc-bubble-emojis-tail-1"></div>
+                        <div class="wc-bubble-emojis-tail-2"></div>
+                    </div>
+                    <!-- 固定操作菜单 -->
+                    <div class="wc-bubble-action-menu" onclick="event.stopPropagation()">
+                        <div class="wc-bubble-menu-item" onclick="wcMenuAction('reply')">
+                            <svg viewBox="0 0 24 24"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
+                            <span>引用</span>
+                        </div>
+                        <div class="wc-bubble-menu-item" onclick="wcMenuAction('rewind')">
+                            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                            <span>回溯</span>
+                        </div>
+                        <div class="wc-bubble-menu-item" onclick="wcMenuAction('favorite')">
+                            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            <span>收藏</span>
+                        </div>
+                        <div class="wc-bubble-menu-item" onclick="wcMenuAction('edit')">
+                            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            <span>编辑</span>
+                        </div>
+                        <div class="wc-bubble-menu-item" onclick="wcMenuAction('delete')">
+                            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            <span>删除</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="footer-capsule" id="wcFooterCapsule" style="transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);">
+                <!-- 引用预览区 -->
+                <div class="wc-reply-preview" id="wcReplyPreview">
+                    <div class="wc-reply-preview-content">
+                        <div class="wc-reply-preview-name" id="wcReplyPreviewName">Name</div>
+                        <div class="wc-reply-preview-text" id="wcReplyPreviewText">Text</div>
+                    </div>
+                    <div class="wc-reply-preview-close" onclick="wcCloseReplyPreview()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </div>
+                </div>
                 <svg class="tool-icon" onclick="wcToggleEmojiPanel(event)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="stroke: none;"><path d="M10.5199 19.8634C10.5955 18.6615 10.8833 17.5172 11.3463 16.4676C9.81124 16.3252 8.41864 15.6867 7.33309 14.7151L8.66691 13.2248C9.55217 14.0172 10.7188 14.4978 12 14.4978C12.1763 14.4978 12.3501 14.4887 12.5211 14.471C14.227 12.2169 16.8661 10.7083 19.8634 10.5199C19.1692 6.80877 15.9126 4 12 4C7.58172 4 4 7.58172 4 12C4 15.9126 6.80877 19.1692 10.5199 19.8634ZM19.0233 12.636C15.7891 13.2396 13.2396 15.7891 12.636 19.0233L19.0233 12.636ZM22 12C22 12.1677 21.9959 12.3344 21.9877 12.5L12.5 21.9877C12.3344 21.9959 12.1677 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM10 10C10 10.8284 9.32843 11.5 8.5 11.5C7.67157 11.5 7 10.8284 7 10C7 9.17157 7.67157 8.5 8.5 8.5C9.32843 8.5 10 9.17157 10 10ZM17 10C17 10.8284 16.3284 11.5 15.5 11.5C14.6716 11.5 14 10.8284 14 10C14 9.17157 14.6716 8.5 15.5 8.5C16.3284 8.5 17 9.17157 17 10Z"></path></svg>
                 <input type="text" id="wc-chat-input" placeholder="广播" onclick="wcCloseEmojiPanel()">
-                <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                <svg class="tool-icon" onclick="wcToggleFunctionPanel(event)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                 <div class="room-send-btn" id="wc-api-reply-btn" onclick="wcRequestApiReply()" title="获取 API 回复"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.38 2.49946C21.7685 2.89783 22.0386 3.39641 22.16 3.93946C22.2806 4.48282 22.2389 5.04963 22.04 5.56947L16.87 20.4895C16.7165 20.8646 16.4886 21.2048 16.2 21.4895C16.0617 21.6264 15.9111 21.7502 15.75 21.8595C15.2538 22.1908 14.6664 22.3586 14.07 22.3395C13.4715 22.3235 12.8926 22.1227 12.4127 21.7646C11.9329 21.4065 11.5756 20.9087 11.39 20.3395C11.39 20.3395 11.39 20.2495 11.39 20.2195L10.77 16.4495C10.7311 16.2026 10.7467 15.9502 10.8158 15.7101C10.8849 15.4699 11.0058 15.2479 11.17 15.0595L11.93 14.1895L16.14 9.34947C16.2332 9.25623 16.3072 9.14554 16.3577 9.02372C16.4081 8.9019 16.4341 8.77133 16.4341 8.63947C16.4341 8.50762 16.4081 8.37703 16.3577 8.25521C16.3072 8.13339 16.2332 8.02271 16.14 7.92947C16.0468 7.83623 15.9361 7.76226 15.8143 7.7118C15.6924 7.66134 15.5619 7.63537 15.43 7.63537C15.2982 7.63537 15.1676 7.66134 15.0457 7.7118C14.9239 7.76226 14.8132 7.83623 14.72 7.92947L9.96001 12.0795L9.13 12.7995C8.94034 12.9645 8.71624 13.0852 8.47405 13.1526C8.23186 13.2201 7.97767 13.2327 7.73 13.1895L3.99001 12.5195C3.37752 12.3591 2.83146 12.0091 2.43001 11.5195C2.04824 11.0377 1.82819 10.4478 1.80126 9.83375C1.77433 9.21968 1.94185 8.61277 2.27999 8.09947C2.61551 7.58257 3.11059 7.18933 3.68999 6.97947L18.35 1.78947C18.8712 1.60015 19.4354 1.56261 19.977 1.68121C20.5187 1.79981 21.0156 2.06968 21.41 2.45947L21.38 2.49946Z" fill="currentColor"/></svg></div>
             </div>
             
+            <!-- 悬浮功能面板 -->
+            <div class="wc-function-panel" id="wcFunctionPanel" onclick="event.stopPropagation()">
+                <div class="wc-function-grid">
+                    <div class="wc-function-item" onclick="wcRegenerateLastMessage()">
+                        <div class="wc-function-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg></div>
+                        <div class="wc-function-text">重新生成</div>
+                    </div>
+                    <div class="wc-function-item" onclick="if(typeof showToast === 'function') showToast('语音功能开发中')">
+                        <div class="wc-function-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg></div>
+                        <div class="wc-function-text">语音</div>
+                    </div>
+                    <div class="wc-function-item" onclick="if(typeof showToast === 'function') showToast('图片功能开发中')">
+                        <div class="wc-function-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>
+                        <div class="wc-function-text">图片</div>
+                    </div>
+                    <div class="wc-function-item" onclick="if(typeof showToast === 'function') showToast('拍照功能开发中')">
+                        <div class="wc-function-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></div>
+                        <div class="wc-function-text">拍照</div>
+                    </div>
+                    <div class="wc-function-item" onclick="if(typeof showToast === 'function') showToast('转账功能开发中')">
+                        <div class="wc-function-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
+                        <div class="wc-function-text">转账</div>
+                    </div>
+                    <div class="wc-function-item" onclick="if(typeof showToast === 'function') showToast('礼物功能开发中')">
+                        <div class="wc-function-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg></div>
+                        <div class="wc-function-text">礼物</div>
+                    </div>
+                    <div class="wc-function-item" onclick="if(typeof showToast === 'function') showToast('位置功能开发中')">
+                        <div class="wc-function-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div>
+                        <div class="wc-function-text">位置</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 悬浮表情面板 -->
             <div class="wc-emoji-panel" id="wcEmojiPanel" onclick="event.stopPropagation()">
                 <div class="wc-emoji-panel-header">
