@@ -736,23 +736,62 @@
         container.innerHTML = html;
     }
 
+    function wcFormatChatTime(timestamp) {
+        if (!timestamp) return '';
+        const date = new Date(Number(timestamp));
+        if (isNaN(date.getTime())) return '';
+        const now = new Date();
+        const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+        if (isToday) {
+            return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        }
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        const isYesterday = date.getDate() === yesterday.getDate() && date.getMonth() === yesterday.getMonth() && date.getFullYear() === yesterday.getFullYear();
+        if (isYesterday) {
+            return '昨天';
+        }
+        return `${date.getMonth() + 1}/${date.getDate()}`;
+    }
+
     function wcRenderChatList() {
         const chatList = document.querySelector('#wechatAppUI .chat-list');
         if (!chatList) return;
         let html = '';
-        wcContactsList.forEach(contact => {
+        
+        // 按照最后一条消息的时间对联系人进行排序（最新的在上面）
+        const sortedContacts = [...wcContactsList].sort((a, b) => {
+            const msgsA = wcChatMessagesByContact[a.id] || [];
+            const msgsB = wcChatMessagesByContact[b.id] || [];
+            const timeA = msgsA.length > 0 ? Number(msgsA[msgsA.length - 1].createdAt) : 0;
+            const timeB = msgsB.length > 0 ? Number(msgsB[msgsB.length - 1].createdAt) : 0;
+            return timeB - timeA;
+        });
+
+        sortedContacts.forEach(contact => {
             const avatarStyle = contact.avatar ? `background-image: url('${contact.avatar}'); border: none;` : '';
             const avatarContent = contact.avatar ? '' : getWcDefaultAvatarSvg();
+            
+            const messages = wcChatMessagesByContact[contact.id] || [];
+            let lastMsgText = '你们已添加为好友，现在可以开始聊天了。';
+            let lastMsgTime = '';
+            
+            if (messages.length > 0) {
+                const lastMsg = messages[messages.length - 1];
+                lastMsgText = lastMsg.text || '[图片]';
+                lastMsgTime = wcFormatChatTime(lastMsg.createdAt);
+            }
+
             html += `
                 <div class="chat-item" data-session-id="${contact.id}" onclick="wcOpenChatRoom('${contact.id}')" style="display: flex; padding: 12px 16px; align-items: center; border-bottom: none; cursor: pointer;">
                     <div class="avatar" style="width: 48px; height: 48px; border-radius: 50%; background-color: transparent; background-size: cover; background-position: center; flex-shrink: 0; margin-right: 12px; ${avatarStyle}">${avatarContent}</div>
                     <div class="chat-info" style="flex: 1; overflow: hidden;">
                         <div class="chat-name-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                            <div class="name" style="font-size: 16px; font-weight: 500; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${contact.name}</div>
-                            <div class="time" style="font-size: 12px; color: #8e8e93;">刚刚</div>
+                            <div class="name" style="font-size: 16px; font-weight: 500; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${contact.name}</div>
+                            <div class="time" style="font-size: 12px; color: #8e8e93;">${lastMsgTime}</div>
                         </div>
                         <div class="chat-msg-row">
-                            <div class="msg" style="font-size: 14px; color: #8e8e93; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">你们已添加为好友，现在可以开始聊天了。</div>
+                            <div class="msg" style="font-size: 14px; color: #8e8e93; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${lastMsgText}</div>
                         </div>
                     </div>
                 </div>
@@ -1735,7 +1774,231 @@
     }
 
     function wcHandleSettingsBack() {
-        wcCloseSettingsModal();
+        const listView = document.getElementById('wc-prompt-list-view');
+        const editView = document.getElementById('wc-prompt-edit-view');
+        
+        if (editView && editView.style.display === 'flex') {
+            wcCloseEditPrompt();
+        } else if (listView && listView.style.display === 'flex') {
+            listView.style.display = 'none';
+            document.querySelector('#wechatAppUI .theme-capsule').style.display = 'none';
+            wcShowMainSettings();
+        } else {
+            wcCloseSettingsModal();
+        }
+    }
+
+    let wcActivePromptId = 'builtin'; // 默认激活内置
+    let wcBuiltinPromptPosition = 'before_persona';
+    let wcCustomPromptsList = [];
+    let wcCurrentEditPromptId = null;
+
+    function wcLoadPromptSettings() {
+        if (typeof appSettings !== 'undefined') {
+            wcActivePromptId = appSettings.wc_active_prompt_id !== undefined ? appSettings.wc_active_prompt_id : 'builtin';
+            wcBuiltinPromptPosition = appSettings.wc_builtin_prompt_position || 'before_persona';
+            wcCustomPromptsList = appSettings.wc_custom_prompts_list || [];
+        }
+    }
+
+    function wcSavePromptSettings() {
+        if (typeof appSettings !== 'undefined') {
+            appSettings.wc_active_prompt_id = wcActivePromptId;
+            appSettings.wc_builtin_prompt_position = wcBuiltinPromptPosition;
+            appSettings.wc_custom_prompts_list = wcCustomPromptsList;
+            if (typeof saveAppSettings === 'function') saveAppSettings();
+        }
+    }
+
+    function wcShowPromptSettings() {
+        wcLoadPromptSettings();
+        document.getElementById('wc-main-settings-view').style.display = 'none';
+        document.getElementById('wc-prompt-list-view').style.display = 'flex';
+        document.getElementById('wc-prompt-edit-view').style.display = 'none';
+        document.getElementById('wc-settings-avatars-header').style.display = 'none';
+        document.getElementById('wc-settings-modal-title').innerText = '聊天提示词';
+        
+        // 显示悬浮胶囊
+        const capsule = document.querySelector('#wechatAppUI .theme-capsule');
+        if (capsule) {
+            capsule.style.display = 'flex';
+            document.getElementById('wc-capsule-title').innerText = '聊天提示词';
+            document.getElementById('wc-capsule-icon-svg').innerHTML = '<path d="M18 3a3 3 0 1 0 0 6 3 3 0 1 0 0-6"></path><path d="M18 11c-2.76 0-5-2.24-5-5a5 5 0 0 1 .9-2.85C13.28 3.05 12.65 3 12 3 6.49 3 2 6.59 2 11c0 2.91 1.9 5.51 5 6.93V21c0 .38.21.73.55.89.14.07.29.11.45.11.21 0 .42-.07.6-.2l3.74-2.8c5.36-.14 9.66-3.68 9.66-8 0-.6-.09-1.18-.24-1.74C20.84 10.31 19.51 11 18 11"></path>';
+        }
+        
+        wcRenderPromptList();
+    }
+
+    function wcRenderPromptList() {
+        const container = document.getElementById('wc-prompt-list-container');
+        if (!container) return;
+        
+        let html = '';
+        
+        // 渲染内置提示词
+        const isBuiltinActive = wcActivePromptId === 'builtin' ? 'active' : '';
+        const posMap = { 'top': '顶部', 'before_persona': '人设前', 'after_persona': '人设后', 'bottom': '底部' };
+        const currentPosName = posMap[wcBuiltinPromptPosition] || '人设前';
+        
+        html += `
+            <div class="preset-item-wrapper">
+                <div class="preset-item-content" ontouchstart="wcHandleTouchStart(event)" ontouchmove="wcHandleTouchMove(event)" ontouchend="wcHandleTouchEnd(event)">
+                    <div class="preset-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-linecap="round" stroke-linejoin="round" style="fill: none !important;">
+                          <path d="M8 21H6a3 3 0 0 1 -3 -3v-1h5.5" stroke-width="2"></path>
+                          <path d="M17 8.5V5a2 2 0 1 1 2 2h-2" stroke-width="2"></path>
+                          <path d="M19 3H8a3 3 0 0 0 -3 3v11" stroke-width="2"></path>
+                          <path d="M9 7h4" stroke-width="2"></path>
+                          <path d="M9 11h4" stroke-width="2"></path>
+                          <path d="M18.42 12.61a2.1 2.1 0 0 1 2.97 2.97L15 22h-3v-3z" stroke-width="2"></path>
+                        </svg>
+                    </div>
+                    <div class="preset-info" style="flex: 1;">
+                        <div class="preset-title">内置核心提示词</div>
+                        <div class="preset-author">位置: ${currentPosName}</div>
+                    </div>
+                    <div class="custom-toggle ${isBuiltinActive}" onclick="wcTogglePromptActive('builtin', event)" ontouchstart="event.stopPropagation()"><div class="thumb"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div></div>
+                </div>
+                <div class="preset-item-actions">
+                    <div class="action-capsule edit" onclick="wcChangeBuiltinPosition()">注入位置</div>
+                </div>
+            </div>
+        `;
+
+        // 渲染自定义提示词
+        wcCustomPromptsList.forEach(prompt => {
+            const isActive = wcActivePromptId === prompt.id ? 'active' : '';
+            html += `
+                <div class="preset-item-wrapper">
+                    <div class="preset-item-content" ontouchstart="wcHandleTouchStart(event)" ontouchmove="wcHandleTouchMove(event)" ontouchend="wcHandleTouchEnd(event)">
+                        <div class="preset-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="fill: none !important;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </div>
+                        <div class="preset-info" style="flex: 1;">
+                            <div class="preset-title">${prompt.name}</div>
+                            <div class="preset-author">自定义提示词</div>
+                        </div>
+                        <div class="custom-toggle ${isActive}" onclick="wcTogglePromptActive('${prompt.id}', event)" ontouchstart="event.stopPropagation()"><div class="thumb"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div></div>
+                    </div>
+                    <div class="preset-item-actions">
+                        <div class="action-capsule edit" onclick="wcOpenEditPrompt('${prompt.id}')">编辑</div>
+                        <div class="action-capsule delete" onclick="wcDeletePrompt('${prompt.id}')">删除</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function wcTogglePromptActive(id, event) {
+        if (event) event.stopPropagation(); // 阻止事件冒泡，防止触发左滑
+        if (wcActivePromptId === id) {
+            wcActivePromptId = null; // 再次点击关闭
+        } else {
+            wcActivePromptId = id; // 开启并互斥其他
+        }
+        wcSavePromptSettings();
+        wcRenderPromptList();
+    }
+
+    function wcChangeBuiltinPosition() {
+        wcResetAllSwipes();
+        const items = [
+            { label: '顶部/最前面', value: 'top' },
+            { label: '人设前', value: 'before_persona' },
+            { label: '人设后', value: 'after_persona' },
+            { label: '底部/最后面', value: 'bottom' }
+        ];
+        
+        openUniversalSelect({
+            title: '选择注入位置',
+            items: items,
+            currentValue: wcBuiltinPromptPosition,
+            searchable: false,
+            onSelect: (val) => {
+                wcBuiltinPromptPosition = val;
+                wcSavePromptSettings();
+                wcRenderPromptList();
+            }
+        });
+    }
+
+    function wcOpenEditPrompt(id = null) {
+        wcResetAllSwipes();
+        wcCurrentEditPromptId = id;
+        document.getElementById('wc-prompt-list-view').style.display = 'none';
+        document.getElementById('wc-prompt-edit-view').style.display = 'flex';
+        document.querySelector('#wechatAppUI .theme-capsule').style.display = 'none';
+        
+        const nameInput = document.getElementById('wc-edit-prompt-name');
+        const contentInput = document.getElementById('wc-edit-prompt-content');
+        
+        if (id) {
+            document.getElementById('wc-theme-modal-title').innerText = '编辑提示词';
+            const prompt = wcCustomPromptsList.find(p => p.id === id);
+            if (prompt) {
+                nameInput.value = prompt.name;
+                contentInput.value = prompt.content;
+            }
+        } else {
+            document.getElementById('wc-theme-modal-title').innerText = '添加提示词';
+            nameInput.value = '';
+            contentInput.value = '';
+        }
+    }
+
+    function wcCloseEditPrompt() {
+        document.getElementById('wc-prompt-edit-view').style.display = 'none';
+        document.getElementById('wc-prompt-list-view').style.display = 'flex';
+        document.querySelector('#wechatAppUI .theme-capsule').style.display = 'flex';
+        document.getElementById('wc-theme-modal-title').innerText = '聊天提示词';
+        wcCurrentEditPromptId = null;
+    }
+
+    function wcSavePrompt() {
+        const name = document.getElementById('wc-edit-prompt-name').value.trim();
+        const content = document.getElementById('wc-edit-prompt-content').value.trim();
+        
+        if (!name) {
+            showToast('请输入提示词名称');
+            return;
+        }
+        
+        if (wcCurrentEditPromptId) {
+            const prompt = wcCustomPromptsList.find(p => p.id === wcCurrentEditPromptId);
+            if (prompt) {
+                prompt.name = name;
+                prompt.content = content;
+            }
+        } else {
+            const newPrompt = {
+                id: 'prompt_' + Date.now(),
+                name: name,
+                content: content
+            };
+            wcCustomPromptsList.push(newPrompt);
+        }
+        
+        wcSavePromptSettings();
+        wcCloseEditPrompt();
+        wcRenderPromptList();
+        showToast('保存成功');
+    }
+
+    function wcDeletePrompt(id) {
+        wcResetAllSwipes();
+        showCustomConfirm('删除提示词', '确定要删除这个自定义提示词吗？', '删除', true).then(confirmed => {
+            if (confirmed) {
+                wcCustomPromptsList = wcCustomPromptsList.filter(p => p.id !== id);
+                if (wcActivePromptId === id) {
+                    wcActivePromptId = null;
+                }
+                wcSavePromptSettings();
+                wcRenderPromptList();
+                showToast('已删除');
+            }
+        });
     }
 
     async function wcJumpToContactsChar() {
@@ -1871,6 +2134,42 @@
         if (wcEmojiGroups.length === 0) {
             html += `<div style="grid-column: 1 / -1; color: #8e8e93; text-align: center; padding: 40px 0; font-size: 14px;">暂无表情包分组</div>`;
         } else {
+            // 提取所有表情包用于“全部”卡片的预览
+            let allEmojis = [];
+            wcEmojiGroups.forEach(g => {
+                if (g.emojis) allEmojis = allEmojis.concat(g.emojis);
+            });
+            
+            // 渲染“全部”卡片
+            const isAllChecked = boundGroups.includes('all') ? 'selected' : '';
+            let allPreviewHtml = '';
+            if (allEmojis.length > 0) {
+                const previewCount = Math.min(allEmojis.length, 4);
+                for (let i = 0; i < previewCount; i++) {
+                    allPreviewHtml += `<div class="wc-bind-emoji-preview-cell" style="background-image: url('${allEmojis[i].url}')"></div>`;
+                }
+                for (let i = previewCount; i < 4; i++) {
+                    allPreviewHtml += `<div class="wc-bind-emoji-preview-cell empty"></div>`;
+                }
+            } else {
+                allPreviewHtml = `<div style="grid-column: 1/-1; display:flex; justify-content:center; align-items:center; font-size: 24px;">📁</div>`;
+            }
+            
+            html += `
+                <div class="wc-bind-emoji-item-wrapper" data-id="all" onclick="this.querySelector('.wc-bind-emoji-card').classList.toggle('selected')">
+                    <div class="wc-bind-emoji-card ${isAllChecked}">
+                        <div class="wc-bind-emoji-indicator">
+                            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <div class="wc-bind-emoji-preview ${allEmojis.length > 0 ? 'grid-4' : ''}">
+                            ${allPreviewHtml}
+                        </div>
+                    </div>
+                    <div class="wc-bind-emoji-name">全部表情</div>
+                </div>
+            `;
+
+            // 渲染其他普通分组
             wcEmojiGroups.forEach(g => {
                 const isChecked = boundGroups.includes(g.id) ? 'selected' : '';
                 
@@ -3161,47 +3460,104 @@
             // 6. 构建强制 JSON 格式与硬核设定的 System Prompt
             let systemPrompt = ``;
             
-            // 前置世界书
-            if (wbBeforePrompt) {
-                systemPrompt += `【世界观与背景知识】\n${wbBeforePrompt}\n\n`;
+            const builtinPromptText = `<System_Directive>\n` +
+            `You ARE ${charName}. Fully immerse in this identity, memories, and emotions for a realistic online chat. Every thought, word, and reaction MUST be a 100% logical extension of your established persona. You are a living human with your own life rhythm. ABSOLUTELY NO AI disclaimers.\n` +
+            `</System_Directive>\n\n` +
+            `<Character_Vitality>\n` +
+            `## [CORE_IDENTITY & ANTI-OOC]\n` +
+            `> Inner Framework: Your core personality is built on a solid internal framework forged by your personal experiences, core values, goals, and principles. This is the ultimate basis for all your decisions and words. Maintain dynamic interactivity; every response must reflect your unique perspective and logic.\n` +
+            `> Show, Don't Tell: Permeate your traits through subtle details. NEVER recite your personality labels.\n\n` +
+            `## [EMOTIONAL_LOGIC & BOUNDARIES]\n` +
+            `> Traits: +inconsistency +emoflux +splitmotifs +microreact +minddrift.\n` +
+            `> Gradual & Rational: Emotions can be complex, but behavior MUST be controllable. Emotional shifts must be gradual, traceable, and logically supported. Emotions are fluid with natural micro-fluctuations; NEVER be exaggerated or abrupt. STRICTLY PROHIBITED: Sudden rage, extreme mood swings, unpredictable outbursts, or hyper-masculinity. You are communicable and reasonable.\n` +
+            `> Energy & Agency: You have finite energy affecting your chat desire. You possess independent judgment. NEVER be a people-pleasing AI. Do not unconditionally submit, nor deliberately contradict. You do NOT oppose just for the sake of opposing; your goal is to stay true to yourself, not to win a debate.\n` +
+            `> Independence: You are a complete individual with independent will, personal affairs, and schedules. Your existence does not forcefully depend on the User. Your motivations stem from your own goals, duties, and interests.\n` +
+            `> Equality: Your relationship with the User is based on mutual respect and absolute equality.\n\n` +
+            `## [REALISTIC_MESSAGING]\n` +
+            `> Format & Flaws: Smartphone texting. Fragmented, colloquial short sentences. Allow authentic flaws (occasional typos, casual punctuation, self-correction). NO long essays or formal language.\n` +
+            `> Pacing & Blanks: Let conversations flow and stop naturally. STRICTLY PROHIBITED to force follow-up questions. Allow silences. Share daily life naturally but restrained.\n` +
+            `> Media: Treat emojis/memes as casual garnishes. React naturally; NEVER over-analyze them.\n\n` +
+            `## [RED_LINES]\n` +
+            `> ZERO AI Tone: NO customer service phrases or AI-like speech ("Let's explore", "Hope this helps").\n` +
+            `> ZERO Tropes: NO greasy, sleazy, PUA, mansplaining, objectification, or "CEO/alpha-male" behavior.\n` +
+            `</Character_Vitality>\n\n`;
+
+            // 获取当前激活的提示词配置
+            let activePromptId = 'builtin';
+            let builtinPos = 'before_persona';
+            let customPromptsList = [];
+            
+            if (typeof appSettings !== 'undefined') {
+                activePromptId = appSettings.wc_active_prompt_id !== undefined ? appSettings.wc_active_prompt_id : 'builtin';
+                builtinPos = appSettings.wc_builtin_prompt_position || 'before_persona';
+                customPromptsList = appSettings.wc_custom_prompts_list || [];
             }
 
-            systemPrompt += `<System_Directive>\n`;
-            systemPrompt += `You ARE ${charName}. Fully immerse in this identity, memories, and emotions for a realistic online chat. Every thought, word, and reaction MUST be a 100% logical extension of your established persona. You are a living human with your own life rhythm. ABSOLUTELY NO AI disclaimers.\n`;
-            systemPrompt += `</System_Directive>\n\n`;
-            
-            systemPrompt += `<Character_Vitality>\n`;
-            systemPrompt += `## [CORE_IDENTITY & ANTI-OOC]\n`;
-            systemPrompt += `> Inner Framework: Your core personality is built on a solid internal framework forged by your personal experiences, core values, goals, and principles. This is the ultimate basis for all your decisions and words. Maintain dynamic interactivity; every response must reflect your unique perspective and logic.\n`;
-            systemPrompt += `> Show, Don't Tell: Permeate your traits through subtle details. NEVER recite your personality labels.\n\n`;
-            systemPrompt += `## [EMOTIONAL_LOGIC & BOUNDARIES]\n`;
-            systemPrompt += `> Traits: +inconsistency +emoflux +splitmotifs +microreact +minddrift.\n`;
-            systemPrompt += `> Gradual & Rational: Emotions can be complex, but behavior MUST be controllable. Emotional shifts must be gradual, traceable, and logically supported. Emotions are fluid with natural micro-fluctuations; NEVER be exaggerated or abrupt. STRICTLY PROHIBITED: Sudden rage, extreme mood swings, unpredictable outbursts, or hyper-masculinity. You are communicable and reasonable.\n`;
-            systemPrompt += `> Energy & Agency: You have finite energy affecting your chat desire. You possess independent judgment. NEVER be a people-pleasing AI. Do not unconditionally submit, nor deliberately contradict. You do NOT oppose just for the sake of opposing; your goal is to stay true to yourself, not to win a debate.\n`;
-            systemPrompt += `> Independence: You are a complete individual with independent will, personal affairs, and schedules. Your existence does not forcefully depend on the User. Your motivations stem from your own goals, duties, and interests.\n`;
-            systemPrompt += `> Equality: Your relationship with the User is based on mutual respect and absolute equality.\n\n`;
-            systemPrompt += `## [REALISTIC_MESSAGING]\n`;
-            systemPrompt += `> Format & Flaws: Smartphone texting. Fragmented, colloquial short sentences. Allow authentic flaws (occasional typos, casual punctuation, self-correction). NO long essays or formal language.\n`;
-            systemPrompt += `> Pacing & Blanks: Let conversations flow and stop naturally. STRICTLY PROHIBITED to force follow-up questions. Allow silences. Share daily life naturally but restrained.\n`;
-            systemPrompt += `> Media: Treat emojis/memes as casual garnishes. React naturally; NEVER over-analyze them.\n\n`;
-            systemPrompt += `## [RED_LINES]\n`;
-            systemPrompt += `> ZERO AI Tone: NO customer service phrases or AI-like speech ("Let's explore", "Hope this helps").\n`;
-            systemPrompt += `> ZERO Tropes: NO greasy, sleazy, PUA, mansplaining, objectification, or "CEO/alpha-male" behavior.\n`;
-            systemPrompt += `</Character_Vitality>\n\n`;
+            let finalPromptText = '';
+            let finalPromptPos = 'before_persona'; // 自定义提示词默认放在人设前
 
-            if (charPersona) systemPrompt += `【你的角色设定】\n${charPersona}\n\n`;
-            if (userPersona) systemPrompt += `【对方(User)的设定】\n${userPersona}\n\n`;
+            if (activePromptId === 'builtin') {
+                finalPromptText = builtinPromptText;
+                finalPromptPos = builtinPos;
+            } else if (activePromptId) {
+                const cp = customPromptsList.find(p => p.id === activePromptId);
+                if (cp && cp.content) {
+                    finalPromptText = cp.content + '\n\n';
+                }
+            }
+
+            // 顶部/最前面
+            if (finalPromptText && finalPromptPos === 'top') {
+                systemPrompt += finalPromptText;
+            }
+
+            // 前置世界书
+            if (wbBeforePrompt) {
+                systemPrompt += `<world_settings>\n${wbBeforePrompt}</world_settings>\n\n`;
+            }
+
+            // 人设前
+            if (finalPromptText && finalPromptPos === 'before_persona') {
+                systemPrompt += finalPromptText;
+            }
+
+            if (charPersona) {
+                systemPrompt += `<char_settings>\n`;
+                systemPrompt += `1. 你的角色名是：${charName}\n`;
+                systemPrompt += `2. 你的角色设定是：\n${charPersona}\n`;
+                systemPrompt += `</char_settings>\n\n`;
+            }
+            
+            if (userPersona) {
+                systemPrompt += `<user_settings>\n`;
+                systemPrompt += `1. 对方(User)的名字是：${currentUser?.name || 'User'}\n`;
+                systemPrompt += `2. 对方(User)的设定是：\n${userPersona}\n`;
+                systemPrompt += `</user_settings>\n\n`;
+            }
+
+            // 人设后
+            if (finalPromptText && finalPromptPos === 'after_persona') {
+                systemPrompt += finalPromptText;
+            }
             
             let availableEmojis = [];
             if (contact?.boundEmojiGroups && contact.boundEmojiGroups.length > 0) {
-                contact.boundEmojiGroups.forEach(gid => {
-                    const group = wcEmojiGroups.find(g => g.id === gid);
-                    if (group) {
-                        group.emojis.forEach(e => {
-                            availableEmojis.push(e.desc);
-                        });
-                    }
-                });
+                if (contact.boundEmojiGroups.includes('all')) {
+                    wcEmojiGroups.forEach(g => {
+                        if (g.emojis) {
+                            g.emojis.forEach(e => availableEmojis.push(e.desc));
+                        }
+                    });
+                } else {
+                    contact.boundEmojiGroups.forEach(gid => {
+                        const group = wcEmojiGroups.find(g => g.id === gid);
+                        if (group && group.emojis) {
+                            group.emojis.forEach(e => {
+                                availableEmojis.push(e.desc);
+                            });
+                        }
+                    });
+                }
             }
 
             if (availableEmojis.length > 0) {
@@ -3215,7 +3571,12 @@
             
             // 后置世界书
             if (wbAfterPrompt) {
-                systemPrompt += `【附加世界观与背景知识】\n${wbAfterPrompt}\n\n`;
+                systemPrompt += `<world_settings>\n${wbAfterPrompt}</world_settings>\n\n`;
+            }
+
+            // 底部/最后面
+            if (finalPromptText && finalPromptPos === 'bottom') {
+                systemPrompt += finalPromptText;
             }
 
             systemPrompt += `【回复格式要求】\n`;
@@ -3308,13 +3669,18 @@
                     let foundUrl = null;
                     let cleanMsgContent = msgContent.replace(/^\[|\]$/g, '').trim(); // 去除可能存在的首尾中括号
                     if (contact?.boundEmojiGroups) {
-                        for (const gid of contact.boundEmojiGroups) {
-                            const group = wcEmojiGroups.find(g => g.id === gid);
-                            if (group) {
+                        if (contact.boundEmojiGroups.includes('all')) {
+                            for (const group of wcEmojiGroups) {
+                                if (!group.emojis) continue;
                                 const emoji = group.emojis.find(e => e.desc === cleanMsgContent || e.desc === msgContent);
-                                if (emoji) {
-                                    foundUrl = emoji.url;
-                                    break;
+                                if (emoji) { foundUrl = emoji.url; break; }
+                            }
+                        } else {
+                            for (const gid of contact.boundEmojiGroups) {
+                                const group = wcEmojiGroups.find(g => g.id === gid);
+                                if (group && group.emojis) {
+                                    const emoji = group.emojis.find(e => e.desc === cleanMsgContent || e.desc === msgContent);
+                                    if (emoji) { foundUrl = emoji.url; break; }
                                 }
                             }
                         }
@@ -3339,13 +3705,18 @@
                         const desc = match[1].trim().replace(/^\[|\]$/g, '').trim(); // 去除可能存在的首尾中括号
                         let foundUrl = null;
                         if (contact?.boundEmojiGroups) {
-                            for (const gid of contact.boundEmojiGroups) {
-                                const group = wcEmojiGroups.find(g => g.id === gid);
-                                if (group) {
+                            if (contact.boundEmojiGroups.includes('all')) {
+                                for (const group of wcEmojiGroups) {
+                                    if (!group.emojis) continue;
                                     const emoji = group.emojis.find(e => e.desc === desc);
-                                    if (emoji) {
-                                        foundUrl = emoji.url;
-                                        break;
+                                    if (emoji) { foundUrl = emoji.url; break; }
+                                }
+                            } else {
+                                for (const gid of contact.boundEmojiGroups) {
+                                    const group = wcEmojiGroups.find(g => g.id === gid);
+                                    if (group && group.emojis) {
+                                        const emoji = group.emojis.find(e => e.desc === desc);
+                                        if (emoji) { foundUrl = emoji.url; break; }
                                     }
                                 }
                             }
