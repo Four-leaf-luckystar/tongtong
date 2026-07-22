@@ -29,6 +29,204 @@
     let wbCurrentEntryId = null;
     let wbIsGridView = false;
     let wbIsEditMode = false;
+    let wbPakoLoadPromise = null;
+
+    function wbOpenEntryImport() {
+        const input = document.getElementById('wbEntryImportInput');
+        if (!input) {
+            if (typeof showToast === 'function') showToast('导入功能暂不可用');
+            return;
+        }
+        input.click();
+    }
+
+    function wbDecodePlainText(buffer) {
+        const bytes = new Uint8Array(buffer);
+        if (bytes[0] === 0xff && bytes[1] === 0xfe) return new TextDecoder('utf-16le').decode(bytes.subarray(2));
+        if (bytes[0] === 0xfe && bytes[1] === 0xff) {
+            const swapped = bytes.subarray(2).slice();
+            for (let index = 0; index + 1 < swapped.length; index += 2) {
+                const value = swapped[index];
+                swapped[index] = swapped[index + 1];
+                swapped[index + 1] = value;
+            }
+            return new TextDecoder('utf-16le').decode(swapped);
+        }
+        try {
+            return new TextDecoder('utf-8', { fatal: true }).decode(bytes).replace(/^\uFEFF/, '');
+        } catch (error) {
+            try {
+                return new TextDecoder('gb18030').decode(bytes);
+            } catch (fallbackError) {
+                throw new Error('TXT 编码不受支持，请另存为 UTF-8');
+            }
+        }
+    }
+
+    function wbLoadPakoInflater() {
+        if (window.pako?.inflateRaw) return Promise.resolve(window.pako);
+        if (wbPakoLoadPromise) return wbPakoLoadPromise;
+
+        wbPakoLoadPromise = new Promise((resolve, reject) => {
+            const finish = () => window.pako?.inflateRaw
+                ? resolve(window.pako)
+                : reject(new Error('DOCX 解压组件加载失败'));
+            const existingScript = document.getElementById('wbPakoInflater');
+
+            if (existingScript) {
+                existingScript.addEventListener('load', finish, { once: true });
+                existingScript.addEventListener('error', () => reject(new Error('DOCX 解压组件加载失败')), { once: true });
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.id = 'wbPakoInflater';
+            script.src = 'js/vendor/pako_inflate.min.js';
+            script.onload = finish;
+            script.onerror = () => {
+                script.remove();
+                reject(new Error('DOCX 解压组件加载失败'));
+            };
+            document.head.appendChild(script);
+        }).catch(error => {
+            wbPakoLoadPromise = null;
+            throw error;
+        });
+
+        return wbPakoLoadPromise;
+    }
+
+    async function wbInflateZipEntry(bytes, method) {
+        if (method === 0) return bytes;
+        if (method !== 8) throw new Error('DOCX 使用了不受支持的压缩格式');
+
+        if (typeof DecompressionStream === 'function') {
+            try {
+                const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+                return new Uint8Array(await new Response(stream).arrayBuffer());
+            } catch (error) {
+                console.info('Native raw DEFLATE is unavailable; using the local DOCX inflater.', error);
+            }
+        }
+
+        const inflater = await wbLoadPakoInflater();
+        try {
+            return inflater.inflateRaw(bytes);
+        } catch (error) {
+            throw new Error('DOCX 正文解压失败');
+        }
+    }
+
+    async function wbReadDocxXmlWithoutLibrary(buffer) {
+        const bytes = new Uint8Array(buffer);
+        if (bytes.length < 22) throw new Error('DOCX 文件结构无效');
+
+        const view = new DataView(buffer);
+        let endOffset = -1;
+        for (let offset = Math.max(0, bytes.length - 65557); offset <= bytes.length - 22; offset += 1) {
+            if (view.getUint32(offset, true) === 0x06054b50) endOffset = offset;
+        }
+        if (endOffset < 0) throw new Error('DOCX 文件结构无效');
+
+        const entryCount = view.getUint16(endOffset + 10, true);
+        let directoryOffset = view.getUint32(endOffset + 16, true);
+        const decoder = new TextDecoder('utf-8');
+        for (let index = 0; index < entryCount; index += 1) {
+            if (directoryOffset + 46 > bytes.length || view.getUint32(directoryOffset, true) !== 0x02014b50) break;
+
+            const method = view.getUint16(directoryOffset + 10, true);
+            const compressedSize = view.getUint32(directoryOffset + 20, true);
+            const nameLength = view.getUint16(directoryOffset + 28, true);
+            const extraLength = view.getUint16(directoryOffset + 30, true);
+            const commentLength = view.getUint16(directoryOffset + 32, true);
+            const localOffset = view.getUint32(directoryOffset + 42, true);
+            const nextDirectoryOffset = directoryOffset + 46 + nameLength + extraLength + commentLength;
+            if (nextDirectoryOffset > bytes.length) throw new Error('DOCX 文件结构无效');
+
+            const name = decoder.decode(bytes.subarray(directoryOffset + 46, directoryOffset + 46 + nameLength));
+            if (name === 'word/document.xml') {
+                if (localOffset + 30 > bytes.length || view.getUint32(localOffset, true) !== 0x04034b50) {
+                    throw new Error('DOCX 正文结构无效');
+                }
+                const localNameLength = view.getUint16(localOffset + 26, true);
+                const localExtraLength = view.getUint16(localOffset + 28, true);
+                const dataOffset = localOffset + 30 + localNameLength + localExtraLength;
+                if (dataOffset + compressedSize > bytes.length) throw new Error('DOCX 正文结构无效');
+
+                const content = await wbInflateZipEntry(bytes.slice(dataOffset, dataOffset + compressedSize), method);
+                return decoder.decode(content);
+            }
+            directoryOffset = nextDirectoryOffset;
+        }
+        throw new Error('DOCX 中没有可读取的正文');
+    }
+
+    async function wbReadDocxXml(buffer) {
+        if (typeof window.JSZip !== 'undefined') {
+            const zip = await window.JSZip.loadAsync(buffer);
+            const documentFile = zip.file('word/document.xml');
+            if (!documentFile) throw new Error('DOCX 中没有可读取的正文');
+            return documentFile.async('string');
+        }
+        return wbReadDocxXmlWithoutLibrary(buffer);
+    }
+
+    function wbDocxXmlToText(xml) {
+        const documentXml = new DOMParser().parseFromString(xml, 'application/xml');
+        if (documentXml.querySelector('parsererror')) throw new Error('DOCX 正文解析失败');
+
+        const paragraphs = Array.from(documentXml.getElementsByTagNameNS('*', 'p'));
+        const lines = paragraphs.map(paragraph => {
+            let line = '';
+            paragraph.querySelectorAll('*').forEach(node => {
+                if (node.localName === 't') line += node.textContent || '';
+                else if (node.localName === 'tab') line += '\t';
+                else if (node.localName === 'br' || node.localName === 'cr') line += '\n';
+            });
+            return line;
+        });
+        return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    }
+
+    function wbInferImportedTitle(fileName) {
+        return fileName.replace(/\.(?:txt|docx)$/i, '').trim() || '未命名条目';
+    }
+
+    async function wbHandleEntryImport(input) {
+        const file = input?.files?.[0];
+        if (input) input.value = '';
+        if (!file) return;
+        if (file.size > 10 * 1024 * 1024) {
+            if (typeof showToast === 'function') showToast('文档不能超过 10MB');
+            return;
+        }
+
+        const extension = file.name.split('.').pop()?.toLowerCase();
+        if (extension !== 'txt' && extension !== 'docx') {
+            if (typeof showToast === 'function') showToast('请选择 TXT 或 DOCX 文件');
+            return;
+        }
+
+        try {
+            if (typeof showToast === 'function') showToast('正在解析文档…');
+            const buffer = await file.arrayBuffer();
+            const importedText = extension === 'docx'
+                ? wbDocxXmlToText(await wbReadDocxXml(buffer))
+                : wbDecodePlainText(buffer).trim();
+            if (!importedText) throw new Error('文档中没有可导入的文字');
+
+            const contentInput = document.querySelector('.wb-editor-textarea');
+            const titleInput = document.getElementById('wbEntryTitle');
+            if (!contentInput || !titleInput) throw new Error('世界书编辑器尚未打开');
+
+            contentInput.value = importedText;
+            if (!titleInput.value.trim()) titleInput.value = wbInferImportedTitle(file.name);
+            if (typeof showToast === 'function') showToast('已导入世界书文档');
+        } catch (error) {
+            console.warn('Worldbook document could not be imported:', error);
+            if (typeof showToast === 'function') showToast(error?.message || '文档解析失败');
+        }
+    }
 
     function wbCleanUpDeletedEntries() {
         const now = Date.now();
