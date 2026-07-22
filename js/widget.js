@@ -103,6 +103,321 @@
         let isDragging = false, startX = 0, startProgress = 0;
         let activeWidgetIndex = -1;
 
+        function findWidgetTagEnd(source, startIndex) {
+            let quote = '';
+            for (let i = startIndex; i < source.length; i++) {
+                const char = source[i];
+                if (quote) {
+                    if (char === quote) quote = '';
+                } else if (char === '"' || char === "'") {
+                    quote = char;
+                } else if (char === '>') {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        function scanWidgetImageTags(content) {
+            const source = String(content == null ? '' : content);
+            const lowerSource = source.toLowerCase();
+            const counters = { img: 0, image: 0 };
+            const tags = [];
+            let cursor = 0;
+
+            while (cursor < source.length) {
+                const tagStart = source.indexOf('<', cursor);
+                if (tagStart === -1) break;
+
+                if (lowerSource.slice(tagStart, tagStart + 4) === '<!--') {
+                    const commentEnd = lowerSource.indexOf('-->', tagStart + 4);
+                    cursor = commentEnd === -1 ? source.length : commentEnd + 3;
+                    continue;
+                }
+
+                let nameStart = tagStart + 1;
+                while (/\s/.test(source[nameStart] || '')) nameStart++;
+                if (/[/!?]/.test(source[nameStart] || '')) {
+                    const skippedTagEnd = findWidgetTagEnd(source, nameStart + 1);
+                    cursor = skippedTagEnd === -1 ? source.length : skippedTagEnd + 1;
+                    continue;
+                }
+
+                let nameEnd = nameStart;
+                while (/[A-Za-z0-9:-]/.test(source[nameEnd] || '')) nameEnd++;
+                if (nameEnd === nameStart) {
+                    cursor = tagStart + 1;
+                    continue;
+                }
+
+                const tagName = lowerSource.slice(nameStart, nameEnd);
+                const tagEnd = findWidgetTagEnd(source, nameEnd);
+                if (tagEnd === -1) break;
+
+                if (tagName === 'img' || tagName === 'image') {
+                    tags.push({
+                        name: tagName,
+                        index: counters[tagName]++,
+                        start: tagStart,
+                        end: tagEnd
+                    });
+                }
+
+                if (tagName === 'script' || tagName === 'style') {
+                    const closeStart = lowerSource.indexOf('</' + tagName, tagEnd + 1);
+                    if (closeStart === -1) break;
+                    const closeEnd = findWidgetTagEnd(source, closeStart + tagName.length + 2);
+                    cursor = closeEnd === -1 ? source.length : closeEnd + 1;
+                } else {
+                    cursor = tagEnd + 1;
+                }
+            }
+
+            return tags;
+        }
+
+        function widgetImageEditBridge() {
+            function extractBackgroundUrl(value) {
+                const match = String(value || '').match(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*))\s*\)/i);
+                return match ? (match[1] || match[2] || (match[3] || '').trim()) : '';
+            }
+
+            function findRuleBackground(element, rules) {
+                let source = '';
+                Array.prototype.forEach.call(rules || [], function (rule) {
+                    try {
+                        if (rule.cssRules) {
+                            const nestedSource = findRuleBackground(element, rule.cssRules);
+                            if (nestedSource) source = nestedSource;
+                        } else if (rule.selectorText && element.matches(rule.selectorText)) {
+                            const ruleSource = extractBackgroundUrl(rule.style && rule.style.backgroundImage);
+                            if (ruleSource) source = ruleSource;
+                        }
+                    } catch (error) {
+                        // Ignore inaccessible or unsupported CSS rules in the preview.
+                    }
+                });
+                return source;
+            }
+
+            function getBackgroundSource(element) {
+                const inlineSource = extractBackgroundUrl(element.style && element.style.backgroundImage);
+                if (inlineSource) return inlineSource;
+
+                let ruleSource = '';
+                Array.prototype.forEach.call(document.styleSheets || [], function (styleSheet) {
+                    try {
+                        const matchedSource = findRuleBackground(element, styleSheet.cssRules);
+                        if (matchedSource) ruleSource = matchedSource;
+                    } catch (error) {
+                        // Ignore inaccessible stylesheets in the preview.
+                    }
+                });
+                if (ruleSource) return ruleSource;
+
+                return extractBackgroundUrl(getComputedStyle(element).backgroundImage);
+            }
+
+            function findBackgroundTarget(startElement) {
+                let element = startElement;
+                while (element && element.nodeType === 1) {
+                    const source = getBackgroundSource(element);
+                    if (source) return { kind: 'background', source: source };
+                    if (element === document.body || element === document.documentElement) break;
+                    element = element.parentElement;
+                }
+                return null;
+            }
+
+            function findImageTarget(startElement) {
+                const image = startElement && startElement.closest
+                    ? startElement.closest('img, image')
+                    : null;
+                if (!image) return null;
+
+                const tagName = image.tagName.toLowerCase();
+                const markedIndex = image.getAttribute('data-widget-editor-image-index');
+                const isStaticImage = markedIndex !== null;
+                let attribute = tagName === 'image' ? 'href' : 'src';
+                let source = image.getAttribute(attribute) || '';
+
+                if (tagName === 'image' && !source) {
+                    attribute = 'xlink:href';
+                    source = image.getAttribute('xlink:href') || '';
+                }
+
+                return {
+                    kind: tagName,
+                    index: isStaticImage
+                        ? parseInt(markedIndex, 10)
+                        : Array.prototype.indexOf.call(document.querySelectorAll(tagName), image),
+                    attribute: attribute,
+                    source: source,
+                    dynamic: !isStaticImage
+                };
+            }
+
+            document.addEventListener('pointerover', function (event) {
+                const element = event.target && event.target.nodeType === 1 ? event.target : null;
+                if (!element || (element.closest && element.closest('img, image'))) return;
+                let current = element;
+                while (current && current.nodeType === 1) {
+                    if (getBackgroundSource(current)) {
+                        current.setAttribute('data-widget-editor-background', '');
+                        break;
+                    }
+                    if (current === document.body || current === document.documentElement) break;
+                    current = current.parentElement;
+                }
+            }, true);
+
+            document.addEventListener('click', function (event) {
+                const element = event.target && event.target.nodeType === 1 ? event.target : null;
+                if (!element) return;
+
+                const target = findImageTarget(element) || findBackgroundTarget(element);
+                if (!target) return;
+
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.style.display = 'none';
+                document.body.appendChild(input);
+                input.addEventListener('change', function () {
+                    const file = input.files && input.files[0];
+                    if (file) {
+                        parent.postMessage({
+                            type: 'widget-image-editor-file',
+                            target: target,
+                            file: file
+                        }, '*');
+                    }
+                    input.remove();
+                }, { once: true });
+                input.click();
+            }, true);
+        }
+
+        function buildWidgetEditablePreview(content) {
+            let previewContent = String(content == null ? '' : content);
+            const tags = scanWidgetImageTags(previewContent);
+
+            for (let i = tags.length - 1; i >= 0; i--) {
+                const tag = tags[i];
+                let insertAt = tag.end;
+                let beforeEnd = tag.end - 1;
+                while (beforeEnd > tag.start && /\s/.test(previewContent[beforeEnd])) beforeEnd--;
+                if (previewContent[beforeEnd] === '/') insertAt = beforeEnd;
+                const marker = ' data-widget-editor-image-index="' + tag.index + '"';
+                previewContent = previewContent.slice(0, insertAt) + marker + previewContent.slice(insertAt);
+            }
+
+            const editStyle = '<style>img[data-widget-editor-image-index],image[data-widget-editor-image-index],[data-widget-editor-background]{cursor:pointer!important}img[data-widget-editor-image-index]:hover,image[data-widget-editor-image-index]:hover,[data-widget-editor-background]:hover{outline:2px solid #007aff!important;outline-offset:-2px}</style>';
+            const editScript = '<script>(' + widgetImageEditBridge.toString() + ')();<' + '/script>';
+            const editTools = editStyle + editScript;
+            const headMatch = /<head\b[^>]*>/i.exec(previewContent);
+
+            if (headMatch) {
+                const insertAt = headMatch.index + headMatch[0].length;
+                return previewContent.slice(0, insertAt) + editTools + previewContent.slice(insertAt);
+            }
+            return editTools + previewContent;
+        }
+
+        function replaceWidgetTagImage(tagText, target, imageUrl) {
+            const attribute = target.attribute || (target.kind === 'image' ? 'href' : 'src');
+            const escapedAttribute = attribute.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const attributePattern = new RegExp('(\\s' + escapedAttribute + '\\s*=\\s*)(?:"[^"]*"|\'[^\']*\'|[^\\s>]+)', 'i');
+            let updatedTag = tagText;
+
+            if (attributePattern.test(tagText)) {
+                updatedTag = tagText.replace(attributePattern, function (match, prefix) {
+                    return prefix + '"' + imageUrl + '"';
+                });
+            } else {
+                let insertAt = tagText.lastIndexOf('>');
+                let beforeEnd = insertAt - 1;
+                while (beforeEnd > 0 && /\s/.test(tagText[beforeEnd])) beforeEnd--;
+                if (tagText[beforeEnd] === '/') insertAt = beforeEnd;
+                updatedTag = tagText.slice(0, insertAt) + ' ' + attribute + '="' + imageUrl + '"' + tagText.slice(insertAt);
+            }
+
+            if (target.kind === 'img' && attribute === 'src') {
+                const srcsetPattern = /(\ssrcset\s*=\s*)(?:"[^"]*"|'[^']*'|[^\s>]+)/i;
+                updatedTag = updatedTag.replace(srcsetPattern, function (match, prefix) {
+                    return prefix + '"' + imageUrl + '"';
+                });
+            }
+            return updatedTag;
+        }
+
+        function replaceWidgetImageContent(content, target, imageUrl) {
+            const source = String(content == null ? '' : content);
+            if (target && (target.kind === 'img' || target.kind === 'image') && !target.dynamic) {
+                const matchingTags = scanWidgetImageTags(source).filter(function (tag) {
+                    return tag.name === target.kind;
+                });
+                const tag = matchingTags[target.index];
+                if (tag) {
+                    const tagText = source.slice(tag.start, tag.end + 1);
+                    const replacement = replaceWidgetTagImage(tagText, target, imageUrl);
+                    return source.slice(0, tag.start) + replacement + source.slice(tag.end + 1);
+                }
+            }
+
+            if (target && target.source && source.indexOf(target.source) !== -1) {
+                return source.replace(target.source, imageUrl);
+            }
+            return null;
+        }
+
+        function readWidgetImageFile(file) {
+            return new Promise(function (resolve, reject) {
+                const reader = new FileReader();
+                reader.onload = function () { resolve(reader.result); };
+                reader.onerror = function () { reject(reader.error || new Error('Image read failed')); };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function prepareWidgetImageData(file) {
+            const originalData = await readWidgetImageFile(file);
+            if (file.type === 'image/gif' || file.type === 'image/svg+xml') return originalData;
+            if (typeof window.compressImageBase64 !== 'function') return originalData;
+
+            return new Promise(function (resolve) {
+                window.compressImageBase64(originalData, 1600, 0.88, function (compressedData) {
+                    resolve(compressedData && compressedData.length < originalData.length ? compressedData : originalData);
+                });
+            });
+        }
+
+        window.addEventListener('message', async function (event) {
+            const frame = document.getElementById('widgetCodePreviewFrame');
+            const editorModal = document.getElementById('widgetEditorModal');
+            const message = event.data;
+            if (!frame || event.source !== frame.contentWindow || !editorModal || !editorModal.classList.contains('show')) return;
+            if (!message || message.type !== 'widget-image-editor-file' || !(message.file instanceof Blob)) return;
+
+            try {
+                const imageData = await prepareWidgetImageData(message.file);
+                const editor = document.getElementById('widgetEditContent');
+                const updatedContent = replaceWidgetImageContent(editor.value, message.target, imageData);
+                if (updatedContent == null) {
+                    if (typeof window.showToast === 'function') window.showToast('\u672a\u80fd\u5b9a\u4f4d\u8fd9\u5f20\u56fe\u7247');
+                    return;
+                }
+                editor.value = updatedContent;
+                updateWidgetCodePreview();
+                if (typeof window.showToast === 'function') window.showToast('\u56fe\u7247\u5df2\u66ff\u6362');
+            } catch (error) {
+                if (typeof window.showToast === 'function') window.showToast('\u56fe\u7247\u8bfb\u53d6\u5931\u8d25');
+            }
+        });
+
             // show three-dots button; click to expand vertical capsule menu
         window.renderWidgetViews = renderWidgetViews;
 
@@ -322,7 +637,7 @@
             frame.style.width = width + 'px';
             frame.style.height = height + 'px';
             frame.style.transform = 'scale(' + scale + ')';
-            frame.srcdoc = editor.value;
+            frame.srcdoc = buildWidgetEditablePreview(editor.value);
             sizeLabel.innerText = cols + ' × ' + rows;
         }
         window.updateWidgetCodePreview = updateWidgetCodePreview;
