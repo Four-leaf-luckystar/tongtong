@@ -3556,19 +3556,19 @@
                     e.preventDefault();
                     wcOpenBubbleMenu(message.id, e.clientX, e.clientY);
                 });
-
                 const imgWrap = document.createElement('div');
                 imgWrap.style.position = 'relative';
-                imgWrap.style.width = '136px'; // 基础宽度120px + 偏移量16px
+                imgWrap.style.width = '144px'; // 基础宽度120px + 最大偏移量24px
                 imgWrap.style.height = '213px';
                 imgWrap.style.cursor = 'pointer';
+                imgWrap.style.transition = 'transform 0.2s ease'; // 按压动画过渡
                 
                 let currentImgIndex = 0;
                 const len = message.imageUrl.length;
                 const maxStack = Math.min(3, len);
                 const stackImgs = [];
                 
-                // 逆序添加，让 index 0 (最顶层) 最后添加，从而在 DOM 最上层
+                // 逆序添加，保证 index 0 (最顶层) 最后被 append，从而在 DOM 最上层
                 for (let i = maxStack - 1; i >= 0; i--) {
                     const img = document.createElement('img');
                     img.src = message.imageUrl[(currentImgIndex + i) % len];
@@ -3577,41 +3577,48 @@
                     img.style.borderRadius = '8px';
                     img.style.objectFit = 'cover';
                     img.style.boxShadow = '-2px 0 8px rgba(0,0,0,0.15)';
-                    img.style.transition = 'all 0.3s ease';
+                    img.style.transition = 'opacity 0.2s ease'; // 淡入淡出过渡
                     
-                    // 根据层级计算偏移和缩放
+                    // 根据层级计算偏移和缩放 (越往后越小，向右偏移)
                     if (i === 0) {
                         img.style.zIndex = '3';
                         img.style.left = '0px';
                         img.style.top = '0px';
                         img.style.height = '213px';
-                        img.style.opacity = '1';
                     } else if (i === 1) {
                         img.style.zIndex = '2';
-                        img.style.left = '8px';
-                        img.style.top = '6px';
-                        img.style.height = '201px';
-                        img.style.opacity = '0.9';
+                        img.style.left = '12px';
+                        img.style.top = '8px';
+                        img.style.height = '197px';
                     } else if (i === 2) {
                         img.style.zIndex = '1';
-                        img.style.left = '16px';
-                        img.style.top = '12px';
-                        img.style.height = '189px';
-                        img.style.opacity = '0.8';
+                        img.style.left = '24px';
+                        img.style.top = '16px';
+                        img.style.height = '181px';
                     }
                     
-                    stackImgs.unshift(img); // 保证 stackImgs[0] 是最顶层图片
+                    stackImgs.unshift(img); // 保证 stackImgs[0] 始终是最顶层的图片元素
                     imgWrap.appendChild(img);
                 }
                 
                 imgWrap.onclick = (e) => {
                     if (isLongPress) return;
                     e.stopPropagation();
-                    currentImgIndex = (currentImgIndex + 1) % len;
-                    // 点击时更新所有层叠图片的 src
-                    for (let i = 0; i < maxStack; i++) {
-                        stackImgs[i].src = message.imageUrl[(currentImgIndex + i) % len];
-                    }
+                    
+                    // 交互动画：整体微缩，顶层图片淡出
+                    imgWrap.style.transform = 'scale(0.95)';
+                    stackImgs[0].style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        currentImgIndex = (currentImgIndex + 1) % len;
+                        // 更新所有层叠图片的 src
+                        for (let i = 0; i < maxStack; i++) {
+                            stackImgs[i].src = message.imageUrl[(currentImgIndex + i) % len];
+                        }
+                        // 恢复状态
+                        stackImgs[0].style.opacity = '1';
+                        imgWrap.style.transform = 'scale(1)';
+                    }, 200);
                 };
                 
                 bubble.appendChild(imgWrap);
@@ -3621,10 +3628,10 @@
                 expandBtn.style.position = 'absolute';
                 expandBtn.style.top = '50%';
                 expandBtn.style.transform = 'translateY(-50%)';
-                expandBtn.style.fontSize = '12px';
-                expandBtn.style.color = '#8e8e93';
+                expandBtn.style.fontSize = '13px';
+                expandBtn.style.color = '#555';
                 expandBtn.style.backgroundColor = '#f2f2f7';
-                expandBtn.style.borderRadius = '12px';
+                expandBtn.style.borderRadius = '14px';
                 expandBtn.style.padding = '6px 12px';
                 expandBtn.style.cursor = 'pointer';
                 expandBtn.style.fontWeight = '500';
@@ -3632,11 +3639,11 @@
                 expandBtn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
                 
                 if (isSent) {
-                    expandBtn.style.left = '-75px';
+                    expandBtn.style.left = '-80px';
                     expandBtn.style.right = 'auto';
                 } else {
                     expandBtn.style.left = 'auto';
-                    expandBtn.style.right = '-75px';
+                    expandBtn.style.right = '-80px';
                 }
 
                 expandBtn.onclick = (e) => {
