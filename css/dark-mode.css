@@ -13,10 +13,10 @@
         .iphone.dark-mode .preset-bg.default-bg { background-color: #1c1c1e; }
         
         /* 容器与顶栏深色 */
-        .iphone.dark-mode .settings-app-container, .iphone.dark-mode .display-settings-container, .iphone.dark-mode .apple-id-container, .iphone.dark-mode .api-app-container, .iphone.dark-mode .icloud-app-container, .iphone.dark-mode .api-page, .iphone.dark-mode .ic-page, .iphone.dark-mode .theme-app-container, .iphone.dark-mode .theme-content-area, .iphone.dark-mode .wallpaper-carousel-container, .iphone.dark-mode #presetDetailPage, .iphone.dark-mode .settings-top-bar, .iphone.dark-mode .ds-nav-bar, .iphone.dark-mode .apple-id-nav-bar, .iphone.dark-mode .api-nav-bar, .iphone.dark-mode .ic-header-area, .iphone.dark-mode .ios-top-bar, .iphone.dark-mode .detail-header { background-color: #000000; }
+        .iphone.dark-mode .settings-app-container, .iphone.dark-mode .display-settings-container, .iphone.dark-mode .apple-id-container, .iphone.dark-mode .api-app-container, .iphone.dark-mode .voice-app-container, .iphone.dark-mode .imggen-app-container, .iphone.dark-mode .icloud-app-container, .iphone.dark-mode .api-page, .iphone.dark-mode .ic-page, .iphone.dark-mode .theme-app-container, .iphone.dark-mode .theme-content-area, .iphone.dark-mode .wallpaper-carousel-container, .iphone.dark-mode #presetDetailPage, .iphone.dark-mode .settings-top-bar, .iphone.dark-mode .ds-nav-bar, .iphone.dark-mode .apple-id-nav-bar, .iphone.dark-mode .api-nav-bar, .iphone.dark-mode .ic-header-area, .iphone.dark-mode .ios-top-bar, .iphone.dark-mode .detail-header { background-color: #000000; }
         
         /* 卡片与列表深色 */
-        .iphone.dark-mode .set-card, .iphone.dark-mode .ds-card-group, .iphone.dark-mode .apple-id-card, .iphone.dark-mode .api-hero-card, .iphone.dark-mode .api-list-group, .iphone.dark-mode .api-form-card, .iphone.dark-mode .ic-card, .iphone.dark-mode .ic-list-card, .iphone.dark-mode .theme-app-card, .iphone.dark-mode .wallpaper-card, .iphone.dark-mode .font-ios-card, .iphone.dark-mode .font-list-item, .iphone.dark-mode .font-item-inner, .iphone.dark-mode .search-result-card, .iphone.dark-mode .set-list-item, .iphone.dark-mode .ds-list-item, .iphone.dark-mode .apple-id-list-item, .iphone.dark-mode .api-row, .iphone.dark-mode .ic-list-item, .iphone.dark-mode .ic-app-list-item, .iphone.dark-mode .search-result-item { background-color: #1c1c1e; color: #ffffff; }
+        .iphone.dark-mode .set-card, .iphone.dark-mode .ds-card-group, .iphone.dark-mode .apple-id-card, .iphone.dark-mode .api-hero-card, .iphone.dark-mode .api-list-group, .iphone.dark-mode .api-form-card, .iphone.dark-mode .api-settings-card, .iphone.dark-mode .api-gen-result, .iphone.dark-mode .api-gen-fetched-item, .iphone.dark-mode .api-gen-fetched-close, .iphone.dark-mode .ic-card, .iphone.dark-mode .ic-list-card, .iphone.dark-mode .theme-app-card, .iphone.dark-mode .wallpaper-card, .iphone.dark-mode .font-ios-card, .iphone.dark-mode .font-list-item, .iphone.dark-mode .font-item-inner, .iphone.dark-mode .search-result-card, .iphone.dark-mode .set-list-item, .iphone.dark-mode .ds-list-item, .iphone.dark-mode .apple-id-list-item, .iphone.dark-mode .api-row, .iphone.dark-mode .ic-list-item, .iphone.dark-mode .ic-app-list-item, .iphone.dark-mode .search-result-item { background-color: #1c1c1e; color: #ffffff; }
         
         /* 全局文字浅色覆盖 */
         .iphone.dark-mode .set-page-title, .iphone.dark-mode .ds-nav-title, .iphone.dark-mode .apple-id-nav-title, .iphone.dark-mode .api-nav-title, .iphone.dark-mode .ic-header-title, .iphone.dark-mode .ic-nav-title-detail, .iphone.dark-mode .ios-top-title, .iphone.dark-mode .detail-title, .iphone.dark-mode .info-name, .iphone.dark-mode .theme-app-name-input, .iphone.dark-mode .set-profile-name, .iphone.dark-mode .apple-id-name, .iphone.dark-mode .font-item-title, .iphone.dark-mode .font-name-text, .iphone.dark-mode .api-hero-title, .iphone.dark-mode .api-row-title-text, .iphone.dark-mode .ic-list-item-title, .iphone.dark-mode .ic-app-list-name, .iphone.dark-mode .ic-storage-label, .iphone.dark-mode .ic-storage-detail-title, .iphone.dark-mode .ds-appearance-option, .iphone.dark-mode .custom-dialog-title, .iphone.dark-mode .preset-m-header-text, .iphone.dark-mode .search-result-text, .iphone.dark-mode .ic-item-name, .iphone.dark-mode .ic-card-title, .iphone.dark-mode .ic-legend-item, .iphone.dark-mode .ic-card-action, .iphone.dark-mode .preset-lock-time:not(.has-bg), .iphone.dark-mode .set-item-content, .iphone.dark-mode .apple-id-item-content, .iphone.dark-mode .api-drawer-title, .iphone.dark-mode .search-drawer-header input, .iphone.dark-mode .api-drawer-header .text-btn, .iphone.dark-mode .save-preset-btn, .iphone.dark-mode .font-preview-text { color: #ffffff; }
@@ -39,7 +39,7 @@
         .iphone.dark-mode .api-drawer, .iphone.dark-mode .search-drawer, .iphone.dark-mode .api-drawer-header, .iphone.dark-mode .search-drawer-header, .iphone.dark-mode .save-preset-btn, .iphone.dark-mode .ic-app-icon-wrapper { background-color: #1c1c1e; border-color: #38383a; }
         .iphone.dark-mode .set-search-bar input, .iphone.dark-mode .search-input-container input, .iphone.dark-mode .preset-m1-input, .iphone.dark-mode .api-form-input, .iphone.dark-mode .api-form-select, .iphone.dark-mode .icon-menu-item { color: #fff; }
         .iphone.dark-mode .preset-bottom-fixed, .iphone.dark-mode .detail-bottom-bar { background: linear-gradient(to top, #000 80%, rgba(0,0,0,0)); }
-        .iphone.dark-mode .ds-toggle, .iphone.dark-mode .font-ios-slider { background-color: #39393d; }
+        .iphone.dark-mode .ds-toggle:not(.on), .iphone.dark-mode .font-ios-slider, .iphone.dark-mode .set-toggle:not(.on), .iphone.dark-mode .api-toggle.off, .iphone.dark-mode .wb-ios-switch:not(.active) { background-color: #39393d !important; }
         .iphone.dark-mode .apple-id-icon-transparent, .iphone.dark-mode .api-hero-desc { color: #fff; }
         .iphone.dark-mode .api-hero-desc span, .iphone.dark-mode .custom-dialog-btn { color: #0a84ff; }
         .iphone.dark-mode .custom-dialog-btn { background-color: rgba(255,255,255,0.05); }
@@ -51,6 +51,8 @@
         .iphone.dark-mode .save-preset-btn, .iphone.dark-mode .font-preview-text, .iphone.dark-mode .widget-segment-btn, .iphone.dark-mode .widget-card-name, .iphone.dark-mode .widget-list-item-title, .iphone.dark-mode .set-page-title, .iphone.dark-mode .set-item-content span, .iphone.dark-mode .set-profile-name { color: #ffffff !important; }
         .iphone.dark-mode .settings-app-container, .iphone.dark-mode .settings-top-bar { background-color: #000000 !important; }
         .iphone.dark-mode .set-card, .iphone.dark-mode .set-list-item, .iphone.dark-mode .widget-card-preview, .iphone.dark-mode .widget-list-item, .iphone.dark-mode .widget-list-item-icon, .iphone.dark-mode .set-search-bar { background-color: #1c1c1e !important; border-color: #38383a !important; }
+        .iphone.dark-mode .set-list-item:active, .iphone.dark-mode .apple-id-list-item:active, .iphone.dark-mode .api-row.clickable:active, .iphone.dark-mode .ic-list-item:active, .iphone.dark-mode .ic-app-list-item:active { background-color: #2c2c2e !important; }
+        .iphone.dark-mode .set-chevron, .iphone.dark-mode .apple-id-chevron, .iphone.dark-mode .ic-chevron { stroke: #5c5c5e !important; }
         .iphone.dark-mode .widget-card { background: linear-gradient(135deg, rgba(44, 44, 46, 0.9) 0%, rgba(28, 28, 30, 0.5) 100%) !important; border-color: #38383a !important; }
         .iphone.dark-mode .ios-menu-btn { background: rgba(44, 44, 46, 0.85) !important; }
         .iphone.dark-mode .ios-menu-btn svg { stroke: #ffffff !important; }
@@ -260,5 +262,22 @@
         .iphone.dark-mode #wechatAppUI .wc-function-icon { background-color: #2c2c2e; }
         .iphone.dark-mode #wechatAppUI .wc-function-icon svg { stroke: #ffffff; }
         .iphone.dark-mode #wechatAppUI .wc-function-item:active .wc-function-icon { background-color: #3a3a3c; }
+        /* --- 语音与生图专属深色模式适配 --- */
+        .iphone.dark-mode .api-segment, 
+        .iphone.dark-mode .api-textarea-wrapper, 
+        .iphone.dark-mode .api-settings-input, 
+        .iphone.dark-mode .api-settings-select { background-color: #2c2c2e; color: #ffffff; }
+        .iphone.dark-mode .api-segment-item { color: #8e8e93; }
+        .iphone.dark-mode .api-segment-item.active { background-color: #3a3a3c; color: #ffffff; }
+        .iphone.dark-mode .api-textarea { color: #ffffff; }
+        .iphone.dark-mode .api-check-control { background-color: #39393d; }
+        .iphone.dark-mode .api-check-input:checked + .api-check-control { background-color: #34c759; }
+        .iphone.dark-mode .api-prompt-preset-row .api-settings-select { background-color: #2c2c2e; color: #ffffff; border-color: #38383a; }
+        .iphone.dark-mode .api-prompt-action { background-color: rgba(10, 132, 255, 0.15); }
+        .iphone.dark-mode .api-prompt-action.danger { background-color: rgba(255, 59, 48, 0.15); }
+        .iphone.dark-mode .api-gen-fetched-item { border-bottom-color: #38383a; }
+        .iphone.dark-mode .api-gen-fetched-item:active { background-color: #2c2c2e; }
+        .iphone.dark-mode .api-universal-select-value { color: #ffffff; }
+        .iphone.dark-mode .api-universal-select-trigger:active { background-color: #2c2c2e; }
 
 
