@@ -118,10 +118,17 @@
             return -1;
         }
 
+        function getWidgetTagAttribute(tagText, attributeName) {
+            const escapedName = attributeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const pattern = new RegExp('\\s' + escapedName + '\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\'|([^\\s>]+))', 'i');
+            const match = pattern.exec(tagText);
+            return match ? (match[1] || match[2] || match[3] || '') : '';
+        }
+
         function scanWidgetImageTags(content) {
             const source = String(content == null ? '' : content);
             const lowerSource = source.toLowerCase();
-            const counters = { img: 0, image: 0 };
+            const counters = { img: 0, image: 0, uploadable: 0, contenteditable: 0 };
             const tags = [];
             let cursor = 0;
 
@@ -154,10 +161,36 @@
                 const tagEnd = findWidgetTagEnd(source, nameEnd);
                 if (tagEnd === -1) break;
 
+                const tagText = source.slice(tagStart, tagEnd + 1);
                 if (tagName === 'img' || tagName === 'image') {
                     tags.push({
                         name: tagName,
+                        tagName: tagName,
+                        kind: tagName,
                         index: counters[tagName]++,
+                        start: tagStart,
+                        end: tagEnd
+                    });
+                }
+
+                const classNames = getWidgetTagAttribute(tagText, 'class').split(/\s+/).filter(Boolean);
+                if (tagName !== 'img' && tagName !== 'image' && classNames.indexOf('uploadable-img') !== -1) {
+                    tags.push({
+                        name: 'uploadable',
+                        tagName: tagName,
+                        kind: 'uploadable',
+                        index: counters.uploadable++,
+                        start: tagStart,
+                        end: tagEnd
+                    });
+                }
+
+                if (getWidgetTagAttribute(tagText, 'contenteditable').toLowerCase() === 'true') {
+                    tags.push({
+                        name: 'contenteditable',
+                        tagName: tagName,
+                        kind: 'contenteditable',
+                        index: counters.contenteditable++,
                         start: tagStart,
                         end: tagEnd
                     });
@@ -180,6 +213,35 @@
             const isDesktopWidget = mode === 'desktop';
             let pointerStart = null;
             let suppressImageClickUntil = 0;
+
+            function findContentEditableTarget(startElement) {
+                const editable = startElement && startElement.closest
+                    ? startElement.closest('[data-widget-editor-content-index]')
+                    : null;
+                if (!editable) return null;
+
+                const markedIndex = editable.getAttribute('data-widget-editor-content-index');
+                const index = parseInt(markedIndex, 10);
+                if (!Number.isFinite(index)) return null;
+
+                return {
+                    kind: 'contenteditable',
+                    index: index,
+                    html: editable.innerHTML
+                };
+            }
+
+            function postContentEdit(element, phase) {
+                const target = findContentEditableTarget(element);
+                if (!target) return;
+
+                parent.postMessage({
+                    type: isDesktopWidget ? 'widget-desktop-content' : 'widget-image-editor-content',
+                    phase: phase,
+                    target: { kind: target.kind, index: target.index },
+                    html: target.html
+                }, '*');
+            }
 
             function postDesktopPointer(phase, event) {
                 parent.postMessage({
@@ -307,6 +369,21 @@
             }
 
             function findImageTarget(startElement) {
+                const uploadable = startElement && startElement.closest
+                    ? startElement.closest('[data-widget-editor-uploadable-index]')
+                    : null;
+                if (uploadable) {
+                    const markedIndex = uploadable.getAttribute('data-widget-editor-uploadable-index');
+                    const index = parseInt(markedIndex, 10);
+                    if (Number.isFinite(index)) {
+                        return {
+                            kind: 'uploadable',
+                            index: index,
+                            source: getBackgroundSource(uploadable)
+                        };
+                    }
+                }
+
                 const image = startElement && startElement.closest
                     ? startElement.closest('img, image')
                     : null;
@@ -357,7 +434,13 @@
 
             document.addEventListener('pointerover', function (event) {
                 const element = event.target && event.target.nodeType === 1 ? event.target : null;
-                if (!element || (element.closest && element.closest('img, image'))) return;
+                if (!element) return;
+                const uploadable = element.closest && element.closest('[data-widget-editor-uploadable-index]');
+                if (uploadable) {
+                    uploadable.setAttribute('data-widget-editor-uploadable-hover', '');
+                    return;
+                }
+                if (element.closest && element.closest('img, image, [contenteditable="true"]')) return;
                 let current = element;
                 while (current && current.nodeType === 1) {
                     if (getBackgroundSource(current)) {
@@ -372,6 +455,7 @@
             document.addEventListener('click', function (event) {
                 const element = event.target && event.target.nodeType === 1 ? event.target : null;
                 if (!element || (element.matches && element.matches('input[type="file"]'))) return;
+                if (element.closest && element.closest('[contenteditable="true"]')) return;
 
                 const target = findImageTarget(element) || findBackgroundTarget(element);
                 if (!target) return;
@@ -386,6 +470,16 @@
                 event.stopImmediatePropagation();
                 openWidgetImagePicker(target);
             }, true);
+
+            document.addEventListener('input', function (event) {
+                const element = event.target && event.target.nodeType === 1 ? event.target : null;
+                if (element) postContentEdit(element, 'input');
+            }, true);
+
+            document.addEventListener('blur', function (event) {
+                const element = event.target && event.target.nodeType === 1 ? event.target : null;
+                if (element) postContentEdit(element, 'blur');
+            }, true);
         }
 
         function buildWidgetImageEditableContent(content, mode) {
@@ -398,11 +492,16 @@
                 let beforeEnd = tag.end - 1;
                 while (beforeEnd > tag.start && /\s/.test(previewContent[beforeEnd])) beforeEnd--;
                 if (previewContent[beforeEnd] === '/') insertAt = beforeEnd;
-                const marker = ' data-widget-editor-image-index="' + tag.index + '"';
+                const markerName = tag.name === 'uploadable'
+                    ? 'data-widget-editor-uploadable-index'
+                    : tag.name === 'contenteditable'
+                        ? 'data-widget-editor-content-index'
+                        : 'data-widget-editor-image-index';
+                const marker = ' ' + markerName + '="' + tag.index + '"';
                 previewContent = previewContent.slice(0, insertAt) + marker + previewContent.slice(insertAt);
             }
 
-            const editStyle = '<style>img[data-widget-editor-image-index],image[data-widget-editor-image-index],[data-widget-editor-background]{cursor:pointer!important}img[data-widget-editor-image-index]:hover,image[data-widget-editor-image-index]:hover,[data-widget-editor-background]:hover{outline:2px solid #007aff!important;outline-offset:-2px}</style>';
+            const editStyle = '<style>img[data-widget-editor-image-index],image[data-widget-editor-image-index],[data-widget-editor-uploadable-index],[data-widget-editor-background]{cursor:pointer!important}[data-widget-editor-content-index]{cursor:text!important}[data-widget-editor-uploadable-index]:hover,img[data-widget-editor-image-index]:hover,image[data-widget-editor-image-index]:hover,[data-widget-editor-background]:hover{outline:2px solid #007aff!important;outline-offset:-2px}[data-widget-editor-content-index]:focus{outline:2px solid rgba(0,122,255,.55)!important;outline-offset:2px}</style>';
             const editScript = '<script>(' + widgetImageEditBridge.toString() + ')(' + JSON.stringify(mode || 'editor') + ');<' + '/script>';
             const editTools = editStyle + editScript;
             const headMatch = /<head\b[^>]*>/i.exec(previewContent);
@@ -451,6 +550,18 @@
 
         function replaceWidgetImageContent(content, target, imageUrl) {
             const source = String(content == null ? '' : content);
+            if (target && target.kind === 'uploadable') {
+                const matchingTags = scanWidgetImageTags(source).filter(function (tag) {
+                    return tag.name === 'uploadable';
+                });
+                const tag = matchingTags[target.index];
+                if (tag) {
+                    const tagText = source.slice(tag.start, tag.end + 1);
+                    const replacement = replaceWidgetUploadableTag(tagText, imageUrl);
+                    return source.slice(0, tag.start) + replacement + source.slice(tag.end + 1);
+                }
+            }
+
             if (target && (target.kind === 'img' || target.kind === 'image') && !target.dynamic) {
                 const matchingTags = scanWidgetImageTags(source).filter(function (tag) {
                     return tag.name === target.kind;
@@ -467,6 +578,97 @@
                 return source.replace(target.source, imageUrl);
             }
             return null;
+        }
+
+        function replaceWidgetUploadableTag(tagText, imageUrl) {
+            const safeUrl = String(imageUrl == null ? '' : imageUrl)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            const backgroundDeclaration = 'background-image: url(' + safeUrl + ')';
+            const stylePattern = /(\sstyle\s*=\s*)(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i;
+            const styleMatch = stylePattern.exec(tagText);
+
+            if (styleMatch) {
+                const quote = styleMatch[2] !== undefined ? '"' : styleMatch[3] !== undefined ? "'" : '';
+                const currentStyle = styleMatch[2] !== undefined
+                    ? styleMatch[2]
+                    : styleMatch[3] !== undefined
+                        ? styleMatch[3]
+                        : styleMatch[4];
+                const nextStyle = /background-image\s*:/i.test(currentStyle)
+                    ? currentStyle.replace(/background-image\s*:\s*[^;]*(;?)/i, backgroundDeclaration + '$1')
+                    : currentStyle.replace(/\s*$/, '') + (currentStyle.trim() ? '; ' : '') + backgroundDeclaration;
+                const encodedStyle = quote === '"'
+                    ? nextStyle.replace(/"/g, '&quot;')
+                    : quote === "'"
+                        ? nextStyle.replace(/'/g, '&#39;')
+                        : nextStyle;
+                return tagText.replace(stylePattern, function (match, prefix) {
+                    return prefix + (quote ? quote + encodedStyle + quote : encodedStyle);
+                });
+            }
+
+            let insertAt = tagText.lastIndexOf('>');
+            let beforeEnd = insertAt - 1;
+            while (beforeEnd > 0 && /\s/.test(tagText[beforeEnd])) beforeEnd--;
+            if (tagText[beforeEnd] === '/') insertAt = beforeEnd;
+            return tagText.slice(0, insertAt) + ' style="' + backgroundDeclaration + '"' + tagText.slice(insertAt);
+        }
+
+        function findWidgetElementContentRange(source, tag) {
+            const tagName = tag && tag.tagName;
+            if (!tagName) return null;
+
+            const openingTag = source.slice(tag.start, tag.end + 1);
+            if (/\/\s*>$/.test(openingTag)) return null;
+
+            let depth = 1;
+            let cursor = tag.end + 1;
+            const lowerSource = source.toLowerCase();
+            while (cursor < source.length) {
+                const nextTagStart = source.indexOf('<', cursor);
+                if (nextTagStart === -1) return null;
+
+                if (lowerSource.slice(nextTagStart, nextTagStart + 4) === '<!--') {
+                    const commentEnd = lowerSource.indexOf('-->', nextTagStart + 4);
+                    cursor = commentEnd === -1 ? source.length : commentEnd + 3;
+                    continue;
+                }
+
+                const nextTagEnd = findWidgetTagEnd(source, nextTagStart + 1);
+                if (nextTagEnd === -1) return null;
+                const nextTagText = source.slice(nextTagStart, nextTagEnd + 1);
+                const nameMatch = /^<\s*(\/?)\s*([A-Za-z0-9:-]+)/.exec(nextTagText);
+                if (nameMatch && nameMatch[2].toLowerCase() === tagName.toLowerCase()) {
+                    if (nameMatch[1]) {
+                        depth--;
+                        if (depth === 0) {
+                            return { start: tag.end + 1, end: nextTagStart };
+                        }
+                    } else if (!/\/\s*>$/.test(nextTagText)) {
+                        depth++;
+                    }
+                }
+
+                cursor = nextTagEnd + 1;
+            }
+            return null;
+        }
+
+        function replaceWidgetEditableContent(content, target, html) {
+            const source = String(content == null ? '' : content);
+            if (!target || target.kind !== 'contenteditable' || !Number.isInteger(target.index) || target.index < 0) return null;
+
+            const editableTags = scanWidgetImageTags(source).filter(function (tag) {
+                return tag.name === 'contenteditable';
+            });
+            const tag = editableTags[target.index];
+            const range = tag && findWidgetElementContentRange(source, tag);
+            if (!range) return null;
+
+            return source.slice(0, range.start) + String(html == null ? '' : html) + source.slice(range.end);
         }
 
         function readWidgetImageFile(file) {
@@ -495,7 +697,17 @@
             const editorModal = document.getElementById('widgetEditorModal');
             const message = event.data;
             if (!frame || event.source !== frame.contentWindow || !editorModal || !editorModal.classList.contains('show')) return;
-            if (!message || message.type !== 'widget-image-editor-file' || !(message.file instanceof Blob)) return;
+            if (!message) return;
+
+            if (message.type === 'widget-image-editor-content') {
+                if (typeof message.html !== 'string' || !message.target || typeof window.replaceWidgetEditableContent !== 'function') return;
+                const editor = document.getElementById('widgetEditContent');
+                const updatedContent = window.replaceWidgetEditableContent(editor.value, message.target, message.html);
+                if (updatedContent != null) editor.value = updatedContent;
+                return;
+            }
+
+            if (message.type !== 'widget-image-editor-file' || !(message.file instanceof Blob)) return;
 
             try {
                 const imageData = await prepareWidgetImageData(message.file);
@@ -790,6 +1002,7 @@
 
         window.buildWidgetDesktopContent = buildWidgetDesktopContent;
         window.replaceWidgetImageContent = replaceWidgetImageContent;
+        window.replaceWidgetEditableContent = replaceWidgetEditableContent;
         window.prepareWidgetImageData = prepareWidgetImageData;
         if (typeof window.refreshDesktopWidgetFrames === 'function') {
             window.refreshDesktopWidgetFrames();

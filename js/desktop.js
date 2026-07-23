@@ -519,7 +519,7 @@
 
     window.addEventListener('message', async event => {
         const message = event.data;
-        if (!message || (message.type !== 'widget-desktop-pointer' && message.type !== 'widget-desktop-image-file')) return;
+        if (!message || (message.type !== 'widget-desktop-pointer' && message.type !== 'widget-desktop-image-file' && message.type !== 'widget-desktop-content')) return;
 
         const frame = findDesktopWidgetFrame(event.source);
         if (!frame) return;
@@ -551,6 +551,18 @@
                 pressedWidgetFrame = null;
                 pressedWidgetApp = null;
             }
+            return;
+        }
+
+        if (message.type === 'widget-desktop-content') {
+            if (typeof message.html !== 'string' || !message.target || typeof window.replaceWidgetEditableContent !== 'function') return;
+
+            const currentContent = normalizeStoredWidgetContent(app.getAttribute('data-widget-content') || '');
+            const updatedContent = window.replaceWidgetEditableContent(currentContent, message.target, message.html);
+            if (updatedContent == null) return;
+
+            app.setAttribute('data-widget-content', encodeURIComponent(updatedContent));
+            if (message.phase === 'blur') saveLayout();
             return;
         }
 
