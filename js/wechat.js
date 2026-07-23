@@ -1466,6 +1466,95 @@
         }
     }
 
+    function wcSendVoiceMessage() {
+        wcCloseFunctionPanel();
+        showCustomPrompt('发送语音', { placeholder: '请输入语音转换的文字内容' }, '发送').then(text => {
+            if (text && text.trim()) {
+                wcAppendChatMessage(text.trim(), 'sent', wcCurrentChatContactId, null, wcCurrentReplyMsgId, true);
+                wcCloseReplyPreview();
+            }
+        });
+    }
+
+    function wcSimulateSendImage() {
+        wcCloseFunctionPanel();
+        showCustomPrompt('模拟发送图片', { placeholder: '请输入图片上的占位文字' }, '发送').then(text => {
+            if (text && text.trim()) {
+                const safeText = text.trim().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                // 生成一个带有文字的 SVG 占位图
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#E5E5EA"/><text x="50%" y="50%" font-family="sans-serif" font-size="16" fill="#8E8E93" text-anchor="middle" dominant-baseline="middle">${safeText}</text></svg>`;
+                const imageUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+                
+                wcAppendChatMessage('[图片]', 'sent', wcCurrentChatContactId, imageUrl, wcCurrentReplyMsgId, false);
+                wcCloseReplyPreview();
+            }
+        });
+    }
+
+    function wcHandleSendRealImages(event) {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+        
+        // 同步捕获当前的回复 ID，因为 FileReader 是异步的
+        const replyId = wcCurrentReplyMsgId;
+        wcCloseReplyPreview(); // 立即关闭回复预览 UI
+        
+        const fileArray = Array.from(files);
+        let processedCount = 0;
+        
+        fileArray.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    // 使用 Canvas 进行压缩，防止原图过大导致崩溃或无法发送
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 1280;
+                    const MAX_HEIGHT = 1280;
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                        const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+                        width = Math.round(width * ratio);
+                        height = Math.round(height * ratio);
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // 压缩为 JPEG 格式，质量 0.8
+                    const imageUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    wcAppendChatMessage('[图片]', 'sent', wcCurrentChatContactId, imageUrl, replyId, false);
+                    
+                    processedCount++;
+                    if (processedCount === fileArray.length) {
+                        event.target.value = '';
+                    }
+                };
+                img.onerror = function() {
+                    processedCount++;
+                    if (processedCount === fileArray.length) {
+                        event.target.value = '';
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.onerror = function() {
+                processedCount++;
+                if (processedCount === fileArray.length) {
+                    event.target.value = '';
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+    // 确保函数在全局作用域可被 HTML 的 onclick/onchange 访问
+    window.wcHandleSendRealImages = wcHandleSendRealImages;
+    window.wcSimulateSendImage = wcSimulateSendImage;
+
     async function wcRegenerateLastMessage() {
         wcCloseFunctionPanel();
         
@@ -1706,9 +1795,46 @@
         }
     }
 
+    function wcUpdateThemePreviewAvatars() {
+        const previewBox = document.getElementById('wc-custom-preview-box');
+        if (!previewBox) return;
+        
+        const receivedAvatarEl = previewBox.querySelector('.message-row.received .msg-avatar');
+        const sentAvatarEl = previewBox.querySelector('.message-row.sent .msg-avatar');
+        
+        const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
+        const charAvatar = contact ? contact.avatar : '';
+        const userAvatar = typeof appSettings !== 'undefined' && appSettings.wc_current_user_avatar ? appSettings.wc_current_user_avatar : '';
+        
+        if (receivedAvatarEl) {
+            if (charAvatar) {
+                receivedAvatarEl.style.backgroundImage = `url('${charAvatar}')`;
+                receivedAvatarEl.style.backgroundColor = 'transparent';
+                receivedAvatarEl.innerHTML = '';
+            } else {
+                receivedAvatarEl.style.backgroundImage = 'none';
+                receivedAvatarEl.style.backgroundColor = 'transparent';
+                receivedAvatarEl.innerHTML = getWcDefaultAvatarSvg();
+            }
+        }
+        
+        if (sentAvatarEl) {
+            if (userAvatar) {
+                sentAvatarEl.style.backgroundImage = `url('${userAvatar}')`;
+                sentAvatarEl.style.backgroundColor = 'transparent';
+                sentAvatarEl.innerHTML = '';
+            } else {
+                sentAvatarEl.style.backgroundImage = 'none';
+                sentAvatarEl.style.backgroundColor = 'transparent';
+                sentAvatarEl.innerHTML = getWcDefaultAvatarSvg();
+            }
+        }
+    }
+
     function wcOpenThemeModal() {
         wcShowThemeMenu(); 
         document.getElementById('wc-theme-modal').classList.add('show');
+        wcUpdateThemePreviewAvatars();
     }
 
     function wcCloseThemeModal() {
@@ -3118,9 +3244,9 @@
 
         styleTag.innerHTML = `
             #wechatAppUI * { font-family: ${fontFamilyStr} !important; }
-            #wechatAppUI .msg-text { font-size: ${size}px !important; }
-            #wechatAppUI .message-bubble.received .msg-text { color: ${colorReceived} !important; }
-            #wechatAppUI .message-bubble.sent .msg-text { color: ${colorSent} !important; }
+            #wechatAppUI .msg-text, #wechatAppUI .wc-voice-text { font-size: ${size}px !important; }
+            #wechatAppUI .message-bubble.received .msg-text, #wechatAppUI .message-bubble.received .wc-voice-text { color: ${colorReceived} !important; }
+            #wechatAppUI .message-bubble.sent .msg-text, #wechatAppUI .message-bubble.sent .wc-voice-text { color: ${colorSent} !important; }
         `;
         
         appSettings.wc_font_settings = { size: size, colorReceived: colorReceived, colorSent: colorSent, family: wcCurrentFontFamily };
@@ -3360,6 +3486,52 @@
             img.style.borderRadius = '8px';
             img.style.objectFit = 'contain';
             bubble.appendChild(img);
+        } else if (message.isVoice) {
+            const voiceContainer = document.createElement('div');
+            voiceContainer.className = 'wc-voice-container';
+            
+            const rawAvatarUrl = isSent
+                ? (typeof appSettings !== 'undefined' && appSettings.wc_current_user_avatar ? appSettings.wc_current_user_avatar : '')
+                : contact?.avatar;
+            const inlineAvatarStyle = rawAvatarUrl ? `background-image: url('${String(rawAvatarUrl).replace(/'/g, "\\'")}');` : '';
+            const inlineAvatarContent = rawAvatarUrl ? '' : getWcDefaultAvatarSvg();
+            const micSvg = `<svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>`;
+            
+            let wavesHtml = '';
+            const waveCount = Math.min(20, Math.max(8, Math.floor(text.length / 2)));
+            for(let i=0; i<waveCount; i++) {
+                const height = 4 + Math.random() * 10;
+                const delay = (Math.random() * -1.5).toFixed(2);
+                wavesHtml += `<div class="wc-voice-wave" style="height: ${height}px; animation-delay: ${delay}s;"></div>`;
+            }
+            
+            const durationSec = Math.max(1, Math.floor(text.length / 4));
+            const durationStr = `0:${durationSec.toString().padStart(2, '0')}`;
+            
+            const playSvg = `<svg class="wc-voice-play" viewBox="0 0 24 24"><path d="M6.73 4.08c-.98-.56-2.23.15-2.23 1.28v13.28c0 1.13 1.25 1.84 2.23 1.28l11.62-6.64c.94-.54.94-1.92 0-2.46L6.73 4.08z" fill="currentColor"/></svg>`;
+            
+            voiceContainer.innerHTML = `
+                <div class="wc-voice-content">
+                    <div class="wc-voice-avatar-wrap">
+                        <div class="wc-voice-avatar" style="${inlineAvatarStyle}">${inlineAvatarContent}</div>
+                        <div class="wc-voice-mic-badge">${micSvg}</div>
+                    </div>
+                    ${playSvg}
+                    <div class="wc-voice-dot"></div>
+                    <div class="wc-voice-waves">${wavesHtml}</div>
+                </div>
+                <div class="wc-voice-info">
+                    <span>${durationStr}</span>
+                </div>
+                <div class="wc-voice-text">${text}</div>
+            `;
+            
+            voiceContainer.addEventListener('click', (e) => {
+                e.stopPropagation();
+                voiceContainer.classList.toggle('show-text');
+            });
+            
+            bubble.appendChild(voiceContainer);
         } else {
             const messageText = document.createElement('div');
             messageText.className = 'msg-text';
@@ -3380,13 +3552,22 @@
         if (message.reactions && message.reactions.length > 0) {
             const reactionsHtml = `
                 <div class="wc-bubble-reactions">
-                    ${message.reactions.map(r => `<span class="wc-bubble-reaction">${r}</span>`).join('')}
+                    ${message.reactions.map(r => `<span class="wc-bubble-reaction">${typeof r === 'string' ? r : r.emoji}</span>`).join('')}
                 </div>
             `;
             bubble.insertAdjacentHTML('beforeend', reactionsHtml);
         }
         
-        row.append(avatar, bubble);
+        const checkbox = document.createElement('div');
+        checkbox.className = 'wc-msg-checkbox';
+        
+        row.addEventListener('click', (e) => {
+            if (typeof wcIsChatMultiSelectMode !== 'undefined' && wcIsChatMultiSelectMode) {
+                wcToggleChatMsgSelect(message.id);
+            }
+        });
+        
+        row.append(checkbox, avatar, bubble);
         return row;
     }
 
@@ -3402,7 +3583,7 @@
         wcScrollToBottom();
     }
 
-    function wcAppendChatMessage(text, type, contactId = wcCurrentChatContactId, imageUrl = null, replyTo = null) {
+    function wcAppendChatMessage(text, type, contactId = wcCurrentChatContactId, imageUrl = null, replyTo = null, isVoice = false) {
         if (!contactId) return;
         const message = {
             id: typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -3412,6 +3593,7 @@
             text: String(text),
             imageUrl: imageUrl,
             replyTo: replyTo,
+            isVoice: isVoice,
             createdAt: Date.now()
         };
         if (!Array.isArray(wcChatMessagesByContact[contactId])) wcChatMessagesByContact[contactId] = [];
@@ -3536,8 +3718,27 @@
         const messages = wcChatMessagesByContact[wcCurrentChatContactId];
         const msg = messages.find(m => m.id === wcCurrentLongPressMsgId);
         if (msg) {
-            // 每个气泡只能贴一个 emoji，直接覆盖
-            msg.reactions = [emoji];
+            if (!Array.isArray(msg.reactions)) msg.reactions = [];
+            
+            // 兼容旧的纯字符串数据
+            msg.reactions = msg.reactions.map(r => typeof r === 'string' ? { emoji: r, userId: msg.type === 'sent' ? 'char' : 'user' } : r);
+            
+            // 查找 User 是否已经贴过表情
+            const userReactionIndex = msg.reactions.findIndex(r => r.userId === 'user');
+            
+            if (userReactionIndex !== -1) {
+                if (msg.reactions[userReactionIndex].emoji === emoji) {
+                    // 点同一个 emoji：取消
+                    msg.reactions.splice(userReactionIndex, 1);
+                } else {
+                    // 点不同的 emoji：替换
+                    msg.reactions[userReactionIndex].emoji = emoji;
+                }
+            } else {
+                // 没贴过：新增
+                msg.reactions.push({ emoji: emoji, userId: 'user' });
+            }
+            
             wcSaveChatData();
             wcRenderChatMessages(wcCurrentChatContactId);
         }
@@ -3610,9 +3811,142 @@
             } else {
                 if (typeof showToast === 'function') showToast('只能编辑自己发送的消息');
             }
+        } else if (action === 'multiselect') {
+            wcEnterChatMultiSelectMode();
         }
         
         wcCloseBubbleMenu();
+    }
+
+    let wcIsChatMultiSelectMode = false;
+    let wcSelectedChatMsgIds = new Set();
+
+    function wcToggleChatMsgSelect(msgId) {
+        if (!wcIsChatMultiSelectMode) return;
+        if (wcSelectedChatMsgIds.has(msgId)) {
+            wcSelectedChatMsgIds.delete(msgId);
+        } else {
+            wcSelectedChatMsgIds.add(msgId);
+        }
+        wcUpdateChatMultiSelectUI();
+    }
+    window.wcToggleChatMsgSelect = wcToggleChatMsgSelect;
+
+    function wcEnterChatMultiSelectMode() {
+        wcIsChatMultiSelectMode = true;
+        wcSelectedChatMsgIds.clear();
+        if (wcCurrentLongPressMsgId) {
+            wcSelectedChatMsgIds.add(wcCurrentLongPressMsgId);
+        }
+        
+        const header = document.querySelector('#wechatAppUI .chat-header-container');
+        const footer = document.querySelector('#wechatAppUI .footer-capsule');
+        if (header) header.style.display = 'none';
+        if (footer) footer.style.display = 'none';
+        
+        let multiHeader = document.getElementById('wcChatMultiHeader');
+        if (!multiHeader) {
+            multiHeader = document.createElement('div');
+            multiHeader.id = 'wcChatMultiHeader';
+            multiHeader.className = 'wc-chat-multi-header';
+            multiHeader.innerHTML = `
+                <div class="title">已选择 <span id="wcChatMultiCount">1</span> 项</div>
+                <div class="cancel-btn" onclick="wcExitChatMultiSelectMode()">取消</div>
+            `;
+            document.getElementById('page-chat-room').appendChild(multiHeader);
+        }
+        multiHeader.style.display = 'flex';
+        
+        let multiFooter = document.getElementById('wcChatMultiFooter');
+        if (!multiFooter) {
+            multiFooter = document.createElement('div');
+            multiFooter.id = 'wcChatMultiFooter';
+            multiFooter.className = 'wc-chat-multi-footer';
+            multiFooter.innerHTML = `
+                <div class="action-btn" onclick="wcMultiForwardChat()"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>转发</div>
+                <div class="action-btn delete" onclick="wcMultiDeleteChat()"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>删除</div>
+            `;
+            document.getElementById('page-chat-room').appendChild(multiFooter);
+        }
+        multiFooter.style.display = 'flex';
+        
+        const chatArea = document.getElementById('wc-chat-area');
+        chatArea.classList.add('multi-select-mode');
+        
+        wcUpdateChatMultiSelectUI();
+    }
+
+    function wcExitChatMultiSelectMode() {
+        wcIsChatMultiSelectMode = false;
+        wcSelectedChatMsgIds.clear();
+        
+        const header = document.querySelector('#wechatAppUI .chat-header-container');
+        const footer = document.querySelector('#wechatAppUI .footer-capsule');
+        if (header) header.style.display = 'flex';
+        if (footer) footer.style.display = 'flex';
+        
+        const multiHeader = document.getElementById('wcChatMultiHeader');
+        const multiFooter = document.getElementById('wcChatMultiFooter');
+        if (multiHeader) multiHeader.style.display = 'none';
+        if (multiFooter) multiFooter.style.display = 'none';
+        
+        const chatArea = document.getElementById('wc-chat-area');
+        chatArea.classList.remove('multi-select-mode');
+        
+        wcUpdateChatMultiSelectUI();
+    }
+
+    function wcUpdateChatMultiSelectUI() {
+        const countSpan = document.getElementById('wcChatMultiCount');
+        if (countSpan) countSpan.innerText = wcSelectedChatMsgIds.size;
+        
+        document.querySelectorAll('#wc-chat-area .message-row').forEach(row => {
+            const msgId = row.getAttribute('data-id');
+            if (wcSelectedChatMsgIds.has(msgId)) {
+                row.classList.add('selected');
+            } else {
+                row.classList.remove('selected');
+            }
+        });
+    }
+
+    function wcMultiDeleteChat() {
+        if (wcSelectedChatMsgIds.size === 0) return;
+        showCustomConfirm('删除消息', `确定要删除选中的 ${wcSelectedChatMsgIds.size} 条消息吗？`, '删除', true).then(confirmed => {
+            if (confirmed) {
+                const messages = wcChatMessagesByContact[wcCurrentChatContactId];
+                wcChatMessagesByContact[wcCurrentChatContactId] = messages.filter(m => !wcSelectedChatMsgIds.has(m.id));
+                wcSaveChatData();
+                wcRenderChatMessages(wcCurrentChatContactId);
+                wcExitChatMultiSelectMode();
+                if (typeof showToast === 'function') showToast('已删除');
+            }
+        });
+    }
+
+    function wcMultiForwardChat() {
+        if (wcSelectedChatMsgIds.size === 0) return;
+        const messages = wcChatMessagesByContact[wcCurrentChatContactId];
+        const selectedMsgs = messages.filter(m => wcSelectedChatMsgIds.has(m.id));
+        let textToCopy = selectedMsgs.map(m => {
+            const name = m.type === 'sent' ? '我' : '对方';
+            return `${name}: ${m.text || '[图片]'}`;
+        }).join('\n');
+        
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                if (typeof showToast === 'function') showToast('聊天记录已复制到剪贴板');
+                wcExitChatMultiSelectMode();
+            });
+        } else {
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try { document.execCommand('copy'); if (typeof showToast === 'function') showToast('聊天记录已复制到剪贴板'); } catch (err) {}
+            document.body.removeChild(textArea);
+            wcExitChatMultiSelectMode();
+        }
     }
 
     function wcCloseReplyPreview() {
@@ -3683,20 +4017,61 @@
                 const msgData = wcChatMessagesByContact[chatContactId]?.find(m => m.id === msgId);
                 
                 let contentStr = msgData ? msgData.text : (row.querySelector('.msg-text')?.textContent?.trim() || '');
+                let finalContent = contentStr;
+                
+                // 处理语音消息（包括面板发送和手动输入 [语音]）
+                if (msgData && msgData.isVoice) {
+                    contentStr = `[发送了一条语音消息，内容是：${contentStr}]`;
+                    finalContent = contentStr;
+                } else if (contentStr.startsWith('[语音]') || contentStr.startsWith('【语音】')) {
+                    let vDesc = contentStr.replace(/^\[语音\]|^【语音】/, '').trim();
+                    contentStr = `[发送了一条语音消息，内容是：${vDesc}]`;
+                    finalContent = contentStr;
+                }
                 
                 if (msgData && msgData.replyTo) {
                     const repliedMsg = wcChatMessagesByContact[chatContactId]?.find(m => m.id === msgData.replyTo);
                     if (repliedMsg) {
                         contentStr = `[引用了消息: "${repliedMsg.text}"]\n` + contentStr;
+                        finalContent = contentStr;
                     }
                 }
                 if (msgData && msgData.reactions && msgData.reactions.length > 0) {
                     contentStr += `\n[收到了表情反应: ${msgData.reactions.join(', ')}]`;
+                    finalContent = contentStr;
+                }
+
+                // 处理图片识别逻辑（包括真实图片、模拟图片和手动输入 [图片]）
+                if (msgData && msgData.imageUrl) {
+                    if (msgData.imageUrl.startsWith('data:image/svg+xml')) {
+                        // 模拟的占位图，提取 SVG 中的文字描述
+                        try {
+                            const decodedSvg = decodeURIComponent(msgData.imageUrl.split(',')[1]);
+                            const textMatch = decodedSvg.match(/<text[^>]*>(.*?)<\/text>/);
+                            const imgDesc = textMatch ? textMatch[1] : '未知图片';
+                            contentStr = `[发送了一张图片，图片内容是：${imgDesc}]`;
+                            finalContent = contentStr;
+                        } catch (e) {
+                            contentStr = `[发送了一张图片]`;
+                            finalContent = contentStr;
+                        }
+                    } else {
+                        // 真实图片，构建多模态 Vision 格式
+                        let imgText = contentStr === '[图片]' ? '[发送了一张真实图片]' : `[发送了一张真实图片，附言：${contentStr}]`;
+                        finalContent = [
+                            { type: "text", text: imgText },
+                            { type: "image_url", image_url: { url: msgData.imageUrl } }
+                        ];
+                    }
+                } else if (contentStr.startsWith('[图片]') || contentStr.startsWith('【图片】')) {
+                    let iDesc = contentStr.replace(/^\[图片\]|^【图片】/, '').trim();
+                    contentStr = `[发送了一张图片，图片内容是：${iDesc}]`;
+                    finalContent = contentStr;
                 }
 
                 return {
                     role: isSent ? 'user' : 'assistant',
-                    content: contentStr
+                    content: finalContent
                 };
             }).filter(message => message.content).slice(-contextLimit);
 
@@ -3719,8 +4094,14 @@
             let wbAfterPrompt = '';
             let wbChatInsertions = {}; // 记录需要插入到 history 中的世界书
             
-            // 提取历史文本用于触发词匹配 (转小写)
-            const historyText = history.map(m => m.content).join('\n').toLowerCase();
+            // 提取历史文本用于触发词匹配 (转小写)，兼容多模态数组格式
+            const historyText = history.map(m => {
+                if (typeof m.content === 'string') return m.content;
+                if (Array.isArray(m.content)) {
+                    return m.content.filter(c => c.type === 'text').map(c => c.text).join(' ');
+                }
+                return '';
+            }).join('\n').toLowerCase();
 
             if (typeof wbEntries !== 'undefined' && Array.isArray(wbEntries)) {
                 const boundWbIds = Array.isArray(originalContact?.worldbookIds) ? originalContact.worldbookIds : [];
@@ -3924,16 +4305,18 @@
             systemPrompt += `- 识别引用：如果用户的消息包含 [引用了消息: "..."]，说明用户在针对那句话回复。\n`;
             systemPrompt += `- 识别反应：如果消息包含 [收到了表情反应: ...]，说明有人对这句话贴了表情。\n`;
             systemPrompt += `- 你的引用：如果你想引用某条历史消息，可以在 JSON 中添加 "replyTo" 字段，值为你想引用的消息内容（原话）。\n`;
-            systemPrompt += `- 你的反应：如果你想对用户的某句话贴表情（如点赞、比心），可以在 JSON 中输出 {"type":"reaction", "target":"你想贴表情的用户原话", "emoji":"👍"}。\n\n`;
+            systemPrompt += `- 你的反应：如果你想对用户的某句话贴表情（如点赞、比心），可以在 JSON 中输出 {"type":"reaction", "target":"你想贴表情的用户原话", "emoji":"👍"}。\n`;
+            systemPrompt += `- 发送语音：如果你想发送语音消息，请使用 "type":"voice"，并将语音转换的文字放在 "content" 中。\n`;
+            systemPrompt += `- 发送图片：如果你想发送一张图片给对方，请使用 "type":"image"，并将图片画面的详细描述放在 "content" 中。\n\n`;
 
             systemPrompt += `【回复格式要求】\n`;
             systemPrompt += `你的回复必须严格拆分为 ${minReply} 到 ${maxReply} 个独立的气泡（即 messages 数组中的对象数量）！\n`;
             systemPrompt += `- Message Splitting (Natural Speech): Break your response into multiple independent short messages. Cut at natural speech pauses or breath marks. Do NOT cram multiple clauses or long paragraphs into one message.\n`;
             systemPrompt += `你必须严格输出合法的 JSON 格式，格式如下：\n`;
             if (availableEmojis.length > 0) {
-                systemPrompt += `{\n  "messages": [\n    {"type":"text", "content":"完整的一句话。", "replyTo":"可选，引用的原话"}, \n    {"type":"emoji", "content":"表情包描述"}, \n    {"type":"reaction", "target":"用户的原话", "emoji":"❤️"}\n  ]\n}\n`;
+                systemPrompt += `{\n  "messages": [\n    {"type":"text", "content":"完整的一句话。", "replyTo":"可选，引用的原话"}, \n    {"type":"voice", "content":"语音消息的文本内容"}, \n    {"type":"image", "content":"一张在海边拍的日落风景照"}, \n    {"type":"emoji", "content":"表情包描述"}, \n    {"type":"reaction", "target":"用户的原话", "emoji":"❤️"}\n  ]\n}\n`;
             } else {
-                systemPrompt += `{\n  "messages": [\n    {"type":"text", "content":"完整的一句话。", "replyTo":"可选，引用的原话"}, \n    {"type":"text", "content":"另一句话。"}, \n    {"type":"reaction", "target":"用户的原话", "emoji":"❤️"}\n  ]\n}\n`;
+                systemPrompt += `{\n  "messages": [\n    {"type":"text", "content":"完整的一句话。", "replyTo":"可选，引用的原话"}, \n    {"type":"voice", "content":"语音消息的文本内容"}, \n    {"type":"image", "content":"一张在海边拍的日落风景照"}, \n    {"type":"text", "content":"另一句话。"}, \n    {"type":"reaction", "target":"用户的原话", "emoji":"❤️"}\n  ]\n}\n`;
             }
             systemPrompt += `注意：只输出 JSON，不要包含任何 Markdown 标记（如 \`\`\`json）或其他说明文字。`;
 
@@ -4097,7 +4480,18 @@
                 if (msgObj.type === 'reaction' && msgObj.target && msgObj.emoji) {
                     const targetMsg = wcChatMessagesByContact[chatContactId]?.slice().reverse().find(m => m.text && m.text.includes(msgObj.target));
                     if (targetMsg) {
-                        targetMsg.reactions = [msgObj.emoji];
+                        if (!Array.isArray(targetMsg.reactions)) targetMsg.reactions = [];
+                        
+                        // 兼容旧数据
+                        targetMsg.reactions = targetMsg.reactions.map(r => typeof r === 'string' ? { emoji: r, userId: targetMsg.type === 'sent' ? 'char' : 'user' } : r);
+                        
+                        // 查找 Char 是否已经贴过表情
+                        const charReactionIndex = targetMsg.reactions.findIndex(r => r.userId === 'char');
+                        if (charReactionIndex !== -1) {
+                            targetMsg.reactions[charReactionIndex].emoji = msgObj.emoji; // 替换
+                        } else {
+                            targetMsg.reactions.push({ emoji: msgObj.emoji, userId: 'char' }); // 新增
+                        }
                         hasReactionUpdate = true;
                     }
                 }
@@ -4148,11 +4542,20 @@
                         }
                     }
                     if (foundUrl) {
-                        finalMessages.push({ text: `[表情] ${cleanMsgContent}`, imageUrl: foundUrl, replyToId: replyToId });
+                        finalMessages.push({ text: `[表情] ${cleanMsgContent}`, imageUrl: foundUrl, replyToId: replyToId, isVoice: false });
                     } else {
                         // 如果没找到对应 URL，退化为文本
-                        finalMessages.push({ text: `[表情] ${cleanMsgContent}`, imageUrl: null, replyToId: replyToId });
+                        finalMessages.push({ text: `[表情] ${cleanMsgContent}`, imageUrl: null, replyToId: replyToId, isVoice: false });
                     }
+                } else if (type === 'voice') {
+                    // 处理 voice 类型
+                    finalMessages.push({ text: msgContent, imageUrl: null, replyToId: replyToId, isVoice: true });
+                } else if (type === 'image') {
+                    // 处理 image 类型，生成占位 SVG
+                    const safeText = msgContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#E5E5EA"/><text x="50%" y="50%" font-family="sans-serif" font-size="16" fill="#8E8E93" text-anchor="middle" dominant-baseline="middle">${safeText}</text></svg>`;
+                    const imgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+                    finalMessages.push({ text: '[图片]', imageUrl: imgUrl, replyToId: replyToId, isVoice: false });
                 } else {
                     // 处理 text 类型，兼容 AI 偶尔还是在文本里混排 [表情: xxx] 的情况
                     const emojiRegex = /\[表情:\s*([^\]]+)\]/g;
@@ -4161,7 +4564,7 @@
                     while ((match = emojiRegex.exec(msgContent)) !== null) {
                         const textBefore = msgContent.substring(lastIndex, match.index).trim();
                         if (textBefore) {
-                            finalMessages.push({ text: textBefore, imageUrl: null, replyToId: replyToId });
+                            finalMessages.push({ text: textBefore, imageUrl: null, replyToId: replyToId, isVoice: false });
                         }
                         
                         const desc = match[1].trim().replace(/^\[|\]$/g, '').trim(); // 去除可能存在的首尾中括号
@@ -4185,9 +4588,9 @@
                         }
                         
                         if (foundUrl) {
-                            finalMessages.push({ text: `[表情] ${desc}`, imageUrl: foundUrl, replyToId: replyToId });
+                            finalMessages.push({ text: `[表情] ${desc}`, imageUrl: foundUrl, replyToId: replyToId, isVoice: false });
                         } else {
-                            finalMessages.push({ text: match[0], imageUrl: null, replyToId: replyToId });
+                            finalMessages.push({ text: match[0], imageUrl: null, replyToId: replyToId, isVoice: false });
                         }
                         
                         lastIndex = emojiRegex.lastIndex;
@@ -4195,14 +4598,14 @@
                     
                     const textAfter = msgContent.substring(lastIndex).trim();
                     if (textAfter) {
-                        finalMessages.push({ text: textAfter, imageUrl: null, replyToId: replyToId });
+                        finalMessages.push({ text: textAfter, imageUrl: null, replyToId: replyToId, isVoice: false });
                     }
                 }
             });
 
             // 9. 逐个渲染气泡
             for (let i = 0; i < finalMessages.length; i++) {
-                wcAppendChatMessage(finalMessages[i].text, 'received', chatContactId, finalMessages[i].imageUrl, finalMessages[i].replyToId);
+                wcAppendChatMessage(finalMessages[i].text, 'received', chatContactId, finalMessages[i].imageUrl, finalMessages[i].replyToId, finalMessages[i].isVoice);
                 if (i < finalMessages.length - 1) {
                     wcSetApiTypingStatus(true);
                     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
