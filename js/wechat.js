@@ -3538,6 +3538,7 @@
                 bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
                 bubble.style.backgroundColor = 'transparent';
                 bubble.style.padding = '0';
+                bubble.style.position = 'relative';
                 
                 let pressTimer;
                 let isLongPress = false;
@@ -3558,41 +3559,93 @@
 
                 const imgWrap = document.createElement('div');
                 imgWrap.style.position = 'relative';
-                imgWrap.style.width = '120px';
+                imgWrap.style.width = '136px'; // 基础宽度120px + 偏移量16px
                 imgWrap.style.height = '213px';
-                imgWrap.style.borderRadius = '8px';
-                imgWrap.style.overflow = 'hidden';
                 imgWrap.style.cursor = 'pointer';
                 
-                const img = document.createElement('img');
-                img.src = message.imageUrl[0];
-                img.style.width = '100%';
-                img.style.height = '100%';
-                img.style.objectFit = 'cover';
+                let currentImgIndex = 0;
+                const len = message.imageUrl.length;
+                const maxStack = Math.min(3, len);
+                const stackImgs = [];
                 
-                const countBadge = document.createElement('div');
-                countBadge.innerText = `${message.imageUrl.length}张`;
-                countBadge.style.position = 'absolute';
-                countBadge.style.bottom = '8px';
-                countBadge.style.right = '8px';
-                countBadge.style.backgroundColor = 'rgba(0,0,0,0.5)';
-                countBadge.style.color = '#fff';
-                countBadge.style.fontSize = '12px';
-                countBadge.style.padding = '2px 6px';
-                countBadge.style.borderRadius = '10px';
-                
-                imgWrap.appendChild(img);
-                imgWrap.appendChild(countBadge);
+                // 逆序添加，让 index 0 (最顶层) 最后添加，从而在 DOM 最上层
+                for (let i = maxStack - 1; i >= 0; i--) {
+                    const img = document.createElement('img');
+                    img.src = message.imageUrl[(currentImgIndex + i) % len];
+                    img.style.position = 'absolute';
+                    img.style.width = '120px';
+                    img.style.borderRadius = '8px';
+                    img.style.objectFit = 'cover';
+                    img.style.boxShadow = '-2px 0 8px rgba(0,0,0,0.15)';
+                    img.style.transition = 'all 0.3s ease';
+                    
+                    // 根据层级计算偏移和缩放
+                    if (i === 0) {
+                        img.style.zIndex = '3';
+                        img.style.left = '0px';
+                        img.style.top = '0px';
+                        img.style.height = '213px';
+                        img.style.opacity = '1';
+                    } else if (i === 1) {
+                        img.style.zIndex = '2';
+                        img.style.left = '8px';
+                        img.style.top = '6px';
+                        img.style.height = '201px';
+                        img.style.opacity = '0.9';
+                    } else if (i === 2) {
+                        img.style.zIndex = '1';
+                        img.style.left = '16px';
+                        img.style.top = '12px';
+                        img.style.height = '189px';
+                        img.style.opacity = '0.8';
+                    }
+                    
+                    stackImgs.unshift(img); // 保证 stackImgs[0] 是最顶层图片
+                    imgWrap.appendChild(img);
+                }
                 
                 imgWrap.onclick = (e) => {
                     if (isLongPress) return;
+                    e.stopPropagation();
+                    currentImgIndex = (currentImgIndex + 1) % len;
+                    // 点击时更新所有层叠图片的 src
+                    for (let i = 0; i < maxStack; i++) {
+                        stackImgs[i].src = message.imageUrl[(currentImgIndex + i) % len];
+                    }
+                };
+                
+                bubble.appendChild(imgWrap);
+                
+                const expandBtn = document.createElement('div');
+                expandBtn.innerText = `展开 ${len}`;
+                expandBtn.style.position = 'absolute';
+                expandBtn.style.top = '50%';
+                expandBtn.style.transform = 'translateY(-50%)';
+                expandBtn.style.fontSize = '12px';
+                expandBtn.style.color = '#8e8e93';
+                expandBtn.style.backgroundColor = '#f2f2f7';
+                expandBtn.style.borderRadius = '12px';
+                expandBtn.style.padding = '6px 12px';
+                expandBtn.style.cursor = 'pointer';
+                expandBtn.style.fontWeight = '500';
+                expandBtn.style.whiteSpace = 'nowrap';
+                expandBtn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+                
+                if (isSent) {
+                    expandBtn.style.left = '-75px';
+                    expandBtn.style.right = 'auto';
+                } else {
+                    expandBtn.style.left = 'auto';
+                    expandBtn.style.right = '-75px';
+                }
+
+                expandBtn.onclick = (e) => {
                     e.stopPropagation();
                     message.isExpanded = true;
                     wcSaveChatData();
                     wcRenderChatMessages(wcCurrentChatContactId);
                 };
-                
-                bubble.appendChild(imgWrap);
+                bubble.appendChild(expandBtn);
                 
                 const meta = document.createElement('div');
                 meta.className = `msg-meta ${isSent ? 'sent' : 'received'}`;
