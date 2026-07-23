@@ -681,7 +681,7 @@
                 lastTime: document.getElementById('ld-last-time').innerText,
                 lastSize: document.getElementById('ld-last-size').innerText,
                 intervalValue: document.getElementById('backupIntervalValue').value,
-                intervalUnit: document.getElementById('backupIntervalUnit').value,
+                intervalUnit: document.getElementById('backupIntervalUnitText').getAttribute('data-value'),
                 scheduledTime: document.getElementById('backupScheduledTime').value
             };
 
