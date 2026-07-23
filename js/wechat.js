@@ -359,6 +359,18 @@
         } else if (tabName === 'moments') {
             document.getElementById('wc-nav-moments').classList.add('active');
             document.getElementById('page-moments').classList.add('active');
+            
+            // --- 新增：每次进入朋友圈时，从本地存储加载最新数据 ---
+            if (typeof appSettings !== 'undefined') {
+                if (appSettings.wc_moments_list) {
+                    wcMomentsList = appSettings.wc_moments_list;
+                }
+                if (appSettings.wc_moments_profile) {
+                    wcMomentsProfile = appSettings.wc_moments_profile;
+                }
+            }
+            // -----------------------------------------------------
+            
             if (typeof wcRenderMomentsProfile === 'function') wcRenderMomentsProfile();
             if (typeof wcRenderMoments === 'function') wcRenderMoments();
         } else if (tabName === 'profile') {
@@ -550,7 +562,11 @@
             if (post.images && post.images.length > 0) {
                 imagesHtml = '<div class="post-images">';
                 post.images.forEach(img => {
-                    imagesHtml += `<div class="post-image">${img}</div>`;
+                    if (img.startsWith('data:image') || img.startsWith('http')) {
+                        imagesHtml += `<div class="post-image" style="background-image: url('${img}'); background-size: cover; background-position: center;"></div>`;
+                    } else {
+                        imagesHtml += `<div class="post-image">${img}</div>`;
+                    }
                 });
                 imagesHtml += '</div>';
             }
@@ -559,7 +575,7 @@
             if (post.comments && post.comments.length > 0) {
                 commentsHtml = '<div class="comments">';
                 post.comments.forEach(c => {
-                    commentsHtml += `<div class="comment-item"><span class="comment-name">${c.name}:</span> ${c.content}</div>`;
+                    commentsHtml += `<div class="comment-item" onclick="wcReplyComment('${post.id}', '${c.name}', event)"><span class="comment-name">${c.name}:</span> ${c.content}</div>`;
                 });
                 commentsHtml += '</div>';
             }
@@ -622,10 +638,61 @@
 
     function wcMomentsAction(action, postId, event) {
         event.stopPropagation();
-        document.getElementById(`moments-menu-${postId}`).classList.remove('show');
-        if (typeof showToast === 'function') {
-            const actionNames = { 'like': '点赞', 'comment': '评论', 'delete': '删除', 'summon': '召唤' };
-            showToast(`已点击：${actionNames[action]}`);
+        const menu = document.getElementById(`moments-menu-${postId}`);
+        if (menu) menu.classList.remove('show');
+        
+        // 找到对应的那条朋友圈数据
+        const postIndex = wcMomentsList.findIndex(p => p.id === postId);
+        if (postIndex === -1) return;
+        const post = wcMomentsList[postIndex];
+        
+        // 获取当前用户名称
+        let userName = '我';
+        if (typeof appSettings !== 'undefined' && appSettings.wc_current_user_name) {
+            userName = appSettings.wc_current_user_name;
+        }
+
+        if (action === 'like') {
+            // 点赞/取消点赞逻辑
+            if (!post.likes) post.likes = [];
+            const likeIndex = post.likes.indexOf(userName);
+            if (likeIndex > -1) {
+                post.likes.splice(likeIndex, 1); // 已点赞则取消
+            } else {
+                post.likes.push(userName); // 未点赞则添加
+            }
+            if (typeof wcSaveMomentsData === 'function') wcSaveMomentsData();
+            wcRenderMoments(); // 重新渲染列表
+        } 
+        else if (action === 'comment') {
+            // 评论逻辑
+            if (typeof showCustomPrompt === 'function') {
+                showCustomPrompt('评论', { placeholder: '请输入评论内容' }, '发送').then(text => {
+                    if (text && text.trim()) {
+                        if (!post.comments) post.comments = [];
+                        post.comments.push({ name: userName, content: text.trim() });
+                        if (typeof wcSaveMomentsData === 'function') wcSaveMomentsData();
+                        wcRenderMoments();
+                        if (typeof showToast === 'function') showToast('评论成功');
+                    }
+                });
+            }
+        } 
+        else if (action === 'delete') {
+            // 删除逻辑
+            if (typeof showCustomConfirm === 'function') {
+                showCustomConfirm('删除朋友圈', '确定要删除这条朋友圈吗？', '删除', true).then(confirmed => {
+                    if (confirmed) {
+                        wcMomentsList.splice(postIndex, 1);
+                        if (typeof wcSaveMomentsData === 'function') wcSaveMomentsData();
+                        wcRenderMoments();
+                        if (typeof showToast === 'function') showToast('已删除');
+                    }
+                });
+            }
+        }
+        else if (action === 'summon') {
+            if (typeof showToast === 'function') showToast('召唤功能开发中');
         }
     }
 
@@ -3440,6 +3507,214 @@
         const createdAt = Number(message.createdAt);
         const now = Number.isFinite(createdAt) ? new Date(createdAt) : new Date();
         const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        
+        if (message.imageUrl && Array.isArray(message.imageUrl) && message.imageUrl.length > 1) {
+            const container = document.createElement('div');
+            container.className = 'multi-image-container';
+            container.setAttribute('data-id', message.id);
+            container.style.width = '100%';
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            
+            if (!message.isExpanded) {
+                const row = document.createElement('div');
+                row.className = `message-row ${isSent ? 'sent' : 'received'}`;
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'msg-avatar';
+                const avatarUrl = isSent
+                    ? (typeof appSettings !== 'undefined' && appSettings.wc_current_user_avatar ? appSettings.wc_current_user_avatar : '')
+                    : contact?.avatar;
+                if (avatarUrl) {
+                    avatar.style.backgroundImage = `url("${String(avatarUrl).replace(/"/g, '\\"')}")`;
+                    avatar.style.backgroundColor = 'transparent';
+                } else {
+                    avatar.style.backgroundImage = 'none';
+                    avatar.style.backgroundColor = 'transparent';
+                    avatar.innerHTML = getWcDefaultAvatarSvg();
+                }
+                
+                const bubble = document.createElement('div');
+                bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
+                bubble.style.backgroundColor = 'transparent';
+                bubble.style.padding = '0';
+                
+                let pressTimer;
+                let isLongPress = false;
+                bubble.addEventListener('touchstart', (e) => {
+                    isLongPress = false;
+                    pressTimer = setTimeout(() => {
+                        isLongPress = true;
+                        if (navigator.vibrate) navigator.vibrate(50);
+                        wcOpenBubbleMenu(message.id, e.touches[0].clientX, e.touches[0].clientY);
+                    }, 500);
+                }, {passive: true});
+                bubble.addEventListener('touchmove', () => clearTimeout(pressTimer), {passive: true});
+                bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
+                bubble.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    wcOpenBubbleMenu(message.id, e.clientX, e.clientY);
+                });
+
+                const imgWrap = document.createElement('div');
+                imgWrap.style.position = 'relative';
+                imgWrap.style.width = '120px';
+                imgWrap.style.height = '213px';
+                imgWrap.style.borderRadius = '8px';
+                imgWrap.style.overflow = 'hidden';
+                imgWrap.style.cursor = 'pointer';
+                
+                const img = document.createElement('img');
+                img.src = message.imageUrl[0];
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                
+                const countBadge = document.createElement('div');
+                countBadge.innerText = `${message.imageUrl.length}张`;
+                countBadge.style.position = 'absolute';
+                countBadge.style.bottom = '8px';
+                countBadge.style.right = '8px';
+                countBadge.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                countBadge.style.color = '#fff';
+                countBadge.style.fontSize = '12px';
+                countBadge.style.padding = '2px 6px';
+                countBadge.style.borderRadius = '10px';
+                
+                imgWrap.appendChild(img);
+                imgWrap.appendChild(countBadge);
+                
+                imgWrap.onclick = (e) => {
+                    if (isLongPress) return;
+                    e.stopPropagation();
+                    message.isExpanded = true;
+                    wcSaveChatData();
+                    wcRenderChatMessages(wcCurrentChatContactId);
+                };
+                
+                bubble.appendChild(imgWrap);
+                
+                const meta = document.createElement('div');
+                meta.className = `msg-meta ${isSent ? 'sent' : 'received'}`;
+                const time = document.createElement('span');
+                time.textContent = timeStr;
+                meta.appendChild(time);
+                if (isSent) {
+                    meta.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 24 24"><polyline points="18 6 7 17 2 12"></polyline><polyline points="22 6 12 16"></polyline></svg>');
+                }
+                bubble.appendChild(meta);
+                
+                const checkbox = document.createElement('div');
+                checkbox.className = 'wc-msg-checkbox';
+                
+                row.addEventListener('click', (e) => {
+                    if (typeof wcIsChatMultiSelectMode !== 'undefined' && wcIsChatMultiSelectMode) {
+                        wcToggleChatMsgSelect(message.id);
+                    }
+                });
+                
+                row.append(checkbox, avatar, bubble);
+                container.appendChild(row);
+            } else {
+                message.imageUrl.forEach((url, index) => {
+                    const row = document.createElement('div');
+                    row.className = `message-row ${isSent ? 'sent' : 'received'}`;
+                    row.setAttribute('data-id', message.id);
+                    
+                    const avatar = document.createElement('div');
+                    avatar.className = 'msg-avatar';
+                    const avatarUrl = isSent
+                        ? (typeof appSettings !== 'undefined' && appSettings.wc_current_user_avatar ? appSettings.wc_current_user_avatar : '')
+                        : contact?.avatar;
+                    if (avatarUrl) {
+                        avatar.style.backgroundImage = `url("${String(avatarUrl).replace(/"/g, '\\"')}")`;
+                        avatar.style.backgroundColor = 'transparent';
+                    } else {
+                        avatar.style.backgroundImage = 'none';
+                        avatar.style.backgroundColor = 'transparent';
+                        avatar.innerHTML = getWcDefaultAvatarSvg();
+                    }
+                    
+                    const bubble = document.createElement('div');
+                    bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
+                    bubble.style.backgroundColor = 'transparent';
+                    bubble.style.padding = '0';
+                    bubble.style.position = 'relative';
+                    
+                    let pressTimer;
+                    let isLongPress = false;
+                    bubble.addEventListener('touchstart', (e) => {
+                        isLongPress = false;
+                        pressTimer = setTimeout(() => {
+                            isLongPress = true;
+                            if (navigator.vibrate) navigator.vibrate(50);
+                            wcOpenBubbleMenu(message.id, e.touches[0].clientX, e.touches[0].clientY);
+                        }, 500);
+                    }, {passive: true});
+                    bubble.addEventListener('touchmove', () => clearTimeout(pressTimer), {passive: true});
+                    bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
+                    bubble.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        wcOpenBubbleMenu(message.id, e.clientX, e.clientY);
+                    });
+
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.style.maxWidth = '150px';
+                    img.style.maxHeight = '200px';
+                    img.style.borderRadius = '8px';
+                    img.style.objectFit = 'contain';
+                    
+                    bubble.appendChild(img);
+                    
+                    const meta = document.createElement('div');
+                    meta.className = `msg-meta ${isSent ? 'sent' : 'received'}`;
+                    const time = document.createElement('span');
+                    time.textContent = timeStr;
+                    meta.appendChild(time);
+                    if (isSent) {
+                        meta.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 24 24"><polyline points="18 6 7 17 2 12"></polyline><polyline points="22 6 12 16"></polyline></svg>');
+                    }
+                    bubble.appendChild(meta);
+                    
+                    const checkbox = document.createElement('div');
+                    checkbox.className = 'wc-msg-checkbox';
+                    
+                    row.addEventListener('click', (e) => {
+                        if (typeof wcIsChatMultiSelectMode !== 'undefined' && wcIsChatMultiSelectMode) {
+                            wcToggleChatMsgSelect(message.id);
+                        }
+                    });
+                    
+                    if (index === 0) {
+                        const collapseBtn = document.createElement('div');
+                        collapseBtn.innerText = '收起';
+                        collapseBtn.style.position = 'absolute';
+                        collapseBtn.style.left = isSent ? '-40px' : 'auto';
+                        collapseBtn.style.right = isSent ? 'auto' : '-40px';
+                        collapseBtn.style.top = '50%';
+                        collapseBtn.style.transform = 'translateY(-50%)';
+                        collapseBtn.style.fontSize = '13px';
+                        collapseBtn.style.color = '#576b95';
+                        collapseBtn.style.cursor = 'pointer';
+                        collapseBtn.style.padding = '4px';
+                        collapseBtn.style.fontWeight = '600';
+                        collapseBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            message.isExpanded = false;
+                            wcSaveChatData();
+                            wcRenderChatMessages(wcCurrentChatContactId);
+                        };
+                        bubble.appendChild(collapseBtn);
+                    }
+                    
+                    row.append(checkbox, avatar, bubble);
+                    container.appendChild(row);
+                });
+            }
+            return container;
+        }
+
         const row = document.createElement('div');
         row.className = `message-row ${isSent ? 'sent' : 'received'}`;
         row.setAttribute('data-id', message.id);
@@ -3496,104 +3771,14 @@
             bubble.style.backgroundColor = 'transparent';
             bubble.style.padding = '0';
             
-            if (Array.isArray(message.imageUrl) && message.imageUrl.length > 1) {
-                const galleryContainer = document.createElement('div');
-                galleryContainer.className = 'wc-image-gallery';
-                galleryContainer.style.position = 'relative';
-                galleryContainer.style.width = '120px';
-                galleryContainer.style.height = '120px';
-                
-                const capsule = document.createElement('div');
-                capsule.className = 'wc-gallery-capsule';
-                capsule.innerHTML = `展开${message.imageUrl.length}`;
-                capsule.style.position = 'absolute';
-                capsule.style.left = '-45px';
-                capsule.style.bottom = '10px';
-                capsule.style.backgroundColor = 'rgba(0,0,0,0.4)';
-                capsule.style.color = '#fff';
-                capsule.style.fontSize = '11px';
-                capsule.style.padding = '4px 8px';
-                capsule.style.borderRadius = '10px';
-                capsule.style.zIndex = '10';
-                capsule.style.pointerEvents = 'none';
-                capsule.style.whiteSpace = 'nowrap';
-                
-                let currentIndex = 0;
-                
-                const imgElements = message.imageUrl.map((url, index) => {
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.style.position = 'absolute';
-                    img.style.top = '0';
-                    img.style.left = '0';
-                    img.style.width = '100%';
-                    img.style.height = '100%';
-                    img.style.borderRadius = '8px';
-                    img.style.objectFit = 'cover';
-                    img.style.transition = 'all 0.3s ease';
-                    img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-                    
-                    if (index === 0) {
-                        img.style.zIndex = '5';
-                        img.style.transform = 'translate(0, 0) scale(1)';
-                        img.style.opacity = '1';
-                    } else if (index === 1) {
-                        img.style.zIndex = '4';
-                        img.style.transform = 'translate(4px, 4px) scale(0.95)';
-                        img.style.opacity = '0.8';
-                    } else if (index === 2) {
-                        img.style.zIndex = '3';
-                        img.style.transform = 'translate(8px, 8px) scale(0.9)';
-                        img.style.opacity = '0.6';
-                    } else {
-                        img.style.zIndex = '1';
-                        img.style.transform = 'translate(8px, 8px) scale(0.9)';
-                        img.style.opacity = '0';
-                    }
-                    
-                    galleryContainer.appendChild(img);
-                    return img;
-                });
-                
-                galleryContainer.appendChild(capsule);
-                
-                galleryContainer.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    currentIndex = (currentIndex + 1) % message.imageUrl.length;
-                    
-                    imgElements.forEach((img, index) => {
-                        const diff = (index - currentIndex + message.imageUrl.length) % message.imageUrl.length;
-                        if (diff === 0) {
-                            img.style.zIndex = '5';
-                            img.style.transform = 'translate(0, 0) scale(1)';
-                            img.style.opacity = '1';
-                        } else if (diff === 1) {
-                            img.style.zIndex = '4';
-                            img.style.transform = 'translate(4px, 4px) scale(0.95)';
-                            img.style.opacity = '0.8';
-                        } else if (diff === 2) {
-                            img.style.zIndex = '3';
-                            img.style.transform = 'translate(8px, 8px) scale(0.9)';
-                            img.style.opacity = '0.6';
-                        } else {
-                            img.style.zIndex = '1';
-                            img.style.transform = 'translate(8px, 8px) scale(0.9)';
-                            img.style.opacity = '0';
-                        }
-                    });
-                });
-                
-                bubble.appendChild(galleryContainer);
-            } else {
-                const imgUrl = Array.isArray(message.imageUrl) ? message.imageUrl[0] : message.imageUrl;
-                const img = document.createElement('img');
-                img.src = imgUrl;
-                img.style.maxWidth = '120px';
-                img.style.maxHeight = '120px';
-                img.style.borderRadius = '8px';
-                img.style.objectFit = 'contain';
-                bubble.appendChild(img);
-            }
+            const imgUrl = Array.isArray(message.imageUrl) ? message.imageUrl[0] : message.imageUrl;
+            const img = document.createElement('img');
+            img.src = imgUrl;
+            img.style.maxWidth = '120px';
+            img.style.maxHeight = '120px';
+            img.style.borderRadius = '8px';
+            img.style.objectFit = 'contain';
+            bubble.appendChild(img);
         } else if (message.isVoice) {
             const voiceContainer = document.createElement('div');
             voiceContainer.className = 'wc-voice-container';
@@ -5435,4 +5620,221 @@
     }
 
     // ==========================================
+    // 微信发布朋友圈逻辑
+    // ==========================================
 
+    let wcComposeImages = [];
+
+    function wcTriggerComposeImageUpload() {
+        document.getElementById('wcComposeImageInput').click();
+    }
+    window.wcTriggerComposeImageUpload = wcTriggerComposeImageUpload;
+
+    function wcHandleComposeImageUpload(event) {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+        
+        const fileArray = Array.from(files);
+        let processedCount = 0;
+        
+        fileArray.forEach((file) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 1280;
+                    const MAX_HEIGHT = 1280;
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                        const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+                        width = Math.round(width * ratio);
+                        height = Math.round(height * ratio);
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    const base64Url = canvas.toDataURL('image/jpeg', 0.8);
+                    if (wcComposeImages.length < 9) { // 限制最多9张
+                        wcComposeImages.push(base64Url);
+                    }
+                    
+                    processedCount++;
+                    if (processedCount === fileArray.length) {
+                        wcRenderComposeImages();
+                        wcCheckComposeInput();
+                        event.target.value = ''; // 清空 input
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+    window.wcHandleComposeImageUpload = wcHandleComposeImageUpload;
+
+    function wcRenderComposeImages() {
+        const grid = document.getElementById('wcComposeImageGrid');
+        if (!grid) return;
+        
+        let html = '';
+        wcComposeImages.forEach((url, index) => {
+            html += `
+                <div class="wc-compose-image-item">
+                    <img src="${url}">
+                    <div class="wc-compose-image-delete" onclick="wcDeleteComposeImage(${index})">
+                        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </div>
+                </div>
+            `;
+        });
+        
+        if (wcComposeImages.length < 9) {
+            html += `
+                <div class="wc-compose-image-add-btn" onclick="wcTriggerComposeImageUpload()">
+                    <svg viewBox="0 0 24 24">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </div>
+            `;
+        }
+        
+        grid.innerHTML = html;
+    }
+    window.wcRenderComposeImages = wcRenderComposeImages;
+
+    function wcDeleteComposeImage(index) {
+        wcComposeImages.splice(index, 1);
+        wcRenderComposeImages();
+        wcCheckComposeInput();
+    }
+    window.wcDeleteComposeImage = wcDeleteComposeImage;
+
+    function wcOpenComposeModal() {
+        const modal = document.getElementById('wcComposeModal');
+        const input = document.getElementById('wcComposeInput');
+        if (modal) {
+            modal.classList.add('show');
+            setTimeout(() => {
+                if (input) input.focus();
+            }, 400);
+        }
+    }
+    window.wcOpenComposeModal = wcOpenComposeModal;
+
+    function wcCloseComposeModal() {
+        const modal = document.getElementById('wcComposeModal');
+        const input = document.getElementById('wcComposeInput');
+        if (input) {
+            input.blur();
+            input.value = ''; // 清空输入
+        }
+        wcComposeImages = []; // 清空图片
+        wcRenderComposeImages(); // 重置网格
+        wcCheckComposeInput(); // 重置按钮状态
+        if (modal) modal.classList.remove('show');
+    }
+    window.wcCloseComposeModal = wcCloseComposeModal;
+
+    function wcCheckComposeInput() {
+        const input = document.getElementById('wcComposeInput');
+        const postBtn = document.getElementById('wcComposePostBtn');
+        if (input && postBtn) {
+            if (input.value.trim().length > 0 || wcComposeImages.length > 0) {
+                postBtn.classList.remove('disabled');
+            } else {
+                postBtn.classList.add('disabled');
+            }
+        }
+    }
+    window.wcCheckComposeInput = wcCheckComposeInput;
+
+    function wcPostMoment() {
+        const input = document.getElementById('wcComposeInput');
+        if (!input) return;
+        const text = input.value.trim();
+        
+        if (text.length === 0 && wcComposeImages.length === 0) return;
+        
+        // 获取当前用户头像和名称
+        let userAvatar = getWcDefaultAvatarSvg();
+        let userName = '我';
+        if (typeof appSettings !== 'undefined') {
+            if (appSettings.wc_current_user_avatar) {
+                userAvatar = `<img src="${appSettings.wc_current_user_avatar}" style="width:100%;height:100%;object-fit:cover;">`;
+            }
+            if (appSettings.wc_current_user_name) {
+                userName = appSettings.wc_current_user_name;
+            }
+        }
+        
+        // 构造新的朋友圈数据
+        const newPost = {
+            id: 'moment_' + Date.now(),
+            avatar: userAvatar,
+            name: userName,
+            text: text,
+            images: [...wcComposeImages], // 复制图片数组
+            time: '刚刚',
+            likes: [],
+            comments: []
+        };
+        
+        if (typeof wcMomentsList !== 'undefined') {
+            wcMomentsList.unshift(newPost);
+            if (typeof wcRenderMoments === 'function') wcRenderMoments();
+            if (typeof wcSaveMomentsData === 'function') wcSaveMomentsData();
+        }
+        
+        wcCloseComposeModal();
+        if (typeof showToast === 'function') showToast('发布成功');
+    }
+    window.wcPostMoment = wcPostMoment;
+
+    function wcSaveMomentsData() {
+        if (typeof appSettings !== 'undefined') {
+            appSettings.wc_moments_list = wcMomentsList;
+            if (typeof saveAppSettings === 'function') saveAppSettings();
+        }
+    }
+    window.wcSaveMomentsData = wcSaveMomentsData;
+
+    function wcReplyComment(postId, targetName, event) {
+        event.stopPropagation();
+        const postIndex = wcMomentsList.findIndex(p => p.id === postId);
+        if (postIndex === -1) return;
+        const post = wcMomentsList[postIndex];
+        
+        let userName = '我';
+        if (typeof appSettings !== 'undefined' && appSettings.wc_current_user_name) {
+            userName = appSettings.wc_current_user_name;
+        }
+
+        if (typeof showCustomPrompt === 'function') {
+            showCustomPrompt('回复', { placeholder: `回复 ${targetName}:` }, '发送').then(text => {
+                if (text && text.trim()) {
+                    if (!post.comments) post.comments = [];
+                    post.comments.push({ name: userName, content: `回复 ${targetName}: ${text.trim()}` });
+                    if (typeof wcSaveMomentsData === 'function') wcSaveMomentsData();
+                    wcRenderMoments();
+                    if (typeof showToast === 'function') showToast('回复成功');
+                }
+            });
+        }
+    }
+    window.wcReplyComment = wcReplyComment;
+
+    // ==========================================
+    function wcSaveMomentsProfileData() {
+        if (typeof appSettings !== 'undefined') {
+            appSettings.wc_moments_profile = wcMomentsProfile;
+            if (typeof saveAppSettings === 'function') saveAppSettings();
+        }
+    }
+    window.wcSaveMomentsProfileData = wcSaveMomentsProfileData;
