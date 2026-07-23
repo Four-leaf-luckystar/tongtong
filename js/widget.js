@@ -176,7 +176,84 @@
             return tags;
         }
 
-        function widgetImageEditBridge() {
+        function widgetImageEditBridge(mode) {
+            const isDesktopWidget = mode === 'desktop';
+            let pointerStart = null;
+            let suppressImageClickUntil = 0;
+
+            function postDesktopPointer(phase, event) {
+                parent.postMessage({
+                    type: 'widget-desktop-pointer',
+                    phase: phase,
+                    pointerId: event.pointerId,
+                    clientX: event.clientX,
+                    clientY: event.clientY
+                }, '*');
+            }
+
+            document.addEventListener('pointerdown', function (event) {
+                if (event.isPrimary === false) return;
+                pointerStart = {
+                    pointerId: event.pointerId,
+                    clientX: event.clientX,
+                    clientY: event.clientY,
+                    startedAt: Date.now(),
+                    moved: false
+                };
+                if (isDesktopWidget) {
+                    try {
+                        if (event.target && event.target.setPointerCapture) {
+                            event.target.setPointerCapture(event.pointerId);
+                        }
+                    } catch (error) {
+                        // Pointer capture is optional; the parent still receives normal events.
+                    }
+                    postDesktopPointer('down', event);
+                }
+            }, true);
+
+            document.addEventListener('pointermove', function (event) {
+                if (!pointerStart || pointerStart.pointerId !== event.pointerId) return;
+                if (Math.abs(event.clientX - pointerStart.clientX) > 10 || Math.abs(event.clientY - pointerStart.clientY) > 10) {
+                    pointerStart.moved = true;
+                }
+                if (isDesktopWidget) {
+                    postDesktopPointer('move', event);
+                }
+            }, true);
+
+            document.addEventListener('pointerup', function (event) {
+                if (!pointerStart || pointerStart.pointerId !== event.pointerId) return;
+                const pressDuration = Date.now() - pointerStart.startedAt;
+                const shouldOpenTouchPicker = isDesktopWidget && event.pointerType === 'touch' && !pointerStart.moved && pressDuration < 550;
+                if (pointerStart.moved || pressDuration >= 550 || shouldOpenTouchPicker) {
+                    suppressImageClickUntil = Date.now() + 500;
+                }
+                if (isDesktopWidget) {
+                    postDesktopPointer('up', event);
+                }
+                pointerStart = null;
+
+                if (shouldOpenTouchPicker) {
+                    const element = event.target && event.target.nodeType === 1 ? event.target : null;
+                    const target = element && (findImageTarget(element) || findBackgroundTarget(element));
+                    if (target) {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                        openWidgetImagePicker(target);
+                    }
+                }
+            }, true);
+
+            document.addEventListener('pointercancel', function (event) {
+                if (!pointerStart || pointerStart.pointerId !== event.pointerId) return;
+                suppressImageClickUntil = Date.now() + 500;
+                if (isDesktopWidget) {
+                    postDesktopPointer('cancel', event);
+                }
+                pointerStart = null;
+            }, true);
+
             function extractBackgroundUrl(value) {
                 const match = String(value || '').match(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*))\s*\)/i);
                 return match ? (match[1] || match[2] || (match[3] || '').trim()) : '';
@@ -257,6 +334,27 @@
                 };
             }
 
+            function openWidgetImagePicker(target) {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.style.display = 'none';
+                document.body.appendChild(input);
+                input.addEventListener('change', function () {
+                    const file = input.files && input.files[0];
+                    if (file) {
+                        parent.postMessage({
+                            type: isDesktopWidget ? 'widget-desktop-image-file' : 'widget-image-editor-file',
+                            target: target,
+                            file: file
+                        }, '*');
+                    }
+                    input.remove();
+                }, { once: true });
+                input.addEventListener('cancel', function () { input.remove(); }, { once: true });
+                input.click();
+            }
+
             document.addEventListener('pointerover', function (event) {
                 const element = event.target && event.target.nodeType === 1 ? event.target : null;
                 if (!element || (element.closest && element.closest('img, image'))) return;
@@ -273,35 +371,24 @@
 
             document.addEventListener('click', function (event) {
                 const element = event.target && event.target.nodeType === 1 ? event.target : null;
-                if (!element) return;
+                if (!element || (element.matches && element.matches('input[type="file"]'))) return;
 
                 const target = findImageTarget(element) || findBackgroundTarget(element);
                 if (!target) return;
 
+                if (isDesktopWidget && Date.now() < suppressImageClickUntil) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    return;
+                }
+
                 event.preventDefault();
                 event.stopImmediatePropagation();
-
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.style.display = 'none';
-                document.body.appendChild(input);
-                input.addEventListener('change', function () {
-                    const file = input.files && input.files[0];
-                    if (file) {
-                        parent.postMessage({
-                            type: 'widget-image-editor-file',
-                            target: target,
-                            file: file
-                        }, '*');
-                    }
-                    input.remove();
-                }, { once: true });
-                input.click();
+                openWidgetImagePicker(target);
             }, true);
         }
 
-        function buildWidgetEditablePreview(content) {
+        function buildWidgetImageEditableContent(content, mode) {
             let previewContent = String(content == null ? '' : content);
             const tags = scanWidgetImageTags(previewContent);
 
@@ -316,7 +403,7 @@
             }
 
             const editStyle = '<style>img[data-widget-editor-image-index],image[data-widget-editor-image-index],[data-widget-editor-background]{cursor:pointer!important}img[data-widget-editor-image-index]:hover,image[data-widget-editor-image-index]:hover,[data-widget-editor-background]:hover{outline:2px solid #007aff!important;outline-offset:-2px}</style>';
-            const editScript = '<script>(' + widgetImageEditBridge.toString() + ')();<' + '/script>';
+            const editScript = '<script>(' + widgetImageEditBridge.toString() + ')(' + JSON.stringify(mode || 'editor') + ');<' + '/script>';
             const editTools = editStyle + editScript;
             const headMatch = /<head\b[^>]*>/i.exec(previewContent);
 
@@ -325,6 +412,14 @@
                 return previewContent.slice(0, insertAt) + editTools + previewContent.slice(insertAt);
             }
             return editTools + previewContent;
+        }
+
+        function buildWidgetEditablePreview(content) {
+            return buildWidgetImageEditableContent(content, 'editor');
+        }
+
+        function buildWidgetDesktopContent(content) {
+            return buildWidgetImageEditableContent(content, 'desktop');
         }
 
         function replaceWidgetTagImage(tagText, target, imageUrl) {
@@ -669,7 +764,12 @@
         window.openWidgetEditor = openWidgetEditor;
 
         function closeWidgetEditor() {
-            document.getElementById('widgetEditorModal').classList.remove('show');
+            const modal = document.getElementById('widgetEditorModal');
+            const focusedElement = document.activeElement;
+            if (focusedElement && modal.contains(focusedElement) && typeof focusedElement.blur === 'function') {
+                focusedElement.blur();
+            }
+            modal.classList.remove('show');
             const overlay = document.getElementById('widgetOverlay');
             overlay.style.display = 'none'; overlay.style.zIndex = '105';
             const preview = document.getElementById('widgetCodePreview');
@@ -677,6 +777,22 @@
             if (preview) preview.style.display = 'none';
             if (frame) frame.srcdoc = '';
             activeWidgetIndex = -1;
+            requestAnimationFrame(function () {
+                if (typeof window.refreshAppViewport === 'function') {
+                    window.refreshAppViewport();
+                } else {
+                    window.scrollTo(0, 0);
+                    document.documentElement.scrollTop = 0;
+                    document.body.scrollTop = 0;
+                }
+            });
+        }
+
+        window.buildWidgetDesktopContent = buildWidgetDesktopContent;
+        window.replaceWidgetImageContent = replaceWidgetImageContent;
+        window.prepareWidgetImageData = prepareWidgetImageData;
+        if (typeof window.refreshDesktopWidgetFrames === 'function') {
+            window.refreshDesktopWidgetFrames();
         }
         window.closeWidgetEditor = closeWidgetEditor;
 
@@ -737,29 +853,30 @@
         }
         window.saveWidgetEditor = saveWidgetEditor;
 
-        function switchWidgetTab(index) {
+        function switchWidgetTab(index, progressIndex) {
             if (isWidgetEditing) return;
             widgetSegmentBtns.forEach((btn, i) => btn.classList.toggle('active', i === index));
             if (widgetIndicator) widgetIndicator.style.transform = 'translateX(' + (index * 100) + '%)';
             currentWidgets = index === 0 ? officialWidgets : customWidgets;
-            currentProgress = 0; targetProgress = 0;
+            const nextProgress = Number.isInteger(progressIndex) ? progressIndex : 0;
+            currentProgress = nextProgress; targetProgress = nextProgress;
             renderWidgetViews();
         }
         window.switchWidgetTab = switchWidgetTab;
 
         function handleAddWidget() {
             closeWidgetMenus();
-            currentWidgets.push({
-                name: '自定义组件 ' + (currentWidgets.length + 1),
+            customWidgets.push({
+                name: '自定义组件 ' + (customWidgets.length + 1),
                 content: '',
                 width: '',
                 height: '',
                 presetSize: ''
             });
-            targetProgress = currentWidgets.length - 1;
-            renderWidgetViews();
+            const newWidgetIndex = customWidgets.length - 1;
+            switchWidgetTab(1, newWidgetIndex);
             if (typeof window.saveCustomWidgetsData === 'function') window.saveCustomWidgetsData();
-            openWidgetEditor(targetProgress);
+            openWidgetEditor(newWidgetIndex);
         }
         window.handleAddWidget = handleAddWidget;
 

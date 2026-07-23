@@ -49,6 +49,32 @@
             return /<[^>]+>/.test(decoded) ? decoded : original;
         }
 
+        function buildDesktopWidgetFrameContent(content) {
+            const normalizedContent = normalizeStoredWidgetContent(content);
+            return typeof window.buildWidgetDesktopContent === 'function'
+                ? window.buildWidgetDesktopContent(normalizedContent)
+                : normalizedContent;
+        }
+
+        function makeDesktopWidgetFrameHTML(content) {
+            return makeWidgetFrameHTML(buildDesktopWidgetFrameContent(content), true);
+        }
+
+        function buildDesktopWidgetSrcdoc(content) {
+            return '<style>html,body{margin:0;padding:0;width:100%;height:100%;box-sizing:border-box;}</style>'
+                + buildDesktopWidgetFrameContent(content);
+        }
+
+        function refreshDesktopWidgetFrames() {
+            document.querySelectorAll('#desktopGrid .app-item.is-widget').forEach(app => {
+                const frame = app.querySelector('.widget-render-frame');
+                if (!frame) return;
+                const content = app.getAttribute('data-widget-content') || '';
+                frame.srcdoc = buildDesktopWidgetSrcdoc(content);
+            });
+        }
+        window.refreshDesktopWidgetFrames = refreshDesktopWidgetFrames;
+
         function getWidgetGridSpan(widgetData) {
             const legacyWidth = parseInt(widgetData.width, 10);
             const legacyHeight = parseInt(widgetData.height, 10);
@@ -134,7 +160,7 @@
             const dims1 = getWidgetDimensions(widgetData);
             app.style.width = dims1.width + 'px';
             app.style.height = dims1.height + 'px';
-            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="widget-edit-hotzone" aria-label="长按进入编辑模式"></div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims1.width}px; height: ${dims1.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${makeWidgetFrameHTML(widgetContent, true)}</div><div class="app-name" style="display:none;">${widgetData.name || "组件"}</div>`;
+            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="widget-edit-hotzone" aria-label="长按进入编辑模式"></div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims1.width}px; height: ${dims1.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${makeDesktopWidgetFrameHTML(widgetContent)}</div><div class="app-name" style="display:none;">${widgetData.name || "组件"}</div>`;
 
             if (isEditMode) app.classList.add('jiggling');
             emptySlot.appendChild(app);
@@ -204,7 +230,7 @@
             const dims2 = getWidgetDimensions({ width, height, presetSize });
             app.style.width = dims2.width + 'px';
             app.style.height = dims2.height + 'px';
-            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="widget-edit-hotzone" aria-label="长按进入编辑模式"></div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims2.width}px; height: ${dims2.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${makeWidgetFrameHTML(normalizedWidgetContent, true)}</div><div class="app-name" style="display:none;">组件</div>`;
+            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="widget-edit-hotzone" aria-label="长按进入编辑模式"></div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims2.width}px; height: ${dims2.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${makeDesktopWidgetFrameHTML(normalizedWidgetContent)}</div><div class="app-name" style="display:none;">组件</div>`;
         } else {
             app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon"></div><div class="app-name">${name}</div>`;
             if (icon) {
@@ -469,6 +495,86 @@
             });
     }
     window.openContactsApp = openContactsApp;
+
+    function findDesktopWidgetFrame(sourceWindow) {
+        const frames = document.querySelectorAll('#desktopGrid .app-item.is-widget .widget-render-frame');
+        for (const frame of frames) {
+            if (frame.contentWindow === sourceWindow) return frame;
+        }
+        return null;
+    }
+
+    function getDesktopWidgetPointerPosition(frame, message) {
+        const rect = frame.getBoundingClientRect();
+        const scaleX = frame.clientWidth ? rect.width / frame.clientWidth : 1;
+        const scaleY = frame.clientHeight ? rect.height / frame.clientHeight : 1;
+        return {
+            x: rect.left + Number(message.clientX || 0) * scaleX,
+            y: rect.top + Number(message.clientY || 0) * scaleY
+        };
+    }
+
+    let pressedWidgetFrame = null;
+    let pressedWidgetApp = null;
+
+    window.addEventListener('message', async event => {
+        const message = event.data;
+        if (!message || (message.type !== 'widget-desktop-pointer' && message.type !== 'widget-desktop-image-file')) return;
+
+        const frame = findDesktopWidgetFrame(event.source);
+        if (!frame) return;
+        const app = frame.closest('.app-item.is-widget');
+        if (!app) return;
+
+        if (message.type === 'widget-desktop-pointer') {
+            const position = getDesktopWidgetPointerPosition(frame, message);
+            if (message.phase === 'down' && !isEditMode) {
+                if (pressTimer) clearTimeout(pressTimer);
+                startX = position.x;
+                startY = position.y;
+                pressedWidgetFrame = frame;
+                pressedWidgetApp = app;
+                pressTimer = setTimeout(() => {
+                    pressTimer = null;
+                    if (pressedWidgetFrame === frame && pressedWidgetApp === app) enterEditMode();
+                }, 600);
+            } else if (message.phase === 'move' && pressedWidgetFrame === frame) {
+                if (pressTimer && (Math.abs(position.x - startX) > 10 || Math.abs(position.y - startY) > 10)) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                }
+            } else if ((message.phase === 'up' || message.phase === 'cancel') && pressedWidgetFrame === frame) {
+                if (pressTimer) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                }
+                pressedWidgetFrame = null;
+                pressedWidgetApp = null;
+            }
+            return;
+        }
+
+        if (isEditMode || !(message.file instanceof Blob)) return;
+        if (typeof window.prepareWidgetImageData !== 'function' || typeof window.replaceWidgetImageContent !== 'function') return;
+
+        try {
+            const imageData = await window.prepareWidgetImageData(message.file);
+            const currentContent = normalizeStoredWidgetContent(app.getAttribute('data-widget-content') || '');
+            const updatedContent = window.replaceWidgetImageContent(currentContent, message.target, imageData);
+            if (updatedContent == null) {
+                if (typeof window.showToast === 'function') window.showToast('未能定位这张图片');
+                return;
+            }
+
+            app.setAttribute('data-widget-content', encodeURIComponent(updatedContent));
+            frame.srcdoc = buildDesktopWidgetSrcdoc(updatedContent);
+            saveLayout();
+            if (typeof window.showToast === 'function') window.showToast('组件图片已替换');
+        } catch (error) {
+            console.error('Desktop widget image replacement failed:', error);
+            if (typeof window.showToast === 'function') window.showToast('图片读取失败');
+        }
+    });
 
     document.addEventListener('pointerdown', (e) => {
         const app = e.target.closest('.app-item');

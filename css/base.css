@@ -397,4 +397,4 @@
         }
         .app-item.is-widget:not(.jiggling) .widget-edit-hotzone { display: flex; }
         .app-item.is-widget.jiggling .widget-edit-hotzone { display: none !important; }
-        .app-item.is-widget.jiggling .app-icon .widget-render-frame { pointer-events: none; }
+        .app-item.is-widget.jiggling .app-icon .widget-render-frame { pointer-events: none !important; }

@@ -56,6 +56,22 @@ document.addEventListener('DOMContentLoaded', () => {
         viewportTimer = window.setTimeout(updateViewportHeight, 150);
     }
 
+    function refreshAppViewport() {
+        window.clearTimeout(viewportTimer);
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        updateViewportHeight();
+        viewportTimer = window.setTimeout(() => {
+            window.scrollTo(0, 0);
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+            updateViewportHeight();
+        }, 350);
+    }
+
+    window.refreshAppViewport = refreshAppViewport;
+
     function scheduleColorUpdate() {
         window.clearTimeout(colorTimer);
         colorTimer = window.setTimeout(updateThemeColor, 80);
