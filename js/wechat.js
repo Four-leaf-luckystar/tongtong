@@ -3536,8 +3536,10 @@
                 
                 const bubble = document.createElement('div');
                 bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
-                bubble.style.backgroundColor = 'transparent';
-                bubble.style.padding = '0';
+                // 强制覆盖主题 CSS 中的 !important，彻底隐藏气泡背景
+                bubble.style.setProperty('background-color', 'transparent', 'important');
+                bubble.style.setProperty('padding', '0', 'important');
+                bubble.style.setProperty('box-shadow', 'none', 'important');
                 bubble.style.position = 'relative';
                 
                 let pressTimer;
@@ -3556,69 +3558,85 @@
                     e.preventDefault();
                     wcOpenBubbleMenu(message.id, e.clientX, e.clientY);
                 });
+
                 const imgWrap = document.createElement('div');
                 imgWrap.style.position = 'relative';
                 imgWrap.style.width = '144px'; // 基础宽度120px + 最大偏移量24px
                 imgWrap.style.height = '213px';
                 imgWrap.style.cursor = 'pointer';
-                imgWrap.style.transition = 'transform 0.2s ease'; // 按压动画过渡
                 
                 let currentImgIndex = 0;
                 const len = message.imageUrl.length;
                 const maxStack = Math.min(3, len);
                 const stackImgs = [];
                 
-                // 逆序添加，保证 index 0 (最顶层) 最后被 append，从而在 DOM 最上层
-                for (let i = maxStack - 1; i >= 0; i--) {
+                // 定义三个层级的样式状态
+                const levelStyles = [
+                    { zIndex: '3', left: '0px', top: '0px', height: '213px', opacity: '1', transform: 'translateX(0) rotate(0deg)' },
+                    { zIndex: '2', left: '12px', top: '8px', height: '197px', opacity: '0.9', transform: 'translateX(0) rotate(0deg)' },
+                    { zIndex: '1', left: '24px', top: '16px', height: '181px', opacity: '0.8', transform: 'translateX(0) rotate(0deg)' }
+                ];
+                
+                // 初始化图片元素
+                for (let i = 0; i < maxStack; i++) {
                     const img = document.createElement('img');
-                    img.src = message.imageUrl[(currentImgIndex + i) % len];
+                    img.src = message.imageUrl[i];
                     img.style.position = 'absolute';
                     img.style.width = '120px';
                     img.style.borderRadius = '8px';
                     img.style.objectFit = 'cover';
                     img.style.boxShadow = '-2px 0 8px rgba(0,0,0,0.15)';
-                    img.style.transition = 'opacity 0.2s ease'; // 淡入淡出过渡
+                    img.style.transition = 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
                     
-                    // 根据层级计算偏移和缩放 (越往后越小，向右偏移)
-                    if (i === 0) {
-                        img.style.zIndex = '3';
-                        img.style.left = '0px';
-                        img.style.top = '0px';
-                        img.style.height = '213px';
-                    } else if (i === 1) {
-                        img.style.zIndex = '2';
-                        img.style.left = '12px';
-                        img.style.top = '8px';
-                        img.style.height = '197px';
-                    } else if (i === 2) {
-                        img.style.zIndex = '1';
-                        img.style.left = '24px';
-                        img.style.top = '16px';
-                        img.style.height = '181px';
-                    }
-                    
-                    stackImgs.unshift(img); // 保证 stackImgs[0] 始终是最顶层的图片元素
-                    imgWrap.appendChild(img);
+                    Object.assign(img.style, levelStyles[i]);
+                    stackImgs.push(img);
                 }
                 
+                // 逆序 append，保证 DOM 层级正确
+                for (let i = maxStack - 1; i >= 0; i--) {
+                    imgWrap.appendChild(stackImgs[i]);
+                }
+                
+                let isAnimating = false;
+                
                 imgWrap.onclick = (e) => {
-                    if (isLongPress) return;
+                    if (isLongPress || isAnimating) return;
                     e.stopPropagation();
+                    isAnimating = true;
                     
-                    // 交互动画：整体微缩，顶层图片淡出
-                    imgWrap.style.transform = 'scale(0.95)';
-                    stackImgs[0].style.opacity = '0';
+                    // 1. 顶层图片向左滑动并旋转淡出
+                    const topImg = stackImgs[0];
+                    topImg.style.transform = 'translateX(-80px) rotate(-8deg)';
+                    topImg.style.opacity = '0';
                     
+                    // 2. 底下的图片顺势上移放大
+                    for (let i = 1; i < maxStack; i++) {
+                        Object.assign(stackImgs[i].style, levelStyles[i - 1]);
+                    }
+                    
+                    // 3. 动画结束后，重置数组和 DOM 状态
                     setTimeout(() => {
                         currentImgIndex = (currentImgIndex + 1) % len;
-                        // 更新所有层叠图片的 src
-                        for (let i = 0; i < maxStack; i++) {
-                            stackImgs[i].src = message.imageUrl[(currentImgIndex + i) % len];
-                        }
-                        // 恢复状态
-                        stackImgs[0].style.opacity = '1';
-                        imgWrap.style.transform = 'scale(1)';
-                    }, 200);
+                        
+                        // 数组轮转：把第一个移到最后
+                        const shiftedImg = stackImgs.shift();
+                        stackImgs.push(shiftedImg);
+                        
+                        // 更新移到底层的图片的 src
+                        shiftedImg.src = message.imageUrl[(currentImgIndex + maxStack - 1) % len];
+                        
+                        // 瞬间把滑出的图片放到最底层的位置，去掉动画过渡以免飞回去被看到
+                        shiftedImg.style.transition = 'none';
+                        Object.assign(shiftedImg.style, levelStyles[maxStack - 1]);
+                        
+                        // 强制重绘
+                        shiftedImg.offsetHeight; 
+                        
+                        // 恢复过渡动画
+                        shiftedImg.style.transition = 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                        
+                        isAnimating = false;
+                    }, 300); // 与 transition 时间一致
                 };
                 
                 bubble.appendChild(imgWrap);
