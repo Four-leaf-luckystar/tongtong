@@ -4412,10 +4412,11 @@
 
                 // 处理图片识别逻辑（包括真实图片、模拟图片和手动输入 [图片]）
                 if (msgData && msgData.imageUrl) {
-                    if (msgData.imageUrl.startsWith('data:image/svg+xml')) {
+                    const imgUrlStr = Array.isArray(msgData.imageUrl) ? msgData.imageUrl[0] : msgData.imageUrl;
+                    if (imgUrlStr.startsWith('data:image/svg+xml')) {
                         // 模拟的占位图，提取 SVG 中的文字描述
                         try {
-                            const decodedSvg = decodeURIComponent(msgData.imageUrl.split(',')[1]);
+                            const decodedSvg = decodeURIComponent(imgUrlStr.split(',')[1]);
                             const textMatch = decodedSvg.match(/<text[^>]*>(.*?)<\/text>/);
                             const imgDesc = textMatch ? textMatch[1] : '未知图片';
                             contentStr = `[发送了一张图片，图片内容是：${imgDesc}]`;
@@ -4427,10 +4428,18 @@
                     } else {
                         // 真实图片，构建多模态 Vision 格式
                         let imgText = contentStr === '[图片]' ? '[发送了一张真实图片]' : `[发送了一张真实图片，附言：${contentStr}]`;
-                        finalContent = [
-                            { type: "text", text: imgText },
-                            { type: "image_url", image_url: { url: msgData.imageUrl } }
-                        ];
+                        
+                        if (Array.isArray(msgData.imageUrl)) {
+                            finalContent = [{ type: "text", text: imgText }];
+                            msgData.imageUrl.forEach(url => {
+                                finalContent.push({ type: "image_url", image_url: { url: url } });
+                            });
+                        } else {
+                            finalContent = [
+                                { type: "text", text: imgText },
+                                { type: "image_url", image_url: { url: msgData.imageUrl } }
+                            ];
+                        }
                     }
                 } else if (contentStr.startsWith('[图片]') || contentStr.startsWith('【图片】')) {
                     let iDesc = contentStr.replace(/^\[图片\]|^【图片】/, '').trim();
@@ -4975,7 +4984,11 @@
 
         } catch (error) {
             console.error('WeChat API reply failed:', error);
-            showToast(error?.message || '获取 API 回复失败');
+            if (typeof showCustomAlert === 'function') {
+                showCustomAlert('错误', error?.message || '获取 API 回复失败');
+            } else {
+                showToast(error?.message || '获取 API 回复失败');
+            }
         } finally {
             const thinkingEl = document.getElementById(thinkingId);
             if (thinkingEl) thinkingEl.remove();
