@@ -1495,19 +1495,18 @@
         const files = event.target.files;
         if (!files || files.length === 0) return;
         
-        // 同步捕获当前的回复 ID，因为 FileReader 是异步的
         const replyId = wcCurrentReplyMsgId;
-        wcCloseReplyPreview(); // 立即关闭回复预览 UI
+        wcCloseReplyPreview(); 
         
         const fileArray = Array.from(files);
         let processedCount = 0;
+        let imageUrls = [];
         
-        fileArray.forEach(file => {
+        fileArray.forEach((file, index) => {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    // 使用 Canvas 进行压缩，防止原图过大导致崩溃或无法发送
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     const MAX_WIDTH = 1280;
@@ -1525,18 +1524,29 @@
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    // 压缩为 JPEG 格式，质量 0.8
                     const imageUrl = canvas.toDataURL('image/jpeg', 0.8);
-                    wcAppendChatMessage('[图片]', 'sent', wcCurrentChatContactId, imageUrl, replyId, false);
+                    imageUrls[index] = imageUrl; 
                     
                     processedCount++;
                     if (processedCount === fileArray.length) {
+                        const validUrls = imageUrls.filter(url => url);
+                        if (validUrls.length === 1) {
+                            wcAppendChatMessage('[图片]', 'sent', wcCurrentChatContactId, validUrls[0], replyId, false);
+                        } else if (validUrls.length > 1) {
+                            wcAppendChatMessage(`[图片x${validUrls.length}]`, 'sent', wcCurrentChatContactId, validUrls, replyId, false);
+                        }
                         event.target.value = '';
                     }
                 };
                 img.onerror = function() {
                     processedCount++;
                     if (processedCount === fileArray.length) {
+                        const validUrls = imageUrls.filter(url => url);
+                        if (validUrls.length === 1) {
+                            wcAppendChatMessage('[图片]', 'sent', wcCurrentChatContactId, validUrls[0], replyId, false);
+                        } else if (validUrls.length > 1) {
+                            wcAppendChatMessage(`[图片x${validUrls.length}]`, 'sent', wcCurrentChatContactId, validUrls, replyId, false);
+                        }
                         event.target.value = '';
                     }
                 };
@@ -1545,6 +1555,12 @@
             reader.onerror = function() {
                 processedCount++;
                 if (processedCount === fileArray.length) {
+                    const validUrls = imageUrls.filter(url => url);
+                    if (validUrls.length === 1) {
+                        wcAppendChatMessage('[图片]', 'sent', wcCurrentChatContactId, validUrls[0], replyId, false);
+                    } else if (validUrls.length > 1) {
+                        wcAppendChatMessage(`[图片x${validUrls.length}]`, 'sent', wcCurrentChatContactId, validUrls, replyId, false);
+                    }
                     event.target.value = '';
                 }
             };
@@ -3479,13 +3495,105 @@
         if (message.imageUrl) {
             bubble.style.backgroundColor = 'transparent';
             bubble.style.padding = '0';
-            const img = document.createElement('img');
-            img.src = message.imageUrl;
-            img.style.maxWidth = '120px';
-            img.style.maxHeight = '120px';
-            img.style.borderRadius = '8px';
-            img.style.objectFit = 'contain';
-            bubble.appendChild(img);
+            
+            if (Array.isArray(message.imageUrl) && message.imageUrl.length > 1) {
+                const galleryContainer = document.createElement('div');
+                galleryContainer.className = 'wc-image-gallery';
+                galleryContainer.style.position = 'relative';
+                galleryContainer.style.width = '120px';
+                galleryContainer.style.height = '120px';
+                
+                const capsule = document.createElement('div');
+                capsule.className = 'wc-gallery-capsule';
+                capsule.innerHTML = `展开${message.imageUrl.length}`;
+                capsule.style.position = 'absolute';
+                capsule.style.left = '-45px';
+                capsule.style.bottom = '10px';
+                capsule.style.backgroundColor = 'rgba(0,0,0,0.4)';
+                capsule.style.color = '#fff';
+                capsule.style.fontSize = '11px';
+                capsule.style.padding = '4px 8px';
+                capsule.style.borderRadius = '10px';
+                capsule.style.zIndex = '10';
+                capsule.style.pointerEvents = 'none';
+                capsule.style.whiteSpace = 'nowrap';
+                
+                let currentIndex = 0;
+                
+                const imgElements = message.imageUrl.map((url, index) => {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.style.position = 'absolute';
+                    img.style.top = '0';
+                    img.style.left = '0';
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.borderRadius = '8px';
+                    img.style.objectFit = 'cover';
+                    img.style.transition = 'all 0.3s ease';
+                    img.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                    
+                    if (index === 0) {
+                        img.style.zIndex = '5';
+                        img.style.transform = 'translate(0, 0) scale(1)';
+                        img.style.opacity = '1';
+                    } else if (index === 1) {
+                        img.style.zIndex = '4';
+                        img.style.transform = 'translate(4px, 4px) scale(0.95)';
+                        img.style.opacity = '0.8';
+                    } else if (index === 2) {
+                        img.style.zIndex = '3';
+                        img.style.transform = 'translate(8px, 8px) scale(0.9)';
+                        img.style.opacity = '0.6';
+                    } else {
+                        img.style.zIndex = '1';
+                        img.style.transform = 'translate(8px, 8px) scale(0.9)';
+                        img.style.opacity = '0';
+                    }
+                    
+                    galleryContainer.appendChild(img);
+                    return img;
+                });
+                
+                galleryContainer.appendChild(capsule);
+                
+                galleryContainer.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    currentIndex = (currentIndex + 1) % message.imageUrl.length;
+                    
+                    imgElements.forEach((img, index) => {
+                        const diff = (index - currentIndex + message.imageUrl.length) % message.imageUrl.length;
+                        if (diff === 0) {
+                            img.style.zIndex = '5';
+                            img.style.transform = 'translate(0, 0) scale(1)';
+                            img.style.opacity = '1';
+                        } else if (diff === 1) {
+                            img.style.zIndex = '4';
+                            img.style.transform = 'translate(4px, 4px) scale(0.95)';
+                            img.style.opacity = '0.8';
+                        } else if (diff === 2) {
+                            img.style.zIndex = '3';
+                            img.style.transform = 'translate(8px, 8px) scale(0.9)';
+                            img.style.opacity = '0.6';
+                        } else {
+                            img.style.zIndex = '1';
+                            img.style.transform = 'translate(8px, 8px) scale(0.9)';
+                            img.style.opacity = '0';
+                        }
+                    });
+                });
+                
+                bubble.appendChild(galleryContainer);
+            } else {
+                const imgUrl = Array.isArray(message.imageUrl) ? message.imageUrl[0] : message.imageUrl;
+                const img = document.createElement('img');
+                img.src = imgUrl;
+                img.style.maxWidth = '120px';
+                img.style.maxHeight = '120px';
+                img.style.borderRadius = '8px';
+                img.style.objectFit = 'contain';
+                bubble.appendChild(img);
+            }
         } else if (message.isVoice) {
             const voiceContainer = document.createElement('div');
             voiceContainer.className = 'wc-voice-container';
@@ -3519,9 +3627,7 @@
                     ${playSvg}
                     <div class="wc-voice-dot"></div>
                     <div class="wc-voice-waves">${wavesHtml}</div>
-                </div>
-                <div class="wc-voice-info">
-                    <span>${durationStr}</span>
+                    <div class="wc-voice-duration">${durationStr}</div>
                 </div>
                 <div class="wc-voice-text">${text}</div>
             `;
@@ -4300,14 +4406,6 @@
             if (finalPromptText && finalPromptPos === 'bottom') {
                 systemPrompt += finalPromptText;
             }
-
-            systemPrompt += `【高级交互指南】\n`;
-            systemPrompt += `- 识别引用：如果用户的消息包含 [引用了消息: "..."]，说明用户在针对那句话回复。\n`;
-            systemPrompt += `- 识别反应：如果消息包含 [收到了表情反应: ...]，说明有人对这句话贴了表情。\n`;
-            systemPrompt += `- 你的引用：如果你想引用某条历史消息，可以在 JSON 中添加 "replyTo" 字段，值为你想引用的消息内容（原话）。\n`;
-            systemPrompt += `- 你的反应：如果你想对用户的某句话贴表情（如点赞、比心），可以在 JSON 中输出 {"type":"reaction", "target":"你想贴表情的用户原话", "emoji":"👍"}。\n`;
-            systemPrompt += `- 发送语音：如果你想发送语音消息，请使用 "type":"voice"，并将语音转换的文字放在 "content" 中。\n`;
-            systemPrompt += `- 发送图片：如果你想发送一张图片给对方，请使用 "type":"image"，并将图片画面的详细描述放在 "content" 中。\n\n`;
 
             systemPrompt += `【回复格式要求】\n`;
             systemPrompt += `你的回复必须严格拆分为 ${minReply} 到 ${maxReply} 个独立的气泡（即 messages 数组中的对象数量）！\n`;
