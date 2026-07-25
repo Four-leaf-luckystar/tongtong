@@ -120,10 +120,10 @@
     <div class="widget-date" id="date-display"></div>
     <div class="widget-time" id="time-display">14:44</div>
     <div class="chat-bubble">
-        <div class="avatar" style="background-image: url('');" onclick="if(window.parent && window.parent.document.getElementById('widgetEditorModal') && window.parent.document.getElementById('widgetEditorModal').classList.contains('show') && window.parent.openIconMenu) { window.parent.openIconMenu(event, 'widgetAvatar'); }"></div>
+        <div class="avatar custom-avatar-trigger" style="background-image: url('');"></div>
         <div class="chat-content">
             <div class="input-box">
-                <span class="input-text" onclick="if(window.parent && window.parent.editWidgetText) { window.parent.editWidgetText(); }">🤍ineedu…^</span>
+                <span class="input-text custom-text-trigger">🤍ineedu…^</span>
             </div>
             <div class="action-bar">
                 <div class="icons">
@@ -541,6 +541,31 @@
             document.addEventListener('click', function (event) {
                 const element = event.target && event.target.nodeType === 1 ? event.target : null;
                 if (!element || (element.matches && element.matches('input[type="file"]'))) return;
+                
+                // 拦截自定义头像点击，发送给父窗口
+                const customAvatar = element.closest('.custom-avatar-trigger');
+                if (customAvatar) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    const rect = customAvatar.getBoundingClientRect();
+                    parent.postMessage({
+                        type: 'widget-custom-avatar-click',
+                        rect: { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right }
+                    }, '*');
+                    return;
+                }
+
+                // 拦截自定义文本点击，发送给父窗口
+                const customText = element.closest('.custom-text-trigger');
+                if (customText) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    parent.postMessage({
+                        type: 'widget-custom-text-click'
+                    }, '*');
+                    return;
+                }
+
                 if (element.closest && element.closest('[contenteditable="true"]')) return;
 
                 const target = findImageTarget(element) || findBackgroundTarget(element);
@@ -784,6 +809,33 @@
             const message = event.data;
             if (!frame || event.source !== frame.contentWindow || !editorModal || !editorModal.classList.contains('show')) return;
             if (!message) return;
+
+            // 接收头像点击消息，计算坐标并唤起菜单
+            if (message.type === 'widget-custom-avatar-click') {
+                if (typeof window.openIconMenu === 'function') {
+                    const frameRect = frame.getBoundingClientRect();
+                    const fakeEvent = {
+                        target: {
+                            getBoundingClientRect: () => ({
+                                top: frameRect.top + message.rect.top,
+                                bottom: frameRect.top + message.rect.bottom,
+                                left: frameRect.left + message.rect.left,
+                                right: frameRect.left + message.rect.right
+                            })
+                        }
+                    };
+                    window.openIconMenu(fakeEvent, 'widgetAvatar');
+                }
+                return;
+            }
+
+            // 接收文本点击消息，唤起通用弹窗
+            if (message.type === 'widget-custom-text-click') {
+                if (typeof window.editWidgetText === 'function') {
+                    window.editWidgetText();
+                }
+                return;
+            }
 
             if (message.type === 'widget-image-editor-content') {
                 if (typeof message.html !== 'string' || !message.target || typeof window.replaceWidgetEditableContent !== 'function') return;
