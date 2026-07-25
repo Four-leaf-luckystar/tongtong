@@ -102,15 +102,18 @@
     .star-icon { width: 13px; height: 13px; fill: #8b929a; }
     .widget-time { font-size: 64px; font-weight: 700; line-height: 1; letter-spacing: 2px; margin-bottom: 20px; }
     .chat-bubble { background-color: rgba(255, 255, 255, 0.95); width: 90%; border-radius: 50px; padding: 10px 15px; display: flex; align-items: center; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); }
-    .avatar { width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #e0f2fe, #bae6fd); background-size: cover; background-position: center; margin-right: 12px; flex-shrink: 0; border: 1px solid #f3f4f6; cursor: pointer; }
+    /* 注意这里：去除了 cursor: pointer，因为你的 bridge 会自动接管 */
+    .avatar { width: 48px; height: 48px; border-radius: 50%; background-image: radial-gradient(circle at 30% 30%, #e0f2fe, #bae6fd); background-size: cover; background-position: center; margin-right: 12px; flex-shrink: 0; border: 1px solid #f3f4f6; }
     .chat-content { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
-    .input-box { border: 1px solid #e5e7eb; border-radius: 20px; padding: 4px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fafafa; white-space: nowrap; overflow: hidden; cursor: pointer; }
-    .input-text { font-size: 12px; color: #8b929a; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+    .input-box { border: 1px solid #e5e7eb; border-radius: 20px; padding: 4px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fafafa; white-space: nowrap; overflow: hidden; }
+    /* 注意这里：去除了 pointer-events: none，允许文字被选中和编辑 */
+    .input-text { font-size: 12px; color: #8b929a; overflow: hidden; text-overflow: ellipsis; outline: none; }
+    .hearts { font-size: 12px; letter-spacing: 2px; flex-shrink: 0; margin-left: 8px; }
     .action-bar { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; }
     .icons { display: flex; gap: 8px; align-items: center; }
     .icons svg { width: 18px; height: 18px; fill: #8b929a; }
     .buttons { display: flex; gap: 8px; }
-    .btn { font-size: 12px; padding: 4px 14px; border-radius: 15px; border: none; cursor: pointer; font-family: inherit; }
+    .btn { font-size: 12px; padding: 4px 14px; border-radius: 15px; border: none; font-family: inherit; }
     .btn-send { background-color: #8b929a; color: white; }
     .btn-cancel { background-color: transparent; color: #8b929a; border: 1px solid #d1d5db; padding: 3px 13px; }
 </style>
@@ -118,27 +121,13 @@
     <div class="widget-date" id="date-display"></div>
     <div class="widget-time" id="time-display">14:44</div>
     <div class="chat-bubble">
-        <div class="avatar" onclick="
-            const win = window.parent || window;
-            if(win.openIconMenu) {
-                win.currentWidgetAvatarTarget = this;
-                win.openIconMenu(event, 'widgetAvatar');
-            }
-        "></div>
+        <!-- 核心修改 1：加上 uploadable-img 类名，你的系统会自动让它支持点击上传图片 -->
+        <div class="avatar uploadable-img"></div>
         <div class="chat-content">
-            <div class="input-box" onclick="
-                const target = this.querySelector('.input-text');
-                const win = window.parent || window;
-                if(win.showCustomPrompt) {
-                    win.showCustomPrompt('修改文案', {placeholder: '输入文案', value: target.innerText}, '确定').then(res => {
-                        if(res !== null && res.trim() !== '') {
-                            target.innerText = res;
-                            if(win.saveLayout) win.saveLayout();
-                        }
-                    });
-                }
-            ">
-                <span class="input-text">🤍ineedu…^</span>
+            <div class="input-box">
+                <!-- 核心修改 2：加上 contenteditable="true"，你的系统会自动让它支持直接打字修改 -->
+                <span class="input-text" contenteditable="true">🤍ineedu…^</span>
+                <span class="hearts">🤍🩶🖤</span>
             </div>
             <div class="action-bar">
                 <div class="icons">
@@ -174,7 +163,6 @@
         ];
         const customWidgets = window.customWidgets || [];
         window.officialWidgets = officialWidgets;
-        window.customWidgets = customWidgets;
         let currentWidgets = officialWidgets;
 
         let widgetViewMode = 'carousel';     // 'carousel' | 'list'
