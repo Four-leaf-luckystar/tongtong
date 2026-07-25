@@ -556,6 +556,96 @@
 
         /* 微信登录与注册页样式 */
         #wechatAppUI .wc-auth-nav-bar { height: 89px; display: flex; align-items: center; padding: 45px 16px 0 16px; }
+
+        /* ==========================================
+           转账与 Apple Pay 页面样式
+           ========================================== */
+        #wechatAppUI .wc-transfer-nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 45px 20px 10px 20px; }
+        #wechatAppUI .wc-transfer-nav-btn { color: #007AFF; font-size: 17px; cursor: pointer; }
+        #wechatAppUI .wc-transfer-nav-title { font-size: 17px; font-weight: 600; color: #000; }
+        #wechatAppUI .wc-transfer-container { padding: 20px; display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
+        #wechatAppUI .wc-transfer-avatar { width: 72px; height: 72px; border-radius: 50%; background-color: #E5E5EA; background-size: cover; background-position: center; margin-bottom: 16px; display: flex; justify-content: center; align-items: center; color: #8e8e93; font-size: 28px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        #wechatAppUI .wc-transfer-name { font-size: 22px; font-weight: 600; margin-bottom: 4px; color: #000; }
+        #wechatAppUI .wc-transfer-account { font-size: 15px; color: #8E8E93; margin-bottom: 40px; }
+        #wechatAppUI .wc-transfer-amount-wrapper { display: flex; align-items: center; justify-content: center; margin-bottom: 30px; width: 100%; }
+        #wechatAppUI .wc-transfer-currency { font-size: 48px; font-weight: 300; margin-right: 8px; color: #000; }
+        #wechatAppUI .wc-transfer-amount-input { font-size: 72px; font-weight: 200; border: none; outline: none; background: transparent; color: #000; width: 160px; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        #wechatAppUI .wc-transfer-amount-input::placeholder { color: #C7C7CC; }
+        #wechatAppUI .wc-transfer-note-input { background: #F2F2F7; border: none; border-radius: 20px; padding: 14px 20px; font-size: 16px; width: 100%; outline: none; text-align: center; color: #000; margin-bottom: 30px; }
+        #wechatAppUI .wc-transfer-note-input::placeholder { color: #8E8E93; }
+        
+        /* 免密支付开关 */
+        #wechatAppUI .wc-settings-row { display: flex; align-items: center; gap: 10px; font-size: 15px; color: #333; background: #fff; padding: 12px 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); cursor: pointer; width: 100%; }
+        #wechatAppUI .wc-settings-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #007AFF; pointer-events: none; }
+
+        #wechatAppUI .wc-transfer-next-btn { position: absolute; bottom: 40px; left: 20px; right: 20px; height: 54px; border-radius: 14px; background: #000; color: #fff; font-size: 17px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; opacity: 0.3; pointer-events: none; }
+        #wechatAppUI .wc-transfer-next-btn.active { opacity: 1; pointer-events: auto; }
+        #wechatAppUI .wc-transfer-next-btn.active:active { transform: scale(0.96); }
+
+        /* Apple Pay 弹窗 */
+        #wechatAppUI .wc-ap-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s; display: flex; flex-direction: column; justify-content: flex-end; }
+        #wechatAppUI .wc-ap-overlay.show { opacity: 1; pointer-events: auto; }
+        #wechatAppUI .wc-ap-sheet { background: #f9f9f9; border-radius: 32px 32px 0 0; padding: 20px 20px 40px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); min-height: 520px; display: flex; flex-direction: column; }
+        #wechatAppUI .wc-ap-overlay.show .wc-ap-sheet { transform: translateY(0); }
+        #wechatAppUI .wc-ap-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        #wechatAppUI .wc-ap-close-btn { width: 32px; height: 32px; background: #e5e5ea; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        #wechatAppUI .wc-ap-close-btn svg { width: 14px; height: 14px; stroke: #000; stroke-width: 2.5; stroke-linecap: round; }
+        #wechatAppUI .wc-ap-logo { font-size: 22px; font-weight: 600; display: flex; align-items: center; gap: 6px; color: #000; }
+        #wechatAppUI .wc-ap-payee-info { text-align: center; margin-bottom: 24px; }
+        #wechatAppUI .wc-ap-payee-name { font-size: 15px; color: #666; margin-bottom: 4px; }
+        #wechatAppUI .wc-ap-payee-amount { font-size: 44px; font-weight: 600; color: #000; letter-spacing: -1px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        
+        /* 卡片层叠 */
+        #wechatAppUI .wc-ap-cards-container { position: relative; height: 140px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px; perspective: 1000px; }
+        #wechatAppUI .wc-ap-card { position: absolute; width: 220px; height: 135px; border-radius: 12px; box-shadow: none; border: 1px solid rgba(255, 255, 255, 0.15); transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); padding: 16px; display: flex; flex-direction: column; justify-content: space-between; color: #fff; overflow: hidden; cursor: pointer; }
+        #wechatAppUI .wc-ap-card::after { content: ''; position: absolute; top: 0; left: -150%; width: 50%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); transform: skewX(-25deg); animation: wcMetalSweep 5s infinite; pointer-events: none; }
+        #wechatAppUI .wc-ap-card.card-center { transform: translateX(0) scale(1); z-index: 3; opacity: 1; }
+        #wechatAppUI .wc-ap-card.card-left { transform: translateX(-85px) scale(0.85); z-index: 1; opacity: 0.6; }
+        #wechatAppUI .wc-ap-card.card-right { transform: translateX(85px) scale(0.85); z-index: 2; opacity: 0.6; }
+        #wechatAppUI .wc-ap-card.card-hidden { transform: translateX(0) scale(0.5); z-index: 0; opacity: 0; pointer-events: none; }
+        #wechatAppUI .wc-ap-card .card-number { font-size: 14px; font-family: monospace; letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
+        
+        #wechatAppUI .wc-ap-change-method { background: #e5e5ea; color: #000; border: none; border-radius: 20px; padding: 10px 20px; font-size: 14px; font-weight: 500; margin: 0 auto; display: block; cursor: pointer; transition: background 0.2s; }
+        #wechatAppUI .wc-ap-change-method:active { background: #d1d1d6; }
+        #wechatAppUI .wc-ap-payment-details { margin-top: 20px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+        #wechatAppUI .wc-ap-detail-label { font-size: 15px; color: #8E8E93; }
+        #wechatAppUI .wc-ap-detail-value { font-size: 15px; font-weight: 500; color: #000; display: flex; align-items: center; gap: 8px; }
+        #wechatAppUI .wc-ap-confirm-area { margin-top: auto; display: flex; justify-content: center; align-items: center; gap: 10px; padding-top: 20px; cursor: pointer; }
+        #wechatAppUI .wc-ap-confirm-icon { width: 32px; height: 32px; border-radius: 50%; background: #007AFF; display: flex; justify-content: center; align-items: center; }
+        #wechatAppUI .wc-ap-confirm-icon svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2; }
+        #wechatAppUI .wc-ap-confirm-text { font-size: 17px; font-weight: 500; color: #000; }
+
+        /* 密码键盘 */
+        #wechatAppUI .wc-pwd-title { font-size: 17px; font-weight: 500; margin-bottom: 20px; margin-top: 10px; color: #000; }
+        #wechatAppUI .wc-pwd-dots { display: flex; gap: 16px; margin-bottom: 40px; }
+        #wechatAppUI .wc-pwd-dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #000; background: transparent; transition: background 0.1s; }
+        #wechatAppUI .wc-pwd-dot.filled { background: #000; }
+        #wechatAppUI .wc-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 24px; width: 100%; max-width: 280px; }
+        #wechatAppUI .wc-key-btn { width: 70px; height: 70px; border-radius: 50%; background: #e5e5ea; border: none; font-size: 28px; font-weight: 400; color: #000; display: flex; justify-content: center; align-items: center; cursor: pointer; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        #wechatAppUI .wc-key-btn:active { background: #d1d1d6; }
+        #wechatAppUI .wc-key-btn.empty { background: transparent; pointer-events: none; }
+
+        /* 成功动画 */
+        #wechatAppUI .wc-success-icon { width: 60px; height: 60px; border-radius: 50%; border: 3px solid #000; display: flex; justify-content: center; align-items: center; margin-bottom: 16px; }
+        #wechatAppUI .wc-success-icon svg { width: 30px; height: 30px; stroke: #000; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; }
+        #wechatAppUI .wc-success-icon.animate svg { animation: wcDrawCheck 0.4s ease forwards; }
+        #wechatAppUI .wc-success-text { font-size: 17px; font-weight: 600; color: #000; }
+        @keyframes wcDrawCheck { to { stroke-dashoffset: 0; } }
+
+        /* 支付设置页面样式 */
+        #wechatAppUI .wc-wallet-settings-content { padding: 20px 16px; flex: 1; overflow-y: auto; }
+        #wechatAppUI .wc-ws-group { background: #fff; border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
+        #wechatAppUI .wc-ws-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #fff; cursor: pointer; position: relative; }
+        #wechatAppUI .wc-ws-item:active { background: #f2f2f7; }
+        #wechatAppUI .wc-ws-item:not(:last-child)::after { content: ''; position: absolute; bottom: 0; left: 16px; right: 0; height: 0.5px; background: rgba(0,0,0,0.1); }
+        #wechatAppUI .wc-ws-text { font-size: 16px; color: #000; }
+        #wechatAppUI .wc-ws-chevron { width: 8px; height: 13px; stroke: #c7c7cc; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+        
+        /* iOS 风格 Toggle 开关 */
+        #wechatAppUI .wc-ws-toggle { width: 50px; height: 30px; background: #e5e5ea; border-radius: 15px; position: relative; transition: background 0.3s; }
+        #wechatAppUI .wc-ws-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 26px; height: 26px; background: #fff; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.3s; }
+        #wechatAppUI .wc-ws-toggle.active { background: #34c759; }
+        #wechatAppUI .wc-ws-toggle.active::after { transform: translateX(20px); }
         #wechatAppUI .wc-auth-nav-back { color: var(--tg-blue); display: flex; align-items: center; cursor: pointer; font-size: 17px; font-weight: 500; }
         #wechatAppUI .wc-auth-nav-back svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; margin-right: 2px; }
         #wechatAppUI .wc-auth-content { flex: 1; padding: 20px 24px; overflow-y: auto; }
@@ -909,3 +999,206 @@
         #wechatAppUI .wc-compose-image-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
         #wechatAppUI .wc-compose-image-delete { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.5); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 2; }
         #wechatAppUI .wc-compose-image-delete svg { width: 12px; height: 12px; stroke: #fff; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* ==========================================
+           全新 iOS Wallet 浅色风格页面 (金属质感)
+           ========================================== */
+        #wechatAppUI #page-wallet { z-index: 10; background-color: #ffffff; overflow-y: auto; overflow-x: hidden; padding-bottom: 100px; } 
+        #wechatAppUI #page-wallet::-webkit-scrollbar { display: none; }
+        
+        #wechatAppUI .wc-wallet-nav { display: flex; justify-content: space-between; align-items: center; padding: 45px 20px 10px 20px; position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        #wechatAppUI .wc-wallet-btn-circle { width: 32px; height: 32px; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        #wechatAppUI .wc-wallet-btn-circle:active { background: rgba(255, 255, 255, 0.9); }
+        #wechatAppUI .wc-wallet-btn-circle svg { width: 18px; height: 18px; stroke: #000; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        #wechatAppUI .wc-wallet-btn-circle svg[fill="currentColor"] { stroke: none; fill: #000; }
+        #wechatAppUI .wc-wallet-nav-title { font-size: 17px; font-weight: 600; color: #000; opacity: 0; transition: opacity 0.3s; }
+
+        #wechatAppUI .wc-wallet-cards-wrapper { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; padding-top: 10px; }
+        #wechatAppUI .wc-wallet-cards-scroll { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; width: 100%; padding: 10px 20px; gap: 16px; scrollbar-width: none; }
+        #wechatAppUI .wc-wallet-cards-scroll::-webkit-scrollbar { display: none; }
+        
+        #wechatAppUI .wc-apple-card { 
+            flex: 0 0 calc(100vw - 40px); 
+            max-width: 335px;
+            aspect-ratio: 1.586 / 1; 
+            border-radius: 18px; 
+            box-shadow: none; 
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            position: relative; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between;
+            overflow: hidden;
+            scroll-snap-align: center;
+        }
+
+        #wechatAppUI .wc-apple-card::after {
+            content: ''; position: absolute; top: 0; left: -150%; width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg); animation: wcMetalSweep 5s infinite; pointer-events: none;
+        }
+        @keyframes wcMetalSweep { 0% { left: -150%; } 20% { left: 200%; } 100% { left: 200%; } }
+
+        #wechatAppUI .wc-cash-card { background: linear-gradient(135deg, #2c2c2e 0%, #1c1c1e 40%, #3a3a3c 60%, #1c1c1e 100%); }
+        #wechatAppUI .wc-cash-card .wc-card-logo, #wechatAppUI .wc-cash-card .wc-card-balance-amount { color: #fff; }
+        #wechatAppUI .wc-cash-card .wc-card-logo svg { fill: #fff; }
+        #wechatAppUI .wc-cash-card .wc-card-balance-label, #wechatAppUI .wc-cash-card .wc-card-number { color: rgba(255,255,255,0.7); }
+        #wechatAppUI .wc-cash-card .wc-card-network { color: rgba(255,255,255,0.9); }
+
+        #wechatAppUI .wc-family-card { background: linear-gradient(135deg, #3D4D6B 0%, #101C37 40%, #7B8AA0 60%, #101C37 100%); border-color: rgba(228, 232, 235, 0.2); }
+        #wechatAppUI .wc-family-card .wc-card-logo, #wechatAppUI .wc-family-card .wc-card-balance-amount { color: #E4E8EB; }
+        #wechatAppUI .wc-family-card .wc-card-logo svg { fill: #E4E8EB; }
+        #wechatAppUI .wc-family-card .wc-card-balance-label, #wechatAppUI .wc-family-card .wc-card-number { color: #BCC4CE; }
+        #wechatAppUI .wc-family-card .wc-card-network { color: #7B8AA0; }
+
+        #wechatAppUI .wc-card-logo { display: flex; align-items: center; gap: 6px; font-size: 18px; font-weight: 700; letter-spacing: -0.5px; position: relative; z-index: 2; }
+        #wechatAppUI .wc-card-logo svg { width: 20px; height: 20px; }
+        #wechatAppUI .wc-card-balance-area { text-align: center; margin-top: 10px; position: relative; z-index: 2; }
+        #wechatAppUI .wc-card-balance-label { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+        #wechatAppUI .wc-card-balance-amount { font-size: 38px; font-weight: 600; letter-spacing: -1px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        #wechatAppUI .wc-card-bottom { display: flex; justify-content: space-between; align-items: flex-end; position: relative; z-index: 2; }
+        #wechatAppUI .wc-card-network { font-size: 14px; font-weight: 700; font-style: italic; }
+        #wechatAppUI .wc-card-number { font-size: 15px; font-family: monospace; letter-spacing: 2px; }
+
+        #wechatAppUI .wc-wallet-pagination { display: flex; gap: 8px; margin-top: 10px; }
+        #wechatAppUI .wc-wallet-pagination .wc-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(0,0,0,0.15); transition: all 0.3s; }
+        #wechatAppUI .wc-wallet-pagination .wc-dot.active { background: #000; width: 16px; border-radius: 3px; }
+
+        #wechatAppUI .wc-wallet-actions { display: flex; justify-content: center; gap: 60px; margin-top: 24px; width: 100%; }
+        #wechatAppUI .wc-action-btn-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+        #wechatAppUI .wc-action-btn-wrapper:active .wc-action-circle { background: #e5e5ea; transform: scale(0.95); }
+        #wechatAppUI .wc-action-circle { width: 56px; height: 56px; border-radius: 50%; background: #f2f2f7; display: flex; justify-content: center; align-items: center; transition: all 0.2s; }
+        #wechatAppUI .wc-action-circle svg { width: 24px; height: 24px; stroke: #000; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        #wechatAppUI .wc-action-label { font-size: 13px; color: #000; font-weight: 500; }
+
+        #wechatAppUI .wc-transactions-panel { flex: 1; background: #ffffff; padding: 30px 20px 20px 20px; }
+        #wechatAppUI .wc-tx-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        #wechatAppUI .wc-tx-title { font-size: 20px; font-weight: 700; color: #000; } /* 强制黑色确保显示 */
+        #wechatAppUI .wc-tx-more { font-size: 15px; color: var(--tg-blue); cursor: pointer; }
+        #wechatAppUI .wc-tx-list { display: flex; flex-direction: column; }
+        #wechatAppUI .wc-tx-item { display: flex; align-items: center; padding: 16px 0; position: relative; cursor: pointer; }
+        #wechatAppUI .wc-tx-item:active { opacity: 0.6; }
+        #wechatAppUI .wc-tx-item:not(:last-child)::after { content: ''; position: absolute; bottom: 0; left: 52px; right: 0; height: 0.5px; background: var(--ios-separator); }
+        #wechatAppUI .wc-tx-icon { width: 40px; height: 40px; border-radius: 50%; background: #f2f2f7; display: flex; justify-content: center; align-items: center; margin-right: 12px; color: #000; }
+        #wechatAppUI .wc-tx-info { flex: 1; }
+        #wechatAppUI .wc-tx-name { font-size: 16px; font-weight: 600; color: #000000; margin-bottom: 4px; } /* 强制黑色，防止白底白字 */
+        #wechatAppUI .wc-tx-status { font-size: 13px; color: #8e8e93; } /* 强制灰色 */
+        #wechatAppUI .wc-tx-amount-area { text-align: right; }
+        #wechatAppUI .wc-tx-amount { font-size: 16px; font-weight: 600; color: #ff3b30; margin-bottom: 4px; } /* 支出为红色 */
+        #wechatAppUI .wc-tx-amount.wc-income { color: #34c759; } /* 收入为绿色 */
+        #wechatAppUI .wc-tx-date { font-size: 13px; color: #8e8e93; } /* 强制灰色 */
+
+        /* ==========================================
+           聊天气泡内：黑白灰转账卡片样式 (融合版)
+           ========================================== */
+        #wechatAppUI .wc-cny-icon { width: 18px; height: 18px; fill: currentColor; }
+        #wechatAppUI .wc-check-icon { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        #wechatAppUI .wc-return-icon { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        #wechatAppUI .wc-wp-logo { width: 14px; height: 14px; fill: currentColor; }
+
+        #wechatAppUI .wc-transfer-card {
+            width: 230px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border-radius: 6px; /* 小圆角 */
+            text-align: left;
+        }
+        #wechatAppUI .wc-transfer-top {
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        #wechatAppUI .wc-transfer-icon-box {
+            width: 36px;
+            height: 36px;
+            background-color: #FFFFFF;
+            border-radius: 50%; /* 圆形包裹 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        #wechatAppUI .wc-transfer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        #wechatAppUI .wc-transfer-amount {
+            font-size: 17px;
+            font-weight: 500;
+            color: #FFFFFF;
+            line-height: 1.2;
+        }
+        #wechatAppUI .wc-transfer-desc {
+            font-size: 13px;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+        #wechatAppUI .wc-transfer-bottom {
+            padding: 6px 14px;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 状态：未收款 (深灰顶 + 浅灰底) */
+        #wechatAppUI .wc-transfer-card.pending {
+            background-color: #3A3A3C;
+            cursor: pointer;
+        }
+        #wechatAppUI .wc-transfer-card.pending:active {
+            opacity: 0.8;
+        }
+        #wechatAppUI .wc-transfer-card.pending .wc-transfer-icon-box {
+            color: #3A3A3C; /* SVG 颜色与背景同色 */
+        }
+        #wechatAppUI .wc-transfer-card.pending .wc-transfer-desc {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        #wechatAppUI .wc-transfer-card.pending .wc-transfer-bottom {
+            background-color: #2C2C2E;
+            color: #8E8E93;
+        }
+
+        /* 状态：已收款 / 已退还 / 已过期 (纯灰质感) */
+        #wechatAppUI .wc-transfer-card.received,
+        #wechatAppUI .wc-transfer-card.rejected,
+        #wechatAppUI .wc-transfer-card.expired {
+            background-color: #8E8E93;
+        }
+        #wechatAppUI .wc-transfer-card.received .wc-transfer-icon-box,
+        #wechatAppUI .wc-transfer-card.rejected .wc-transfer-icon-box,
+        #wechatAppUI .wc-transfer-card.expired .wc-transfer-icon-box {
+            color: #8E8E93;
+        }
+        #wechatAppUI .wc-transfer-card.received .wc-transfer-desc,
+        #wechatAppUI .wc-transfer-card.rejected .wc-transfer-desc,
+        #wechatAppUI .wc-transfer-card.expired .wc-transfer-desc {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        #wechatAppUI .wc-transfer-card.received .wc-transfer-bottom,
+        #wechatAppUI .wc-transfer-card.rejected .wc-transfer-bottom,
+        #wechatAppUI .wc-transfer-card.expired .wc-transfer-bottom {
+            background-color: #8E8E93;
+            border-top: 0.5px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* 去除转账卡片外部的气泡背景和尾巴 */
+        #wechatAppUI .message-bubble.transfer-bubble {
+            background-color: transparent !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+        #wechatAppUI .message-bubble.transfer-bubble::before {
+            display: none !important;
+        }
+
