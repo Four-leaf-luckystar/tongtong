@@ -163,6 +163,7 @@
         ];
         const customWidgets = window.customWidgets || [];
         window.officialWidgets = officialWidgets;
+        window.customWidgets = customWidgets;
         let currentWidgets = officialWidgets;
 
         let widgetViewMode = 'carousel';     // 'carousel' | 'list'
