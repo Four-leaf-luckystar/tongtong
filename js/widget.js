@@ -97,17 +97,15 @@
                 presetSize: '4x2',
                 preview: 'linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%)',
                 content: `<style>
-    body { margin: 0; padding: 0; }
-    .widget-4x2 { width: 100%; height: 100%; background-color: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; color: #8b929a; font-family: inherit; }
+    .widget-4x2 { width: 100%; height: 100%; background-color: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; color: #8b929a; }
     .widget-date { font-size: 15px; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 3px; }
     .star-icon { width: 13px; height: 13px; fill: #8b929a; }
     .widget-time { font-size: 64px; font-weight: 700; line-height: 1; letter-spacing: 2px; margin-bottom: 20px; }
     .chat-bubble { background-color: rgba(255, 255, 255, 0.95); width: 90%; border-radius: 50px; padding: 10px 15px; display: flex; align-items: center; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); }
     .avatar { width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #e0f2fe, #bae6fd); background-size: cover; background-position: center; margin-right: 12px; flex-shrink: 0; border: 1px solid #f3f4f6; cursor: pointer; }
     .chat-content { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
-    .input-box { border: 1px solid #e5e7eb; border-radius: 20px; padding: 4px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fafafa; white-space: nowrap; overflow: hidden; }
-    .input-text { font-size: 12px; color: #8b929a; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-    .input-text:active { opacity: 0.7; }
+    .input-box { border: 1px solid #e5e7eb; border-radius: 20px; padding: 4px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fafafa; white-space: nowrap; overflow: hidden; cursor: pointer; }
+    .input-text { font-size: 12px; color: #8b929a; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
     .action-bar { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; }
     .icons { display: flex; gap: 8px; align-items: center; }
     .icons svg { width: 18px; height: 18px; fill: #8b929a; }
@@ -120,10 +118,27 @@
     <div class="widget-date" id="date-display"></div>
     <div class="widget-time" id="time-display">14:44</div>
     <div class="chat-bubble">
-        <div class="avatar custom-avatar-trigger" style="background-image: url('');"></div>
+        <div class="avatar" onclick="
+            const win = window.parent || window;
+            if(win.openIconMenu) {
+                win.currentWidgetAvatarTarget = this;
+                win.openIconMenu(event, 'widgetAvatar');
+            }
+        "></div>
         <div class="chat-content">
-            <div class="input-box">
-                <span class="input-text custom-text-trigger">🤍ineedu…^</span>
+            <div class="input-box" onclick="
+                const target = this.querySelector('.input-text');
+                const win = window.parent || window;
+                if(win.showCustomPrompt) {
+                    win.showCustomPrompt('修改文案', {placeholder: '输入文案', value: target.innerText}, '确定').then(res => {
+                        if(res !== null && res.trim() !== '') {
+                            target.innerText = res;
+                            if(win.saveLayout) win.saveLayout();
+                        }
+                    });
+                }
+            ">
+                <span class="input-text">🤍ineedu…^</span>
             </div>
             <div class="action-bar">
                 <div class="icons">
@@ -154,27 +169,6 @@
     }
     updateTime();
     setInterval(updateTime, 1000);
-
-    // 同步父级主题APP字体
-    function syncFont() {
-        if (window.parent && window.parent.customFonts && window.parent.currentSelectedFont) {
-            const fontId = window.parent.currentSelectedFont;
-            if (fontId === 'default') {
-                document.body.style.fontFamily = '"Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif';
-                return;
-            }
-            const fontData = window.parent.customFonts.find(f => f.id === fontId);
-            if (fontData) {
-                const source = fontData.type === 'local' ? fontData.data : \`url(\${fontData.url})\`;
-                const newFont = new FontFace(fontId, source);
-                newFont.load().then(loadedFont => {
-                    document.fonts.add(loadedFont);
-                    document.body.style.fontFamily = \`"\${fontId}", "Geomini", -apple-system, sans-serif\`;
-                }).catch(e => console.error('Widget font sync failed', e));
-            }
-        }
-    }
-    syncFont();
 </script>`
             }
         ];
@@ -541,31 +535,6 @@
             document.addEventListener('click', function (event) {
                 const element = event.target && event.target.nodeType === 1 ? event.target : null;
                 if (!element || (element.matches && element.matches('input[type="file"]'))) return;
-                
-                // 拦截自定义头像点击，发送给父窗口
-                const customAvatar = element.closest('.custom-avatar-trigger');
-                if (customAvatar) {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    const rect = customAvatar.getBoundingClientRect();
-                    parent.postMessage({
-                        type: 'widget-custom-avatar-click',
-                        rect: { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right }
-                    }, '*');
-                    return;
-                }
-
-                // 拦截自定义文本点击，发送给父窗口
-                const customText = element.closest('.custom-text-trigger');
-                if (customText) {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    parent.postMessage({
-                        type: 'widget-custom-text-click'
-                    }, '*');
-                    return;
-                }
-
                 if (element.closest && element.closest('[contenteditable="true"]')) return;
 
                 const target = findImageTarget(element) || findBackgroundTarget(element);
@@ -809,33 +778,6 @@
             const message = event.data;
             if (!frame || event.source !== frame.contentWindow || !editorModal || !editorModal.classList.contains('show')) return;
             if (!message) return;
-
-            // 接收头像点击消息，计算坐标并唤起菜单
-            if (message.type === 'widget-custom-avatar-click') {
-                if (typeof window.openIconMenu === 'function') {
-                    const frameRect = frame.getBoundingClientRect();
-                    const fakeEvent = {
-                        target: {
-                            getBoundingClientRect: () => ({
-                                top: frameRect.top + message.rect.top,
-                                bottom: frameRect.top + message.rect.bottom,
-                                left: frameRect.left + message.rect.left,
-                                right: frameRect.left + message.rect.right
-                            })
-                        }
-                    };
-                    window.openIconMenu(fakeEvent, 'widgetAvatar');
-                }
-                return;
-            }
-
-            // 接收文本点击消息，唤起通用弹窗
-            if (message.type === 'widget-custom-text-click') {
-                if (typeof window.editWidgetText === 'function') {
-                    window.editWidgetText();
-                }
-                return;
-            }
 
             if (message.type === 'widget-image-editor-content') {
                 if (typeof message.html !== 'string' || !message.target || typeof window.replaceWidgetEditableContent !== 'function') return;

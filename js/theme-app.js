@@ -160,11 +160,10 @@
         if (currentIconIndex === null) return;
         
         if (currentIconIndex === 'widgetAvatar') {
-            const editor = document.getElementById('widgetEditContent');
-            if (editor) {
-                // 使用正则精准替换小组件代码中的头像 background-image URL
-                editor.value = editor.value.replace(/(<div class="avatar"[^>]*style="[^"]*background-image:\s*url\(['"]?)([^)'"]*)(['"]?\)[^"]*"[^>]*>)/i, `$1${url}$3`);
-                if (typeof updateWidgetCodePreview === 'function') updateWidgetCodePreview();
+            if (window.currentWidgetAvatarTarget) {
+                window.currentWidgetAvatarTarget.style.backgroundImage = `url('${url}')`;
+                window.currentWidgetAvatarTarget.style.backgroundSize = 'cover';
+                if (typeof saveLayout === 'function') saveLayout(); // 触发桌面保存
             }
             return;
         }
@@ -174,7 +173,6 @@
             document.getElementById('wcMomentsEditBgPreview').style.backgroundImage = `url('${url}')`;
             return;
         }
-
         if (currentIconIndex === 'wcMomentsAvatar') {
             wcMomentsProfile.avatar = url;
             const avatarPreview = document.getElementById('wcMomentsEditAvatarPreview');
@@ -1486,26 +1484,5 @@
             }
         });
     }
-
-    // 供小组件 iframe 调用的文本编辑接口
-    window.editWidgetText = function() {
-        const editor = document.getElementById('widgetEditContent');
-        if (!editor) return;
-        
-        // 提取当前文本
-        const match = editor.value.match(/<span class="input-text"[^>]*>(.*?)<\/span>/);
-        const currentText = match ? match[1] : '🤍ineedu…^';
-
-        // 调用项目自带的通用弹窗
-        if (typeof showCustomPrompt === 'function') {
-            showCustomPrompt('修改文案', { placeholder: '输入新文案...', value: currentText }, '保存').then(newText => {
-                if (newText !== null && newText.trim() !== '') {
-                    // 使用正则精准替换
-                    editor.value = editor.value.replace(/(<span class="input-text"[^>]*>)(.*?)(<\/span>)/, `$1${newText}$3`);
-                    if (typeof updateWidgetCodePreview === 'function') updateWidgetCodePreview();
-                }
-            });
-        }
-    };
 
             // show three-dots button; click to expand vertical capsule menu
