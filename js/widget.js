@@ -93,7 +93,7 @@
 
         const officialWidgets = window.officialWidgets || [
             {
-                name: '纸杯糖果心',
+                name: '时间胶囊',
                 presetSize: '4x2',
                 preview: 'linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%)',
                 content: `<style>
@@ -103,7 +103,7 @@
     .widget-time { font-size: 64px; font-weight: 700; line-height: 1; letter-spacing: 2px; margin-bottom: 20px; }
     .chat-bubble { background-color: rgba(255, 255, 255, 0.95); width: 90%; border-radius: 50px; padding: 10px 15px; display: flex; align-items: center; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); }
     /* 注意这里：去除了 cursor: pointer，因为你的 bridge 会自动接管 */
-    .avatar { width: 48px; height: 48px; border-radius: 50%; background-image: radial-gradient(circle at 30% 30%, #e0f2fe, #bae6fd); background-size: cover; background-position: center; margin-right: 12px; flex-shrink: 0; border: 1px solid #f3f4f6; }
+    .avatar { width: 48px; height: 48px; border-radius: 50%; background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3CclipPath id='finalClip'%3E%3Ccircle cx='50' cy='50' r='44'/%3E%3C/clipPath%3E%3ClinearGradient id='avatarBgGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23A3A8B0' /%3E%3Cstop offset='100%25' stop-color='%237A7F88' /%3E%3C/linearGradient%3E%3ClinearGradient id='avatarFigureGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23FFFFFF' /%3E%3Cstop offset='100%25' stop-color='%23E5E5EA' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='50' fill='url(%23avatarBgGrad)'/%3E%3Ccircle cx='50' cy='36' r='16' fill='url(%23avatarFigureGrad)'/%3E%3Cpath d='M 50 59 C 20 59 10 82 8 106 L 92 106 C 90 82 80 59 50 59 Z' fill='url(%23avatarFigureGrad)' clip-path='url(%23finalClip)'/%3E%3C/svg%3E"); background-size: cover; background-position: center; margin-right: 12px; flex-shrink: 0; border: 1px solid #f3f4f6; }
     .chat-content { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
     .input-box { border: 1px solid #e5e7eb; border-radius: 20px; padding: 4px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fafafa; white-space: nowrap; overflow: hidden; }
     /* 注意这里：去除了 pointer-events: none，允许文字被选中和编辑 */
@@ -127,7 +127,6 @@
             <div class="input-box">
                 <!-- 核心修改 2：加上 contenteditable="true"，你的系统会自动让它支持直接打字修改 -->
                 <span class="input-text" contenteditable="true">🤍ineedu…^</span>
-                <span class="hearts">🤍🩶🖤</span>
             </div>
             <div class="action-bar">
                 <div class="icons">
@@ -159,9 +158,146 @@
     updateTime();
     setInterval(updateTime, 1000);
 </script>`
+            },
+            {
+                name: '透明极简文字',
+                presetSize: '4x2',
+                preview: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                content: `<style>
+    .widget-container { width: 100%; height: 100%; background-color: transparent; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 18px 20px; box-sizing: border-box; overflow: hidden; }
+    .top-section { display: flex; justify-content: space-between; align-items: flex-start; }
+    .profile-area { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 56px; height: 56px; border-radius: 16px; object-fit: cover; background-color: #ccc; }
+    .text-info { display: flex; flex-direction: column; gap: 4px; }
+    .title { font-size: 18px; font-weight: 800; color: #111; display: flex; align-items: center; gap: 4px; outline: none; }
+    .subtitle { font-size: 12px; color: #888; font-weight: 500; outline: none; }
+    .bell-btn { width: 40px; height: 40px; border: 1.5px solid #dcdcdc; border-radius: 14px; display: flex; justify-content: center; align-items: center; background: transparent; }
+    .middle-quote { font-size: 16px; font-weight: 800; color: #111; margin-top: 4px; outline: none; }
+    .bottom-section { display: flex; align-items: center; gap: 12px; }
+    .search-bar { flex-grow: 1; height: 36px; background-color: rgba(255, 255, 255, 0.5); border-radius: 10px; display: flex; align-items: center; padding: 0 12px; gap: 8px; }
+    .datetime { font-size: 13px; color: #999; font-weight: 500; letter-spacing: 0.5px; }
+    .settings-btn { width: 36px; height: 36px; background-color: rgba(255, 255, 255, 0.5); border-radius: 10px; display: flex; justify-content: center; align-items: center; }
+    svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+<div class="widget-container">
+    <div class="top-section">
+        <div class="profile-area">
+            <img class="avatar uploadable-img" src="data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3CclipPath id='finalClip'%3E%3Ccircle cx='50' cy='50' r='44'/%3E%3C/clipPath%3E%3ClinearGradient id='avatarBgGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23A3A8B0' /%3E%3Cstop offset='100%25' stop-color='%237A7F88' /%3E%3C/linearGradient%3E%3ClinearGradient id='avatarFigureGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23FFFFFF' /%3E%3Cstop offset='100%25' stop-color='%23E5E5EA' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='50' fill='url(%23avatarBgGrad)'/%3E%3Ccircle cx='50' cy='36' r='16' fill='url(%23avatarFigureGrad)'/%3E%3Cpath d='M 50 59 C 20 59 10 82 8 106 L 92 106 C 90 82 80 59 50 59 Z' fill='url(%23avatarFigureGrad)' clip-path='url(%23finalClip)'/%3E%3C/svg%3E" alt="avatar">
+            <div class="text-info">
+                <div class="title" contenteditable="true">水色贝</div>
+                <div class="subtitle" contenteditable="true">&gt;ㅎㅇ…iam&gt;iwas🖤🤍</div>
+            </div>
+        </div>
+        <div class="bell-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" style="color: #aaa;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        </div>
+    </div>
+    <div class="middle-quote" contenteditable="true">怎么我一颗心被你俘虏</div>
+    <div class="bottom-section">
+        <div class="search-bar">
+            <svg width="16" height="16" viewBox="0 0 24 24" style="color: #aaa;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <span class="datetime" id="widget-datetime-display">2026/06/08 14:43</span>
+        </div>
+        <div class="settings-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" style="color: #aaa;"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+        </div>
+    </div>
+</div>
+<script>
+    function updateWidgetDateTime() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const dtEl = document.getElementById('widget-datetime-display');
+        if(dtEl) dtEl.textContent = \`\${year}/\${month}/\${day} \${hours}:\${minutes}\`;
+    }
+    updateWidgetDateTime();
+    setInterval(updateWidgetDateTime, 1000);
+</script>`
+            },
+            {
+                name: '自定义菜单卡片',
+                presetSize: '4x4',
+                preview: '#ffd1dc',
+                content: `<style>
+    /* 基础重置 */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    
+    /* 主容器：恢复 100% 占满网格 */
+    .widget-4x4-menu { width: 100%; height: 100%; background-color: #fff; border-radius: 24px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; border: 1px solid #f5f5f5; display: flex; flex-direction: column; }
+    
+    /* 上半部分：背景区域 (加上 uploadable-img 支持点击上传) */
+    .top-half { width: 100%; height: 50%; background-color: #ffd1dc; background-size: cover; background-position: center; position: relative; }
+    
+    /* 头像分割线 */
+    .avatar-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; background-color: #fff; padding: 3px; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; justify-content: center; align-items: center; }
+    .avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; display: block; }
+    
+    /* 下半部分：内容区域 (使用 flex 布局防止溢出) */
+    .bottom-half { width: 100%; height: 50%; background-color: #ffffff; display: flex; flex-direction: column; align-items: center; padding: 30px 12px 12px 12px; position: relative; }
+    
+    /* 菜单标题 */
+    .menu-title { font-size: 14px; font-weight: 800; color: #a9a9a9; letter-spacing: 2px; margin-bottom: 8px; outline: none; flex-shrink: 0; line-height: 1; }
+    
+    /* 菜单项目容器：占据剩余所有空间 */
+    .menu-items { display: flex; width: 100%; flex-grow: 1; justify-content: space-between; gap: 8px; min-height: 0; }
+    
+    /* 单个项目 */
+    .item { display: flex; flex-direction: column; width: 32%; height: 100%; }
+    
+    /* 项目文字头部 */
+    .item-header { display: flex; align-items: baseline; margin-bottom: 2px; width: 100%; flex-shrink: 0; }
+    .item-num { font-size: 13px; font-weight: bold; color: #ffe4e1; margin-right: 2px; }
+    .item-name { font-size: 10px; color: #a9a9a9; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; outline: none; flex-grow: 1; }
+    
+    /* 推荐小字 */
+    .item-sub { font-size: 8px; color: #333; font-weight: bold; width: 100%; text-align: right; margin-bottom: 4px; outline: none; flex-shrink: 0; line-height: 1; }
+    
+    /* 食物图片：自动拉伸填满剩余高度，绝对不会溢出 */
+    .item-img { width: 100%; flex-grow: 1; border-radius: 10px; object-fit: cover; min-height: 0; }
+</style>
+
+<div class="widget-4x4-menu">
+    <!-- 上半部分：点击上传背景 -->
+    <div class="top-half uploadable-img"></div>
+    
+    <!-- 中间头像：点击上传头像，默认使用系统内置SVG -->
+    <div class="avatar-container">
+        <img class="avatar uploadable-img" src="data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3CclipPath id='finalClip'%3E%3Ccircle cx='50' cy='50' r='44'/%3E%3C/clipPath%3E%3ClinearGradient id='avatarBgGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23A3A8B0' /%3E%3Cstop offset='100%25' stop-color='%237A7F88' /%3E%3C/linearGradient%3E%3ClinearGradient id='avatarFigureGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23FFFFFF' /%3E%3Cstop offset='100%25' stop-color='%23E5E5EA' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='50' fill='url(%23avatarBgGrad)'/%3E%3Ccircle cx='50' cy='36' r='16' fill='url(%23avatarFigureGrad)'/%3E%3Cpath d='M 50 59 C 20 59 10 82 8 106 L 92 106 C 90 82 80 59 50 59 Z' fill='url(%23avatarFigureGrad)' clip-path='url(%23finalClip)'/%3E%3C/svg%3E" alt="Avatar">
+    </div>
+    
+    <!-- 下半部分：菜单内容 -->
+    <div class="bottom-half">
+        <div class="menu-title" contenteditable="true">ㅎㅅㅎ</div>
+        <div class="menu-items">
+            <!-- 卡片 1 -->
+            <div class="item">
+                <div class="item-header"><span class="item-num">01</span><span class="item-name" contenteditable="true">BerryCake#</span></div>
+                <div class="item-sub" contenteditable="true">@Recommend</div>
+                <img class="item-img uploadable-img" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23fce4ec'/%3E%3C/svg%3E" alt="img1">
+            </div>
+            <!-- 卡片 2 -->
+            <div class="item">
+                <div class="item-header"><span class="item-num">02</span><span class="item-name" contenteditable="true">SpecialDrink#</span></div>
+                <div class="item-sub" contenteditable="true">@Original</div>
+                <img class="item-img uploadable-img" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23e3f2fd'/%3E%3C/svg%3E" alt="img2">
+            </div>
+            <!-- 卡片 3 -->
+            <div class="item">
+                <div class="item-header"><span class="item-num">03</span><span class="item-name" contenteditable="true">Icecream#</span></div>
+                <div class="item-sub" contenteditable="true">@Recommend</div>
+                <img class="item-img uploadable-img" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23f3e5f5'/%3E%3C/svg%3E" alt="img3">
+            </div>
+        </div>
+    </div>
+</div>`
             }
         ];
         const customWidgets = window.customWidgets || [];
+
         window.officialWidgets = officialWidgets;
         window.customWidgets = customWidgets;
         let currentWidgets = officialWidgets;

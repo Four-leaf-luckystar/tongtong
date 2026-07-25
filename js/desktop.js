@@ -3,10 +3,10 @@
             const COLUMN_GAP = 10;
             const ROW_HEIGHT = 80;
             const ROW_GAP = 15;
-            const grid = document.getElementById('desktopGrid');
-            const gridStyle = grid ? window.getComputedStyle(grid) : null;
-            const horizontalPadding = gridStyle ? parseFloat(gridStyle.paddingLeft) + parseFloat(gridStyle.paddingRight) : 0;
-            const gridWidth = grid ? grid.clientWidth - horizontalPadding : 0;
+            const page = document.querySelector('.desktop-page') || document.getElementById('desktopGrid');
+            const pageStyle = page ? window.getComputedStyle(page) : null;
+            const horizontalPadding = pageStyle ? parseFloat(pageStyle.paddingLeft) + parseFloat(pageStyle.paddingRight) : 0;
+            const gridWidth = page ? page.clientWidth - horizontalPadding : 0;
             const columnWidth = gridWidth > 0 ? (gridWidth - COLUMN_GAP * 3) / 4 : 80;
 
             let columns = 1;
@@ -92,13 +92,15 @@
         }
 
         function getDesktopAreaIndexes(startIndex, columns, rows) {
-            const startColumn = startIndex % 4;
-            const startRow = Math.floor(startIndex / 4);
+            const pageIndex = Math.floor(startIndex / 28);
+            const localIndex = startIndex % 28;
+            const startColumn = localIndex % 4;
+            const startRow = Math.floor(localIndex / 4);
             if (startColumn + columns > 4 || startRow + rows > 7) return [];
             const indexes = [];
             for (let row = 0; row < rows; row++) {
                 for (let column = 0; column < columns; column++) {
-                    indexes.push(startIndex + row * 4 + column);
+                    indexes.push(pageIndex * 28 + localIndex + row * 4 + column);
                 }
             }
             return indexes;
@@ -290,19 +292,28 @@
         }
         // ----------------------------------
 
-            // show three-dots button; click to expand vertical capsule menu
-        for (let i = 0; i < 28; i++) {
-            const slot = document.createElement('div');
-            slot.className = 'desktop-slot';
-            const appData = desktopData.find(d => d.index === i);
-            if (appData) {
-                            if (appData.isWidget || appData.widgetContent) {
-                slot.appendChild(createAppElement(appData.name, appData.icon, appData.appId, true, appData.widgetContent, appData.width, appData.height, appData.presetSize));
-            } else {
-                slot.appendChild(createAppElement(appData.name, appData.icon, appData.appId));
+        let maxIndex = 27;
+        desktopData.forEach(d => { if (d.index > maxIndex) maxIndex = d.index; });
+        const totalPages = Math.max(1, Math.floor(maxIndex / 28) + 1);
+
+        for (let p = 0; p < totalPages; p++) {
+            const pageEl = document.createElement('div');
+            pageEl.className = 'desktop-page';
+            for (let i = 0; i < 28; i++) {
+                const globalIndex = p * 28 + i;
+                const slot = document.createElement('div');
+                slot.className = 'desktop-slot';
+                const appData = desktopData.find(d => d.index === globalIndex);
+                if (appData) {
+                    if (appData.isWidget || appData.widgetContent) {
+                        slot.appendChild(createAppElement(appData.name, appData.icon, appData.appId, true, appData.widgetContent, appData.width, appData.height, appData.presetSize));
+                    } else {
+                        slot.appendChild(createAppElement(appData.name, appData.icon, appData.appId));
+                    }
+                }
+                pageEl.appendChild(slot);
             }
-            }
-            desktopGrid.appendChild(slot);
+            desktopGrid.appendChild(pageEl);
         }
 
             // show three-dots button; click to expand vertical capsule menu
@@ -352,6 +363,21 @@
     let dragGhost = null;
     let offsetX = 0, offsetY = 0;
 
+    function addNewDesktopPage() {
+        const desktopGrid = document.getElementById('desktopGrid');
+        const pageEl = document.createElement('div');
+        pageEl.className = 'desktop-page';
+        for (let i = 0; i < 28; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'desktop-slot show-grid';
+            pageEl.appendChild(slot);
+        }
+        desktopGrid.appendChild(pageEl);
+        
+        desktopGrid.scrollTo({ left: desktopGrid.scrollWidth, behavior: 'smooth' });
+        if (typeof saveLayout === 'function') saveLayout();
+    }
+
     function enterEditMode() {
         if (isEditMode) return;
         isEditMode = true;
@@ -360,6 +386,12 @@
         editPlus.style.display = 'flex';
         editDone.style.display = 'block';
         
+        const searchBar = document.getElementById('desktopSearchBar');
+        if (searchBar) {
+            searchBar.innerHTML = '+ 添加页面';
+            searchBar.onclick = addNewDesktopPage;
+        }
+
             // show three-dots button; click to expand vertical capsule menu
         document.querySelectorAll('.desktop-slot').forEach(slot => slot.classList.add('show-grid'));
         document.querySelectorAll('.app-item').forEach(app => app.classList.add('jiggling'));
@@ -384,6 +416,12 @@
         editPlus.style.display = 'none';
         editDone.style.display = 'none';
         
+        const searchBar = document.getElementById('desktopSearchBar');
+        if (searchBar) {
+            searchBar.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>搜索`;
+            searchBar.onclick = null;
+        }
+
             // show three-dots button; click to expand vertical capsule menu
         document.querySelectorAll('.desktop-slot').forEach(slot => slot.classList.remove('show-grid'));
         document.querySelectorAll('.app-item').forEach(app => app.classList.remove('jiggling'));
@@ -625,6 +663,8 @@
         }
     });
 
+    let scrollInterval = null;
+
     document.addEventListener('pointermove', (e) => {
         if (!isEditMode) {
             if (pressTimer && (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10)) {
@@ -635,10 +675,34 @@
             if (!dragGhost) return;
             e.preventDefault();
             dragGhost.style.transform = `translate3d(${e.clientX - offsetX}px, ${e.clientY - offsetY}px, 0) scale(1.15)`;
+
+            const edgeThreshold = 40;
+            const grid = document.getElementById('desktopGrid');
+            if (grid) {
+                const rect = grid.getBoundingClientRect();
+                if (e.clientX < rect.left + edgeThreshold) {
+                    if (!scrollInterval) {
+                        scrollInterval = setInterval(() => { grid.scrollBy({ left: -15 }); }, 20);
+                    }
+                } else if (e.clientX > rect.right - edgeThreshold) {
+                    if (!scrollInterval) {
+                        scrollInterval = setInterval(() => { grid.scrollBy({ left: 15 }); }, 20);
+                    }
+                } else {
+                    if (scrollInterval) {
+                        clearInterval(scrollInterval);
+                        scrollInterval = null;
+                    }
+                }
+            }
         }
     });
 
     document.addEventListener('pointerup', (e) => {
+        if (scrollInterval) {
+            clearInterval(scrollInterval);
+            scrollInterval = null;
+        }
         if (pressTimer) {
             clearTimeout(pressTimer);
             pressTimer = null;
