@@ -91,7 +91,93 @@
         const widgetAppGrid = document.getElementById('widgetAppGrid');
         const themeAppUI = document.getElementById('themeAppUI');
 
-        const officialWidgets = window.officialWidgets || [];
+        const officialWidgets = window.officialWidgets || [
+            {
+                name: '纸杯糖果心',
+                presetSize: '4x2',
+                preview: 'linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%)',
+                content: `<style>
+    body { margin: 0; padding: 0; }
+    .widget-4x2 { width: 100%; height: 100%; background-color: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; color: #8b929a; font-family: inherit; }
+    .widget-date { font-size: 15px; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 3px; }
+    .star-icon { width: 13px; height: 13px; fill: #8b929a; }
+    .widget-time { font-size: 64px; font-weight: 700; line-height: 1; letter-spacing: 2px; margin-bottom: 20px; }
+    .chat-bubble { background-color: rgba(255, 255, 255, 0.95); width: 90%; border-radius: 50px; padding: 10px 15px; display: flex; align-items: center; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); }
+    .avatar { width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #e0f2fe, #bae6fd); background-size: cover; background-position: center; margin-right: 12px; flex-shrink: 0; border: 1px solid #f3f4f6; cursor: pointer; }
+    .chat-content { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+    .input-box { border: 1px solid #e5e7eb; border-radius: 20px; padding: 4px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fafafa; white-space: nowrap; overflow: hidden; }
+    .input-text { font-size: 12px; color: #8b929a; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+    .input-text:active { opacity: 0.7; }
+    .action-bar { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; }
+    .icons { display: flex; gap: 8px; align-items: center; }
+    .icons svg { width: 18px; height: 18px; fill: #8b929a; }
+    .buttons { display: flex; gap: 8px; }
+    .btn { font-size: 12px; padding: 4px 14px; border-radius: 15px; border: none; cursor: pointer; font-family: inherit; }
+    .btn-send { background-color: #8b929a; color: white; }
+    .btn-cancel { background-color: transparent; color: #8b929a; border: 1px solid #d1d5db; padding: 3px 13px; }
+</style>
+<div class="widget-4x2">
+    <div class="widget-date" id="date-display"></div>
+    <div class="widget-time" id="time-display">14:44</div>
+    <div class="chat-bubble">
+        <div class="avatar" style="background-image: url('');" onclick="if(window.parent && window.parent.document.getElementById('widgetEditorModal') && window.parent.document.getElementById('widgetEditorModal').classList.contains('show') && window.parent.openIconMenu) { window.parent.openIconMenu(event, 'widgetAvatar'); }"></div>
+        <div class="chat-content">
+            <div class="input-box">
+                <span class="input-text" onclick="if(window.parent && window.parent.editWidgetText) { window.parent.editWidgetText(); }">🤍ineedu…^</span>
+            </div>
+            <div class="action-bar">
+                <div class="icons">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20C13.6418 20 15.1681 19.5054 16.4381 18.6571L17.5476 20.3214C15.9602 21.3818 14.0523 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12V13.5C22 15.433 20.433 17 18.5 17C17.2958 17 16.2336 16.3918 15.6038 15.4659C14.6942 16.4115 13.4158 17 12 17C9.23858 17 7 14.7614 7 12C7 9.23858 9.23858 7 12 7C13.1258 7 14.1647 7.37209 15.0005 8H17V13.5C17 14.3284 17.6716 15 18.5 15C19.3284 15 20 14.3284 20 13.5V12ZM12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9Z"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20ZM7 13H9C9 14.6569 10.3431 16 12 16C13.6569 16 15 14.6569 15 13H17C17 15.7614 14.7614 18 12 18C9.23858 18 7 15.7614 7 13ZM8 11C7.17157 11 6.5 10.3284 6.5 9.5C6.5 8.67157 7.17157 8 8 8C8.82843 8 9.5 8.67157 9.5 9.5C9.5 10.3284 8.82843 11 8 11ZM16 11C15.1716 11 14.5 10.3284 14.5 9.5C14.5 8.67157 15.1716 8 16 8C16.8284 8 17.5 8.67157 17.5 9.5C17.5 10.3284 16.8284 11 16 11Z"></path></svg>
+                </div>
+                <div class="buttons">
+                    <button class="btn btn-send">发送</button>
+                    <button class="btn btn-cancel">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const roundedStarSvg = \`<svg class="star-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>\`;
+    function updateTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const timeEl = document.getElementById('time-display');
+        if(timeEl) timeEl.textContent = \`\${hours}:\${minutes}\`;
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const dateEl = document.getElementById('date-display');
+        if(dateEl) dateEl.innerHTML = \`<span>\${year}</span>\${roundedStarSvg}<span>\${month}</span>\${roundedStarSvg}<span>\${day}</span>\`;
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    // 同步父级主题APP字体
+    function syncFont() {
+        if (window.parent && window.parent.customFonts && window.parent.currentSelectedFont) {
+            const fontId = window.parent.currentSelectedFont;
+            if (fontId === 'default') {
+                document.body.style.fontFamily = '"Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif';
+                return;
+            }
+            const fontData = window.parent.customFonts.find(f => f.id === fontId);
+            if (fontData) {
+                const source = fontData.type === 'local' ? fontData.data : \`url(\${fontData.url})\`;
+                const newFont = new FontFace(fontId, source);
+                newFont.load().then(loadedFont => {
+                    document.fonts.add(loadedFont);
+                    document.body.style.fontFamily = \`"\${fontId}", "Geomini", -apple-system, sans-serif\`;
+                }).catch(e => console.error('Widget font sync failed', e));
+            }
+        }
+    }
+    syncFont();
+</script>`
+            }
+        ];
         const customWidgets = window.customWidgets || [];
         window.officialWidgets = officialWidgets;
         window.customWidgets = customWidgets;
