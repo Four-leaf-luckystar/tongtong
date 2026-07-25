@@ -3901,6 +3901,99 @@
             });
             
             bubble.appendChild(voiceContainer);
+        } else if (text.startsWith('[转账]') || text.startsWith('[已收款]') || text.startsWith('[已退还]') || text.startsWith('[已过期]')) {
+            
+            // 1. 解析状态
+            let transferState = 'pending';
+            if (text.startsWith('[已收款]')) transferState = 'received';
+            else if (text.startsWith('[已退还]')) transferState = 'rejected';
+            else if (text.startsWith('[已过期]')) transferState = 'expired';
+
+            // 2. 24小时超时检测 (仅针对未收款状态)
+            if (transferState === 'pending') {
+                const ONE_DAY = 24 * 60 * 60 * 1000;
+                if (Date.now() - createdAt > ONE_DAY) {
+                    transferState = 'expired';
+                    message.text = message.text.replace('[转账]', '[已过期]');
+                    
+                    // 如果是用户发出的转账，超时需要退款到钱包
+                    if (isSent) {
+                        const amountMatch = message.text.match(/¥([\d.]+)/);
+                        if (amountMatch) {
+                            const amount = parseFloat(amountMatch[1]);
+                            wcWalletData.balance += amount;
+                            wcWalletData.transactions.unshift({
+                                id: Date.now(),
+                                type: 'income',
+                                title: '转账退款 (超时)',
+                                amount: amount,
+                                date: '刚刚',
+                                icon: 'money'
+                            });
+                            wcSaveWalletData();
+                        }
+                    }
+                    // 异步保存聊天记录，避免阻塞渲染
+                    setTimeout(() => wcSaveChatData(), 0);
+                }
+            }
+
+            // 3. 解析金额和备注
+            const amountMatch = text.match(/¥([\d.]+)/);
+            const amount = amountMatch ? amountMatch[1] : '0.00';
+            const noteMatch = text.match(/\((.*?)\)/);
+            const note = noteMatch ? noteMatch[1] : '';
+            
+            // 4. 构建 UI
+            const cardClass = `wc-transfer-card ${transferState} v1`;
+            
+            let iconHtml = '';
+            let descText = '';
+            
+            if (transferState === 'pending') {
+                iconHtml = `<svg class="wc-cny-icon" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M3.5855533333333334 3.0088999999999997c1.1762066666666666 -1.04148 2.7231199999999998 -1.6737333333333333 4.417713333333333 -1.6737333333333333 3.6818666666666666 0 6.666666666666666 2.9847666666666663 6.666666666666666 6.666633333333333 0 1.4166666666666665 -0.44186666666666663 2.7300666666666666 -1.1952666666666665 3.8099999999999996l-1.8047333333333333 -3.8099999999999996h1.6666666666666665c0 -2.9454866666666666 -2.3878 -5.3332999999999995 -5.333333333333333 -5.3332999999999995 -1.4962133333333334 0 -2.8485133333333335 0.6161066666666666 -3.817053333333333 1.60846l-0.60066 -1.26806ZM12.420933333333332 12.994733333333333c-1.1762 1.0415333333333332 -2.7230666666666665 1.6737333333333333 -4.417666666666666 1.6737333333333333 -3.6819066666666664 0 -6.6666799999999995 -2.9847333333333332 -6.6666799999999995 -6.666666666666666 0 -1.4165999999999999 0.44186 -2.7300266666666664 1.1952666666666665 -3.8099600000000002l1.8047333333333333 3.8099600000000002h-1.6666666666666665c0 2.9455333333333336 2.387813333333333 5.333333333333333 5.333346666666666 5.333333333333333 1.4962 0 2.848466666666667 -0.6160666666666667 3.817 -1.6084666666666667l0.6006666666666667 1.2680666666666665Zm-3.751 -3.9692h2v1.3333333333333333h-2v1.3333333333333333h-1.3333333333333333v-1.3333333333333333H5.336586666666666v-1.3333333333333333h2.0000133333333334v-0.6666666666666666H5.336586666666666v-1.3333333333333333h1.7238799999999999L5.646233333333333 5.611306666666666l0.9428066666666666 -0.9428066666666666 1.4142266666666665 1.414213333333333 1.4142000000000001 -1.414213333333333 0.9427999999999999 0.9428066666666666 -1.4142000000000001 1.4142266666666665h1.7238666666666664v1.3333333333333333h-2v0.6666666666666666Z"/></svg>`;
+                descText = isSent ? '转账给对方' : '转账给你';
+            } else if (transferState === 'received') {
+                iconHtml = `<svg class="wc-check-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                descText = '已被接收';
+            } else {
+                // rejected 或 expired
+                iconHtml = `<svg class="wc-return-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v.5"/></svg>`;
+                descText = transferState === 'rejected' ? '已退还' : '已过期';
+            }
+            
+            // 覆盖气泡默认样式，使其完全贴合卡片，并添加专属类名以去除尾巴
+            bubble.style.setProperty('background-color', 'transparent', 'important');
+            bubble.style.setProperty('padding', '0', 'important');
+            bubble.style.setProperty('box-shadow', 'none', 'important');
+            bubble.classList.add('transfer-bubble');
+            
+            const transferHtml = `
+                <div class="${cardClass}">
+                    <div class="wc-transfer-top">
+                        <div class="wc-transfer-icon-box">
+                            ${iconHtml}
+                        </div>
+                        <div class="wc-transfer-info">
+                            <div class="wc-transfer-amount">¥${amount}</div>
+                            <div class="wc-transfer-desc">${descText}${note ? ' - ' + note : ''}</div>
+                        </div>
+                    </div>
+                    <div class="wc-transfer-bottom">
+                        <span>Wechat Pay</span>
+                        <svg class="wc-wp-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 20.947c6.075 0 11 -4.241 11 -9.473a8.363 8.363 0 0 0 -1.048 -4.04l-12.434 7.09a1.045 1.045 0 0 1 -1.457 -0.452L5.545 8.93l3.883 1.854 11.28 -5.1C18.696 3.444 15.544 2 12 2 5.925 2 1 6.242 1 11.474c0 2.806 1.416 5.326 3.667 7.061L4.143 22l4.009 -1.649c1.197 0.386 2.494 0.596 3.848 0.596Z"/></svg>
+                    </div>
+                </div>
+            `;
+            bubble.innerHTML = transferHtml;
+            
+            // 5. 绑定点击事件 (仅未收款状态可点击)
+            if (transferState === 'pending') {
+                bubble.querySelector('.wc-transfer-card').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    wcHandleTransferClick(message.id, isSent);
+                });
+            }
         } else {
             const messageText = document.createElement('div');
             messageText.className = 'msg-text';
@@ -4351,7 +4444,7 @@
         const chatArea = document.getElementById('wc-chat-area');
         const thinkingId = 'thinking_' + Date.now();
         const contact = wcContactsList.find(item => item.id === chatContactId);
-        const avatarUrl = contact?.avatar ? `url("${String(contact.avatar).replace(/"/g, '\\"')}")` : 'none';
+        const avatarUrl = contact?.avatar ? `url('${String(contact.avatar).replace(/'/g, "\\'")}')` : 'none';
         const avatarContent = contact?.avatar ? '' : getWcDefaultAvatarSvg();
         
         const thinkingHtml = `
@@ -4444,6 +4537,28 @@
                 } else if (contentStr.startsWith('[图片]') || contentStr.startsWith('【图片】')) {
                     let iDesc = contentStr.replace(/^\[图片\]|^【图片】/, '').trim();
                     contentStr = `[发送了一张图片，图片内容是：${iDesc}]`;
+                    finalContent = contentStr;
+                } else if (contentStr.startsWith('[转账]')) {
+                    const amountMatch = contentStr.match(/¥([\d.]+)/);
+                    const amount = amountMatch ? amountMatch[1] : '0.00';
+                    const noteMatch = contentStr.match(/\((.*?)\)/);
+                    const note = noteMatch ? noteMatch[1] : '';
+                    contentStr = `[发送了一笔转账，金额：¥${amount}${note ? '，备注：' + note : ''}，状态：未收款]`;
+                    finalContent = contentStr;
+                } else if (contentStr.startsWith('[已收款]')) {
+                    const amountMatch = contentStr.match(/¥([\d.]+)/);
+                    const amount = amountMatch ? amountMatch[1] : '0.00';
+                    contentStr = `[发送了一笔转账，金额：¥${amount}，状态：已收款]`;
+                    finalContent = contentStr;
+                } else if (contentStr.startsWith('[已退还]')) {
+                    const amountMatch = contentStr.match(/¥([\d.]+)/);
+                    const amount = amountMatch ? amountMatch[1] : '0.00';
+                    contentStr = `[发送了一笔转账，金额：¥${amount}，状态：已退还]`;
+                    finalContent = contentStr;
+                } else if (contentStr.startsWith('[已过期]')) {
+                    const amountMatch = contentStr.match(/¥([\d.]+)/);
+                    const amount = amountMatch ? amountMatch[1] : '0.00';
+                    contentStr = `[发送了一笔转账，金额：¥${amount}，状态：已过期]`;
                     finalContent = contentStr;
                 }
 
@@ -4668,7 +4783,7 @@
                 systemPrompt += `【注意】\n`;
                 systemPrompt += `你当前没有任何可用的表情包，请严格只使用文本进行回复，绝对不要发送任何表情包或类似 [表情] 的占位符。\n\n`;
             }
-            
+
             // 后置世界书
             if (wbAfterPrompt) {
                 systemPrompt += `<world_settings>\n${wbAfterPrompt}</world_settings>\n\n`;
@@ -4682,13 +4797,18 @@
             systemPrompt += `【回复格式要求】\n`;
             systemPrompt += `你的回复必须严格拆分为 ${minReply} 到 ${maxReply} 个独立的气泡（即 messages 数组中的对象数量）！\n`;
             systemPrompt += `- Message Splitting (Natural Speech): Break your response into multiple independent short messages. Cut at natural speech pauses or breath marks. Do NOT cram multiple clauses or long paragraphs into one message.\n`;
-            systemPrompt += `你必须严格输出合法的 JSON 格式，格式如下：\n`;
+            systemPrompt += `你必须严格输出合法的 JSON 格式，请按需组合以下 JSON 对象放入 "messages" 数组中：\n`;
+            systemPrompt += `- 发消息: {"type":"text", "content":"完整的一句话", "replyTo":"引用原话(可选)"}\n`;
+            systemPrompt += `- 发语音: {"type":"voice", "content":"语音文本"}\n`;
+            systemPrompt += `- 发图片: {"type":"image", "content":"图片描述"}\n`;
             if (availableEmojis.length > 0) {
-                systemPrompt += `{\n  "messages": [\n    {"type":"text", "content":"完整的一句话。", "replyTo":"可选，引用的原话"}, \n    {"type":"voice", "content":"语音消息的文本内容"}, \n    {"type":"image", "content":"一张在海边拍的日落风景照"}, \n    {"type":"emoji", "content":"表情包描述"}, \n    {"type":"reaction", "target":"用户的原话", "emoji":"❤️"}\n  ]\n}\n`;
-            } else {
-                systemPrompt += `{\n  "messages": [\n    {"type":"text", "content":"完整的一句话。", "replyTo":"可选，引用的原话"}, \n    {"type":"voice", "content":"语音消息的文本内容"}, \n    {"type":"image", "content":"一张在海边拍的日落风景照"}, \n    {"type":"text", "content":"另一句话。"}, \n    {"type":"reaction", "target":"用户的原话", "emoji":"❤️"}\n  ]\n}\n`;
+                systemPrompt += `- 发表情: {"type":"emoji", "content":"表情包描述"}\n`;
             }
-            systemPrompt += `注意：只输出 JSON，不要包含任何 Markdown 标记（如 \`\`\`json）或其他说明文字。`;
+            systemPrompt += `- 贴反应: {"type":"reaction", "target":"对方原话", "emoji":"❤️"}\n`;
+            systemPrompt += `- 发转账: {"type":"transfer", "amount":"金额", "note":"备注"}\n`;
+            systemPrompt += `- 收转账: {"type":"transfer_action", "action":"receive"}\n`;
+            systemPrompt += `- 退转账: {"type":"transfer_action", "action":"reject"}\n`;
+            systemPrompt += `注意：只输出包含 "messages" 数组的纯 JSON，不要包含任何 Markdown 标记或说明文字。`;
 
             // 7. 发起 API 请求 (使用注入了世界书的 finalHistory)
             const payload = {
@@ -4797,7 +4917,7 @@
                 let cleanJson = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
                 const parsed = JSON.parse(cleanJson);
                 if (parsed && Array.isArray(parsed.messages)) {
-                    messages = parsed.messages.filter(m => m.content); // 保留对象 {type, content}
+                    messages = parsed.messages.filter(m => m.content || ['transfer', 'transfer_action', 'reaction'].includes(m.type)); // 保留有效对象
                 } else {
                     throw new Error('JSON format missing messages array');
                 }
@@ -4811,6 +4931,31 @@
                         messages.push({ type: match[1], content: JSON.parse(`"${match[2]}"`) });
                     } catch(err) {
                         messages.push({ type: match[1], content: match[2] });
+                    }
+                }
+                
+                // 兜底提取 transfer
+                const transferRegex = /\{\s*"type"\s*:\s*"transfer"\s*,\s*"amount"\s*:\s*"([^"]+)"(?:\s*,\s*"note"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)")?\s*\}/g;
+                let tMatch;
+                while ((tMatch = transferRegex.exec(content)) !== null) {
+                    messages.push({ type: 'transfer', amount: tMatch[1], note: tMatch[2] || '' });
+                }
+                
+                // 兜底提取 transfer_action
+                const actionRegex = /\{\s*"type"\s*:\s*"transfer_action"\s*,\s*"action"\s*:\s*"([^"]+)"\s*\}/g;
+                let aMatch;
+                while ((aMatch = actionRegex.exec(content)) !== null) {
+                    messages.push({ type: 'transfer_action', action: aMatch[1] });
+                }
+                
+                // 兜底提取 reaction
+                const reactionRegex = /\{\s*"type"\s*:\s*"reaction"\s*,\s*"target"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"\s*,\s*"emoji"\s*:\s*"([^"]+)"\s*\}/g;
+                let rMatch;
+                while ((rMatch = reactionRegex.exec(content)) !== null) {
+                    try {
+                        messages.push({ type: 'reaction', target: JSON.parse(`"${rMatch[1]}"`), emoji: rMatch[2] });
+                    } catch(err) {
+                        messages.push({ type: 'reaction', target: rMatch[1], emoji: rMatch[2] });
                     }
                 }
                 
@@ -4871,8 +5016,44 @@
                 wcRenderChatMessages(chatContactId);
             }
             
-            // 过滤掉 reaction，只保留要发送的文本/表情包
-            messages = messages.filter(m => m.type !== 'reaction');
+            // 处理 AI 的转账操作 (transfer_action)
+            let hasTransferUpdate = false;
+            messages.forEach(msgObj => {
+                if (msgObj.type === 'transfer_action' && msgObj.action) {
+                    // 找到最后一条 User 发送的未收款转账
+                    const targetMsg = wcChatMessagesByContact[chatContactId]?.slice().reverse().find(m => m.type === 'sent' && m.text.startsWith('[转账]'));
+                    if (targetMsg) {
+                        if (msgObj.action === 'receive') {
+                            targetMsg.text = targetMsg.text.replace('[转账]', '[已收款]');
+                        } else if (msgObj.action === 'reject') {
+                            targetMsg.text = targetMsg.text.replace('[转账]', '[已退还]');
+                            // 退还给 User，User 钱包余额增加
+                            const amountMatch = targetMsg.text.match(/¥([\d.]+)/);
+                            if (amountMatch) {
+                                const amount = parseFloat(amountMatch[1]);
+                                wcWalletData.balance += amount;
+                                wcWalletData.transactions.unshift({
+                                    id: Date.now(),
+                                    type: 'income',
+                                    title: '转账退款',
+                                    amount: amount,
+                                    date: '刚刚',
+                                    icon: 'money'
+                                });
+                                wcSaveWalletData();
+                            }
+                        }
+                        hasTransferUpdate = true;
+                    }
+                }
+            });
+            if (hasTransferUpdate) {
+                wcSaveChatData();
+                wcRenderChatMessages(chatContactId);
+            }
+            
+            // 过滤掉 reaction 和 transfer_action，只保留要发送的文本/表情包/转账
+            messages = messages.filter(m => m.type !== 'reaction' && m.type !== 'transfer_action');
 
             // 处理 replyTo 转换为 ID
             messages.forEach(msgObj => {
@@ -4926,6 +5107,12 @@
                     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#E5E5EA"/><text x="50%" y="50%" font-family="sans-serif" font-size="16" fill="#8E8E93" text-anchor="middle" dominant-baseline="middle">${safeText}</text></svg>`;
                     const imgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
                     finalMessages.push({ text: '[图片]', imageUrl: imgUrl, replyToId: replyToId, isVoice: false });
+                } else if (type === 'transfer') {
+                    // 处理 transfer 类型 (AI 主动发起转账)
+                    const amount = parseFloat(msgObj.amount) || 0;
+                    const note = msgObj.note || '';
+                    const text = note ? `[转账] ¥${amount.toFixed(2)} (${note})` : `[转账] ¥${amount.toFixed(2)}`;
+                    finalMessages.push({ text: text, imageUrl: null, replyToId: replyToId, isVoice: false });
                 } else {
                     // 处理 text 类型，兼容 AI 偶尔还是在文本里混排 [表情: xxx] 的情况
                     const emojiRegex = /\[表情:\s*([^\]]+)\]/g;
@@ -5929,3 +6116,724 @@
         }
     }
     window.wcSaveMomentsProfileData = wcSaveMomentsProfileData;
+
+    // ==========================================
+    // 微信钱包页面逻辑
+    // ==========================================
+    
+    // 钱包数据状态 (初始为空)
+    let wcWalletData = {
+        balance: 0.00,
+        transactions: [],
+        familyCards: [], // 新增亲属卡数组
+        isNoPwd: false   // 新增免密支付状态
+    };
+
+    // 从 IndexedDB 读取钱包数据
+    async function wcLoadWalletData() {
+        try {
+            const data = await wcReadLayoutRecord('wechatWalletData');
+            if (data) {
+                wcWalletData.balance = data.balance || 0.00;
+                wcWalletData.transactions = data.transactions || [];
+                wcWalletData.familyCards = data.familyCards || [];
+                wcWalletData.isNoPwd = data.isNoPwd || false;
+            } else {
+                // 如果数据库中没有数据，设置默认初始值
+                wcWalletData.balance = 0.00;
+                wcWalletData.transactions = [];
+                wcWalletData.familyCards = [];
+                wcWalletData.isNoPwd = false;
+            }
+        } catch (e) {
+            console.error('读取钱包数据失败', e);
+        }
+    }
+
+    // 保存钱包数据到 IndexedDB
+    function wcSaveWalletData() {
+        if (!db || typeof storeName === 'undefined') return Promise.reject(new Error('数据库尚未准备好'));
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([storeName], 'readwrite');
+            const dataToSave = {
+                id: 'wechatWalletData',
+                balance: wcWalletData.balance,
+                transactions: wcWalletData.transactions,
+                familyCards: wcWalletData.familyCards,
+                isNoPwd: wcWalletData.isNoPwd
+            };
+            transaction.objectStore(storeName).put(dataToSave);
+            transaction.oncomplete = () => resolve(true);
+            transaction.onerror = () => reject(transaction.error);
+        });
+    }
+
+    // 渲染钱包数据
+    function wcRenderWallet() {
+        // 1. 更新余额
+        const balanceEl = document.getElementById('wcWalletBalance');
+        if (balanceEl) {
+            balanceEl.innerText = '¥ ' + wcWalletData.balance.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // 2. 渲染卡片 (动态生成零钱卡和亲属卡)
+        const cardsScroll = document.getElementById('wcWalletCardsScroll');
+        const dotsContainer = document.getElementById('wcWalletDots');
+        if (cardsScroll && dotsContainer) {
+            let cardsHtml = `
+                <div class="wc-apple-card wc-cash-card">
+                    <div class="wc-card-logo">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm3.223 14.38c-.358.548-1.025.702-1.573.344-1.636-1.07-3.696-1.31-6.12-.717-.62.15-1.25-.23-1.4-.85-.15-.62.23-1.25.85-1.4 2.78-.68 5.15-.39 7.04.84.548.358.702 1.025.344 1.573zm1.14-2.56c-.45.73-1.42.94-2.15.49-1.96-1.2-4.98-1.54-7.18-.84-.82.25-1.68-.2-1.93-1.02-.25-.82.2-1.68 1.02-1.93 2.6-0.82 6.06-0.43 8.38 1.01.73.45.94 1.42.49 2.15zm.1-2.67c-2.38-1.42-6.3-1.55-8.58-.86-.98.29-2.03-.26-2.32-1.24-.29-.98.26-2.03 1.24-2.32 2.7-0.81 7.18-0.65 9.98 1.02.89.53 1.18 1.68.65 2.57-.53.89-1.68 1.18-2.57.65z"/></svg>
+                        Pay
+                    </div>
+                    <div class="wc-card-balance-area">
+                        <div class="wc-card-balance-label">Cash 余额</div>
+                        <div class="wc-card-balance-amount">¥ ${wcWalletData.balance.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                    </div>
+                    <div class="wc-card-bottom">
+                        <div class="wc-card-number">**** 3022</div>
+                        <div class="wc-card-network">VISA</div>
+                    </div>
+                </div>
+            `;
+            let dotsHtml = `<div class="wc-dot active"></div>`;
+
+            if (wcWalletData.familyCards && wcWalletData.familyCards.length > 0) {
+                wcWalletData.familyCards.forEach(card => {
+                    cardsHtml += `
+                        <div class="wc-apple-card wc-family-card" style="background: ${card.bg};">
+                            <div class="wc-card-logo">
+                                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                亲属卡
+                            </div>
+                            <div class="wc-card-balance-area">
+                                <div class="wc-card-balance-label">本月可用额度</div>
+                                <div class="wc-card-balance-amount">¥ 3,000.00</div>
+                            </div>
+                            <div class="wc-card-bottom">
+                                <div class="wc-card-number">赠予: ${card.name.replace('亲属卡 (', '').replace(')', '')}</div>
+                                <div class="wc-card-network">${card.type}</div>
+                            </div>
+                        </div>
+                    `;
+                    dotsHtml += `<div class="wc-dot"></div>`;
+                });
+            }
+
+            cardsScroll.innerHTML = cardsHtml;
+            dotsContainer.innerHTML = dotsHtml;
+        }
+
+        // 3. 渲染交易记录
+        const txListEl = document.getElementById('wcTxList');
+        if (!txListEl) return;
+        
+        if (wcWalletData.transactions.length === 0) {
+            txListEl.innerHTML = '<div style="text-align:center; padding: 40px 0; color: #8e8e93; font-size: 14px;">暂无交易记录</div>';
+            return;
+        }
+
+        let html = '';
+        wcWalletData.transactions.forEach(tx => {
+            let svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 20px; height: 20px;"><path d="M12.0049 22.0027C6.48204 22.0027 2.00488 17.5256 2.00488 12.0027C2.00488 6.4799 6.48204 2.00275 12.0049 2.00275C17.5277 2.00275 22.0049 6.4799 22.0049 12.0027C22.0049 17.5256 17.5277 22.0027 12.0049 22.0027ZM12.0049 20.0027C16.4232 20.0027 20.0049 16.421 20.0049 12.0027C20.0049 7.58447 16.4232 4.00275 12.0049 4.00275C7.5866 4.00275 4.00488 7.58447 4.00488 12.0027C4.00488 16.421 7.5866 20.0027 12.0049 20.0027ZM13.0049 13.0027H16.0049V15.0027H13.0049V17.0027H11.0049V15.0027H8.00488V13.0027H11.0049V12.0027H8.00488V10.0027H10.5907L8.46935 7.88143L9.88356 6.46721L12.0049 8.58853L14.1262 6.46721L15.5404 7.88143L13.4191 10.0027H16.0049V12.0027H13.0049V13.0027Z"></path></svg>`;
+
+            const amountClass = tx.type === 'income' ? 'wc-income' : '';
+            const amountPrefix = tx.type === 'income' ? '+ ¥ ' : '- ¥ ';
+            const amountStr = amountPrefix + tx.amount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            html += `
+                <div class="wc-tx-item">
+                    <div class="wc-tx-icon">${svgIcon}</div>
+                    <div class="wc-tx-info">
+                        <div class="wc-tx-name">${tx.title}</div>
+                        <div class="wc-tx-status">已完成</div>
+                    </div>
+                    <div class="wc-tx-amount-area">
+                        <div class="wc-tx-amount ${amountClass}">${amountStr}</div>
+                        <div class="wc-tx-date">${tx.date}</div>
+                    </div>
+                </div>
+            `;
+        });
+        txListEl.innerHTML = html;
+    }
+
+    async function wcOpenWallet() {
+        const profile = document.getElementById('page-profile');
+        const wallet = document.getElementById('page-wallet');
+        const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+        
+        if (wallet) {
+            document.querySelectorAll('#wechatAppUI .page').forEach(el => el.classList.remove('active'));
+            wallet.classList.add('active');
+            
+            await wcLoadWalletData();
+            wcRenderWallet(); 
+        }
+        if (bottomNav) {
+            bottomNav.style.display = 'none';
+        }
+    }
+    window.wcOpenWallet = wcOpenWallet;
+
+    function wcCloseWallet() {
+        const profile = document.getElementById('page-profile');
+        const wallet = document.getElementById('page-wallet');
+        const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+        
+        if (profile) {
+            document.querySelectorAll('#wechatAppUI .page').forEach(el => el.classList.remove('active'));
+            profile.classList.add('active');
+        }
+        if (bottomNav) {
+            bottomNav.style.display = 'block';
+        }
+    }
+    window.wcCloseWallet = wcCloseWallet;
+
+    function wcUpdateWalletDots() {
+        const scrollContainer = document.getElementById('wcWalletCardsScroll');
+        const dots = document.querySelectorAll('#wcWalletDots .wc-dot');
+        if (!scrollContainer || dots.length === 0) return;
+        
+        const scrollLeft = scrollContainer.scrollLeft;
+        const cardWidth = scrollContainer.offsetWidth;
+        const index = Math.round(scrollLeft / cardWidth);
+        
+        dots.forEach((dot, i) => {
+            if (i === index) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+    }
+    window.wcUpdateWalletDots = wcUpdateWalletDots;
+
+    // 打开支付设置页面
+    function wcOpenWalletSettings() {
+        document.querySelectorAll('#wechatAppUI .page').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-wallet-settings').classList.add('active');
+        
+        // 初始化免密开关状态
+        const toggle = document.getElementById('wcRealNoPwdToggle');
+        if (toggle) {
+            if (wcWalletData.isNoPwd) toggle.classList.add('active');
+            else toggle.classList.remove('active');
+        }
+    }
+    window.wcOpenWalletSettings = wcOpenWalletSettings;
+
+    // 关闭支付设置页面，返回钱包
+    function wcCloseWalletSettings() {
+        document.querySelectorAll('#wechatAppUI .page').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-wallet').classList.add('active');
+    }
+    window.wcCloseWalletSettings = wcCloseWalletSettings;
+
+    // 切换免密支付状态
+    function wcToggleNoPwd() {
+        const toggle = document.getElementById('wcRealNoPwdToggle');
+        if (toggle) {
+            toggle.classList.toggle('active');
+            wcWalletData.isNoPwd = toggle.classList.contains('active');
+            wcSaveWalletData();
+            if(typeof showToast === 'function') showToast(wcWalletData.isNoPwd ? '已开启免密支付' : '已关闭免密支付');
+        }
+    }
+    window.wcToggleNoPwd = wcToggleNoPwd;
+
+    // 模拟设置支付密码
+    function wcSetPaymentPassword() {
+        if(typeof showCustomPrompt === 'function') {
+            showCustomPrompt('设置支付密码', { placeholder: '请输入6位数字密码' }, '确定').then(val => {
+                if (val !== null) {
+                    if(typeof showToast === 'function') showToast('支付密码设置成功');
+                }
+            });
+        }
+    }
+    window.wcSetPaymentPassword = wcSetPaymentPassword;
+
+    // 模拟修改支付密码
+    function wcChangePaymentPassword() {
+        if(typeof showCustomPrompt === 'function') {
+            showCustomPrompt('修改支付密码', { placeholder: '请输入原密码' }, '下一步').then(val => {
+                if (val !== null) {
+                    showCustomPrompt('修改支付密码', { placeholder: '请输入新密码' }, '确定').then(newVal => {
+                        if (newVal !== null) {
+                            if(typeof showToast === 'function') showToast('支付密码修改成功');
+                        }
+                    });
+                }
+            });
+        }
+    }
+    window.wcChangePaymentPassword = wcChangePaymentPassword;
+
+    // 绑定/解绑亲属卡测试开关
+    function wcToggleFamilyCard() {
+        if (wcWalletData.familyCards && wcWalletData.familyCards.length > 0) {
+            wcWalletData.familyCards = [];
+            if(typeof showToast === 'function') showToast('已解绑亲属卡');
+        } else {
+            wcWalletData.familyCards = [
+                { id: 'family1', name: '亲属卡 (妈妈)', number: '1004', type: 'AMERICAN EXPRESS', bg: 'linear-gradient(135deg, #3D4D6B 0%, #101C37 40%, #7B8AA0 60%, #101C37 100%)', logo: 'F', logoColor: '#E4E8EB' },
+                { id: 'family2', name: '亲属卡 (爸爸)', number: '8888', type: 'MasterCard', bg: 'linear-gradient(135deg, #7B8AA0 0%, #101C37 50%, #3D4D6B 100%)', logo: 'F', logoColor: '#BCC4CE' }
+            ];
+            if(typeof showToast === 'function') showToast('已绑定亲属卡');
+        }
+        wcSaveWalletData();
+        wcRenderWallet();
+    }
+    window.wcToggleFamilyCard = wcToggleFamilyCard;
+
+    // 充值逻辑
+    function wcHandleRecharge() {
+        if (typeof showCustomPrompt === 'function') {
+            showCustomPrompt('充值', { placeholder: '请输入充值金额' }, '确定').then(val => {
+                if (val && !isNaN(val) && Number(val) > 0) {
+                    const amount = Number(val);
+                    wcWalletData.balance += amount;
+                    wcWalletData.transactions.unshift({
+                        id: Date.now(),
+                        type: 'income',
+                        title: '充值',
+                        amount: amount,
+                        date: '刚刚',
+                        icon: 'money'
+                    });
+                    wcSaveWalletData();
+                    wcRenderWallet();
+                    if (typeof showToast === 'function') showToast('充值成功');
+                } else if (val !== null) {
+                    if (typeof showToast === 'function') showToast('请输入有效金额');
+                }
+            });
+        }
+    }
+    window.wcHandleRecharge = wcHandleRecharge;
+
+    // 提现逻辑
+    function wcHandleWithdraw() {
+        if (typeof showCustomPrompt === 'function') {
+            showCustomPrompt('提现', { placeholder: '请输入提现金额' }, '确定').then(val => {
+                if (val && !isNaN(val) && Number(val) > 0) {
+                    const amount = Number(val);
+                    if (amount > wcWalletData.balance) {
+                        if (typeof showToast === 'function') showToast('余额不足');
+                        return;
+                    }
+                    wcWalletData.balance -= amount;
+                    wcWalletData.transactions.unshift({
+                        id: Date.now(),
+                        type: 'expense',
+                        title: '提现',
+                        amount: amount,
+                        date: '刚刚',
+                        icon: 'money'
+                    });
+                    wcSaveWalletData();
+                    wcRenderWallet();
+                    if (typeof showToast === 'function') showToast('提现成功');
+                } else if (val !== null) {
+                    if (typeof showToast === 'function') showToast('请输入有效金额');
+                }
+            });
+        }
+    }
+    window.wcHandleWithdraw = wcHandleWithdraw;
+
+    // 清空记录逻辑
+    function wcClearTransactions() {
+        if (typeof showCustomConfirm === 'function') {
+            showCustomConfirm('清空记录', '确定要清空所有交易记录吗？', '清空', true).then(confirmed => {
+                if (confirmed) {
+                    wcWalletData.transactions = [];
+                    wcSaveWalletData();
+                    wcRenderWallet();
+                    if (typeof showToast === 'function') showToast('记录已清空');
+                }
+            });
+        } else {
+            wcWalletData.transactions = [];
+            wcSaveWalletData();
+            wcRenderWallet();
+        }
+    }
+    window.wcClearTransactions = wcClearTransactions;
+
+    // ==========================================
+    // 转账与 Apple Pay 逻辑
+    // ==========================================
+
+    let wcTransferAmount = 0;
+    let wcApCurrentPwdLength = 0;
+    let wcApActiveCards = [];
+    let wcApActiveCardIndex = 0;
+    let wcApCardElements = [];
+
+    // 打开转账页面
+    async function wcOpenTransferPage() {
+        wcCloseFunctionPanel();
+        
+        // 确保钱包数据已加载
+        await wcLoadWalletData();
+
+        const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
+        if (!contact) return;
+
+        // 填充转账页面信息
+        const avatarEl = document.getElementById('wcTransferAvatar');
+        const nameEl = document.getElementById('wcTransferName');
+        const accountEl = document.getElementById('wcTransferAccount');
+        
+        if (nameEl) nameEl.innerText = contact.name;
+        if (accountEl) accountEl.innerText = contact.account || contact.phone || 'WeChat ID';
+        
+        if (avatarEl) {
+            if (contact.avatar) {
+                avatarEl.style.backgroundImage = `url('${contact.avatar}')`;
+                avatarEl.innerHTML = '';
+            } else {
+                avatarEl.style.backgroundImage = 'none';
+                avatarEl.innerHTML = getWcDefaultAvatarSvg();
+            }
+        }
+
+        // 重置输入框
+        const inputEl = document.getElementById('wcTransferAmountInput');
+        const noteEl = document.getElementById('wcTransferNoteInput');
+        const nextBtn = document.getElementById('wcTransferNextBtn');
+        if (inputEl) {
+            inputEl.value = '';
+            wcUpdateTransferInputWidth();
+        }
+        if (noteEl) noteEl.value = '';
+        if (nextBtn) {
+            nextBtn.disabled = true;
+            nextBtn.classList.remove('active');
+        }
+
+        // 切换页面
+        document.querySelectorAll('#wechatAppUI .page').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-wc-transfer').classList.add('active');
+        
+        const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
+        if (bottomNav) bottomNav.style.display = 'none';
+    }
+    window.wcOpenTransferPage = wcOpenTransferPage;
+
+    function wcCloseTransferPage() {
+        document.querySelectorAll('#wechatAppUI .page').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-chat-room').classList.add('active');
+    }
+    window.wcCloseTransferPage = wcCloseTransferPage;
+
+    // 动态计算输入框宽度
+    function wcUpdateTransferInputWidth() {
+        const input = document.getElementById('wcTransferAmountInput');
+        if (!input) return;
+        const span = document.createElement('span');
+        span.style.fontSize = '72px';
+        span.style.fontWeight = '200';
+        span.style.visibility = 'hidden';
+        span.style.position = 'absolute';
+        span.style.whiteSpace = 'pre';
+        span.innerText = input.value || input.placeholder;
+        document.body.appendChild(span);
+        input.style.width = Math.max(160, span.offsetWidth + 10) + 'px';
+        document.body.removeChild(span);
+    }
+
+    // 监听金额输入
+    document.getElementById('wcTransferAmountInput')?.addEventListener('input', function() {
+        let val = this.value.replace(/[^\d.]/g, '');
+        const parts = val.split('.');
+        if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+        if (parts.length === 2 && parts[1].length > 2) val = parts[0] + '.' + parts[1].substring(0, 2);
+        
+        this.value = val;
+        wcUpdateTransferInputWidth();
+        
+        const nextBtn = document.getElementById('wcTransferNextBtn');
+        if (parseFloat(val) > 0) {
+            nextBtn.disabled = false;
+            nextBtn.classList.add('active');
+        } else {
+            nextBtn.disabled = true;
+            nextBtn.classList.remove('active');
+        }
+    });
+
+    // 初始化卡片 DOM
+    function wcInitApCards() {
+        const container = document.getElementById('wcApCardsContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        wcApCardElements = [];
+        wcApActiveCardIndex = 0;
+
+        // 基础零钱卡
+        wcApActiveCards = [{ id: 'cash', name: '零钱卡', number: '3022', type: 'VISA', bg: 'linear-gradient(135deg, #2c2c2e 0%, #1c1c1e 100%)', logo: 'Z', logoColor: '#fff' }];
+        
+        // 如果钱包数据中有亲属卡，追加进去
+        if (wcWalletData.familyCards && wcWalletData.familyCards.length > 0) {
+            wcApActiveCards = wcApActiveCards.concat(wcWalletData.familyCards);
+        }
+
+        wcApActiveCards.forEach((card, index) => {
+            const el = document.createElement('div');
+            el.className = 'wc-ap-card card-hidden';
+            el.style.background = card.bg;
+            
+            el.innerHTML = `
+                <div style="display: flex; justify-content: space-between;">
+                    <div style="width: 24px; height: 24px; background: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: ${card.logoColor}; font-weight: bold; font-size: 14px;">${card.logo}</div>
+                </div>
+                <div class="card-number">
+                    <span>••••</span> <span>${card.number}</span>
+                    <span style="margin-left: auto; font-size: 14px; font-weight: bold; font-style: italic;">${card.type}</span>
+                </div>
+            `;
+
+            el.onclick = () => {
+                if (wcApActiveCardIndex === index) {
+                    wcCycleApCards();
+                } else {
+                    wcApActiveCardIndex = index;
+                    wcRenderApCards();
+                }
+            };
+
+            container.appendChild(el);
+            wcApCardElements.push(el);
+        });
+
+        wcRenderApCards();
+    }
+
+    // 渲染卡片位置
+    function wcRenderApCards() {
+        const n = wcApActiveCards.length;
+        wcApCardElements.forEach((el, index) => {
+            el.className = 'wc-ap-card'; 
+            if (n === 1) {
+                el.classList.add('card-center');
+            } else if (n === 2) {
+                if (index === wcApActiveCardIndex) el.classList.add('card-center');
+                else el.classList.add('card-right');
+            } else {
+                if (index === wcApActiveCardIndex) {
+                    el.classList.add('card-center');
+                } else if (index === (wcApActiveCardIndex - 1 + n) % n) {
+                    el.classList.add('card-left');
+                } else if (index === (wcApActiveCardIndex + 1) % n) {
+                    el.classList.add('card-right');
+                } else {
+                    el.classList.add('card-hidden');
+                }
+            }
+        });
+
+        const currentCard = wcApActiveCards[wcApActiveCardIndex];
+        const cardTextEl = document.getElementById('wcApSelectedCardText');
+        if (cardTextEl) cardTextEl.innerText = `${currentCard.name} (...${currentCard.number})`;
+    }
+
+    // 轮换下一张卡
+    function wcCycleApCards() {
+        if (wcApActiveCards.length <= 1) {
+            const centerCard = document.querySelector('#wechatAppUI .card-center');
+            if (centerCard) {
+                centerCard.style.transform = 'translateX(0) scale(0.95)';
+                setTimeout(() => centerCard.style.transform = 'translateX(0) scale(1)', 150);
+            }
+            return;
+        }
+        wcApActiveCardIndex = (wcApActiveCardIndex + 1) % wcApActiveCards.length;
+        wcRenderApCards();
+    }
+    window.wcCycleApCards = wcCycleApCards;
+
+    // 打开 Apple Pay 弹窗
+    function wcOpenApplePay() {
+        const val = document.getElementById('wcTransferAmountInput').value;
+        wcTransferAmount = parseFloat(val);
+        
+        if (wcTransferAmount > wcWalletData.balance) {
+            if (typeof showToast === 'function') showToast('零钱余额不足');
+            return;
+        }
+
+        const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
+        document.getElementById('wcApPayeeName').innerText = `Pay ${contact ? contact.name : '对方'}`;
+        document.getElementById('wcApAmountDisplay').innerText = '¥' + wcTransferAmount.toFixed(2);
+        
+        wcInitApCards();
+
+        document.getElementById('wc-ap-main-view').style.display = 'flex';
+        document.getElementById('wc-ap-password-view').style.display = 'none';
+        document.getElementById('wc-ap-success-view').style.display = 'none';
+        document.getElementById('wcSuccessIcon').classList.remove('animate');
+        
+        wcApCurrentPwdLength = 0;
+        document.querySelectorAll('#wechatAppUI .wc-pwd-dot').forEach(dot => dot.classList.remove('filled'));
+
+        document.getElementById('wcApOverlay').classList.add('show');
+    }
+    window.wcOpenApplePay = wcOpenApplePay;
+
+    function wcCloseApplePay() {
+        document.getElementById('wcApOverlay').classList.remove('show');
+    }
+    window.wcCloseApplePay = wcCloseApplePay;
+
+    // 点击底部确认按钮
+    function wcHandleApConfirmClick() {
+        // 读取真实的免密支付状态
+        const isNoPwd = wcWalletData.isNoPwd;
+        
+        if (isNoPwd) {
+            wcShowApSuccess();
+        } else {
+            document.getElementById('wc-ap-main-view').style.display = 'none';
+            document.getElementById('wc-ap-password-view').style.display = 'flex';
+        }
+    }
+    window.wcHandleApConfirmClick = wcHandleApConfirmClick;
+
+    // 模拟输入密码
+    function wcInputApPwd() {
+        const dots = document.querySelectorAll('#wechatAppUI .wc-pwd-dot');
+        if (wcApCurrentPwdLength < 6) {
+            dots[wcApCurrentPwdLength].classList.add('filled');
+            wcApCurrentPwdLength++;
+            
+            if (wcApCurrentPwdLength === 6) {
+                setTimeout(() => {
+                    wcShowApSuccess();
+                }, 200);
+            }
+        }
+    }
+    window.wcInputApPwd = wcInputApPwd;
+
+    // 显示成功动画并执行转账逻辑
+    function wcShowApSuccess() {
+        document.getElementById('wc-ap-main-view').style.display = 'none';
+        document.getElementById('wc-ap-password-view').style.display = 'none';
+        document.getElementById('wc-ap-success-view').style.display = 'flex';
+        
+        document.getElementById('wcSuccessIcon').classList.add('animate');
+
+        // 执行扣款和发送消息逻辑
+        setTimeout(() => {
+            // 1. 扣除余额并记录交易
+            wcWalletData.balance -= wcTransferAmount;
+            const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
+            wcWalletData.transactions.unshift({
+                id: Date.now(),
+                type: 'expense',
+                title: `转账给 ${contact ? contact.name : '对方'}`,
+                amount: wcTransferAmount,
+                date: '刚刚',
+                icon: 'money'
+            });
+            wcSaveWalletData();
+
+            // 2. 发送聊天消息
+            const note = document.getElementById('wcTransferNoteInput').value.trim();
+            const msgText = note ? `[转账] ¥${wcTransferAmount.toFixed(2)} (${note})` : `[转账] ¥${wcTransferAmount.toFixed(2)}`;
+            wcAppendChatMessage(msgText, 'sent', wcCurrentChatContactId, null, null, false);
+
+            // 3. 关闭弹窗和转账页
+            wcCloseApplePay();
+            wcCloseTransferPage();
+            
+            if (typeof showToast === 'function') showToast('转账成功');
+        }, 1500);
+    }
+
+    // 处理点击转账卡片弹窗
+    window.wcHandleTransferClick = function(msgId, isSent) {
+        const messages = wcChatMessagesByContact[wcCurrentChatContactId];
+        const msg = messages.find(m => m.id === msgId);
+        if (!msg || !msg.text.startsWith('[转账]')) return;
+
+        // 如果是自己发出的转账，点击只提示状态，不弹出操作菜单
+        if (isSent) {
+            if (typeof showToast === 'function') showToast('等待对方收款');
+            return;
+        }
+
+        const overlay = document.getElementById('customDialogOverlay');
+        const dialog = document.getElementById('customDialog');
+
+        let title = '收到转账';
+        let msgText = '请选择如何处理这笔转账：';
+
+        dialog.innerHTML = `
+            <div class="custom-dialog-text">
+                <div class="custom-dialog-title">${title}</div>
+                <div class="custom-dialog-message">${msgText}</div>
+            </div>
+            <div class="custom-dialog-btns" style="flex-direction: column; padding: 10px 16px; gap: 8px;">
+                <button class="custom-dialog-btn bold" style="color: #34C759;" onclick="wcProcessTransfer('${msgId}', 'received')">确认收款</button>
+                <button class="custom-dialog-btn danger" onclick="wcProcessTransfer('${msgId}', 'rejected')">退还</button>
+                <button class="custom-dialog-btn" onclick="document.getElementById('customDialogOverlay').classList.remove('show')">取消</button>
+            </div>
+        `;
+        overlay.classList.add('show');
+    }
+
+    // 处理转账状态变更与钱包联动
+    window.wcProcessTransfer = function(msgId, action) {
+        const messages = wcChatMessagesByContact[wcCurrentChatContactId];
+        const msg = messages.find(m => m.id === msgId);
+        if (msg) {
+            if (action === 'received') {
+                msg.text = msg.text.replace('[转账]', '[已收款]');
+                // 如果是用户收到角色的钱，钱包余额增加
+                if (msg.type === 'received') {
+                    const amountMatch = msg.text.match(/¥([\d.]+)/);
+                    if (amountMatch) {
+                        const amount = parseFloat(amountMatch[1]);
+                        wcWalletData.balance += amount;
+                        wcWalletData.transactions.unshift({
+                            id: Date.now(),
+                            type: 'income',
+                            title: '收到转账',
+                            amount: amount,
+                            date: '刚刚',
+                            icon: 'money'
+                        });
+                        wcSaveWalletData();
+                    }
+                }
+            } else if (action === 'rejected') {
+                msg.text = msg.text.replace('[转账]', '[已退还]');
+                // 如果是角色退还了用户的钱，钱包余额退回
+                if (msg.type === 'sent') {
+                    const amountMatch = msg.text.match(/¥([\d.]+)/);
+                    if (amountMatch) {
+                        const amount = parseFloat(amountMatch[1]);
+                        wcWalletData.balance += amount;
+                        wcWalletData.transactions.unshift({
+                            id: Date.now(),
+                            type: 'income',
+                            title: '转账退款',
+                            amount: amount,
+                            date: '刚刚',
+                            icon: 'money'
+                        });
+                        wcSaveWalletData();
+                    }
+                }
+            }
+            wcSaveChatData();
+            wcRenderChatMessages(wcCurrentChatContactId);
+        }
+        document.getElementById('customDialogOverlay').classList.remove('show');
+    }
+
