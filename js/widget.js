@@ -1536,14 +1536,10 @@
             }, { passive: true });
 
             element.addEventListener('touchend', function (event) {
-                const touch = event.changedTouches[0];
-                const shouldActivate = trackingTouch && !touchMoved && touch;
+                const shouldActivate = trackingTouch && !touchMoved;
                 trackingTouch = false;
                 touchMoved = false;
                 if (!shouldActivate) return;
-
-                const hitTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-                if (hitTarget && !element.contains(hitTarget)) return;
 
                 if (event.cancelable) event.preventDefault();
                 event.stopPropagation();
