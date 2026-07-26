@@ -223,7 +223,15 @@
             height: calc(100% - 180px);
             position: relative;
             z-index: 5;
-            touch-action: pan-y;
+            touch-action: none;
+        }
+
+        .desktop-grid.desktop-page-hidden {
+            display: none;
+        }
+
+        .desktop-grid .widget-render-frame {
+            touch-action: none;
         }
 
         .desktop-grid.page-enter-left {
