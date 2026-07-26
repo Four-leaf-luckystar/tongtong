@@ -223,6 +223,7 @@
             height: calc(100% - 180px);
             position: relative;
             z-index: 5;
+            touch-action: pan-y;
         }
 
         .desktop-grid.page-enter-left {
