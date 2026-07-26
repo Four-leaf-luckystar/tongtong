@@ -6767,23 +6767,58 @@
             return;
         }
 
-        const overlay = document.getElementById('customDialogOverlay');
-        const dialog = document.getElementById('customDialog');
+        // 解析金额和备注
+        const amountMatch = msg.text.match(/¥([\d.]+)/);
+        const amount = amountMatch ? amountMatch[1] : '0.00';
+        const noteMatch = msg.text.match(/\((.*?)\)/);
+        const note = noteMatch ? noteMatch[1] : '';
+        
+        // 格式化时间
+        const dateObj = new Date(msg.createdAt);
+        const timeStr = `${dateObj.getFullYear()}年${(dateObj.getMonth()+1).toString().padStart(2, '0')}月${dateObj.getDate().toString().padStart(2, '0')}日 ${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}:${dateObj.getSeconds().toString().padStart(2, '0')}`;
 
-        let title = '收到转账';
-        let msgText = '请选择如何处理这笔转账：';
+        // 动态创建专属弹窗
+        let overlay = document.getElementById('wcTransferDetailOverlay');
+        if (!overlay) {
+            const overlayHtml = `<div class="wc-transfer-detail-overlay" id="wcTransferDetailOverlay" onclick="if(event.target === this) this.classList.remove('show')"></div>`;
+            document.getElementById('wechatAppUI').insertAdjacentHTML('beforeend', overlayHtml);
+            overlay = document.getElementById('wcTransferDetailOverlay');
+        }
 
-        dialog.innerHTML = `
-            <div class="custom-dialog-text">
-                <div class="custom-dialog-title">${title}</div>
-                <div class="custom-dialog-message">${msgText}</div>
-            </div>
-            <div class="custom-dialog-btns" style="flex-direction: column; padding: 10px 16px; gap: 8px;">
-                <button class="custom-dialog-btn bold" style="color: #34C759;" onclick="wcProcessTransfer('${msgId}', 'received')">确认收款</button>
-                <button class="custom-dialog-btn danger" onclick="wcProcessTransfer('${msgId}', 'rejected')">退还</button>
-                <button class="custom-dialog-btn" onclick="document.getElementById('customDialogOverlay').classList.remove('show')">取消</button>
+        overlay.innerHTML = `
+            <div class="wc-td-card" onclick="event.stopPropagation()">
+                <div class="wc-td-header">
+                    <div class="wc-td-close" onclick="document.getElementById('wcTransferDetailOverlay').classList.remove('show')">
+                        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </div>
+                </div>
+                <div class="wc-td-content">
+                    <div class="wc-td-icon pending" id="wc-td-icon-box">
+                        <svg viewBox="0 0 24 24" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </div>
+                    <div class="wc-td-status" id="wc-td-status-text">待收款</div>
+                    <div class="wc-td-amount"><span>¥</span>${amount}</div>
+                    ${note ? `<div class="wc-td-note">${note}</div>` : ''}
+                    
+                    <div class="wc-td-actions" id="wc-td-actions">
+                        <button class="wc-td-btn primary" onclick="wcProcessTransfer('${msgId}', 'received')">确认收款</button>
+                        <button class="wc-td-btn reject" onclick="wcProcessTransfer('${msgId}', 'rejected')">退还</button>
+                    </div>
+                    
+                    <div class="wc-td-info-list">
+                        <div class="wc-td-info-row">
+                            <div class="wc-td-info-label">转账时间</div>
+                            <div class="wc-td-info-value">${timeStr}</div>
+                        </div>
+                        <div class="wc-td-info-row" id="wc-td-receive-time-row" style="display: none;">
+                            <div class="wc-td-info-label" id="wc-td-receive-time-label">收款时间</div>
+                            <div class="wc-td-info-value" id="wc-td-receive-time-value"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
+        
         overlay.classList.add('show');
     }
 
@@ -6792,6 +6827,9 @@
         const messages = wcChatMessagesByContact[wcCurrentChatContactId];
         const msg = messages.find(m => m.id === msgId);
         if (msg) {
+            const now = new Date();
+            const timeStr = `${now.getFullYear()}年${(now.getMonth()+1).toString().padStart(2, '0')}月${now.getDate().toString().padStart(2, '0')}日 ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+
             if (action === 'received') {
                 msg.text = msg.text.replace('[转账]', '[已收款]');
                 // 如果是用户收到角色的钱，钱包余额增加
@@ -6811,6 +6849,25 @@
                         wcSaveWalletData();
                     }
                 }
+                
+                // 更新弹窗 UI
+                const iconBox = document.getElementById('wc-td-icon-box');
+                if (iconBox) {
+                    iconBox.className = 'wc-td-icon';
+                    iconBox.style.backgroundColor = '#07C160';
+                    iconBox.innerHTML = '<svg viewBox="0 0 24 24" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+                }
+                const statusText = document.getElementById('wc-td-status-text');
+                if (statusText) statusText.innerText = '你已收款，资金已存入零钱';
+                const actions = document.getElementById('wc-td-actions');
+                if (actions) actions.style.display = 'none';
+                const timeRow = document.getElementById('wc-td-receive-time-row');
+                if (timeRow) {
+                    timeRow.style.display = 'flex';
+                    document.getElementById('wc-td-receive-time-label').innerText = '收款时间';
+                    document.getElementById('wc-td-receive-time-value').innerText = timeStr;
+                }
+
             } else if (action === 'rejected') {
                 msg.text = msg.text.replace('[转账]', '[已退还]');
                 // 如果是角色退还了用户的钱，钱包余额退回
@@ -6830,10 +6887,36 @@
                         wcSaveWalletData();
                     }
                 }
+
+                // 更新弹窗 UI
+                const iconBox = document.getElementById('wc-td-icon-box');
+                if (iconBox) {
+                    iconBox.className = 'wc-td-icon';
+                    iconBox.style.backgroundColor = '#FF3B30';
+                    iconBox.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                          <g fill="none" fill-rule="nonzero">
+                            <path d="M16 0v16H0V0zM8.395999999999999 15.505333333333333l-0.008 0.0013333333333333333 -0.047333333333333324 0.023333333333333334 -0.013333333333333332 0.0026666666666666666 -0.009333333333333332 -0.0026666666666666666 -0.047333333333333324 -0.023999999999999997c-0.006666666666666666 -0.002 -0.012666666666666666 0 -0.016 0.004l-0.0026666666666666666 0.006666666666666666 -0.011333333333333334 0.2853333333333333 0.003333333333333333 0.013333333333333332 0.006666666666666666 0.008666666666666666 0.06933333333333333 0.049333333333333326 0.009999999999999998 0.0026666666666666666 0.008 -0.0026666666666666666 0.06933333333333333 -0.049333333333333326 0.008 -0.010666666666666666 0.0026666666666666666 -0.011333333333333334 -0.011333333333333334 -0.2846666666666666c-0.0013333333333333333 -0.006666666666666666 -0.005999999999999999 -0.011333333333333334 -0.010666666666666666 -0.011999999999999999m0.176 -0.07533333333333334 -0.009333333333333332 0.0013333333333333333 -0.12266666666666666 0.062 -0.006666666666666666 0.006666666666666666 -0.002 0.007333333333333332 0.011999999999999999 0.2866666666666666 0.003333333333333333 0.008 0.005333333333333333 0.005333333333333333 0.134 0.06133333333333333c0.008 0.0026666666666666666 0.015333333333333332 0 0.019333333333333334 -0.005333333333333333l0.0026666666666666666 -0.009333333333333332 -0.02266666666666667 -0.4093333333333333c-0.002 -0.008 -0.006666666666666666 -0.013333333333333332 -0.013333333333333332 -0.014666666666666665m-0.4766666666666666 0.0013333333333333333a0.015333333333333332 0.015333333333333332 0 0 0 -0.018 0.004l-0.004 0.009333333333333332 -0.02266666666666667 0.4093333333333333c0 0.008 0.004666666666666666 0.013333333333333332 0.011333333333333334 0.016l0.009999999999999998 -0.0013333333333333333 0.134 -0.062 0.006666666666666666 -0.005333333333333333 0.002 -0.007333333333333332 0.011999999999999999 -0.2866666666666666 -0.002 -0.008 -0.006666666666666666 -0.006666666666666666z" stroke-width="0.6667"></path>
+                            <path fill="#ffffff" d="M14.44 6.274666666666667c0.952 3.5559999999999996 -1.158 7.212 -4.714666666666666 8.164666666666665 -3.0653333333333332 0.8213333333333332 -6.2026666666666666 -0.6333333333333333 -7.622 -3.3266666666666667a0.6666666666666666 0.6666666666666666 0 0 1 1.18 -0.6213333333333333 5.333333333333333 5.333333333333333 0 1 0 -0.30133333333333334 -4.299333333333333l0.7046666666666666 -0.15666666666666665c0.7906666666666666 -0.17666666666666667 1.2413333333333334 0.8706666666666667 0.5693333333333332 1.3233333333333333L2.4739999999999998 8.559999999999999c-0.47866666666666663 0.32199999999999995 -1.1466666666666665 -0.010666666666666666 -1.142 -0.612a6.668666666666667 6.668666666666667 0 0 1 4.942666666666666 -6.386666666666667C9.830666666666666 0.6066666666666667 13.486666666666666 2.717333333333333 14.439333333333332 6.273333333333333M10.399999999999999 4.8a0.6666666666666666 0.6666666666666666 0 0 1 0.13333333333333333 0.9333333333333332L9.333333333333332 7.333333333333333h0.6666666666666666a0.6666666666666666 0.6666666666666666 0 0 1 0 1.3333333333333333h-1.3333333333333333v0.6666666666666666h1.3333333333333333a0.6666666666666666 0.6666666666666666 0 0 1 0 1.3333333333333333h-1.3333333333333333v0.6666666666666666a0.6666666666666666 0.6666666666666666 0 0 1 -1.3333333333333333 0v-0.6666666666666666H6a0.6666666666666666 0.6666666666666666 0 0 1 0 -1.3333333333333333h1.3333333333333333v-0.6666666666666666H6a0.6666666666666666 0.6666666666666666 0 0 1 0 -1.3333333333333333h0.6666666666666666L5.466666666666666 5.7333333333333325a0.6666666666666666 0.6666666666666666 0 1 1 1.0666666666666667 -0.7999999999999999l1.4666666666666668 1.9553333333333331L9.466666666666665 4.933333333333334a0.6666666666666666 0.6666666666666666 0 0 1 0.9333333333333332 -0.13333333333333333" stroke-width="0.6667"></path>
+                          </g>
+                        </svg>
+                    `;
+                }
+                const statusText = document.getElementById('wc-td-status-text');
+                if (statusText) statusText.innerText = '已退还';
+                const actions = document.getElementById('wc-td-actions');
+                if (actions) actions.style.display = 'none';
+                const timeRow = document.getElementById('wc-td-receive-time-row');
+                if (timeRow) {
+                    timeRow.style.display = 'flex';
+                    document.getElementById('wc-td-receive-time-label').innerText = '退还时间';
+                    document.getElementById('wc-td-receive-time-value').innerText = timeStr;
+                }
             }
+            
             wcSaveChatData();
             wcRenderChatMessages(wcCurrentChatContactId);
         }
-        document.getElementById('customDialogOverlay').classList.remove('show');
+        // 移除关闭弹窗的代码，让用户手动点击 X 关闭
     }
 
