@@ -3987,13 +3987,11 @@
             `;
             bubble.innerHTML = transferHtml;
             
-            // 5. 绑定点击事件 (仅未收款状态可点击)
-            if (transferState === 'pending') {
-                bubble.querySelector('.wc-transfer-card').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    wcHandleTransferClick(message.id, isSent);
-                });
-            }
+            // 5. 绑定点击事件 (所有状态均可点击)
+            bubble.querySelector('.wc-transfer-card').addEventListener('click', (e) => {
+                e.stopPropagation();
+                wcHandleTransferClick(message.id, isSent);
+            });
         } else {
             const messageText = document.createElement('div');
             messageText.className = 'msg-text';
@@ -6537,12 +6535,15 @@
         const span = document.createElement('span');
         span.style.fontSize = '72px';
         span.style.fontWeight = '200';
+        // 必须与输入框保持一致的字体，否则计算宽度会偏小导致被砍掉一半
+        span.style.fontFamily = '-apple-system, BlinkMacSystemFont, sans-serif'; 
         span.style.visibility = 'hidden';
         span.style.position = 'absolute';
         span.style.whiteSpace = 'pre';
         span.innerText = input.value || input.placeholder;
         document.body.appendChild(span);
-        input.style.width = Math.max(160, span.offsetWidth + 10) + 'px';
+        // 基础宽度调大到 180，并加上 20px 的安全边距
+        input.style.width = Math.max(180, span.offsetWidth + 20) + 'px';
         document.body.removeChild(span);
     }
 
@@ -6759,13 +6760,13 @@
     window.wcHandleTransferClick = function(msgId, isSent) {
         const messages = wcChatMessagesByContact[wcCurrentChatContactId];
         const msg = messages.find(m => m.id === msgId);
-        if (!msg || !msg.text.startsWith('[转账]')) return;
+        if (!msg || (!msg.text.startsWith('[转账]') && !msg.text.startsWith('[已收款]') && !msg.text.startsWith('[已退还]') && !msg.text.startsWith('[已过期]'))) return;
 
-        // 如果是自己发出的转账，点击只提示状态，不弹出操作菜单
-        if (isSent) {
-            if (typeof showToast === 'function') showToast('等待对方收款');
-            return;
-        }
+        // 解析状态
+        let transferState = 'pending';
+        if (msg.text.startsWith('[已收款]')) transferState = 'received';
+        else if (msg.text.startsWith('[已退还]')) transferState = 'rejected';
+        else if (msg.text.startsWith('[已过期]')) transferState = 'expired';
 
         // 解析金额和备注
         const amountMatch = msg.text.match(/¥([\d.]+)/);
@@ -6785,6 +6786,34 @@
             overlay = document.getElementById('wcTransferDetailOverlay');
         }
 
+        let iconHtml = '';
+        let iconBg = '';
+        let statusText = '';
+        let showActions = false;
+        let timeLabel = '转账时间';
+
+        if (transferState === 'pending') {
+            iconHtml = '<svg viewBox="0 0 24 24" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>';
+            iconBg = '#FF9500';
+            statusText = isSent ? '等待对方收款' : '待收款';
+            showActions = !isSent; // 只有对方发给我的待收款，才显示收款/退还按钮
+        } else if (transferState === 'received') {
+            iconHtml = '<svg viewBox="0 0 24 24" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            iconBg = '#07C160';
+            statusText = isSent ? '对方已收款' : '你已收款，资金已存入零钱';
+            timeLabel = '收款时间';
+        } else if (transferState === 'rejected') {
+            iconHtml = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g fill="none" fill-rule="nonzero"><path d="M16 0v16H0V0zM8.395999999999999 15.505333333333333l-0.008 0.0013333333333333333 -0.047333333333333324 0.023333333333333334 -0.013333333333333332 0.0026666666666666666 -0.009333333333333332 -0.0026666666666666666 -0.047333333333333324 -0.023999999999999997c-0.006666666666666666 -0.002 -0.012666666666666666 0 -0.016 0.004l-0.0026666666666666666 0.006666666666666666 -0.011333333333333334 0.2853333333333333 0.003333333333333333 0.013333333333333332 0.006666666666666666 0.008666666666666666 0.06933333333333333 0.049333333333333326 0.009999999999999998 0.0026666666666666666 0.008 -0.0026666666666666666 0.06933333333333333 -0.049333333333333326 0.008 -0.010666666666666666 0.0026666666666666666 -0.011333333333333334 -0.011333333333333334 -0.2846666666666666c-0.0013333333333333333 -0.006666666666666666 -0.005999999999999999 -0.011333333333333334 -0.010666666666666666 -0.011999999999999999m0.176 -0.07533333333333334 -0.009333333333333332 0.0013333333333333333 -0.12266666666666666 0.062 -0.006666666666666666 0.006666666666666666 -0.002 0.007333333333333332 0.011999999999999999 0.2866666666666666 0.003333333333333333 0.008 0.005333333333333333 0.005333333333333333 0.134 0.06133333333333333c0.008 0.0026666666666666666 0.015333333333333332 0 0.019333333333333334 -0.005333333333333333l0.0026666666666666666 -0.009333333333333332 -0.02266666666666667 -0.4093333333333333c-0.002 -0.008 -0.006666666666666666 -0.013333333333333332 -0.013333333333333332 -0.014666666666666665m-0.4766666666666666 0.0013333333333333333a0.015333333333333332 0.015333333333333332 0 0 0 -0.018 0.004l-0.004 0.009333333333333332 -0.02266666666666667 0.4093333333333333c0 0.008 0.004666666666666666 0.013333333333333332 0.011333333333333334 0.016l0.009999999999999998 -0.0013333333333333333 0.134 -0.062 0.006666666666666666 -0.005333333333333333 0.002 -0.007333333333333332 0.011999999999999999 -0.2866666666666666 -0.002 -0.008 -0.006666666666666666 -0.006666666666666666z" stroke-width="0.6667"></path><path fill="#ffffff" d="M14.44 6.274666666666667c0.952 3.5559999999999996 -1.158 7.212 -4.714666666666666 8.164666666666665 -3.0653333333333332 0.8213333333333332 -6.2026666666666666 -0.6333333333333333 -7.622 -3.3266666666666667a0.6666666666666666 0.6666666666666666 0 0 1 1.18 -0.6213333333333333 5.333333333333333 5.333333333333333 0 1 0 -0.30133333333333334 -4.299333333333333l0.7046666666666666 -0.15666666666666665c0.7906666666666666 -0.17666666666666667 1.2413333333333334 0.8706666666666667 0.5693333333333332 1.3233333333333333L2.4739999999999998 8.559999999999999c-0.47866666666666663 0.32199999999999995 -1.1466666666666665 -0.010666666666666666 -1.142 -0.612a6.668666666666667 6.668666666666667 0 0 1 4.942666666666666 -6.386666666666667C9.830666666666666 0.6066666666666667 13.486666666666666 2.717333333333333 14.439333333333332 6.273333333333333M10.399999999999999 4.8a0.6666666666666666 0.6666666666666666 0 0 1 0.13333333333333333 0.9333333333333332L9.333333333333332 7.333333333333333h0.6666666666666666a0.6666666666666666 0.6666666666666666 0 0 1 0 1.3333333333333333h-1.3333333333333333v0.6666666666666666h1.3333333333333333a0.6666666666666666 0.6666666666666666 0 0 1 0 1.3333333333333333h-1.3333333333333333v0.6666666666666666a0.6666666666666666 0.6666666666666666 0 0 1 -1.3333333333333333 0v-0.6666666666666666H6a0.6666666666666666 0.6666666666666666 0 0 1 0 -1.3333333333333333h1.3333333333333333v-0.6666666666666666H6a0.6666666666666666 0.6666666666666666 0 0 1 0 -1.3333333333333333h0.6666666666666666L5.466666666666666 5.7333333333333325a0.6666666666666666 0.6666666666666666 0 1 1 1.0666666666666667 -0.7999999999999999l1.4666666666666668 1.9553333333333331L9.466666666666665 4.933333333333334a0.6666666666666666 0.6666666666666666 0 0 1 0.9333333333333332 -0.13333333333333333" stroke-width="0.6667"></path></g></svg>';
+            iconBg = '#FF3B30';
+            statusText = isSent ? '对方已退还' : '已退还';
+            timeLabel = '退还时间';
+        } else if (transferState === 'expired') {
+            iconHtml = '<svg viewBox="0 0 24 24" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+            iconBg = '#8E8E93';
+            statusText = '已过期';
+            timeLabel = '过期时间';
+        }
+
         overlay.innerHTML = `
             <div class="wc-td-card" onclick="event.stopPropagation()">
                 <div class="wc-td-header">
@@ -6793,27 +6822,31 @@
                     </div>
                 </div>
                 <div class="wc-td-content">
-                    <div class="wc-td-icon pending" id="wc-td-icon-box">
-                        <svg viewBox="0 0 24 24" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <div class="wc-td-icon" id="wc-td-icon-box" style="background-color: ${iconBg};">
+                        ${iconHtml}
                     </div>
-                    <div class="wc-td-status" id="wc-td-status-text">待收款</div>
+                    <div class="wc-td-status" id="wc-td-status-text">${statusText}</div>
                     <div class="wc-td-amount"><span>¥</span>${amount}</div>
                     ${note ? `<div class="wc-td-note">${note}</div>` : ''}
                     
+                    ${showActions ? `
                     <div class="wc-td-actions" id="wc-td-actions">
                         <button class="wc-td-btn primary" onclick="wcProcessTransfer('${msgId}', 'received')">确认收款</button>
                         <button class="wc-td-btn reject" onclick="wcProcessTransfer('${msgId}', 'rejected')">退还</button>
                     </div>
+                    ` : ''}
                     
                     <div class="wc-td-info-list">
                         <div class="wc-td-info-row">
                             <div class="wc-td-info-label">转账时间</div>
                             <div class="wc-td-info-value">${timeStr}</div>
                         </div>
-                        <div class="wc-td-info-row" id="wc-td-receive-time-row" style="display: none;">
-                            <div class="wc-td-info-label" id="wc-td-receive-time-label">收款时间</div>
-                            <div class="wc-td-info-value" id="wc-td-receive-time-value"></div>
+                        ${transferState !== 'pending' ? `
+                        <div class="wc-td-info-row" id="wc-td-receive-time-row">
+                            <div class="wc-td-info-label" id="wc-td-receive-time-label">${timeLabel}</div>
+                            <div class="wc-td-info-value" id="wc-td-receive-time-value">${timeStr}</div>
                         </div>
+                        ` : ''}
                     </div>
                 </div>
             </div>
