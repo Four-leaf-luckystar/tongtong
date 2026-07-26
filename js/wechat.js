@@ -4207,8 +4207,11 @@
 
     function wcMenuAction(action) {
         if (!wcCurrentLongPressMsgId || !wcCurrentChatContactId) return;
-        const messages = wcChatMessagesByContact[wcCurrentChatContactId];
-        const msgIndex = messages.findIndex(m => m.id === wcCurrentLongPressMsgId);
+        const targetContactId = wcCurrentChatContactId;
+        const targetMsgId = wcCurrentLongPressMsgId;
+        const messages = wcChatMessagesByContact[targetContactId];
+        if (!Array.isArray(messages)) return;
+        const msgIndex = messages.findIndex(m => m.id === targetMsgId);
         if (msgIndex === -1) return;
         const msg = messages[msgIndex];
 
@@ -4228,9 +4231,13 @@
         } else if (action === 'delete') {
             showCustomConfirm('删除消息', '确定要删除这条消息吗？', '删除', true).then(confirmed => {
                 if (confirmed) {
-                    wcChatMessagesByContact[wcCurrentChatContactId] = messages.filter(m => m.id !== wcCurrentLongPressMsgId);
+                    const currentMessages = wcChatMessagesByContact[targetContactId];
+                    if (!Array.isArray(currentMessages)) return;
+                    wcChatMessagesByContact[targetContactId] = currentMessages.filter(m => m.id !== targetMsgId);
                     wcSaveChatData();
-                    wcRenderChatMessages(wcCurrentChatContactId);
+                    if (wcCurrentChatContactId === targetContactId) {
+                        wcRenderChatMessages(targetContactId);
+                    }
                     if (typeof showToast === 'function') showToast('已删除');
                 }
             });
