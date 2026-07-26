@@ -3,9 +3,13 @@
             const COLUMN_GAP = 10;
             const ROW_HEIGHT = 80;
             const ROW_GAP = 15;
-            const grid = document.getElementById('desktopGrid');
+            const grid = getCurrentDesktopPageElement() || document.getElementById('desktopGrid');
             const gridStyle = grid ? window.getComputedStyle(grid) : null;
-            const horizontalPadding = gridStyle ? parseFloat(gridStyle.paddingLeft) + parseFloat(gridStyle.paddingRight) : 0;
+            const horizontalPadding = grid && grid.id === 'desktopGrid'
+                ? 40
+                : gridStyle
+                    ? parseFloat(gridStyle.paddingLeft) + parseFloat(gridStyle.paddingRight)
+                    : 0;
             const gridWidth = grid ? grid.clientWidth - horizontalPadding : 0;
             const columnWidth = gridWidth > 0 ? (gridWidth - COLUMN_GAP * 3) / 4 : 80;
 
@@ -51,10 +55,9 @@
 
         function buildDesktopWidgetFrameContent(content) {
             const normalizedContent = normalizeStoredWidgetContent(content);
-            const frameContent = typeof window.buildWidgetDesktopContent === 'function'
+            return typeof window.buildWidgetDesktopContent === 'function'
                 ? window.buildWidgetDesktopContent(normalizedContent)
                 : normalizedContent;
-            return '<style>html,body,body *{touch-action:none!important;}</style>' + frameContent;
         }
 
         function makeDesktopWidgetFrameHTML(content) {
@@ -69,7 +72,7 @@
         }
 
         function refreshDesktopWidgetFrames() {
-            document.querySelectorAll('.desktop-grid[data-desktop-page] .app-item.is-widget').forEach(app => {
+            document.querySelectorAll('#desktopGrid .app-item.is-widget').forEach(app => {
                 const frame = app.querySelector('.widget-render-frame');
                 if (!frame) return;
                 const content = app.getAttribute('data-widget-content') || '';
@@ -80,7 +83,20 @@
 
         let desktopPages = [[]];
         let currentDesktopPage = 0;
-        let desktopPageGrids = [];
+        let desktopLastScrollAt = 0;
+
+        function getDesktopPageElements() {
+            return Array.from(document.querySelectorAll('#desktopGrid > .desktop-page-grid'));
+        }
+
+        function getCurrentDesktopPageElement() {
+            return getDesktopPageElements()[currentDesktopPage] || null;
+        }
+
+        function getCurrentDesktopSlots() {
+            const page = getCurrentDesktopPageElement();
+            return page ? Array.from(page.querySelectorAll(':scope > .desktop-slot')) : [];
+        }
 
         function cloneDesktopPage(page) {
             return Array.isArray(page) ? page.map(app => ({ ...app })) : [];
@@ -114,9 +130,11 @@
             return appData;
         }
 
-        function serializeDesktopGrid() {
+        function serializeDesktopGrid(pageIndex = currentDesktopPage) {
             const apps = [];
-            document.querySelectorAll('#desktopGrid .desktop-slot').forEach((slot, index) => {
+            const page = getDesktopPageElements()[pageIndex];
+            if (!page) return apps;
+            page.querySelectorAll(':scope > .desktop-slot').forEach((slot, index) => {
                 const app = slot.querySelector(':scope > .app-item');
                 if (app) apps.push(serializeAppElement(app, index));
             });
@@ -133,7 +151,9 @@
         }
 
         function getDesktopPagesSnapshot() {
-            commitCurrentDesktopPage();
+            getDesktopPageElements().forEach((page, index) => {
+                desktopPages[index] = serializeDesktopGrid(index);
+            });
             return desktopPages.map(cloneDesktopPage);
         }
 
@@ -175,12 +195,14 @@
             });
             controls.classList.toggle('is-editing', isEditMode);
             const deleteButton = controls.querySelector('.desktop-page-delete');
-            const currentPageIsEmpty = !document.querySelector('#desktopGrid .desktop-slot > .app-item');
+            const currentPageIsEmpty = serializeDesktopGrid().length === 0;
             deleteButton.disabled = desktopPages.length <= 1 || !currentPageIsEmpty;
         }
 
-        function populateDesktopPageGrid(desktopGrid, pageData = []) {
-            desktopGrid.innerHTML = '';
+        function createDesktopPageElement(pageData = [], pageIndex = 0) {
+            const page = document.createElement('div');
+            page.className = 'desktop-page-grid';
+            page.dataset.pageIndex = String(pageIndex);
             for (let i = 0; i < 28; i++) {
                 const slot = document.createElement('div');
                 slot.className = 'desktop-slot' + (isEditMode ? ' show-grid' : '');
@@ -192,78 +214,65 @@
                     if (isEditMode) app.classList.add('jiggling');
                     slot.appendChild(app);
                 }
-                desktopGrid.appendChild(slot);
+                page.appendChild(slot);
             }
-            desktopGrid.dataset.desktopRendered = 'true';
-            rebuildDesktopWidgetOccupancy(desktopGrid);
+            return page;
         }
 
-        function createDesktopPageGrid(pageIndex) {
-            const desktopGrid = document.createElement('div');
-            desktopGrid.className = 'desktop-grid desktop-page-hidden';
-            desktopGrid.dataset.desktopPage = String(pageIndex);
-            const iphone = document.querySelector('.iphone');
-            const searchBar = document.getElementById('desktopSearchBar');
-            if (iphone) iphone.insertBefore(desktopGrid, searchBar || null);
-            desktopPageGrids[pageIndex] = desktopGrid;
-            return desktopGrid;
-        }
-
-        function resetDesktopPageGrids() {
-            const iphone = document.querySelector('.iphone');
-            if (!iphone) return;
-            const grids = Array.from(iphone.children).filter(child => child.classList && child.classList.contains('desktop-grid'));
-            const primaryGrid = document.getElementById('desktopGrid') || grids[0];
-            grids.forEach(grid => {
-                if (grid !== primaryGrid) grid.remove();
-            });
-            desktopPageGrids = [];
-            if (primaryGrid) {
-                primaryGrid.id = 'desktopGrid';
-                primaryGrid.classList.remove('desktop-page-hidden', 'page-enter-left', 'page-enter-right');
-                primaryGrid.removeAttribute('data-desktop-rendered');
-                primaryGrid.dataset.desktopPage = String(currentDesktopPage);
-                desktopPageGrids[currentDesktopPage] = primaryGrid;
-            }
-        }
-
-        function renderDesktopPage(pageData = [], direction = 0) {
-            const previousGrid = document.getElementById('desktopGrid');
-            let desktopGrid = desktopPageGrids[currentDesktopPage];
-            if (!desktopGrid) desktopGrid = createDesktopPageGrid(currentDesktopPage);
-
-            if (previousGrid && previousGrid !== desktopGrid) {
-                previousGrid.removeAttribute('id');
-                previousGrid.classList.add('desktop-page-hidden');
-                previousGrid.classList.remove('page-enter-left', 'page-enter-right');
-            }
-
-            desktopGrid.id = 'desktopGrid';
-            desktopGrid.dataset.desktopPage = String(currentDesktopPage);
-            desktopGrid.classList.remove('desktop-page-hidden');
-            if (desktopGrid.dataset.desktopRendered !== 'true') {
-                populateDesktopPageGrid(desktopGrid, pageData);
+        function alignDesktopScroller(behavior = 'auto') {
+            const desktopGrid = document.getElementById('desktopGrid');
+            const left = currentDesktopPage * desktopGrid.clientWidth;
+            if (typeof desktopGrid.scrollTo === 'function') {
+                desktopGrid.scrollTo({ left, top: 0, behavior });
             } else {
-                rebuildDesktopWidgetOccupancy();
+                desktopGrid.scrollLeft = left;
             }
-            if (direction) {
-                desktopGrid.classList.remove('page-enter-left', 'page-enter-right');
-                void desktopGrid.offsetWidth;
-                desktopGrid.classList.add(direction > 0 ? 'page-enter-right' : 'page-enter-left');
-            }
+        }
+
+        function renderDesktopPages() {
+            const desktopGrid = document.getElementById('desktopGrid');
+            desktopGrid.innerHTML = '';
+            desktopPages.forEach((pageData, pageIndex) => {
+                desktopGrid.appendChild(createDesktopPageElement(pageData, pageIndex));
+            });
+            rebuildDesktopWidgetOccupancy();
+            alignDesktopScroller('auto');
             renderDesktopPageControls();
         }
+
+        let desktopScrollSaveTimer = null;
+        const desktopScroller = document.getElementById('desktopGrid');
+        desktopScroller.addEventListener('scroll', () => {
+            if (isEditMode || desktopScroller.clientWidth <= 0) return;
+            desktopLastScrollAt = Date.now();
+            const nextPage = Math.max(0, Math.min(
+                Math.round(desktopScroller.scrollLeft / desktopScroller.clientWidth),
+                desktopPages.length - 1
+            ));
+            if (nextPage !== currentDesktopPage) {
+                currentDesktopPage = nextPage;
+                rebuildDesktopWidgetOccupancy();
+                renderDesktopPageControls();
+            }
+            if (desktopScrollSaveTimer) clearTimeout(desktopScrollSaveTimer);
+            desktopScrollSaveTimer = setTimeout(() => {
+                desktopScrollSaveTimer = null;
+                if (typeof window.saveLayout === 'function') window.saveLayout();
+            }, 180);
+        }, { passive: true });
 
         function switchDesktopPage(pageIndex, options = {}) {
             const nextPage = Math.max(0, Math.min(Number(pageIndex) || 0, desktopPages.length - 1));
             if (nextPage === currentDesktopPage) {
+                alignDesktopScroller(options.behavior || 'smooth');
                 renderDesktopPageControls();
                 return false;
             }
             if (!options.skipCommit) commitCurrentDesktopPage();
-            const direction = nextPage > currentDesktopPage ? 1 : -1;
             currentDesktopPage = nextPage;
-            renderDesktopPage(desktopPages[currentDesktopPage], direction);
+            alignDesktopScroller(options.behavior || 'smooth');
+            rebuildDesktopWidgetOccupancy();
+            renderDesktopPageControls();
             if (!options.skipSave && typeof window.saveLayout === 'function') window.saveLayout();
             return true;
         }
@@ -271,23 +280,28 @@
         function addBlankDesktopPage() {
             commitCurrentDesktopPage();
             desktopPages.push([]);
+            const desktopGrid = document.getElementById('desktopGrid');
+            desktopGrid.appendChild(createDesktopPageElement([], desktopPages.length - 1));
             currentDesktopPage = desktopPages.length - 1;
-            renderDesktopPage(desktopPages[currentDesktopPage], 1);
+            alignDesktopScroller('smooth');
+            rebuildDesktopWidgetOccupancy();
+            renderDesktopPageControls();
             if (typeof window.saveLayout === 'function') window.saveLayout();
         }
 
         function deleteCurrentBlankDesktopPage() {
             commitCurrentDesktopPage();
             if (desktopPages.length <= 1 || desktopPages[currentDesktopPage].length > 0) return false;
-            const deletedGrid = desktopPageGrids[currentDesktopPage];
-            if (deletedGrid) deletedGrid.remove();
+            const pageElements = getDesktopPageElements();
+            if (pageElements[currentDesktopPage]) pageElements[currentDesktopPage].remove();
             desktopPages.splice(currentDesktopPage, 1);
-            desktopPageGrids.splice(currentDesktopPage, 1);
-            desktopPageGrids.forEach((grid, index) => {
-                if (grid) grid.dataset.desktopPage = String(index);
-            });
             currentDesktopPage = Math.min(currentDesktopPage, desktopPages.length - 1);
-            renderDesktopPage(desktopPages[currentDesktopPage], -1);
+            getDesktopPageElements().forEach((page, index) => {
+                page.dataset.pageIndex = String(index);
+            });
+            alignDesktopScroller('auto');
+            rebuildDesktopWidgetOccupancy();
+            renderDesktopPageControls();
             if (typeof window.saveLayout === 'function') window.saveLayout();
             return true;
         }
@@ -329,8 +343,8 @@
             return indexes;
         }
 
-        function rebuildDesktopWidgetOccupancy(grid = document.getElementById('desktopGrid')) {
-            const slots = grid ? Array.from(grid.querySelectorAll('.desktop-slot')) : [];
+        function rebuildDesktopWidgetOccupancy() {
+            const slots = getCurrentDesktopSlots();
             slots.forEach(slot => slot.removeAttribute('data-widget-occupied-by'));
             slots.forEach((slot, startIndex) => {
                 const widget = slot.querySelector(':scope > .app-item.is-widget');
@@ -345,7 +359,7 @@
         }
 
         function isDesktopAreaAvailable(startIndex, columns, rows, ignoredWidget) {
-            const slots = Array.from(document.querySelectorAll('#desktopGrid .desktop-slot'));
+            const slots = getCurrentDesktopSlots();
             const indexes = getDesktopAreaIndexes(startIndex, columns, rows);
             if (indexes.length !== columns * rows) return false;
             const ignoredId = ignoredWidget ? ignoredWidget.getAttribute('data-app-id') : '';
@@ -359,7 +373,7 @@
 
         function findAvailableWidgetSlot(columns, rows) {
             rebuildDesktopWidgetOccupancy();
-            const slots = Array.from(document.querySelectorAll('#desktopGrid .desktop-slot'));
+            const slots = getCurrentDesktopSlots();
             for (let index = 0; index < slots.length; index++) {
                 if (isDesktopAreaAvailable(index, columns, rows, null)) return slots[index];
             }
@@ -473,7 +487,6 @@
         dock.innerHTML = '';
         desktopPages = normalizeDesktopPages(desktopData);
         currentDesktopPage = Math.max(0, Math.min(Number(pageIndex) || 0, desktopPages.length - 1));
-        resetDesktopPageGrids();
 
             // show three-dots button; click to expand vertical capsule menu
         let hasSettings = false;
@@ -516,7 +529,7 @@
         }
         // ----------------------------------
 
-        renderDesktopPage(desktopPages[currentDesktopPage]);
+        renderDesktopPages();
 
         dockData.forEach(appData => {
             dock.appendChild(createAppElement(appData.name, appData.icon, appData.appId));
@@ -565,112 +578,6 @@
     let dragEdgeTimer = null;
     let dragEdgeDirection = 0;
     let dragEdgeLocked = false;
-    let desktopSwipePointerId = null;
-    let desktopSwipeStartX = 0;
-    let desktopSwipeStartY = 0;
-    let desktopPointerSwipeHandled = false;
-    let desktopTouchIdentifier = null;
-    let desktopTouchStartX = 0;
-    let desktopTouchStartY = 0;
-    let desktopTouchLastX = 0;
-    let desktopTouchLastY = 0;
-    let desktopTouchSwipeHandled = false;
-    let desktopSwipeHandledAt = 0;
-
-    function handleDesktopSwipe(startClientX, startClientY, endClientX, endClientY) {
-        const diffX = endClientX - startClientX;
-        const diffY = endClientY - startClientY;
-        const isHorizontalSwipe = Math.abs(diffX) >= 48 && Math.abs(diffX) > Math.abs(diffY) * 1.25;
-        if (!isHorizontalSwipe) return false;
-
-        const now = Date.now();
-        if (now - desktopSwipeHandledAt > 120) {
-            desktopSwipeHandledAt = now;
-            switchDesktopPage(currentDesktopPage + (diffX < 0 ? 1 : -1));
-        }
-        return true;
-    }
-
-    function findDesktopTouch(touchList) {
-        return Array.from(touchList).find(touch => touch.identifier === desktopTouchIdentifier) || null;
-    }
-
-    function resetDesktopTouchSwipe() {
-        desktopTouchIdentifier = null;
-        desktopTouchStartX = 0;
-        desktopTouchStartY = 0;
-        desktopTouchLastX = 0;
-        desktopTouchLastY = 0;
-        desktopTouchSwipeHandled = false;
-    }
-
-    const desktopSwipeSurface = document.querySelector('.iphone');
-    if (desktopSwipeSurface) {
-        desktopSwipeSurface.addEventListener('touchstart', event => {
-            const desktopGrid = event.target.closest('#desktopGrid');
-            const startedOnApp = event.target.closest('.app-item');
-            if (!desktopGrid || event.touches.length !== 1 || (isEditMode && startedOnApp)) {
-                resetDesktopTouchSwipe();
-                return;
-            }
-            const touch = event.changedTouches[0];
-            desktopTouchIdentifier = touch.identifier;
-            desktopTouchStartX = touch.clientX;
-            desktopTouchStartY = touch.clientY;
-            desktopTouchLastX = touch.clientX;
-            desktopTouchLastY = touch.clientY;
-            desktopTouchSwipeHandled = false;
-        }, { passive: true, capture: true });
-
-        desktopSwipeSurface.addEventListener('touchmove', event => {
-            if (desktopTouchIdentifier === null) return;
-            const touch = findDesktopTouch(event.touches);
-            if (!touch) return;
-
-            desktopTouchLastX = touch.clientX;
-            desktopTouchLastY = touch.clientY;
-            const diffX = desktopTouchLastX - desktopTouchStartX;
-            const diffY = desktopTouchLastY - desktopTouchStartY;
-            if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
-                if (pressTimer) {
-                    clearTimeout(pressTimer);
-                    pressTimer = null;
-                }
-            }
-            if (Math.abs(diffX) > 10 && Math.abs(diffX) > Math.abs(diffY)) {
-                event.preventDefault();
-            }
-            if (!desktopTouchSwipeHandled) {
-                desktopTouchSwipeHandled = handleDesktopSwipe(
-                    desktopTouchStartX,
-                    desktopTouchStartY,
-                    desktopTouchLastX,
-                    desktopTouchLastY
-                );
-            }
-        }, { passive: false, capture: true });
-
-        desktopSwipeSurface.addEventListener('touchend', event => {
-            if (desktopTouchIdentifier === null) return;
-            const touch = findDesktopTouch(event.changedTouches);
-            if (touch) {
-                desktopTouchLastX = touch.clientX;
-                desktopTouchLastY = touch.clientY;
-                if (!desktopTouchSwipeHandled) {
-                    handleDesktopSwipe(
-                        desktopTouchStartX,
-                        desktopTouchStartY,
-                        desktopTouchLastX,
-                        desktopTouchLastY
-                    );
-                }
-            }
-            resetDesktopTouchSwipe();
-        }, { passive: true, capture: true });
-
-        desktopSwipeSurface.addEventListener('touchcancel', resetDesktopTouchSwipe, { passive: true, capture: true });
-    }
-
     function enterEditMode() {
         if (isEditMode) return;
         isEditMode = true;
@@ -678,6 +585,7 @@
         statusBar.style.visibility = 'hidden';
         editPlus.style.display = 'flex';
         editDone.style.display = 'block';
+        document.getElementById('desktopGrid').classList.add('is-editing');
 
             // show three-dots button; click to expand vertical capsule menu
         document.querySelectorAll('.desktop-slot').forEach(slot => slot.classList.add('show-grid'));
@@ -704,6 +612,7 @@
         applyStatusBarVisibility();
         editPlus.style.display = 'none';
         editDone.style.display = 'none';
+        document.getElementById('desktopGrid').classList.remove('is-editing');
         
             // show three-dots button; click to expand vertical capsule menu
         document.querySelectorAll('.desktop-slot').forEach(slot => slot.classList.remove('show-grid'));
@@ -838,16 +747,20 @@
 
     let pressedWidgetFrame = null;
     let pressedWidgetApp = null;
-    let pressedWidgetSwipeHandled = false;
 
     window.addEventListener('message', async event => {
         const message = event.data;
-        if (!message || (message.type !== 'widget-desktop-pointer' && message.type !== 'widget-desktop-image-file' && message.type !== 'widget-desktop-content')) return;
+        if (!message || (message.type !== 'widget-desktop-pointer' && message.type !== 'widget-desktop-swipe' && message.type !== 'widget-desktop-image-file' && message.type !== 'widget-desktop-content')) return;
 
         const frame = findDesktopWidgetFrame(event.source);
         if (!frame) return;
         const app = frame.closest('.app-item.is-widget');
         if (!app) return;
+
+        if (message.type === 'widget-desktop-swipe') {
+            handleDesktopWidgetSwipe(frame, message);
+            return;
+        }
 
         if (message.type === 'widget-desktop-pointer') {
             const position = getDesktopWidgetPointerPosition(frame, message);
@@ -857,7 +770,6 @@
                 startY = position.y;
                 pressedWidgetFrame = frame;
                 pressedWidgetApp = app;
-                pressedWidgetSwipeHandled = false;
                 pressTimer = setTimeout(() => {
                     pressTimer = null;
                     if (pressedWidgetFrame === frame && pressedWidgetApp === app) enterEditMode();
@@ -867,20 +779,13 @@
                     clearTimeout(pressTimer);
                     pressTimer = null;
                 }
-                if (!pressedWidgetSwipeHandled) {
-                    pressedWidgetSwipeHandled = handleDesktopSwipe(startX, startY, position.x, position.y);
-                }
             } else if ((message.phase === 'up' || message.phase === 'cancel') && pressedWidgetFrame === frame) {
                 if (pressTimer) {
                     clearTimeout(pressTimer);
                     pressTimer = null;
                 }
-                if (message.phase === 'up' && !pressedWidgetSwipeHandled) {
-                    handleDesktopSwipe(startX, startY, position.x, position.y);
-                }
                 pressedWidgetFrame = null;
                 pressedWidgetApp = null;
-                pressedWidgetSwipeHandled = false;
             }
             return;
         }
@@ -919,16 +824,65 @@
         }
     });
 
+    let desktopWidgetSwipe = null;
+
+    function handleDesktopWidgetSwipe(frame, message) {
+        const desktopGrid = document.getElementById('desktopGrid');
+        if (isEditMode || !desktopGrid) {
+            desktopWidgetSwipe = null;
+            return;
+        }
+
+        if (message.phase === 'start') {
+            desktopWidgetSwipe = {
+                frame,
+                page: currentDesktopPage,
+                scrollLeft: desktopGrid.scrollLeft,
+                deltaX: 0,
+                deltaY: 0,
+                horizontal: false
+            };
+            return;
+        }
+
+        if (!desktopWidgetSwipe || desktopWidgetSwipe.frame !== frame) return;
+        desktopWidgetSwipe.deltaX = Number(message.deltaX) || 0;
+        desktopWidgetSwipe.deltaY = Number(message.deltaY) || 0;
+
+        if (message.phase === 'move') {
+            const absX = Math.abs(desktopWidgetSwipe.deltaX);
+            const absY = Math.abs(desktopWidgetSwipe.deltaY);
+            if (!desktopWidgetSwipe.horizontal && absX >= 8 && absX > absY * 1.1) {
+                desktopWidgetSwipe.horizontal = true;
+                if (pressTimer) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                }
+            }
+            if (desktopWidgetSwipe.horizontal) {
+                desktopLastScrollAt = Date.now();
+                desktopGrid.scrollLeft = desktopWidgetSwipe.scrollLeft - desktopWidgetSwipe.deltaX;
+            }
+            return;
+        }
+
+        if (message.phase === 'end' || message.phase === 'cancel') {
+            if (desktopWidgetSwipe.horizontal) {
+                const pageDelta = Math.abs(desktopWidgetSwipe.deltaX) >= 36
+                    ? (desktopWidgetSwipe.deltaX < 0 ? 1 : -1)
+                    : 0;
+                const targetPage = pageDelta
+                    ? desktopWidgetSwipe.page + pageDelta
+                    : Math.round(desktopGrid.scrollLeft / Math.max(desktopGrid.clientWidth, 1));
+                desktopLastScrollAt = Date.now();
+                switchDesktopPage(targetPage, { skipCommit: true, behavior: 'smooth' });
+            }
+            desktopWidgetSwipe = null;
+        }
+    }
+
     document.addEventListener('pointerdown', (e) => {
         const app = e.target.closest('.app-item');
-        const desktopGrid = e.target.closest('#desktopGrid');
-
-        if (desktopGrid && (!isEditMode || !app)) {
-            desktopSwipePointerId = e.pointerId;
-            desktopSwipeStartX = e.clientX;
-            desktopSwipeStartY = e.clientY;
-            desktopPointerSwipeHandled = false;
-        }
 
         if (!isEditMode) {
             if (!app) return;
@@ -946,7 +900,7 @@
                 page: currentDesktopPage,
                 inDock: parent && parent.id === 'dock',
                 index: parent && parent.classList.contains('desktop-slot')
-                    ? Array.from(document.querySelectorAll('#desktopGrid .desktop-slot')).indexOf(parent)
+                    ? getCurrentDesktopSlots().indexOf(parent)
                     : Array.from(dockContainer.querySelectorAll('.app-item')).indexOf(app)
             };
 
@@ -973,15 +927,6 @@
     });
 
     document.addEventListener('pointermove', (e) => {
-        if (desktopSwipePointerId === e.pointerId && !desktopPointerSwipeHandled) {
-            desktopPointerSwipeHandled = handleDesktopSwipe(
-                desktopSwipeStartX,
-                desktopSwipeStartY,
-                e.clientX,
-                e.clientY
-            );
-        }
-
         if (!isEditMode) {
             if (pressTimer && (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10)) {
                 clearTimeout(pressTimer);
@@ -1031,10 +976,12 @@
             detachDraggedAppFromDesktopPage();
             if (direction > 0 && currentDesktopPage === desktopPages.length - 1) {
                 desktopPages.push([]);
+                const desktopGrid = document.getElementById('desktopGrid');
+                desktopGrid.appendChild(createDesktopPageElement([], desktopPages.length - 1));
             }
             const targetPage = currentDesktopPage + direction;
             if (targetPage >= 0 && targetPage < desktopPages.length) {
-                switchDesktopPage(targetPage, { skipCommit: true, skipSave: true });
+                switchDesktopPage(targetPage, { skipCommit: true, skipSave: true, behavior: 'auto' });
             }
             dragEdgeLocked = true;
         }, 520);
@@ -1051,7 +998,7 @@
             commitCurrentDesktopPage();
             switchDesktopPage(dragOrigin.page, { skipCommit: true, skipSave: true });
         }
-        const slots = Array.from(document.querySelectorAll('#desktopGrid .desktop-slot'));
+        const slots = getCurrentDesktopSlots();
         const originSlot = slots[dragOrigin.index];
         const fallbackSlot = slots.find(slot => !slot.querySelector(':scope > .app-item') && !slot.getAttribute('data-widget-occupied-by'));
         (originSlot && !originSlot.querySelector(':scope > .app-item') ? originSlot : fallbackSlot)?.appendChild(draggedApp);
@@ -1064,20 +1011,8 @@
             pressTimer = null;
         }
 
-        let didSwipePage = Date.now() - desktopSwipeHandledAt < 300;
-        if (desktopSwipePointerId === e.pointerId) {
-            didSwipePage = desktopPointerSwipeHandled || handleDesktopSwipe(
-                desktopSwipeStartX,
-                desktopSwipeStartY,
-                e.clientX,
-                e.clientY
-            );
-            desktopSwipePointerId = null;
-            desktopPointerSwipeHandled = false;
-        }
-
             // show three-dots button; click to expand vertical capsule menu
-        if (!isEditMode && !dragGhost && !didSwipePage) {
+        if (!isEditMode && !dragGhost && Date.now() - desktopLastScrollAt > 250) {
             const app = e.target.closest('.app-item');
             if (app) {
                 const appId = app.getAttribute('data-app-id');
@@ -1119,7 +1054,7 @@
                 const draggedIsWidget = draggedApp.classList.contains('is-widget');
                 if (draggedIsWidget) {
                     if (targetSlot) {
-                        const slots = Array.from(document.querySelectorAll('#desktopGrid .desktop-slot'));
+                        const slots = getCurrentDesktopSlots();
                         const targetIndex = slots.indexOf(targetSlot);
                         const columns = parseInt(draggedApp.getAttribute('data-widget-columns'), 10) || 1;
                         const rows = parseInt(draggedApp.getAttribute('data-widget-rows'), 10) || 1;
@@ -1159,12 +1094,7 @@
     });
 
     document.addEventListener('pointercancel', () => {
-        if (pressTimer) {
-            clearTimeout(pressTimer);
-            pressTimer = null;
-        }
-        desktopSwipePointerId = null;
-        desktopPointerSwipeHandled = false;
+        if (pressTimer) clearTimeout(pressTimer);
         clearDragEdgeNavigation();
         dragEdgeLocked = false;
         if (dragGhost) {

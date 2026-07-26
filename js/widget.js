@@ -561,6 +561,7 @@
         function widgetImageEditBridge(mode) {
             const isDesktopWidget = mode === 'desktop';
             let pointerStart = null;
+            let desktopTouch = null;
             let suppressImageClickUntil = 0;
 
             function findContentEditableTarget(startElement) {
@@ -602,18 +603,73 @@
                 }, '*');
             }
 
-            function postDesktopTouch(phase, touch) {
+            function findDesktopTouch(touches) {
+                if (!desktopTouch) return null;
+                for (let index = 0; index < touches.length; index++) {
+                    if (touches[index].identifier === desktopTouch.identifier) return touches[index];
+                }
+                return null;
+            }
+
+            function postDesktopSwipe(phase, touch) {
                 parent.postMessage({
-                    type: 'widget-desktop-pointer',
+                    type: 'widget-desktop-swipe',
                     phase: phase,
-                    pointerId: 'touch-' + touch.identifier,
-                    clientX: touch.clientX,
-                    clientY: touch.clientY
+                    deltaX: touch ? touch.clientX - desktopTouch.startX : desktopTouch.deltaX,
+                    deltaY: touch ? touch.clientY - desktopTouch.startY : desktopTouch.deltaY
                 }, '*');
             }
 
+            if (isDesktopWidget) {
+                document.addEventListener('touchstart', function (event) {
+                    if (event.touches.length !== 1) {
+                        desktopTouch = null;
+                        return;
+                    }
+                    const touch = event.changedTouches[0];
+                    desktopTouch = {
+                        identifier: touch.identifier,
+                        startX: touch.clientX,
+                        startY: touch.clientY,
+                        deltaX: 0,
+                        deltaY: 0,
+                        horizontal: false
+                    };
+                    postDesktopSwipe('start', touch);
+                }, { capture: true, passive: true });
+
+                document.addEventListener('touchmove', function (event) {
+                    const touch = findDesktopTouch(event.touches);
+                    if (!touch || !desktopTouch) return;
+                    desktopTouch.deltaX = touch.clientX - desktopTouch.startX;
+                    desktopTouch.deltaY = touch.clientY - desktopTouch.startY;
+                    if (!desktopTouch.horizontal && Math.abs(desktopTouch.deltaX) >= 8 && Math.abs(desktopTouch.deltaX) > Math.abs(desktopTouch.deltaY) * 1.1) {
+                        desktopTouch.horizontal = true;
+                    }
+                    if (desktopTouch.horizontal) event.preventDefault();
+                    postDesktopSwipe('move', touch);
+                }, { capture: true, passive: false });
+
+                document.addEventListener('touchend', function (event) {
+                    const touch = findDesktopTouch(event.changedTouches);
+                    if (!desktopTouch) return;
+                    if (touch) {
+                        desktopTouch.deltaX = touch.clientX - desktopTouch.startX;
+                        desktopTouch.deltaY = touch.clientY - desktopTouch.startY;
+                    }
+                    postDesktopSwipe('end', touch);
+                    desktopTouch = null;
+                }, { capture: true, passive: true });
+
+                document.addEventListener('touchcancel', function () {
+                    if (!desktopTouch) return;
+                    postDesktopSwipe('cancel', null);
+                    desktopTouch = null;
+                }, { capture: true, passive: true });
+            }
+
             document.addEventListener('pointerdown', function (event) {
-                if (event.isPrimary === false || (isDesktopWidget && event.pointerType === 'touch')) return;
+                if (event.isPrimary === false) return;
                 pointerStart = {
                     pointerId: event.pointerId,
                     clientX: event.clientX,
@@ -634,7 +690,6 @@
             }, true);
 
             document.addEventListener('pointermove', function (event) {
-                if (isDesktopWidget && event.pointerType === 'touch') return;
                 if (!pointerStart || pointerStart.pointerId !== event.pointerId) return;
                 if (Math.abs(event.clientX - pointerStart.clientX) > 10 || Math.abs(event.clientY - pointerStart.clientY) > 10) {
                     pointerStart.moved = true;
@@ -645,7 +700,6 @@
             }, true);
 
             document.addEventListener('pointerup', function (event) {
-                if (isDesktopWidget && event.pointerType === 'touch') return;
                 if (!pointerStart || pointerStart.pointerId !== event.pointerId) return;
                 const pressDuration = Date.now() - pointerStart.startedAt;
                 const shouldOpenTouchPicker = isDesktopWidget && event.pointerType === 'touch' && !pointerStart.moved && pressDuration < 550;
@@ -669,7 +723,6 @@
             }, true);
 
             document.addEventListener('pointercancel', function (event) {
-                if (isDesktopWidget && event.pointerType === 'touch') return;
                 if (!pointerStart || pointerStart.pointerId !== event.pointerId) return;
                 suppressImageClickUntil = Date.now() + 500;
                 if (isDesktopWidget) {
@@ -677,73 +730,6 @@
                 }
                 pointerStart = null;
             }, true);
-
-            if (isDesktopWidget) {
-                document.addEventListener('touchstart', function (event) {
-                    if (event.touches.length !== 1) return;
-                    const touch = event.changedTouches[0];
-                    pointerStart = {
-                        pointerId: 'touch-' + touch.identifier,
-                        touchIdentifier: touch.identifier,
-                        clientX: touch.clientX,
-                        clientY: touch.clientY,
-                        lastClientX: touch.clientX,
-                        lastClientY: touch.clientY,
-                        startedAt: Date.now(),
-                        moved: false,
-                        target: event.target
-                    };
-                    postDesktopTouch('down', touch);
-                }, { capture: true, passive: true });
-
-                document.addEventListener('touchmove', function (event) {
-                    if (!pointerStart || pointerStart.touchIdentifier == null) return;
-                    const touch = Array.from(event.touches).find(item => item.identifier === pointerStart.touchIdentifier);
-                    if (!touch) return;
-                    const diffX = touch.clientX - pointerStart.clientX;
-                    const diffY = touch.clientY - pointerStart.clientY;
-                    pointerStart.lastClientX = touch.clientX;
-                    pointerStart.lastClientY = touch.clientY;
-                    if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) pointerStart.moved = true;
-                    if (Math.abs(diffX) > 8 && Math.abs(diffX) > Math.abs(diffY)) event.preventDefault();
-                    postDesktopTouch('move', touch);
-                }, { capture: true, passive: false });
-
-                document.addEventListener('touchend', function (event) {
-                    if (!pointerStart || pointerStart.touchIdentifier == null) return;
-                    const touch = Array.from(event.changedTouches).find(item => item.identifier === pointerStart.touchIdentifier);
-                    if (!touch) return;
-                    const pressDuration = Date.now() - pointerStart.startedAt;
-                    const shouldOpenTouchPicker = !pointerStart.moved && pressDuration < 550;
-                    if (pointerStart.moved || pressDuration >= 550 || shouldOpenTouchPicker) {
-                        suppressImageClickUntil = Date.now() + 500;
-                    }
-                    postDesktopTouch('up', touch);
-                    const targetElement = pointerStart.target && pointerStart.target.nodeType === 1 ? pointerStart.target : null;
-                    pointerStart = null;
-
-                    if (shouldOpenTouchPicker) {
-                        const target = targetElement && (findImageTarget(targetElement) || findBackgroundTarget(targetElement));
-                        if (target) {
-                            event.preventDefault();
-                            event.stopImmediatePropagation();
-                            openWidgetImagePicker(target);
-                        }
-                    }
-                }, { capture: true, passive: false });
-
-                document.addEventListener('touchcancel', function (event) {
-                    if (!pointerStart || pointerStart.touchIdentifier == null) return;
-                    const touch = Array.from(event.changedTouches).find(item => item.identifier === pointerStart.touchIdentifier);
-                    postDesktopTouch('cancel', touch || {
-                        identifier: pointerStart.touchIdentifier,
-                        clientX: pointerStart.lastClientX,
-                        clientY: pointerStart.lastClientY
-                    });
-                    suppressImageClickUntil = Date.now() + 500;
-                    pointerStart = null;
-                }, { capture: true, passive: true });
-            }
 
             function extractBackgroundUrl(value) {
                 const match = String(value || '').match(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*))\s*\)/i);
