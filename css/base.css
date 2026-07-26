@@ -212,17 +212,44 @@
             color: #333;
         }
 
+        .edit-touch-target {
+            position: fixed;
+            display: none;
+            height: 48px;
+            z-index: 21;
+            border: 0;
+            background: transparent;
+            appearance: none;
+            -webkit-appearance: none;
+            pointer-events: auto;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .edit-plus-touch-target {
+            left: 12px;
+            width: 48px;
+        }
+
+        .edit-done-touch-target {
+            right: 12px;
+            width: 76px;
+        }
+
         @media (max-width: 768px) {
             html.ios-installed .iphone.desktop-editing > .edit-ui {
-                top: max(calc(var(--top-safe-area) - 6px), 46px);
+                top: max(calc(var(--top-safe-area) - 22px), 30px);
                 touch-action: manipulation;
                 -webkit-tap-highlight-color: transparent;
             }
 
+            html.ios-installed .iphone.desktop-editing > .edit-touch-target {
+                display: block;
+                top: max(calc(var(--top-safe-area) - 22px), 30px);
+            }
+
             html.ios-installed .iphone.desktop-editing > .edit-ui::after {
-                content: "";
-                position: absolute;
-                inset: -8px;
+                content: none;
             }
         }
 

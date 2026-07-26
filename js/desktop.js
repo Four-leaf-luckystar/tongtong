@@ -521,6 +521,8 @@
     let isEditMode = false;
     const editPlus = document.getElementById('editPlus');
     const editDone = document.getElementById('editDone');
+    const editPlusTouchTarget = document.getElementById('editPlusTouchTarget');
+    const editDoneTouchTarget = document.getElementById('editDoneTouchTarget');
     const statusBar = document.getElementById('statusBar');
     const dockContainer = document.getElementById('dock');
     const desktopShell = document.querySelector('.iphone');
@@ -660,6 +662,19 @@
         }
         
         modal.style.display = 'flex';
+    });
+
+    function forwardEditTouchTarget(event, control) {
+        event.preventDefault();
+        event.stopPropagation();
+        control.click();
+    }
+
+    editPlusTouchTarget.addEventListener('click', (event) => {
+        forwardEditTouchTarget(event, editPlus);
+    });
+    editDoneTouchTarget.addEventListener('click', (event) => {
+        forwardEditTouchTarget(event, editDone);
     });
 
 
