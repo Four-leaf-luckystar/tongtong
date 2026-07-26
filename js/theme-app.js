@@ -279,6 +279,7 @@
 
     function switchThemeTab(tabName, element) {
         currentActiveTab = tabName;
+        themeAppUI.classList.toggle('is-widget-tab', tabName === 'widget');
             // show three-dots button; click to expand vertical capsule menu
         const tabs = document.querySelectorAll('#themeTopTabs .theme-tab-item');
         tabs.forEach(tab => tab.classList.remove('active'));

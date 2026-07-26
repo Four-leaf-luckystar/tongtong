@@ -367,6 +367,17 @@
             background-color: #fafafa; /* 低饱和素白色 */
         }
 
+        /* iOS 组件页避开顶部系统手势区域，仅调整该标签的控件与内容。 */
+        #themeAppUI.is-widget-tab > .ios-top-bar {
+            top: 14px;
+        }
+        #themeAppUI.is-widget-tab > #widgetToolbarMenu {
+            top: 99px;
+        }
+        #themeAppUI.is-widget-tab > .theme-content-area {
+            padding-top: 104px;
+        }
+
         .theme-grid-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
