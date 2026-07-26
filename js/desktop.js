@@ -509,11 +509,13 @@
     let desktopSwipePointerId = null;
     let desktopSwipeStartX = 0;
     let desktopSwipeStartY = 0;
+    let desktopPointerSwipeHandled = false;
     let desktopTouchIdentifier = null;
     let desktopTouchStartX = 0;
     let desktopTouchStartY = 0;
     let desktopTouchLastX = 0;
     let desktopTouchLastY = 0;
+    let desktopTouchSwipeHandled = false;
     let desktopSwipeHandledAt = 0;
 
     function handleDesktopSwipe(startClientX, startClientY, endClientX, endClientY) {
@@ -540,12 +542,14 @@
         desktopTouchStartY = 0;
         desktopTouchLastX = 0;
         desktopTouchLastY = 0;
+        desktopTouchSwipeHandled = false;
     }
 
     const desktopSwipeSurface = document.getElementById('desktopGrid');
     if (desktopSwipeSurface) {
         desktopSwipeSurface.addEventListener('touchstart', event => {
-            if (isEditMode || event.touches.length !== 1) {
+            const startedOnApp = event.target.closest('.app-item');
+            if (event.touches.length !== 1 || (isEditMode && startedOnApp)) {
                 resetDesktopTouchSwipe();
                 return;
             }
@@ -555,10 +559,11 @@
             desktopTouchStartY = touch.clientY;
             desktopTouchLastX = touch.clientX;
             desktopTouchLastY = touch.clientY;
+            desktopTouchSwipeHandled = false;
         }, { passive: true });
 
         desktopSwipeSurface.addEventListener('touchmove', event => {
-            if (isEditMode || desktopTouchIdentifier === null) return;
+            if (desktopTouchIdentifier === null) return;
             const touch = findDesktopTouch(event.touches);
             if (!touch) return;
 
@@ -575,6 +580,14 @@
             if (Math.abs(diffX) > 10 && Math.abs(diffX) > Math.abs(diffY)) {
                 event.preventDefault();
             }
+            if (!desktopTouchSwipeHandled) {
+                desktopTouchSwipeHandled = handleDesktopSwipe(
+                    desktopTouchStartX,
+                    desktopTouchStartY,
+                    desktopTouchLastX,
+                    desktopTouchLastY
+                );
+            }
         }, { passive: false });
 
         desktopSwipeSurface.addEventListener('touchend', event => {
@@ -583,12 +596,14 @@
             if (touch) {
                 desktopTouchLastX = touch.clientX;
                 desktopTouchLastY = touch.clientY;
-                handleDesktopSwipe(
-                    desktopTouchStartX,
-                    desktopTouchStartY,
-                    desktopTouchLastX,
-                    desktopTouchLastY
-                );
+                if (!desktopTouchSwipeHandled) {
+                    handleDesktopSwipe(
+                        desktopTouchStartX,
+                        desktopTouchStartY,
+                        desktopTouchLastX,
+                        desktopTouchLastY
+                    );
+                }
             }
             resetDesktopTouchSwipe();
         }, { passive: true });
@@ -763,6 +778,7 @@
 
     let pressedWidgetFrame = null;
     let pressedWidgetApp = null;
+    let pressedWidgetSwipeHandled = false;
 
     window.addEventListener('message', async event => {
         const message = event.data;
@@ -781,6 +797,7 @@
                 startY = position.y;
                 pressedWidgetFrame = frame;
                 pressedWidgetApp = app;
+                pressedWidgetSwipeHandled = false;
                 pressTimer = setTimeout(() => {
                     pressTimer = null;
                     if (pressedWidgetFrame === frame && pressedWidgetApp === app) enterEditMode();
@@ -790,16 +807,20 @@
                     clearTimeout(pressTimer);
                     pressTimer = null;
                 }
+                if (!pressedWidgetSwipeHandled) {
+                    pressedWidgetSwipeHandled = handleDesktopSwipe(startX, startY, position.x, position.y);
+                }
             } else if ((message.phase === 'up' || message.phase === 'cancel') && pressedWidgetFrame === frame) {
                 if (pressTimer) {
                     clearTimeout(pressTimer);
                     pressTimer = null;
                 }
-                if (message.phase === 'up') {
+                if (message.phase === 'up' && !pressedWidgetSwipeHandled) {
                     handleDesktopSwipe(startX, startY, position.x, position.y);
                 }
                 pressedWidgetFrame = null;
                 pressedWidgetApp = null;
+                pressedWidgetSwipeHandled = false;
             }
             return;
         }
@@ -842,12 +863,14 @@
         const app = e.target.closest('.app-item');
         const desktopGrid = e.target.closest('#desktopGrid');
 
+        if (desktopGrid && (!isEditMode || !app)) {
+            desktopSwipePointerId = e.pointerId;
+            desktopSwipeStartX = e.clientX;
+            desktopSwipeStartY = e.clientY;
+            desktopPointerSwipeHandled = false;
+        }
+
         if (!isEditMode) {
-            if (desktopGrid) {
-                desktopSwipePointerId = e.pointerId;
-                desktopSwipeStartX = e.clientX;
-                desktopSwipeStartY = e.clientY;
-            }
             if (!app) return;
             startX = e.clientX;
             startY = e.clientY;
@@ -890,6 +913,15 @@
     });
 
     document.addEventListener('pointermove', (e) => {
+        if (desktopSwipePointerId === e.pointerId && !desktopPointerSwipeHandled) {
+            desktopPointerSwipeHandled = handleDesktopSwipe(
+                desktopSwipeStartX,
+                desktopSwipeStartY,
+                e.clientX,
+                e.clientY
+            );
+        }
+
         if (!isEditMode) {
             if (pressTimer && (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10)) {
                 clearTimeout(pressTimer);
@@ -973,9 +1005,15 @@
         }
 
         let didSwipePage = false;
-        if (!isEditMode && desktopSwipePointerId === e.pointerId) {
-            didSwipePage = handleDesktopSwipe(desktopSwipeStartX, desktopSwipeStartY, e.clientX, e.clientY);
+        if (desktopSwipePointerId === e.pointerId) {
+            didSwipePage = desktopPointerSwipeHandled || handleDesktopSwipe(
+                desktopSwipeStartX,
+                desktopSwipeStartY,
+                e.clientX,
+                e.clientY
+            );
             desktopSwipePointerId = null;
+            desktopPointerSwipeHandled = false;
         }
 
             // show three-dots button; click to expand vertical capsule menu
@@ -1066,6 +1104,7 @@
             pressTimer = null;
         }
         desktopSwipePointerId = null;
+        desktopPointerSwipeHandled = false;
         clearDragEdgeNavigation();
         dragEdgeLocked = false;
         if (dragGhost) {
