@@ -214,7 +214,7 @@
 
         @media (max-width: 768px) {
             html.ios-installed .iphone.desktop-editing > .edit-ui {
-                top: max(calc(var(--top-safe-area) + 4px), 56px);
+                top: max(calc(var(--top-safe-area) - 6px), 46px);
                 touch-action: manipulation;
                 -webkit-tap-highlight-color: transparent;
             }
