@@ -1,5 +1,4 @@
 
-
         /* --- 真正的全局深色模式覆盖 (极简优化版) --- */
         .iphone.dark-mode, .iphone.dark-mode .preview-scale-container { background: linear-gradient(135deg, #1c1c1e 0%, #000000 100%); }
         .iphone.dark-mode .dock { background: rgba(0,0,0,0.5); }
@@ -295,4 +294,68 @@
         .iphone.dark-mode #wechatAppUI .wc-compose-option-text { color: #ffffff; }
         .iphone.dark-mode #wechatAppUI .wc-compose-option-icon svg path { fill: #ffffff !important; }
 
+        /* 微信钱包页面深色模式 */
+        .iphone.dark-mode #wechatAppUI #page-wallet { background-color: #000000 !important; }
+        .iphone.dark-mode #wechatAppUI .wc-wallet-nav { background: rgba(0, 0, 0, 0.85); }
+        .iphone.dark-mode #wechatAppUI .wc-wallet-nav-title { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-wallet-btn-circle { background: rgba(44, 44, 46, 0.85); }
+        .iphone.dark-mode #wechatAppUI .wc-wallet-btn-circle svg { stroke: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-wallet-btn-circle svg[fill="currentColor"] { fill: #ffffff; stroke: none; }
+        .iphone.dark-mode #wechatAppUI .wc-action-circle { background-color: #1c1c1e; }
+        .iphone.dark-mode #wechatAppUI .wc-action-circle svg { stroke: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-action-label { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-transactions-panel { background-color: #000000 !important; }
+        .iphone.dark-mode #wechatAppUI .wc-tx-title { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-tx-item:not(:last-child)::after { background: #38383a; }
+        .iphone.dark-mode #wechatAppUI .wc-tx-icon { background-color: #2c2c2e; color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-tx-name { color: #ffffff; }
 
+        /* 微信支付设置页面深色模式 */
+        .iphone.dark-mode #page-wallet-settings { background-color: #000000 !important; }
+        .iphone.dark-mode #page-wallet-settings .wc-transfer-nav-bar { background-color: #000000 !important; }
+        .iphone.dark-mode #wechatAppUI .wc-ws-group { background-color: #1c1c1e; }
+        .iphone.dark-mode #wechatAppUI .wc-ws-item { background-color: #1c1c1e; }
+        .iphone.dark-mode #wechatAppUI .wc-ws-item:active { background-color: #2c2c2e; }
+        .iphone.dark-mode #wechatAppUI .wc-ws-item:not(:last-child)::after { background: #38383a; }
+        .iphone.dark-mode #wechatAppUI .wc-ws-text { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-ws-toggle { background-color: #39393d; }
+
+        /* 微信转账页面深色模式 */
+        .iphone.dark-mode #page-wc-transfer { background-color: #000000 !important; }
+        .iphone.dark-mode #wechatAppUI .wc-transfer-nav-title { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-transfer-name { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-transfer-currency { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-transfer-amount-input { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-transfer-note-input { background-color: #1c1c1e; color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-transfer-next-btn { background-color: #2c2c2e; color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-transfer-next-btn.active { background-color: #07C160; }
+
+        /* Apple Pay 弹窗深色模式 */
+        .iphone.dark-mode #wechatAppUI .wc-ap-sheet { background-color: #1c1c1e; }
+        .iphone.dark-mode #wechatAppUI .wc-ap-close-btn { background-color: #2c2c2e; }
+        .iphone.dark-mode #wechatAppUI .wc-ap-close-btn svg { stroke: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-ap-logo { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-ap-logo svg path { fill: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-ap-payee-amount { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-ap-change-method { background-color: #2c2c2e; color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-ap-change-method:active { background-color: #3a3a3c; }
+        .iphone.dark-mode #wechatAppUI .wc-ap-detail-value { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-ap-confirm-text { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-pwd-title { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-pwd-dot { border-color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-pwd-dot.filled { background-color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-key-btn { background-color: #2c2c2e; color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-key-btn:active { background-color: #3a3a3c; }
+        .iphone.dark-mode #wechatAppUI .wc-success-icon { border-color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-success-icon svg { stroke: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-success-text { color: #ffffff; }
+
+        /* 微信转账详情弹窗深色模式 */
+        .iphone.dark-mode #wechatAppUI .wc-td-card { background-color: #1c1c1e; }
+        .iphone.dark-mode #wechatAppUI .wc-td-close { background-color: #2c2c2e; }
+        .iphone.dark-mode #wechatAppUI .wc-td-close:active { background-color: #3a3a3c; }
+        .iphone.dark-mode #wechatAppUI .wc-td-status { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-td-amount { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-td-info-list { border-top-color: #38383a; }
+        .iphone.dark-mode #wechatAppUI .wc-td-info-value { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-td-btn.reject { background-color: #2c2c2e; }
