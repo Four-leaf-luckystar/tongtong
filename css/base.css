@@ -212,6 +212,24 @@
             color: #333;
         }
 
+        @media (max-width: 768px) {
+            html.ios-installed .iphone.desktop-editing > .edit-ui {
+                top: max(calc(var(--top-safe-area) + 8px), 62px);
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            html.ios-installed .iphone.desktop-editing > .edit-ui::after {
+                content: "";
+                position: absolute;
+                inset: -8px;
+            }
+
+            html.ios-installed .iphone.desktop-editing > .desktop-grid {
+                margin-top: 44px;
+            }
+        }
+
         /* 桌面 4x7 网格 */
         .desktop-grid {
             display: grid;

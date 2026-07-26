@@ -523,6 +523,7 @@
     const editDone = document.getElementById('editDone');
     const statusBar = document.getElementById('statusBar');
     const dockContainer = document.getElementById('dock');
+    const desktopShell = document.querySelector('.iphone');
 
 
     function isStatusBarVisible() {
@@ -577,6 +578,7 @@
     function enterEditMode() {
         if (isEditMode) return;
         isEditMode = true;
+        if (desktopShell) desktopShell.classList.add('desktop-editing');
         statusBar.style.opacity = '0';
         statusBar.style.visibility = 'hidden';
         editPlus.style.display = 'flex';
@@ -604,6 +606,7 @@
 
     function exitEditMode() {
         isEditMode = false;
+        if (desktopShell) desktopShell.classList.remove('desktop-editing');
         applyStatusBarVisibility();
         editPlus.style.display = 'none';
         editDone.style.display = 'none';
