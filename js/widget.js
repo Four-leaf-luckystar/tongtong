@@ -1500,6 +1500,68 @@
         }
         window.handleAddWidget = handleAddWidget;
 
+        function bindWidgetTouchAction(selector, action) {
+            const element = document.querySelector(selector);
+            if (!element) return;
+
+            let trackingTouch = false;
+            let touchMoved = false;
+            let startX = 0;
+            let startY = 0;
+            let lastTouchActivation = 0;
+
+            element.addEventListener('touchstart', function (event) {
+                if (event.touches.length !== 1) {
+                    trackingTouch = false;
+                    return;
+                }
+                const touch = event.touches[0];
+                trackingTouch = true;
+                touchMoved = false;
+                startX = touch.clientX;
+                startY = touch.clientY;
+            }, { passive: true });
+
+            element.addEventListener('touchmove', function (event) {
+                if (!trackingTouch || event.touches.length !== 1) return;
+                const touch = event.touches[0];
+                if (Math.abs(touch.clientX - startX) > 12 || Math.abs(touch.clientY - startY) > 12) {
+                    touchMoved = true;
+                }
+            }, { passive: true });
+
+            element.addEventListener('touchcancel', function () {
+                trackingTouch = false;
+                touchMoved = false;
+            }, { passive: true });
+
+            element.addEventListener('touchend', function (event) {
+                const touch = event.changedTouches[0];
+                const shouldActivate = trackingTouch && !touchMoved && touch;
+                trackingTouch = false;
+                touchMoved = false;
+                if (!shouldActivate) return;
+
+                const hitTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (hitTarget && !element.contains(hitTarget)) return;
+
+                if (event.cancelable) event.preventDefault();
+                event.stopPropagation();
+                lastTouchActivation = Date.now();
+                action();
+            }, { passive: false });
+
+            element.addEventListener('click', function (event) {
+                if (Date.now() - lastTouchActivation < 700) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+            }, true);
+        }
+
+        bindWidgetTouchAction('.widget-add-action', handleAddWidget);
+        bindWidgetTouchAction('.widget-editor-action:not(.widget-editor-save)', closeWidgetEditor);
+        bindWidgetTouchAction('.widget-editor-save', saveWidgetEditor);
         function renderWidgetViews() {
             widgetTrack.innerHTML = ''; widgetPagination.innerHTML = ''; widgetListContainer.innerHTML = '';
             if (currentWidgets.length === 0) {
