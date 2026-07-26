@@ -224,10 +224,6 @@
                 position: absolute;
                 inset: -8px;
             }
-
-            html.ios-installed .iphone.desktop-editing > .desktop-grid {
-                margin-top: 44px;
-            }
         }
 
         /* 桌面 4x7 网格 */
