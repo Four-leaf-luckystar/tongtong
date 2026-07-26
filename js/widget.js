@@ -561,7 +561,7 @@
         function widgetImageEditBridge(mode) {
             const isDesktopWidget = mode === 'desktop';
             let pointerStart = null;
-            let desktopTouch = null;
+            let desktopTouchStart = null;
             let suppressImageClickUntil = 0;
 
             function findContentEditableTarget(startElement) {
@@ -603,68 +603,43 @@
                 }, '*');
             }
 
-            function findDesktopTouch(touches) {
-                if (!desktopTouch) return null;
-                for (let index = 0; index < touches.length; index++) {
-                    if (touches[index].identifier === desktopTouch.identifier) return touches[index];
-                }
-                return null;
-            }
-
-            function postDesktopSwipe(phase, touch) {
+            function postDesktopSwipe(startTouch, endTouch) {
                 parent.postMessage({
                     type: 'widget-desktop-swipe',
-                    phase: phase,
-                    deltaX: touch ? touch.clientX - desktopTouch.startX : desktopTouch.deltaX,
-                    deltaY: touch ? touch.clientY - desktopTouch.startY : desktopTouch.deltaY
+                    deltaX: endTouch.clientX - startTouch.clientX,
+                    deltaY: endTouch.clientY - startTouch.clientY
                 }, '*');
             }
 
             if (isDesktopWidget) {
                 document.addEventListener('touchstart', function (event) {
                     if (event.touches.length !== 1) {
-                        desktopTouch = null;
+                        desktopTouchStart = null;
                         return;
                     }
-                    const touch = event.changedTouches[0];
-                    desktopTouch = {
+                    const touch = event.touches[0];
+                    desktopTouchStart = {
                         identifier: touch.identifier,
-                        startX: touch.clientX,
-                        startY: touch.clientY,
-                        deltaX: 0,
-                        deltaY: 0,
-                        horizontal: false
+                        clientX: touch.clientX,
+                        clientY: touch.clientY
                     };
-                    postDesktopSwipe('start', touch);
                 }, { capture: true, passive: true });
 
-                document.addEventListener('touchmove', function (event) {
-                    const touch = findDesktopTouch(event.touches);
-                    if (!touch || !desktopTouch) return;
-                    desktopTouch.deltaX = touch.clientX - desktopTouch.startX;
-                    desktopTouch.deltaY = touch.clientY - desktopTouch.startY;
-                    if (!desktopTouch.horizontal && Math.abs(desktopTouch.deltaX) >= 8 && Math.abs(desktopTouch.deltaX) > Math.abs(desktopTouch.deltaY) * 1.1) {
-                        desktopTouch.horizontal = true;
-                    }
-                    if (desktopTouch.horizontal) event.preventDefault();
-                    postDesktopSwipe('move', touch);
-                }, { capture: true, passive: false });
-
                 document.addEventListener('touchend', function (event) {
-                    const touch = findDesktopTouch(event.changedTouches);
-                    if (!desktopTouch) return;
-                    if (touch) {
-                        desktopTouch.deltaX = touch.clientX - desktopTouch.startX;
-                        desktopTouch.deltaY = touch.clientY - desktopTouch.startY;
+                    if (!desktopTouchStart) return;
+                    let endTouch = null;
+                    for (let index = 0; index < event.changedTouches.length; index++) {
+                        if (event.changedTouches[index].identifier === desktopTouchStart.identifier) {
+                            endTouch = event.changedTouches[index];
+                            break;
+                        }
                     }
-                    postDesktopSwipe('end', touch);
-                    desktopTouch = null;
+                    if (endTouch) postDesktopSwipe(desktopTouchStart, endTouch);
+                    desktopTouchStart = null;
                 }, { capture: true, passive: true });
 
                 document.addEventListener('touchcancel', function () {
-                    if (!desktopTouch) return;
-                    postDesktopSwipe('cancel', null);
-                    desktopTouch = null;
+                    desktopTouchStart = null;
                 }, { capture: true, passive: true });
             }
 

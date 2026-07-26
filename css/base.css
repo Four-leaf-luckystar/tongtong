@@ -92,7 +92,7 @@
 
         html.ios-installed body .iphone .desktop-grid {
             margin-top: 30px;
-            height: calc(100% - 82px);
+            height: calc(100% - 180px);
         }
 
         html.ios-installed .iphone > .dock {
@@ -214,47 +214,34 @@
 
         /* 桌面 4x7 网格 */
         .desktop-grid {
-            display: flex;
-            width: 100%;
-            padding: 0;
-            margin-top: 30px;
-            height: calc(100% - 82px);
-            position: relative;
-            z-index: 5;
-            overflow-x: auto;
-            overflow-y: hidden;
-            scroll-snap-type: x mandatory;
-            scrollbar-width: none;
-            touch-action: pan-x;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .desktop-grid::-webkit-scrollbar {
-            display: none;
-        }
-
-        .desktop-page-grid {
-            flex: 0 0 100%;
-            min-width: 100%;
-            height: 100%;
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             grid-template-rows: repeat(7, 80px);
             gap: 15px 10px;
             padding: 25px 20px;
+            margin-top: 30px;
+            height: calc(100% - 180px);
             position: relative;
-            scroll-snap-align: start;
-            scroll-snap-stop: always;
-        }
-
-        .desktop-grid.is-editing {
-            overflow-x: hidden;
-            scroll-snap-type: none;
+            z-index: 5;
             touch-action: none;
         }
 
-        #desktopGrid .app-item {
-            touch-action: pan-x;
+        .desktop-grid.page-enter-left {
+            animation: desktopPageEnterLeft 0.22s ease-out;
+        }
+
+        .desktop-grid.page-enter-right {
+            animation: desktopPageEnterRight 0.22s ease-out;
+        }
+
+        @keyframes desktopPageEnterLeft {
+            from { opacity: 0.55; transform: translateX(-18px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes desktopPageEnterRight {
+            from { opacity: 0.55; transform: translateX(18px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .desktop-page-controls {
