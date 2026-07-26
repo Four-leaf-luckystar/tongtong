@@ -97,10 +97,10 @@
                 presetSize: '4x2',
                 preview: 'linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%)',
                 content: `<style>
-    .widget-4x2 { width: 100%; height: 100%; background-color: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; color: #8b929a; }
+    .widget-4x2 { width: 100%; height: 100%; background-color: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; color: #8b929a; overflow: hidden; }
     .widget-date { font-size: 15px; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 3px; }
     .star-icon { width: 13px; height: 13px; fill: #8b929a; }
-    .widget-time { font-size: 64px; font-weight: 700; line-height: 1; letter-spacing: 2px; margin-bottom: 20px; }
+    .widget-time { font-size: 64px; font-weight: 700; line-height: 1; letter-spacing: 2px; margin-bottom: 8px; }
     .chat-bubble { background-color: rgba(255, 255, 255, 0.95); width: 90%; border-radius: 50px; padding: 10px 15px; display: flex; align-items: center; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); }
     /* 注意这里：去除了 cursor: pointer，因为你的 bridge 会自动接管 */
     .avatar { width: 48px; height: 48px; border-radius: 50%; background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3CclipPath id='finalClip'%3E%3Ccircle cx='50' cy='50' r='44'/%3E%3C/clipPath%3E%3ClinearGradient id='avatarBgGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23A3A8B0' /%3E%3Cstop offset='100%25' stop-color='%237A7F88' /%3E%3C/linearGradient%3E%3ClinearGradient id='avatarFigureGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23FFFFFF' /%3E%3Cstop offset='100%25' stop-color='%23E5E5EA' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='50' fill='url(%23avatarBgGrad)'/%3E%3Ccircle cx='50' cy='36' r='16' fill='url(%23avatarFigureGrad)'/%3E%3Cpath d='M 50 59 C 20 59 10 82 8 106 L 92 106 C 90 82 80 59 50 59 Z' fill='url(%23avatarFigureGrad)' clip-path='url(%23finalClip)'/%3E%3C/svg%3E"); background-size: cover; background-position: center; margin-right: 12px; flex-shrink: 0; border: 1px solid #f3f4f6; }
@@ -292,6 +292,55 @@
                 <img class="item-img uploadable-img" src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23f3e5f5'/%3E%3C/svg%3E" alt="img3">
             </div>
         </div>
+    </div>
+</div>`
+            },
+            {
+                name: '小猫日记',
+                presetSize: '4x4',
+                preview: '#f0f2f5',
+                content: `<style>
+    .widget-cat-space { width: 100%; height: 100%; background-color: #ffffff; border-radius: 28px; overflow: hidden; display: flex; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .widget-cat-space .banner { height: 135px; width: 100%; background-color: #dcedfa; background-image: radial-gradient(circle at 20% 30%, #ffffff 2px, transparent 3px), radial-gradient(circle at 80% 20%, #ffffff 2px, transparent 3px), radial-gradient(circle at 50% 60%, #ffffff 2px, transparent 3px), radial-gradient(circle at 10% 80%, #ffffff 2px, transparent 3px), radial-gradient(circle at 90% 70%, #ffffff 2px, transparent 3px); background-size: 100px 100px; }
+    .widget-cat-space .profile-section { display: flex; align-items: flex-start; padding: 0 20px; margin-top: -45px; position: relative; z-index: 2; }
+    .widget-cat-space .avatar-outer { width: 90px; height: 90px; border-radius: 50%; position: relative; }
+    .widget-cat-space .avatar-inner { width: 100%; height: 100%; background-color: #ffffff; border-radius: 50%; background-size: cover; background-position: center; border: 3px solid #ffffff; box-sizing: border-box; background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3CclipPath id='finalClip'%3E%3Ccircle cx='50' cy='50' r='44'/%3E%3C/clipPath%3E%3ClinearGradient id='avatarBgGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23A3A8B0' /%3E%3Cstop offset='100%25' stop-color='%237A7F88' /%3E%3C/linearGradient%3E%3ClinearGradient id='avatarFigureGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23FFFFFF' /%3E%3Cstop offset='100%25' stop-color='%23E5E5EA' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='50' fill='url(%23avatarBgGrad)'/%3E%3Ccircle cx='50' cy='36' r='16' fill='url(%23avatarFigureGrad)'/%3E%3Cpath d='M 50 59 C 20 59 10 82 8 106 L 92 106 C 90 82 80 59 50 59 Z' fill='url(%23avatarFigureGrad)' clip-path='url(%23finalClip)'/%3E%3C/svg%3E"); }
+    .widget-cat-space .status-dot { position: absolute; bottom: 4px; right: 4px; width: 12px; height: 12px; background-color: #9cd0f0; border-radius: 50%; border: 2px solid #ffffff; }
+    .widget-cat-space .user-info { margin-left: 12px; margin-top: 55px; }
+    .widget-cat-space .username { font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 6px; outline: none; }
+    .widget-cat-space .bio-1 { font-size: 13px; color: #666666; font-weight: 500; outline: none; }
+    .widget-cat-space .bio-2 { padding: 0 20px; margin-top: 14px; font-size: 13px; font-weight: 600; color: #1a1a1a; outline: none; }
+    .widget-cat-space .datetime-section { display: flex; align-items: center; padding: 0 20px; margin-top: 14px; font-size: 11px; color: #888888; }
+    .widget-cat-space .divider-line { flex-grow: 1; height: 1px; border-bottom: 1px dashed #d0d0d0; margin: 0 12px; }
+    .widget-cat-space .date, .widget-cat-space .time { outline: none; }
+    .widget-cat-space .media-grid { display: flex; gap: 12px; padding: 12px 20px 20px 20px; flex-grow: 1; align-items: center; }
+    .widget-cat-space .media-item { flex: 1; aspect-ratio: 1 / 1; border-radius: 14px; background-size: cover; background-position: center; }
+    .widget-cat-space .color-1 { background-color: #e6f0fa; }
+    .widget-cat-space .color-2 { background-color: #f0f4f8; }
+    .widget-cat-space .color-3 { background-color: #eef2f6; }
+</style>
+<div class="widget-cat-space">
+    <div class="banner uploadable-img"></div>
+    <div class="profile-section">
+        <div class="avatar-outer">
+            <div class="avatar-inner uploadable-img"></div>
+            <div class="status-dot"></div>
+        </div>
+        <div class="user-info">
+            <div class="username" contenteditable="true">小猫用户</div>
+            <div class="bio-1" contenteditable="true">⁃ ⩊ ⁃ haengbok …</div>
+        </div>
+    </div>
+    <div class="bio-2" contenteditable="true">☆*:.你的出現讓我開始相信天使的存在*:.★^</div>
+    <div class="datetime-section">
+        <span class="date" contenteditable="true">07-13-2026</span>
+        <div class="divider-line"></div>
+        <span class="time" contenteditable="true">11:12:41</span>
+    </div>
+    <div class="media-grid">
+        <div class="media-item color-1 uploadable-img"></div>
+        <div class="media-item color-2 uploadable-img"></div>
+        <div class="media-item color-3 uploadable-img"></div>
     </div>
 </div>`
             }
