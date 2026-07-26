@@ -1413,10 +1413,17 @@
             let currentY = 0;
             if (topBar && modal) {
                 topBar.addEventListener('touchstart', (e) => {
+                    if (e.target.closest('.widget-editor-action')) {
+                        startY = 0;
+                        currentY = 0;
+                        return;
+                    }
                     startY = e.touches[0].clientY;
+                    currentY = startY;
                     modal.style.transition = 'none';
                 }, { passive: true });
                 topBar.addEventListener('touchmove', (e) => {
+                    if (!startY) return;
                     currentY = e.touches[0].clientY;
                     const delta = currentY - startY;
                     if (delta > 0) {
@@ -1424,7 +1431,10 @@
                     }
                 }, { passive: true });
                 topBar.addEventListener('touchend', () => {
+                    if (!startY) return;
                     const delta = currentY - startY;
+                    startY = 0;
+                    currentY = 0;
                     modal.style.transition = '';
                     modal.style.transform = '';
                     if (delta > 80) {

@@ -23,7 +23,7 @@
     <!-- Web App Manifest -->
     <link rel="manifest" href="manifest.json">
         <link rel="stylesheet" href="css/base.css?v=20260726-gesture3">
-    <link rel="stylesheet" href="css/theme-app.css">
+    <link rel="stylesheet" href="css/theme-app.css?v=20260726-ios-widget-actions1">
     <link rel="stylesheet" href="css/settings.css">
     <link rel="stylesheet" href="css/worldbook.css">
     <link rel="stylesheet" href="css/wechat.css">
@@ -122,12 +122,12 @@
                 </div>
                 <span>编辑</span>
             </div>
-            <div class="dropdown-btn" onclick="handleAddWidget(); closeWidgetMenus();">
+            <button type="button" class="dropdown-btn widget-add-action" onclick="handleAddWidget()">
                 <div class="dropdown-icon-circle">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </div>
                 <span>添加</span>
-            </div>
+            </button>
             <div class="dropdown-btn" onclick="document.getElementById('widgetJsonInput').click(); closeWidgetMenus();">
                 <div class="dropdown-icon-circle">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
@@ -397,9 +397,9 @@
         </div>
         <div class="widget-editor-modal" id="widgetEditorModal">
             <div class="ios-top-bar" style="height:60px; padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); background:#f2f2f7; border-radius: 24px 24px 0 0;">
-                <div style="font-size: 15px; color: #007aff; cursor: pointer;" onclick="closeWidgetEditor()">取消</div>
+                <button type="button" class="widget-editor-action" onclick="closeWidgetEditor()">取消</button>
                 <div style="font-size: 16px; font-weight: 600; color: #000;">编辑组件</div>
-                <div style="font-size: 15px; color: #007aff; font-weight: 600; cursor: pointer;" onclick="saveWidgetEditor()">保存</div>
+                <button type="button" class="widget-editor-action widget-editor-save" onclick="saveWidgetEditor()">保存</button>
             </div>
             <div style="padding: 80px 20px 20px; display: flex; flex-direction: column; gap: 16px; flex: 1; overflow-y: auto; overflow-x: hidden;">
                 <div>
@@ -3391,7 +3391,7 @@ fill="currentColor" viewBox="0 0 24 24" >
         });
     }
 </script>
-<script src="js/widget.js?v=20260726-gesture3"></script>
+<script src="js/widget.js?v=20260726-ios-widget-actions1"></script>
    <script src="js/settings-app.js"></script>
    <script src="js/worldbook.js"></script>
    <script src="js/vendor/jsQR.min.js"></script>
