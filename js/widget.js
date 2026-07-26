@@ -1293,7 +1293,14 @@
             frame.style.width = width + 'px';
             frame.style.height = height + 'px';
             frame.style.transform = 'scale(' + scale + ')';
-            frame.srcdoc = buildWidgetEditablePreview(editor.value);
+            frame.onload = function () {
+                if (typeof window.syncGlobalFontToWidgetFrame === 'function') {
+                    window.syncGlobalFontToWidgetFrame(frame);
+                }
+            };
+            frame.srcdoc = window.buildWidgetFrameSrcdoc
+                ? window.buildWidgetFrameSrcdoc(buildWidgetEditablePreview(editor.value))
+                : buildWidgetEditablePreview(editor.value);
             sizeLabel.innerText = cols + ' × ' + rows;
         }
         window.updateWidgetCodePreview = updateWidgetCodePreview;
@@ -1477,7 +1484,14 @@
                 listPreviewFrame.style.left = (48 - listPreviewDims.width * listPreviewScale) / 2 + 'px';
                 listPreviewFrame.style.top = (48 - listPreviewDims.height * listPreviewScale) / 2 + 'px';
                 listPreviewFrame.style.transform = 'scale(' + listPreviewScale + ')';
-                listPreviewFrame.srcdoc = widget.content || '';
+                listPreviewFrame.addEventListener('load', function () {
+                    if (typeof window.syncGlobalFontToWidgetFrame === 'function') {
+                        window.syncGlobalFontToWidgetFrame(listPreviewFrame);
+                    }
+                });
+                listPreviewFrame.srcdoc = window.buildWidgetFrameSrcdoc
+                    ? window.buildWidgetFrameSrcdoc(widget.content || '')
+                    : widget.content || '';
                 listPreviewHost.appendChild(listPreviewFrame);
                 widgetListContainer.appendChild(listItem);
             });

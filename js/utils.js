@@ -198,11 +198,73 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
     }
+
+    function escapeWidgetCssString(value) {
+        return String(value == null ? '' : value)
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"')
+            .replace(/\r?\n/g, ' ');
+    }
+
+    function getSelectedWidgetFontData() {
+        const family = typeof currentSelectedFont !== 'undefined' ? currentSelectedFont : 'default';
+        const fonts = typeof customFonts !== 'undefined' && Array.isArray(customFonts) ? customFonts : [];
+        const selected = family === 'default' ? null : fonts.find(font => font && font.id === family);
+        return {
+            family,
+            type: selected ? selected.type : 'default',
+            url: selected && selected.type === 'url' ? selected.url || '' : '',
+            data: selected && selected.type === 'local' ? selected.data || null : null
+        };
+    }
+
+    function buildWidgetGlobalFontTools() {
+        const font = getSelectedWidgetFontData();
+        const family = font.family === 'default' ? 'Geomini' : font.family;
+        const safeFamily = escapeWidgetCssString(family);
+        const fallback = `"${safeFamily}", "Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif`;
+        let fontFaces = '@font-face{font-family:"Geomini";src:url("https://nos.netease.com/ysf/260de1ccc0fffea1b1af12b7f5b50c3c.ttf") format("truetype");font-weight:normal;font-style:normal;}';
+        if (font.type === 'url' && font.url) {
+            fontFaces += `@font-face{font-family:"${safeFamily}";src:url("${escapeWidgetCssString(font.url)}");font-weight:normal;font-style:normal;}`;
+        }
+        const style = `<style id="widget-global-font-style">${fontFaces}html,body,body *,body *::before,body *::after,input,button,textarea,select{font-family:${fallback}!important;}</style>`;
+        const script = `<script>(function(){var base='@font-face{font-family:"Geomini";src:url("https://nos.netease.com/ysf/260de1ccc0fffea1b1af12b7f5b50c3c.ttf") format("truetype");font-weight:normal;font-style:normal;}';window.addEventListener('message',async function(event){var data=event.data;if(!data||data.type!=='widget-global-font')return;var family=data.family==='default'?'Geomini':data.family;var style=document.getElementById('widget-global-font-style');if(style){var safe=String(family).replace(/\\\\/g,'\\\\\\\\').replace(/"/g,'\\\\"');style.textContent=base+'html,body,body *,body *::before,body *::after,input,button,textarea,select{font-family:"'+safe+'","Geomini",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif!important;}';}try{if(data.sourceType==='local'&&data.fontData){var loaded=await new FontFace(family,data.fontData).load();document.fonts.add(loaded);}else if(data.sourceType==='url'&&data.url){var remote=await new FontFace(family,'url("'+String(data.url).replace(/"/g,'\\"')+'")').load();document.fonts.add(remote);}}catch(error){console.error('Widget font sync failed:',error);}});})();<` + `/script>`;
+        return style + script;
+    }
+
+    function buildWidgetFrameSrcdoc(content) {
+        const source = String(content == null ? '' : content);
+        const tools = '<style>html,body{margin:0;padding:0;width:100%;height:100%;box-sizing:border-box;}</style>' + buildWidgetGlobalFontTools();
+        const closingBody = /<\/body\s*>/i;
+        const closingHtml = /<\/html\s*>/i;
+        if (closingBody.test(source)) return source.replace(closingBody, tools + '</body>');
+        return closingHtml.test(source) ? source.replace(closingHtml, tools + '</html>') : source + tools;
+    }
+
+    function syncGlobalFontToWidgetFrame(frame) {
+        if (!frame || !frame.contentWindow) return;
+        const font = getSelectedWidgetFontData();
+        frame.contentWindow.postMessage({
+            type: 'widget-global-font',
+            family: font.family,
+            sourceType: font.type,
+            url: font.url,
+            fontData: font.data
+        }, '*');
+    }
+
+    function syncAllWidgetFonts() {
+        document.querySelectorAll('.widget-render-frame, .widget-code-preview-frame, .widget-list-preview-frame').forEach(syncGlobalFontToWidgetFrame);
+    }
+
     function makeWidgetFrameHTML(content, interactive) {
-        const encoded = escapeWidgetSrcdoc(content);
+        const encoded = escapeWidgetSrcdoc(buildWidgetFrameSrcdoc(content));
         const pe = interactive ? 'auto' : 'none';
         const style = 'position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:transparent;pointer-events:' + pe + ';';
-        return '<iframe class="widget-render-frame" srcdoc="<style>html,body{margin:0;padding:0;width:100%;height:100%;box-sizing:border-box;}</style>' + encoded + '" sandbox="allow-scripts" style="' + style + '" title="组件"></iframe>';
+        return '<iframe class="widget-render-frame" srcdoc="' + encoded + '" sandbox="allow-scripts" style="' + style + '" title="组件" onload="syncGlobalFontToWidgetFrame(this)"></iframe>';
     }
     window.escapeWidgetSrcdoc = escapeWidgetSrcdoc;
+    window.buildWidgetFrameSrcdoc = buildWidgetFrameSrcdoc;
+    window.syncGlobalFontToWidgetFrame = syncGlobalFontToWidgetFrame;
+    window.syncAllWidgetFonts = syncAllWidgetFonts;
     window.makeWidgetFrameHTML = makeWidgetFrameHTML;

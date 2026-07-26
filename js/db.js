@@ -123,56 +123,23 @@
 
     function saveLayout() {
         if (!db) return;
-        const desktopApps = [];
-        document.querySelectorAll('#desktopGrid .desktop-slot').forEach((slot, index) => {
-            const app = slot.querySelector('.app-item');
-            if (app) {
-                const iconEl = app.querySelector('.app-icon');
-                const iconBg = iconEl.style.backgroundImage;
-                const appId = app.getAttribute('data-app-id');
-                const isWidget = app.classList.contains('is-widget');
-                const appData = { 
-                    index, 
-                    name: app.querySelector('.app-name').innerText,
-                    icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
-                    appId: appId,
-                    isWidget: isWidget
-                };
-                if (isWidget) {
-                    appData.widgetContent = app.getAttribute('data-widget-content') || '';
-                    appData.width = app.getAttribute('data-widget-width') || '';
-                    appData.height = app.getAttribute('data-widget-height') || '';
-                    appData.presetSize = app.getAttribute('data-widget-preset-size') || '';
-                }
-                desktopApps.push(appData);
-            }
-        });
-
-        const dockApps = [];
-        document.querySelectorAll('#dock .app-item').forEach((app, index) => {
-            const iconEl = app.querySelector('.app-icon');
-            const iconBg = iconEl.style.backgroundImage;
-            const appId = app.getAttribute('data-app-id');
-            const isDockWidget = app.classList.contains('is-widget');
-            const dockAppData = { 
-                index, 
-                name: app.querySelector('.app-name').innerText,
-                icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
-                appId: appId,
-                isWidget: isDockWidget
-            };
-            if (isDockWidget) {
-                dockAppData.widgetContent = app.getAttribute('data-widget-content') || '';
-                dockAppData.width = app.getAttribute('data-widget-width') || '';
-                dockAppData.height = app.getAttribute('data-widget-height') || '';
-                dockAppData.presetSize = app.getAttribute('data-widget-preset-size') || '';
-            }
-            dockApps.push(dockAppData);
-        });
+        const pages = typeof window.getDesktopPagesSnapshot === 'function'
+            ? window.getDesktopPagesSnapshot()
+            : [typeof window.serializeDesktopGrid === 'function' ? window.serializeDesktopGrid() : []];
+        const dockApps = typeof window.serializeDockApps === 'function' ? window.serializeDockApps() : [];
+        const currentPage = typeof window.getCurrentDesktopPageIndex === 'function'
+            ? window.getCurrentDesktopPageIndex()
+            : 0;
 
         const transaction = db.transaction([storeName], "readwrite");
         const store = transaction.objectStore(storeName);
-        store.put({ id: "currentLayout", desktop: desktopApps, dock: dockApps });
+        store.put({
+            id: "currentLayout",
+            pages,
+            desktop: pages[0] || [],
+            dock: dockApps,
+            currentPage
+        });
         
         if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
     }
@@ -185,8 +152,9 @@
         request.onsuccess = (e) => {
             const data = e.target.result;
             // show three-dots button; click to expand vertical capsule menu
-            if (data && Array.isArray(data.desktop) && Array.isArray(data.dock)) {
-                renderLayout(data.desktop, data.dock);
+            if (data && (Array.isArray(data.pages) || Array.isArray(data.desktop)) && Array.isArray(data.dock)) {
+                const pages = Array.isArray(data.pages) && data.pages.length > 0 ? data.pages : [data.desktop || []];
+                renderLayout(pages, data.dock, data.currentPage || 0);
             } else {
             // show three-dots button; click to expand vertical capsule menu
                 renderDefaultLayout();
@@ -226,18 +194,20 @@
                     date: "系统内置",
                     wallpaper: null,
                     sizeMB: 0.01,
-                    desktop: [
-                        { index: 0, name: '设置', appId: 'settings', icon: "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')" }, 
+                    pages: [[
+                        { index: 0, name: '设置', appId: 'settings', icon: "url('https://cac.opple.com/yc-media/getFile?id=5b0f2ceab564421096b8a761f125b9f8#.jpg')" },
                         { index: 1, name: 'wechat', icon: "url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png')" },
                         { index: 2, name: 'Contacts', appId: 'contacts', icon: "url('https://nos.netease.com/ysf/1390642a446f8db21a89e22b6cc5dc97.png')" }, 
                         { index: 3, name: '世界书', appId: 'worldbook', icon: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')" }
-                    ],
+                    ]],
+                    currentPage: 0,
                     dock: [
-                        { index: 0, name: '电话', icon: "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')" }, 
-                        { index: 1, name: '信息', icon: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')" }, 
+                        { index: 0, name: '电话', icon: "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')" },
+                        { index: 1, name: '信息', icon: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')" },
                         { index: 2, name: '主题', appId: 'theme', icon: "url('https://nos.netease.com/ysf/edecff66f1f78185763da92dcc2bd617.png')" }
                     ]
                 };
+                defaultPreset.desktop = defaultPreset.pages[0];
                 presets.unshift(defaultPreset); // 插入到最前面
                 savePresetData(); // 保存到数据库
             }

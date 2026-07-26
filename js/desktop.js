@@ -61,8 +61,10 @@
         }
 
         function buildDesktopWidgetSrcdoc(content) {
-            return '<style>html,body{margin:0;padding:0;width:100%;height:100%;box-sizing:border-box;}</style>'
-                + buildDesktopWidgetFrameContent(content);
+            const frameContent = buildDesktopWidgetFrameContent(content);
+            return typeof window.buildWidgetFrameSrcdoc === 'function'
+                ? window.buildWidgetFrameSrcdoc(frameContent)
+                : '<style>html,body{margin:0;padding:0;width:100%;height:100%;box-sizing:border-box;}</style>' + frameContent;
         }
 
         function refreshDesktopWidgetFrames() {
@@ -74,6 +76,171 @@
             });
         }
         window.refreshDesktopWidgetFrames = refreshDesktopWidgetFrames;
+
+        let desktopPages = [[]];
+        let currentDesktopPage = 0;
+
+        function cloneDesktopPage(page) {
+            return Array.isArray(page) ? page.map(app => ({ ...app })) : [];
+        }
+
+        function normalizeDesktopPages(data) {
+            const pages = Array.isArray(data) && data.length > 0 && Array.isArray(data[0])
+                ? data
+                : [Array.isArray(data) ? data : []];
+            return pages.length > 0 ? pages.map(cloneDesktopPage) : [[]];
+        }
+
+        function serializeAppElement(app, index) {
+            const iconEl = app.querySelector('.app-icon');
+            const nameEl = app.querySelector('.app-name');
+            const iconBg = iconEl ? iconEl.style.backgroundImage : '';
+            const isWidget = app.classList.contains('is-widget');
+            const appData = {
+                index,
+                name: nameEl ? nameEl.innerText : '',
+                icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
+                appId: app.getAttribute('data-app-id'),
+                isWidget
+            };
+            if (isWidget) {
+                appData.widgetContent = app.getAttribute('data-widget-content') || '';
+                appData.width = app.getAttribute('data-widget-width') || '';
+                appData.height = app.getAttribute('data-widget-height') || '';
+                appData.presetSize = app.getAttribute('data-widget-preset-size') || '';
+            }
+            return appData;
+        }
+
+        function serializeDesktopGrid() {
+            const apps = [];
+            document.querySelectorAll('#desktopGrid .desktop-slot').forEach((slot, index) => {
+                const app = slot.querySelector(':scope > .app-item');
+                if (app) apps.push(serializeAppElement(app, index));
+            });
+            return apps;
+        }
+
+        function serializeDockApps() {
+            return Array.from(document.querySelectorAll('#dock .app-item')).map((app, index) => serializeAppElement(app, index));
+        }
+
+        function commitCurrentDesktopPage() {
+            if (!desktopPages.length) desktopPages = [[]];
+            desktopPages[currentDesktopPage] = serializeDesktopGrid();
+        }
+
+        function getDesktopPagesSnapshot() {
+            commitCurrentDesktopPage();
+            return desktopPages.map(cloneDesktopPage);
+        }
+
+        function getCurrentDesktopPageIndex() {
+            return currentDesktopPage;
+        }
+
+        function ensureDesktopPageControls() {
+            let controls = document.getElementById('desktopPageControls');
+            if (controls) return controls;
+            controls = document.createElement('div');
+            controls.id = 'desktopPageControls';
+            controls.className = 'desktop-page-controls';
+            controls.innerHTML = `
+                <button class="desktop-page-action desktop-page-delete" type="button" aria-label="删除当前空白页" title="删除当前空白页">−</button>
+                <div class="desktop-page-dots" aria-label="桌面页面"></div>
+                <button class="desktop-page-action desktop-page-add" type="button" aria-label="新增空白页" title="新增空白页">+</button>
+            `;
+            const iphone = document.querySelector('.iphone');
+            if (iphone) iphone.appendChild(controls);
+            controls.querySelector('.desktop-page-add').addEventListener('click', addBlankDesktopPage);
+            controls.querySelector('.desktop-page-delete').addEventListener('click', deleteCurrentBlankDesktopPage);
+            return controls;
+        }
+
+        function renderDesktopPageControls() {
+            const controls = ensureDesktopPageControls();
+            if (!controls) return;
+            const dots = controls.querySelector('.desktop-page-dots');
+            dots.innerHTML = '';
+            desktopPages.forEach((page, index) => {
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = 'desktop-page-dot' + (index === currentDesktopPage ? ' active' : '');
+                dot.setAttribute('aria-label', `第 ${index + 1} 页`);
+                dot.setAttribute('aria-current', index === currentDesktopPage ? 'page' : 'false');
+                dot.addEventListener('click', () => switchDesktopPage(index));
+                dots.appendChild(dot);
+            });
+            controls.classList.toggle('is-editing', isEditMode);
+            const deleteButton = controls.querySelector('.desktop-page-delete');
+            const currentPageIsEmpty = serializeDesktopGrid().length === 0;
+            deleteButton.disabled = desktopPages.length <= 1 || !currentPageIsEmpty;
+        }
+
+        function renderDesktopPage(pageData = [], direction = 0) {
+            const desktopGrid = document.getElementById('desktopGrid');
+            desktopGrid.innerHTML = '';
+            for (let i = 0; i < 28; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'desktop-slot' + (isEditMode ? ' show-grid' : '');
+                const appData = pageData.find(d => d.index === i);
+                if (appData) {
+                    const app = appData.isWidget || appData.widgetContent
+                        ? createAppElement(appData.name, appData.icon, appData.appId, true, appData.widgetContent, appData.width, appData.height, appData.presetSize)
+                        : createAppElement(appData.name, appData.icon, appData.appId);
+                    if (isEditMode) app.classList.add('jiggling');
+                    slot.appendChild(app);
+                }
+                desktopGrid.appendChild(slot);
+            }
+            rebuildDesktopWidgetOccupancy();
+            if (direction) {
+                desktopGrid.classList.remove('page-enter-left', 'page-enter-right');
+                void desktopGrid.offsetWidth;
+                desktopGrid.classList.add(direction > 0 ? 'page-enter-right' : 'page-enter-left');
+            }
+            renderDesktopPageControls();
+        }
+
+        function switchDesktopPage(pageIndex, options = {}) {
+            const nextPage = Math.max(0, Math.min(Number(pageIndex) || 0, desktopPages.length - 1));
+            if (nextPage === currentDesktopPage) {
+                renderDesktopPageControls();
+                return false;
+            }
+            if (!options.skipCommit) commitCurrentDesktopPage();
+            const direction = nextPage > currentDesktopPage ? 1 : -1;
+            currentDesktopPage = nextPage;
+            renderDesktopPage(desktopPages[currentDesktopPage], direction);
+            if (!options.skipSave && typeof window.saveLayout === 'function') window.saveLayout();
+            return true;
+        }
+
+        function addBlankDesktopPage() {
+            commitCurrentDesktopPage();
+            desktopPages.push([]);
+            currentDesktopPage = desktopPages.length - 1;
+            renderDesktopPage(desktopPages[currentDesktopPage], 1);
+            if (typeof window.saveLayout === 'function') window.saveLayout();
+        }
+
+        function deleteCurrentBlankDesktopPage() {
+            commitCurrentDesktopPage();
+            if (desktopPages.length <= 1 || desktopPages[currentDesktopPage].length > 0) return false;
+            desktopPages.splice(currentDesktopPage, 1);
+            currentDesktopPage = Math.min(currentDesktopPage, desktopPages.length - 1);
+            renderDesktopPage(desktopPages[currentDesktopPage], -1);
+            if (typeof window.saveLayout === 'function') window.saveLayout();
+            return true;
+        }
+
+        window.serializeDesktopGrid = serializeDesktopGrid;
+        window.serializeDockApps = serializeDockApps;
+        window.getDesktopPagesSnapshot = getDesktopPagesSnapshot;
+        window.getCurrentDesktopPageIndex = getCurrentDesktopPageIndex;
+        window.switchDesktopPage = switchDesktopPage;
+        window.addBlankDesktopPage = addBlankDesktopPage;
+        window.deleteCurrentBlankDesktopPage = deleteCurrentBlankDesktopPage;
 
         function getWidgetGridSpan(widgetData) {
             const legacyWidth = parseInt(widgetData.width, 10);
@@ -243,11 +410,11 @@
         return app;
     }
 
-    function renderLayout(desktopData = [], dockData = []) {
-        const desktopGrid = document.getElementById('desktopGrid');
+    function renderLayout(desktopData = [], dockData = [], pageIndex = 0) {
         const dock = document.getElementById('dock');
-        desktopGrid.innerHTML = '';
         dock.innerHTML = '';
+        desktopPages = normalizeDesktopPages(desktopData);
+        currentDesktopPage = Math.max(0, Math.min(Number(pageIndex) || 0, desktopPages.length - 1));
 
             // show three-dots button; click to expand vertical capsule menu
         let hasSettings = false;
@@ -278,35 +445,19 @@
             }
         };
 
-        desktopData.forEach(checkAndHeal);
+        desktopPages.forEach(page => page.forEach(checkAndHeal));
         dockData.forEach(checkAndHeal);
 
             // show three-dots button; click to expand vertical capsule menu
-        if (!hasSettings && desktopData.length > 0) {
-            desktopData[0].appId = 'settings';
+        if (!hasSettings && desktopPages[0].length > 0) {
+            desktopPages[0][0].appId = 'settings';
         }
         if (!hasTheme && dockData.length > 0) {
             dockData[dockData.length - 1].appId = 'theme';
         }
         // ----------------------------------
 
-            // show three-dots button; click to expand vertical capsule menu
-        for (let i = 0; i < 28; i++) {
-            const slot = document.createElement('div');
-            slot.className = 'desktop-slot';
-            const appData = desktopData.find(d => d.index === i);
-            if (appData) {
-                            if (appData.isWidget || appData.widgetContent) {
-                slot.appendChild(createAppElement(appData.name, appData.icon, appData.appId, true, appData.widgetContent, appData.width, appData.height, appData.presetSize));
-            } else {
-                slot.appendChild(createAppElement(appData.name, appData.icon, appData.appId));
-            }
-            }
-            desktopGrid.appendChild(slot);
-        }
-
-            // show three-dots button; click to expand vertical capsule menu
-        rebuildDesktopWidgetOccupancy();
+        renderDesktopPage(desktopPages[currentDesktopPage]);
 
         dockData.forEach(appData => {
             dock.appendChild(createAppElement(appData.name, appData.icon, appData.appId));
@@ -351,6 +502,13 @@
     let draggedApp = null;
     let dragGhost = null;
     let offsetX = 0, offsetY = 0;
+    let dragOrigin = null;
+    let dragEdgeTimer = null;
+    let dragEdgeDirection = 0;
+    let dragEdgeLocked = false;
+    let desktopSwipePointerId = null;
+    let desktopSwipeStartX = 0;
+    let desktopSwipeStartY = 0;
 
     function enterEditMode() {
         if (isEditMode) return;
@@ -359,10 +517,11 @@
         statusBar.style.visibility = 'hidden';
         editPlus.style.display = 'flex';
         editDone.style.display = 'block';
-        
+
             // show three-dots button; click to expand vertical capsule menu
         document.querySelectorAll('.desktop-slot').forEach(slot => slot.classList.add('show-grid'));
         document.querySelectorAll('.app-item').forEach(app => app.classList.add('jiggling'));
+        renderDesktopPageControls();
     }
 
             window.deleteDesktopApp = function(btn, e) {
@@ -375,6 +534,7 @@
                 if (typeof window.saveLayout === 'function') {
                     window.saveLayout();
                 }
+                renderDesktopPageControls();
             }
         };
 
@@ -387,6 +547,7 @@
             // show three-dots button; click to expand vertical capsule menu
         document.querySelectorAll('.desktop-slot').forEach(slot => slot.classList.remove('show-grid'));
         document.querySelectorAll('.app-item').forEach(app => app.classList.remove('jiggling'));
+        renderDesktopPageControls();
         
             // show three-dots button; click to expand vertical capsule menu
         saveLayout();
@@ -590,8 +751,14 @@
 
     document.addEventListener('pointerdown', (e) => {
         const app = e.target.closest('.app-item');
-        
+        const desktopGrid = e.target.closest('#desktopGrid');
+
         if (!isEditMode) {
+            if (desktopGrid) {
+                desktopSwipePointerId = e.pointerId;
+                desktopSwipeStartX = e.clientX;
+                desktopSwipeStartY = e.clientY;
+            }
             if (!app) return;
             startX = e.clientX;
             startY = e.clientY;
@@ -602,6 +769,14 @@
             if (!app) return;
             e.preventDefault();
             draggedApp = app;
+            const parent = app.parentNode;
+            dragOrigin = {
+                page: currentDesktopPage,
+                inDock: parent && parent.id === 'dock',
+                index: parent && parent.classList.contains('desktop-slot')
+                    ? Array.from(document.querySelectorAll('#desktopGrid .desktop-slot')).indexOf(parent)
+                    : Array.from(dockContainer.querySelectorAll('.app-item')).indexOf(app)
+            };
 
             const rect = app.getBoundingClientRect();
             offsetX = e.clientX - rect.left;
@@ -635,8 +810,72 @@
             if (!dragGhost) return;
             e.preventDefault();
             dragGhost.style.transform = `translate3d(${e.clientX - offsetX}px, ${e.clientY - offsetY}px, 0) scale(1.15)`;
+            scheduleDragEdgeNavigation(e.clientX, e.clientY);
         }
     });
+
+    function clearDragEdgeNavigation() {
+        if (dragEdgeTimer) clearTimeout(dragEdgeTimer);
+        dragEdgeTimer = null;
+        dragEdgeDirection = 0;
+    }
+
+    function detachDraggedAppFromDesktopPage() {
+        if (!draggedApp || !draggedApp.parentNode || !draggedApp.parentNode.classList.contains('desktop-slot')) return;
+        draggedApp.remove();
+        rebuildDesktopWidgetOccupancy();
+        commitCurrentDesktopPage();
+    }
+
+    function scheduleDragEdgeNavigation(clientX, clientY) {
+        const grid = document.getElementById('desktopGrid');
+        const rect = grid.getBoundingClientRect();
+        const insideVerticalRange = clientY >= rect.top && clientY <= rect.bottom;
+        const direction = insideVerticalRange && clientX <= rect.left + 34
+            ? -1
+            : insideVerticalRange && clientX >= rect.right - 34
+                ? 1
+                : 0;
+
+        if (!direction) {
+            clearDragEdgeNavigation();
+            dragEdgeLocked = false;
+            return;
+        }
+        if (dragEdgeLocked || (dragEdgeTimer && dragEdgeDirection === direction)) return;
+        clearDragEdgeNavigation();
+        dragEdgeDirection = direction;
+        dragEdgeTimer = setTimeout(() => {
+            dragEdgeTimer = null;
+            detachDraggedAppFromDesktopPage();
+            if (direction > 0 && currentDesktopPage === desktopPages.length - 1) {
+                desktopPages.push([]);
+            }
+            const targetPage = currentDesktopPage + direction;
+            if (targetPage >= 0 && targetPage < desktopPages.length) {
+                switchDesktopPage(targetPage, { skipCommit: true, skipSave: true });
+            }
+            dragEdgeLocked = true;
+        }, 520);
+    }
+
+    function restoreDraggedAppToOrigin() {
+        if (!draggedApp || !dragOrigin) return;
+        if (dragOrigin.inDock) {
+            const dockItems = Array.from(dockContainer.children);
+            dockContainer.insertBefore(draggedApp, dockItems[dragOrigin.index] || null);
+            return;
+        }
+        if (currentDesktopPage !== dragOrigin.page) {
+            commitCurrentDesktopPage();
+            switchDesktopPage(dragOrigin.page, { skipCommit: true, skipSave: true });
+        }
+        const slots = Array.from(document.querySelectorAll('#desktopGrid .desktop-slot'));
+        const originSlot = slots[dragOrigin.index];
+        const fallbackSlot = slots.find(slot => !slot.querySelector(':scope > .app-item') && !slot.getAttribute('data-widget-occupied-by'));
+        (originSlot && !originSlot.querySelector(':scope > .app-item') ? originSlot : fallbackSlot)?.appendChild(draggedApp);
+        rebuildDesktopWidgetOccupancy();
+    }
 
     document.addEventListener('pointerup', (e) => {
         if (pressTimer) {
@@ -644,8 +883,18 @@
             pressTimer = null;
         }
 
+        let didSwipePage = false;
+        if (!isEditMode && desktopSwipePointerId === e.pointerId) {
+            const diffX = e.clientX - desktopSwipeStartX;
+            const diffY = e.clientY - desktopSwipeStartY;
+            if (Math.abs(diffX) >= 48 && Math.abs(diffX) > Math.abs(diffY) * 1.25) {
+                didSwipePage = switchDesktopPage(currentDesktopPage + (diffX < 0 ? 1 : -1));
+            }
+            desktopSwipePointerId = null;
+        }
+
             // show three-dots button; click to expand vertical capsule menu
-        if (!isEditMode && !dragGhost) {
+        if (!isEditMode && !dragGhost && !didSwipePage) {
             const app = e.target.closest('.app-item');
             if (app) {
                 const appId = app.getAttribute('data-app-id');
@@ -664,13 +913,17 @@
         }
 
         if (isEditMode && dragGhost && draggedApp) {
+            clearDragEdgeNavigation();
+            dragEdgeLocked = false;
             dragGhost.remove();
             dragGhost = null;
             draggedApp.style.opacity = '1';
 
+            const originalDisplay = draggedApp.style.display;
             draggedApp.style.display = 'none';
             const targetEl = document.elementFromPoint(e.clientX, e.clientY);
-            draggedApp.style.display = '';
+            draggedApp.style.display = originalDisplay;
+            let dropSucceeded = false;
 
             if (targetEl) {
                 const targetApp = targetEl.closest('.app-item');
@@ -678,6 +931,7 @@
                 const targetDock = targetEl.closest('.dock');
 
                 const parent1 = draggedApp.parentNode;
+                const crossedPage = !dragOrigin.inDock && currentDesktopPage !== dragOrigin.page;
 
                 const draggedIsWidget = draggedApp.classList.contains('is-widget');
                 if (draggedIsWidget) {
@@ -688,9 +942,10 @@
                         const rows = parseInt(draggedApp.getAttribute('data-widget-rows'), 10) || 1;
                         if (targetIndex > -1 && isDesktopAreaAvailable(targetIndex, columns, rows, draggedApp)) {
                             targetSlot.appendChild(draggedApp);
+                            dropSucceeded = true;
                         }
                     }
-                } else if (targetApp && targetApp !== draggedApp && !targetApp.classList.contains('is-widget')) {
+                } else if (!crossedPage && parent1 && targetApp && targetApp !== draggedApp && !targetApp.classList.contains('is-widget')) {
                     const parent2 = targetApp.parentNode;
                     const targetOccupied = parent2.getAttribute('data-widget-occupied-by');
                     const sourceOccupied = parent1.getAttribute('data-widget-occupied-by');
@@ -699,27 +954,41 @@
                         const sibling2 = targetApp.nextSibling === draggedApp ? targetApp : targetApp.nextSibling;
                         parent2.insertBefore(draggedApp, sibling2);
                         parent1.insertBefore(targetApp, sibling1);
+                        dropSucceeded = true;
                     }
                 } else if (targetSlot && !targetSlot.querySelector('.app-item') && !targetSlot.getAttribute('data-widget-occupied-by')) {
                     targetSlot.appendChild(draggedApp);
-                } else if (targetDock && !parent1.classList.contains('dock')) {
+                    dropSucceeded = true;
+                } else if (targetDock && (!parent1 || !parent1.classList.contains('dock'))) {
                     if (dockContainer.querySelectorAll('.app-item').length < 4) {
                         dockContainer.appendChild(draggedApp);
+                        dropSucceeded = true;
                     }
                 }
                 rebuildDesktopWidgetOccupancy();
             }
+            if (!dropSucceeded) restoreDraggedAppToOrigin();
+            renderDesktopPageControls();
+            if (typeof window.saveLayout === 'function') window.saveLayout();
             draggedApp = null;
+            dragOrigin = null;
         }
     });
 
     document.addEventListener('pointercancel', () => {
         if (pressTimer) clearTimeout(pressTimer);
+        desktopSwipePointerId = null;
+        clearDragEdgeNavigation();
+        dragEdgeLocked = false;
         if (dragGhost) {
             dragGhost.remove();
             dragGhost = null;
-            if (draggedApp) draggedApp.style.opacity = '1';
+            if (draggedApp) {
+                draggedApp.style.opacity = '1';
+                restoreDraggedAppToOrigin();
+            }
             draggedApp = null;
+            dragOrigin = null;
         }
     });
 

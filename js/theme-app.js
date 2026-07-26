@@ -710,55 +710,28 @@
         });
     }
 
+    function getPresetPages(preset) {
+        if (preset && Array.isArray(preset.pages) && preset.pages.length > 0) return preset.pages;
+        return [preset && Array.isArray(preset.desktop) ? preset.desktop : []];
+    }
+
+    function captureCurrentDesktopLayout() {
+        const pages = typeof window.getDesktopPagesSnapshot === 'function'
+            ? window.getDesktopPagesSnapshot()
+            : [typeof window.serializeDesktopGrid === 'function' ? window.serializeDesktopGrid() : []];
+        return {
+            pages,
+            desktop: pages[0] || [],
+            dock: typeof window.serializeDockApps === 'function' ? window.serializeDockApps() : [],
+            currentPage: typeof window.getCurrentDesktopPageIndex === 'function'
+                ? window.getCurrentDesktopPageIndex()
+                : 0
+        };
+    }
+
     function saveCurrentAsPreset(inputVal) {
             // show three-dots button; click to expand vertical capsule menu
-        const desktopApps = [];
-        document.querySelectorAll('#desktopGrid .desktop-slot').forEach((slot, index) => {
-            const app = slot.querySelector('.app-item');
-            if (app) {
-                const iconEl = app.querySelector('.app-icon');
-                const iconBg = iconEl.style.backgroundImage;
-                const appId = app.getAttribute('data-app-id');
-                const isWidget = app.classList.contains('is-widget');
-                const appData = { 
-                    index, 
-                    name: app.querySelector('.app-name').innerText,
-                    icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
-                    appId: appId,
-                    isWidget: isWidget
-                };
-                if (isWidget) {
-                    appData.widgetContent = app.getAttribute('data-widget-content') || '';
-                    appData.width = app.getAttribute('data-widget-width') || '';
-                    appData.height = app.getAttribute('data-widget-height') || '';
-                    appData.presetSize = app.getAttribute('data-widget-preset-size') || '';
-                }
-                desktopApps.push(appData);
-            }
-        });
-
-            // show three-dots button; click to expand vertical capsule menu
-        const dockApps = [];
-        document.querySelectorAll('#dock .app-item').forEach((app, index) => {
-            const iconEl = app.querySelector('.app-icon');
-            const iconBg = iconEl.style.backgroundImage;
-            const appId = app.getAttribute('data-app-id');
-            const isDockWidget = app.classList.contains('is-widget');
-            const dockAppData = { 
-                index, 
-                name: app.querySelector('.app-name').innerText,
-                icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
-                appId: appId,
-                isWidget: isDockWidget
-            };
-            if (isDockWidget) {
-                dockAppData.widgetContent = app.getAttribute('data-widget-content') || '';
-                dockAppData.width = app.getAttribute('data-widget-width') || '';
-                dockAppData.height = app.getAttribute('data-widget-height') || '';
-                dockAppData.presetSize = app.getAttribute('data-widget-preset-size') || '';
-            }
-            dockApps.push(dockAppData);
-        });
+        const layout = captureCurrentDesktopLayout();
 
         const now = new Date();
         const dateStr = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日`;
@@ -768,8 +741,10 @@
             name: inputVal,
             date: dateStr,
             wallpaper: currentWallpaperSrc,
-            desktop: desktopApps,
-            dock: dockApps
+            pages: layout.pages,
+            desktop: layout.desktop,
+            dock: layout.dock,
+            currentPage: layout.currentPage
         };
         
             // show three-dots button; click to expand vertical capsule menu
@@ -805,9 +780,12 @@
         container.style.backgroundImage = preset.wallpaper ? `url('${preset.wallpaper}')` : ''; // 清空内联样式，跟随 CSS 深浅色
         
             // show three-dots button; click to expand vertical capsule menu
+        const previewPages = getPresetPages(preset);
+        const previewPageIndex = Math.max(0, Math.min(Number(preset.currentPage) || 0, previewPages.length - 1));
+        const previewPage = previewPages[previewPageIndex] || [];
         let desktopHTML = '<div class="desktop-grid" style="height: calc(100% - 180px);">';
         for (let i = 0; i < 28; i++) {
-            const appData = preset.desktop ? preset.desktop.find(d => d.index === i) : null;
+            const appData = previewPage.find(d => d.index === i);
             if (appData) {
             // show three-dots button; click to expand vertical capsule menu
                 const safeIcon = appData.icon ? appData.icon.replace(/"/g, "'") : '';
@@ -819,6 +797,13 @@
             }
         }
         desktopHTML += '</div>';
+        if (previewPages.length > 1) {
+            desktopHTML += '<div class="desktop-page-dots" style="position:absolute;left:50%;bottom:125px;transform:translateX(-50%);">';
+            previewPages.forEach((page, index) => {
+                desktopHTML += `<span class="desktop-page-dot ${index === previewPageIndex ? 'active' : ''}"></span>`;
+            });
+            desktopHTML += '</div>';
+        }
 
             // show three-dots button; click to expand vertical capsule menu
         let dockHTML = '<div class="dock" style="bottom: 15px;">';
@@ -974,8 +959,9 @@
         }
 
             // show three-dots button; click to expand vertical capsule menu
-        if (preset.desktop) {
-            preset.desktop.forEach(app => {
+        const presetPages = getPresetPages(preset);
+        presetPages.forEach(page => {
+            page.forEach(app => {
                 if (app.icon) {
                     const base64 = extractBase64FromUrl(app.icon);
                     if (base64) {
@@ -988,7 +974,9 @@
                     }
                 }
             });
-        }
+        });
+        preset.pages = presetPages;
+        preset.desktop = presetPages[0] || [];
 
             // show three-dots button; click to expand vertical capsule menu
         if (preset.dock) {
@@ -1037,8 +1025,8 @@
         saveWallpaperData();
 
             // show three-dots button; click to expand vertical capsule menu
-        if (preset.desktop && preset.dock) {
-            renderLayout(preset.desktop, preset.dock);
+        if ((preset.pages || preset.desktop) && preset.dock) {
+            renderLayout(getPresetPages(preset), preset.dock, preset.currentPage || 0);
         }
 
         saveLayout();
@@ -1057,7 +1045,12 @@
         reader.onload = function(e) {
             try {
                 const importedData = JSON.parse(e.target.result);
-                if (importedData && importedData.name && (importedData.desktop || importedData.dock)) {
+                if (importedData && importedData.name && (importedData.pages || importedData.desktop || importedData.dock)) {
+                    const importedPages = getPresetPages(importedData);
+                    importedData.pages = importedPages;
+                    importedData.desktop = importedPages[0] || [];
+                    importedData.currentPage = Math.max(0, Math.min(Number(importedData.currentPage) || 0, importedPages.length - 1));
+                    importedData.dock = Array.isArray(importedData.dock) ? importedData.dock : [];
                     importedData.id = Date.now(); // 重新分配ID避免冲突
                     const now = new Date();
                     importedData.date = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日`;
@@ -1078,58 +1071,15 @@
     }
 
     function exportCurrentUsingTheme(themeName) {
-        const desktopApps = [];
-        document.querySelectorAll('#desktopGrid .desktop-slot').forEach((slot, index) => {
-            const app = slot.querySelector('.app-item');
-            if (app) {
-                const iconEl = app.querySelector('.app-icon');
-                const iconBg = iconEl.style.backgroundImage;
-                const appId = app.getAttribute('data-app-id');
-                const isWidget = app.classList.contains('is-widget');
-                const appData = { 
-                    index, 
-                    name: app.querySelector('.app-name').innerText,
-                    icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
-                    appId: appId,
-                    isWidget: isWidget
-                };
-                if (isWidget) {
-                    appData.widgetContent = app.getAttribute('data-widget-content') || '';
-                    appData.width = app.getAttribute('data-widget-width') || '';
-                    appData.height = app.getAttribute('data-widget-height') || '';
-                    appData.presetSize = app.getAttribute('data-widget-preset-size') || '';
-                }
-                desktopApps.push(appData);
-            }
-        });
-
-        const dockApps = [];
-        document.querySelectorAll('#dock .app-item').forEach((app, index) => {
-            const iconEl = app.querySelector('.app-icon');
-            const iconBg = iconEl.style.backgroundImage;
-            const appId = app.getAttribute('data-app-id');
-            const isDockWidget = app.classList.contains('is-widget');
-            const dockAppData = { 
-                index, 
-                name: app.querySelector('.app-name').innerText,
-                icon: iconBg !== '' && iconBg !== 'none' ? iconBg : null,
-                appId: appId,
-                isWidget: isDockWidget
-            };
-            if (isDockWidget) {
-                dockAppData.widgetContent = app.getAttribute('data-widget-content') || '';
-                dockAppData.width = app.getAttribute('data-widget-width') || '';
-                dockAppData.height = app.getAttribute('data-widget-height') || '';
-                dockAppData.presetSize = app.getAttribute('data-widget-preset-size') || '';
-            }
-            dockApps.push(dockAppData);
-        });
+        const layout = captureCurrentDesktopLayout();
 
         const currentTheme = {
             name: themeName,
             wallpaper: currentWallpaperSrc,
-            desktop: desktopApps,
-            dock: dockApps
+            pages: layout.pages,
+            desktop: layout.desktop,
+            dock: layout.dock,
+            currentPage: layout.currentPage
         };
 
         const jsonString = JSON.stringify(currentTheme, null, 2);
@@ -1289,6 +1239,9 @@
         } else {
             previewBox.style.fontFamily = `"${fontFamily}", "Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif`;
             styleTag.innerHTML = `*, *::before, *::after, input, button, textarea, select { font-family: "${fontFamily}", "Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif !important; }`;
+        }
+        if (typeof window.syncAllWidgetFonts === 'function') {
+            setTimeout(window.syncAllWidgetFonts, 0);
         }
     }
 
