@@ -343,6 +343,101 @@
         <div class="media-item color-3 uploadable-img"></div>
     </div>
 </div>`
+            },
+            {
+                name: '层叠信息卡片',
+                presetSize: '4x2',
+                preview: '#e5e5e5',
+                content: `<style>
+    .widget-1-container { position: relative; width: 100%; height: 100%; background-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .w1-layer { position: absolute; background: #ffffff; border-radius: 16px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); display: flex; align-items: center; color: #a0a0a0; letter-spacing: 0.5px; }
+    .w1-layer-1 { top: 0; left: 8%; width: 84%; height: 22%; padding: 0 20px; box-sizing: border-box; gap: 10px; z-index: 1; font-size: 10px; }
+    .w1-layer-1 > * { transform: translateY(-4px); }
+    .w1-layer-2 { top: 14%; left: 4%; width: 92%; height: 25%; padding: 0 20px; box-sizing: border-box; gap: 10px; z-index: 2; box-shadow: 0 -2px 10px rgba(0,0,0,0.02), 0 4px 15px rgba(0, 0, 0, 0.04); font-size: 10px; }
+    .w1-layer-2 > * { transform: translateY(-3px); }
+    .w1-layer-3 { top: 30%; left: 0; width: 100%; height: 70%; z-index: 3; border-radius: 20px; flex-direction: column; align-items: flex-start; padding: 15px 20px; box-sizing: border-box; box-shadow: 0 -4px 15px rgba(0,0,0,0.03), 0 8px 20px rgba(0, 0, 0, 0.05); font-size: 12px; }
+    .w1-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 11px; width: 100%; flex-shrink: 0; line-height: 1.2; }
+    .w1-body { display: flex; width: 100%; gap: 15px; align-items: center; flex-shrink: 0; }
+    .w1-avatar { width: 50px; height: 50px; border-radius: 10px; background-color: #dcdcdc; background-size: cover; background-position: center; flex-shrink: 0; }
+    .w1-pills { display: flex; gap: 10px; flex: 1; overflow: hidden; }
+    .w1-pill { background: #f8f8f8; border-radius: 20px; padding: 6px 12px; font-size: 10px; display: flex; align-items: center; justify-content: center; gap: 4px; color: #b0b0b0; }
+    .w1-footer { margin-top: 10px; font-size: 10px; color: #b0b0b0; text-align: center; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; }
+    svg { display: inline-block; vertical-align: middle; flex-shrink: 0; }
+    [contenteditable="true"] { outline: none; border-bottom: 1px solid transparent; transition: border-color 0.2s; white-space: nowrap; }
+</style>
+<div class="widget-1-container">
+    <div class="w1-layer w1-layer-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M3.75 6.75a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3v-.037c.856-.174 1.5-.93 1.5-1.838v-2.25c0-.907-.644-1.664-1.5-1.837V9.75a3 3 0 0 0-3-3h-15Zm15 1.5a1.5 1.5 0 0 1 1.5 1.5v6a1.5 1.5 0 0 1-1.5 1.5h-15a1.5 1.5 0 0 1-1.5-1.5v-6a1.5 1.5 0 0 1 1.5-1.5h15ZM4.5 9.75a.75.75 0 0 0-.75.75V15c0 .414.336.75.75.75H18a.75.75 0 0 0 .75-.75v-4.5a.75.75 0 0 0-.75-.75H4.5Z" clip-rule="evenodd" /></svg>
+        <span id="battery-status">获取中...</span>
+        <span id="battery-level">--%</span>
+    </div>
+    <div class="w1-layer w1-layer-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 48 48" width="13" height="13"><path fill="currentColor" d="m40.7174 1.9205 -0.3699 -0.0113h-0.0588c-1.6661 0 -3.2294 0.6685 -4.5833 1.6967 -1.3539 1.0282 -1.751 1.9218 -1.751 1.9218l9.9539 9.7277s1.2726 -0.6459 1.9919 -1.5666c0.7195 -0.9207 1.6153 -2.0451 1.6198 -4.1977 0.0079 -4.0143 -2.9782 -7.3398 -6.8026 -7.5706Z" stroke-width="1"></path><path fill="currentColor" d="m7.2826 1.9205 0.3698 -0.0113h0.0589c1.6661 0 3.2293 0.6685 4.5833 1.6967 1.354 1.0282 1.751 1.9218 1.751 1.9218l-9.9539 9.7277s-1.2725 -0.6459 -1.9919 -1.5666S0.4845 11.6437 0.48 9.4867C0.4721 5.4768 3.4583 2.1513 7.2826 1.9205Z" stroke-width="1"></path><path fill="currentColor" d="M39.3041 38.1723c-0.0013 -0.0012 -0.0019 -0.0028 -0.0019 -0.0045 0 -0.0017 0.0006 -0.0034 0.0019 -0.0046 3.8119 -4.5833 5.6217 -10.8904 4.0381 -17.5652 -1.5429 -6.5063 -8.22 -13.0862 -14.7432 -14.5532 -12.9695 -2.9161 -24.4992 6.9157 -24.4992 19.391 -0.0045 4.6524 1.6285 9.1581 4.6128 12.7274 0.001 0.0012 0.0017 0.0029 0.0017 0.0046 0 0.0017 -0.0007 0.0033 -0.0017 0.0045l-5.4125 5.3616c-0.0011 0.0012 -0.0017 0.0028 -0.0017 0.0044 0 0.0017 0.0006 0.0033 0.0017 0.0046l2.6016 2.5462c0.0013 0.0011 0.0029 0.0017 0.0045 0.0017 0.0017 0 0.0033 -0.0006 0.0046 -0.0017l5.365 -5.3583c0.0012 -0.0011 0.0028 -0.0017 0.0044 -0.0017 0.0016 0 0.0033 0.0006 0.0046 0.0017 3.5717 2.9803 8.0761 4.6128 12.728 4.6128 4.6519 0 9.1562 -1.6325 12.7281 -4.6128h0.0079l5.3491 5.3583c0.0012 0.0011 0.0029 0.0017 0.0046 0.0017 0.0015 0 0.0032 -0.0006 0.0044 -0.0017l2.7057 -2.5552 -5.5086 -5.3617ZM25.8176 27.2456H13.141v-3.6084l0.0057 -0.0055h9.049V10.9573h3.6196l0.0023 16.2883Z" stroke-width="1"></path></svg>
+        <span id="time-display">--:--:--</span>
+        <span id="date-display" style="margin-left: 10px;">----年--月--日 周-</span>
+    </div>
+    <div class="w1-layer w1-layer-3">
+        <div class="w1-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.9975 11.9078V18.5078C22.0225 18.9691 21.9533 19.4308 21.794 19.8644C21.6347 20.2981 21.3887 20.6948 21.071 21.0302C20.7533 21.3657 20.3705 21.6328 19.9461 21.8154C19.5217 21.998 19.0645 22.0922 18.6025 22.0922C18.1405 22.0922 17.6833 21.998 17.2589 21.8154C16.8345 21.6328 16.4517 21.3657 16.134 21.0302C15.8163 20.6948 15.5703 20.2981 15.411 19.8644C15.2517 19.4308 15.1825 18.9691 15.2075 18.5078V15.8678C15.2071 15.252 15.3743 14.6477 15.6914 14.1198C16.0085 13.5919 16.4634 13.1604 17.0072 12.8715C17.551 12.5826 18.1633 12.4473 18.7782 12.4802C19.3932 12.513 19.9875 12.7127 20.4975 13.0578V11.9078C20.4975 9.6535 19.602 7.49149 18.0079 5.89743C16.4138 4.30337 14.2518 3.40784 11.9975 3.40784C9.74316 3.40784 7.58115 4.30337 5.98709 5.89743C4.39303 7.49149 3.4975 9.6535 3.4975 11.9078V13.0578C4.05426 12.6776 4.71332 12.4754 5.38751 12.4778C6.2866 12.4778 7.14886 12.835 7.78461 13.4707C8.42036 14.1065 8.7775 14.9687 8.7775 15.8678V18.5078C8.7775 18.953 8.68983 19.3938 8.51947 19.8051C8.34911 20.2164 8.0994 20.5901 7.78461 20.9049C7.46982 21.2197 7.09611 21.4694 6.68481 21.6398C6.27352 21.8101 5.83269 21.8978 5.38751 21.8978C4.94233 21.8978 4.5015 21.8101 4.09021 21.6398C3.67892 21.4694 3.30521 21.2197 2.99042 20.9049C2.67563 20.5901 2.42592 20.2164 2.25555 19.8051C2.08519 19.3938 1.9975 18.953 1.9975 18.5078V11.9078C1.9975 9.25567 3.05109 6.71213 4.92645 4.83676C6.80182 2.9614 9.34533 1.90784 11.9975 1.90784C14.6497 1.90784 17.1932 2.9614 19.0686 4.83676C20.9439 6.71213 21.9975 9.25567 21.9975 11.9078Z" fill="currentColor"/></svg>
+            <span contenteditable="true">° ‧┈┈ 9 人形電腦天使心 9 ┈┈‧ °</span>
+        </div>
+        <div class="w1-body">
+            <div class="w1-avatar uploadable-img"></div>
+            <div class="w1-pills">
+                <div class="w1-pill"><span contenteditable="true">♡ ♡ ≧◡≦ ♡ ♡</span></div>
+                <div class="w1-pill" style="background: #ffffff; border: 1px solid #f0f0f0;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                </div>
+            </div>
+        </div>
+        <div class="w1-footer">
+            <span contenteditable="true">• [she//her] • [white something here &lt;3]</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6"></circle><ellipse cx="12" cy="12" rx="10" ry="3" transform="rotate(-45 12 12)"></ellipse></svg>
+        </div>
+    </div>
+</div>
+<script>
+    function updateDateTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const timeEl = document.getElementById('time-display');
+        if(timeEl) timeEl.textContent = \`\${hours}:\${minutes}:\${seconds}\`;
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        const date = now.getDate();
+        const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+        const day = days[now.getDay()];
+        const dateEl = document.getElementById('date-display');
+        if(dateEl) dateEl.textContent = \`\${year}年\${month}月\${date}日 \${day}\`;
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+    function updateBatteryUI(battery) {
+        const level = Math.round(battery.level * 100) + '%';
+        const status = battery.charging ? '充电中' : '未充电';
+        const statusEl = document.getElementById('battery-status');
+        const levelEl = document.getElementById('battery-level');
+        if(statusEl) statusEl.textContent = status;
+        if(levelEl) levelEl.textContent = level;
+    }
+    if ('getBattery' in navigator) {
+        navigator.getBattery().then(function(battery) {
+            updateBatteryUI(battery);
+            battery.addEventListener('levelchange', () => updateBatteryUI(battery));
+            battery.addEventListener('chargingchange', () => updateBatteryUI(battery));
+        });
+    } else {
+        const statusEl = document.getElementById('battery-status');
+        const levelEl = document.getElementById('battery-level');
+        if(statusEl) statusEl.textContent = '未充电';
+        if(levelEl) levelEl.textContent = '100%';
+    }
+</script>`
             }
         ];
         const customWidgets = window.customWidgets || [];
