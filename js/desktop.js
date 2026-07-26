@@ -114,7 +114,7 @@
 
         function serializeDesktopGrid() {
             const apps = [];
-            document.querySelectorAll('#desktopGrid .desktop-slot').forEach((slot, index) => {
+            getCurrentDesktopSlots().forEach((slot, index) => {
                 const app = slot.querySelector(':scope > .app-item');
                 if (app) apps.push(serializeAppElement(app, index));
             });
@@ -137,6 +137,67 @@
 
         function getCurrentDesktopPageIndex() {
             return currentDesktopPage;
+        }
+
+        function getDesktopPageElement(pageIndex = currentDesktopPage) {
+            const desktopGrid = document.getElementById('desktopGrid');
+            return desktopGrid
+                ? desktopGrid.querySelector(`:scope > .desktop-page[data-page-index="${pageIndex}"]`)
+                : null;
+        }
+
+        function getCurrentDesktopSlots() {
+            const page = getDesktopPageElement();
+            return page ? Array.from(page.querySelectorAll(':scope > .desktop-slot')) : [];
+        }
+
+        function createDesktopPageElement(pageIndex, pageData = []) {
+            const page = document.createElement('div');
+            page.className = 'desktop-page';
+            page.dataset.pageIndex = String(pageIndex);
+            page.hidden = true;
+            for (let i = 0; i < 28; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'desktop-slot' + (isEditMode ? ' show-grid' : '');
+                const appData = pageData.find(d => d.index === i);
+                if (appData) {
+                    const app = appData.isWidget || appData.widgetContent
+                        ? createAppElement(appData.name, appData.icon, appData.appId, true, appData.widgetContent, appData.width, appData.height, appData.presetSize)
+                        : createAppElement(appData.name, appData.icon, appData.appId);
+                    if (isEditMode) app.classList.add('jiggling');
+                    slot.appendChild(app);
+                }
+                page.appendChild(slot);
+            }
+            document.getElementById('desktopGrid').appendChild(page);
+            rebuildDesktopWidgetOccupancy(page);
+            return page;
+        }
+
+        function ensureDesktopPageElement(pageIndex, pageData = []) {
+            return getDesktopPageElement(pageIndex) || createDesktopPageElement(pageIndex, pageData);
+        }
+
+        function activateDesktopPage(pageIndex) {
+            const desktopGrid = document.getElementById('desktopGrid');
+            const activePage = ensureDesktopPageElement(pageIndex, desktopPages[pageIndex]);
+            desktopGrid.querySelectorAll(':scope > .desktop-page').forEach(page => {
+                const isActive = page === activePage;
+                page.hidden = !isActive;
+                page.classList.toggle('active', isActive);
+            });
+            return activePage;
+        }
+
+        function removeDesktopPageElement(pageIndex) {
+            const page = getDesktopPageElement(pageIndex);
+            if (page) page.remove();
+            document.querySelectorAll('#desktopGrid > .desktop-page').forEach(pageElement => {
+                const storedIndex = Number(pageElement.dataset.pageIndex);
+                if (storedIndex > pageIndex) {
+                    pageElement.dataset.pageIndex = String(storedIndex - 1);
+                }
+            });
         }
 
         function ensureDesktopPageControls() {
@@ -179,21 +240,8 @@
 
         function renderDesktopPage(pageData = [], direction = 0) {
             const desktopGrid = document.getElementById('desktopGrid');
-            desktopGrid.innerHTML = '';
-            for (let i = 0; i < 28; i++) {
-                const slot = document.createElement('div');
-                slot.className = 'desktop-slot' + (isEditMode ? ' show-grid' : '');
-                const appData = pageData.find(d => d.index === i);
-                if (appData) {
-                    const app = appData.isWidget || appData.widgetContent
-                        ? createAppElement(appData.name, appData.icon, appData.appId, true, appData.widgetContent, appData.width, appData.height, appData.presetSize)
-                        : createAppElement(appData.name, appData.icon, appData.appId);
-                    if (isEditMode) app.classList.add('jiggling');
-                    slot.appendChild(app);
-                }
-                desktopGrid.appendChild(slot);
-            }
-            rebuildDesktopWidgetOccupancy();
+            ensureDesktopPageElement(currentDesktopPage, pageData);
+            activateDesktopPage(currentDesktopPage);
             if (direction) {
                 desktopGrid.classList.remove('page-enter-left', 'page-enter-right');
                 void desktopGrid.offsetWidth;
@@ -227,7 +275,9 @@
         function deleteCurrentBlankDesktopPage() {
             commitCurrentDesktopPage();
             if (desktopPages.length <= 1 || desktopPages[currentDesktopPage].length > 0) return false;
-            desktopPages.splice(currentDesktopPage, 1);
+            const deletedPage = currentDesktopPage;
+            desktopPages.splice(deletedPage, 1);
+            removeDesktopPageElement(deletedPage);
             currentDesktopPage = Math.min(currentDesktopPage, desktopPages.length - 1);
             renderDesktopPage(desktopPages[currentDesktopPage], -1);
             if (typeof window.saveLayout === 'function') window.saveLayout();
@@ -271,8 +321,8 @@
             return indexes;
         }
 
-        function rebuildDesktopWidgetOccupancy() {
-            const slots = Array.from(document.querySelectorAll('#desktopGrid .desktop-slot'));
+        function rebuildDesktopWidgetOccupancy(page = getDesktopPageElement()) {
+            const slots = page ? Array.from(page.querySelectorAll(':scope > .desktop-slot')) : [];
             slots.forEach(slot => slot.removeAttribute('data-widget-occupied-by'));
             slots.forEach((slot, startIndex) => {
                 const widget = slot.querySelector(':scope > .app-item.is-widget');
@@ -287,7 +337,7 @@
         }
 
         function isDesktopAreaAvailable(startIndex, columns, rows, ignoredWidget) {
-            const slots = Array.from(document.querySelectorAll('#desktopGrid .desktop-slot'));
+            const slots = getCurrentDesktopSlots();
             const indexes = getDesktopAreaIndexes(startIndex, columns, rows);
             if (indexes.length !== columns * rows) return false;
             const ignoredId = ignoredWidget ? ignoredWidget.getAttribute('data-app-id') : '';
@@ -301,7 +351,7 @@
 
         function findAvailableWidgetSlot(columns, rows) {
             rebuildDesktopWidgetOccupancy();
-            const slots = Array.from(document.querySelectorAll('#desktopGrid .desktop-slot'));
+            const slots = getCurrentDesktopSlots();
             for (let index = 0; index < slots.length; index++) {
                 if (isDesktopAreaAvailable(index, columns, rows, null)) return slots[index];
             }
@@ -413,6 +463,7 @@
     function renderLayout(desktopData = [], dockData = [], pageIndex = 0) {
         const dock = document.getElementById('dock');
         dock.innerHTML = '';
+        document.getElementById('desktopGrid').innerHTML = '';
         desktopPages = normalizeDesktopPages(desktopData);
         currentDesktopPage = Math.max(0, Math.min(Number(pageIndex) || 0, desktopPages.length - 1));
 
@@ -804,7 +855,7 @@
                 page: currentDesktopPage,
                 inDock: parent && parent.id === 'dock',
                 index: parent && parent.classList.contains('desktop-slot')
-                    ? Array.from(document.querySelectorAll('#desktopGrid .desktop-slot')).indexOf(parent)
+                    ? getCurrentDesktopSlots().indexOf(parent)
                     : Array.from(dockContainer.querySelectorAll('.app-item')).indexOf(app)
             };
 
@@ -900,7 +951,7 @@
             commitCurrentDesktopPage();
             switchDesktopPage(dragOrigin.page, { skipCommit: true, skipSave: true });
         }
-        const slots = Array.from(document.querySelectorAll('#desktopGrid .desktop-slot'));
+        const slots = getCurrentDesktopSlots();
         const originSlot = slots[dragOrigin.index];
         const fallbackSlot = slots.find(slot => !slot.querySelector(':scope > .app-item') && !slot.getAttribute('data-widget-occupied-by'));
         (originSlot && !originSlot.querySelector(':scope > .app-item') ? originSlot : fallbackSlot)?.appendChild(draggedApp);
@@ -965,7 +1016,7 @@
                 const draggedIsWidget = draggedApp.classList.contains('is-widget');
                 if (draggedIsWidget) {
                     if (targetSlot) {
-                        const slots = Array.from(document.querySelectorAll('#desktopGrid .desktop-slot'));
+                        const slots = getCurrentDesktopSlots();
                         const targetIndex = slots.indexOf(targetSlot);
                         const columns = parseInt(draggedApp.getAttribute('data-widget-columns'), 10) || 1;
                         const rows = parseInt(draggedApp.getAttribute('data-widget-rows'), 10) || 1;

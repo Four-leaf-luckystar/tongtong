@@ -226,6 +226,14 @@
             touch-action: none;
         }
 
+        .desktop-page {
+            display: contents;
+        }
+
+        .desktop-page[hidden] {
+            display: none;
+        }
+
         .desktop-grid.page-enter-left {
             animation: desktopPageEnterLeft 0.22s ease-out;
         }
