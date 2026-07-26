@@ -245,7 +245,7 @@
 
             html.ios-installed .iphone.desktop-editing > .edit-touch-target {
                 display: block;
-                top: max(calc(var(--top-safe-area) - 22px), 30px);
+                top: max(calc(var(--top-safe-area) - 38px), 14px);
             }
 
             html.ios-installed .iphone.desktop-editing > .edit-ui::after {
