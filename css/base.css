@@ -249,7 +249,7 @@
             }
 
             html.ios-installed .iphone.desktop-editing > .desktop-grid {
-                margin-top: max(calc(var(--top-safe-area) + 20px), 78px);
+                margin-top: max(calc(var(--top-safe-area) + 30px), 88px);
             }
 
             html.ios-installed .iphone.desktop-editing > .edit-ui::after {
