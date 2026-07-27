@@ -726,7 +726,10 @@
             dock: typeof window.serializeDockApps === 'function' ? window.serializeDockApps() : [],
             currentPage: typeof window.getCurrentDesktopPageIndex === 'function'
                 ? window.getCurrentDesktopPageIndex()
-                : 0
+                : 0,
+            desktopRows: typeof window.getDesktopRowCount === 'function'
+                ? window.getDesktopRowCount()
+                : 6
         };
     }
 
@@ -745,7 +748,8 @@
             pages: layout.pages,
             desktop: layout.desktop,
             dock: layout.dock,
-            currentPage: layout.currentPage
+            currentPage: layout.currentPage,
+            desktopRows: layout.desktopRows
         };
         
             // show three-dots button; click to expand vertical capsule menu
@@ -1027,7 +1031,7 @@
 
             // show three-dots button; click to expand vertical capsule menu
         if ((preset.pages || preset.desktop) && preset.dock) {
-            renderLayout(getPresetPages(preset), preset.dock, preset.currentPage || 0);
+            renderLayout(getPresetPages(preset), preset.dock, preset.currentPage || 0, preset.desktopRows);
         }
 
         saveLayout();
@@ -1080,7 +1084,8 @@
             pages: layout.pages,
             desktop: layout.desktop,
             dock: layout.dock,
-            currentPage: layout.currentPage
+            currentPage: layout.currentPage,
+            desktopRows: layout.desktopRows
         };
 
         const jsonString = JSON.stringify(currentTheme, null, 2);

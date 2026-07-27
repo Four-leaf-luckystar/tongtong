@@ -1,6 +1,51 @@
         const DESKTOP_COLUMNS = 4;
-        const DESKTOP_ROWS = 6;
-        const DESKTOP_SLOT_COUNT = DESKTOP_COLUMNS * DESKTOP_ROWS;
+        const DESKTOP_MIN_ROWS = 6;
+        const DESKTOP_MAX_ROWS = 7;
+        let DESKTOP_ROWS = DESKTOP_MIN_ROWS;
+        let DESKTOP_SLOT_COUNT = DESKTOP_COLUMNS * DESKTOP_ROWS;
+
+        function normalizeDesktopRowCount(value, pages) {
+            const rows = Number(value);
+            if (rows === DESKTOP_MIN_ROWS || rows === DESKTOP_MAX_ROWS) return rows;
+            const hasSeventhRow = Array.isArray(pages) && pages.some(page =>
+                Array.isArray(page) && page.some(app => Number(app && app.index) >= DESKTOP_COLUMNS * DESKTOP_MIN_ROWS)
+            );
+            return hasSeventhRow ? DESKTOP_MAX_ROWS : DESKTOP_MIN_ROWS;
+        }
+
+        function isIOSDevice() {
+            const userAgent = navigator.userAgent || '';
+            return /iPad|iPhone|iPod/i.test(userAgent)
+                || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+
+        function calculateDesktopRowCount() {
+            if (isIOSDevice()) return DESKTOP_MIN_ROWS;
+
+            const grid = document.getElementById('desktopGrid');
+            const shell = document.querySelector('.iphone');
+            if (!grid || !shell || window.innerWidth > 768) return DESKTOP_MIN_ROWS;
+
+            const gridStyle = window.getComputedStyle(grid);
+            const gridTop = grid.getBoundingClientRect().top;
+            const paddingTop = parseFloat(gridStyle.paddingTop) || 0;
+            const seventhRowBottom = gridTop + paddingTop + DESKTOP_MAX_ROWS * 80 + (DESKTOP_MAX_ROWS - 1) * 15;
+            const controls = document.getElementById('desktopPageControls');
+            const searchBar = document.getElementById('desktopSearchBar');
+            const shellBottom = shell.getBoundingClientRect().bottom;
+            const controlsTop = controls ? controls.getBoundingClientRect().top : shellBottom - 175;
+            const searchTop = searchBar ? searchBar.getBoundingClientRect().top : shellBottom - 145;
+            const availableBottom = Math.min(controlsTop, searchTop);
+
+            return seventhRowBottom + 8 <= availableBottom ? DESKTOP_MAX_ROWS : DESKTOP_MIN_ROWS;
+        }
+
+        function applyDesktopRowCount(rows) {
+            const normalizedRows = normalizeDesktopRowCount(rows);
+            DESKTOP_ROWS = normalizedRows;
+            DESKTOP_SLOT_COUNT = DESKTOP_COLUMNS * DESKTOP_ROWS;
+            document.documentElement.style.setProperty('--desktop-rows', String(DESKTOP_ROWS));
+        }
 
                 function getWidgetDimensions(widgetData) {
             const LEGACY_SLOT_SIZE = 140;
@@ -90,13 +135,15 @@
             return Array.isArray(page) ? page.map(app => ({ ...app })) : [];
         }
 
-        function normalizeDesktopPages(data) {
+        function normalizeDesktopPages(data, sourceRows = DESKTOP_ROWS) {
             const pages = Array.isArray(data) && data.length > 0 && Array.isArray(data[0])
                 ? data
                 : [Array.isArray(data) ? data : []];
-            const normalizedPages = pages.length > 0 ? pages.map(() => []) : [[]];
-            const occupiedSlots = normalizedPages.map(() => new Set());
-            const overflowApps = [];
+            const normalizedSourceRows = normalizeDesktopRowCount(sourceRows, pages);
+            const sourceSlotCount = DESKTOP_COLUMNS * normalizedSourceRows;
+            const preservedPageCount = normalizedSourceRows === DESKTOP_ROWS ? Math.max(1, pages.length) : 1;
+            const normalizedPages = Array.from({ length: preservedPageCount }, () => []);
+            const occupiedSlots = Array.from({ length: preservedPageCount }, () => new Set());
 
             function getAppSpan(app) {
                 return app && (app.isWidget || app.widgetContent)
@@ -111,25 +158,22 @@
                     : [];
             }
 
+            const positionedApps = [];
             pages.forEach((page, pageIndex) => {
-                cloneDesktopPage(page).forEach(app => {
-                    const span = getAppSpan(app);
-                    const startIndex = Number(app.index);
-                    const indexes = Number.isInteger(startIndex)
-                        ? getAvailableIndexes(startIndex, span, occupiedSlots[pageIndex])
-                        : [];
-
-                    if (indexes.length > 0) {
-                        indexes.forEach(index => occupiedSlots[pageIndex].add(index));
-                        normalizedPages[pageIndex].push({ ...app, index: startIndex });
-                    } else {
-                        overflowApps.push({ app, sourcePage: pageIndex, span });
-                    }
+                cloneDesktopPage(page).forEach((app, itemIndex) => {
+                    const storedIndex = Number(app.index);
+                    const sourceIndex = Number.isInteger(storedIndex) && storedIndex >= 0
+                        ? storedIndex
+                        : itemIndex;
+                    positionedApps.push({ app, globalIndex: pageIndex * sourceSlotCount + sourceIndex });
                 });
             });
+            positionedApps.sort((left, right) => left.globalIndex - right.globalIndex);
 
-            overflowApps.forEach(({ app, sourcePage, span }) => {
-                let targetPage = sourcePage + 1;
+            positionedApps.forEach(({ app, globalIndex }) => {
+                const span = getAppSpan(app);
+                let targetPage = Math.floor(globalIndex / DESKTOP_SLOT_COUNT);
+                let targetStartIndex = globalIndex % DESKTOP_SLOT_COUNT;
                 let placed = false;
 
                 while (!placed) {
@@ -138,7 +182,7 @@
                         occupiedSlots[targetPage] = new Set();
                     }
 
-                    for (let startIndex = 0; startIndex < DESKTOP_SLOT_COUNT; startIndex++) {
+                    for (let startIndex = targetStartIndex; startIndex < DESKTOP_SLOT_COUNT; startIndex++) {
                         const indexes = getAvailableIndexes(startIndex, span, occupiedSlots[targetPage]);
                         if (indexes.length === 0) continue;
                         indexes.forEach(index => occupiedSlots[targetPage].add(index));
@@ -147,10 +191,18 @@
                         break;
                     }
 
-                    if (!placed) targetPage++;
+                    if (!placed) {
+                        targetPage++;
+                        targetStartIndex = 0;
+                    }
                 }
             });
 
+            if (normalizedSourceRows !== DESKTOP_ROWS) {
+                while (normalizedPages.length > 1 && normalizedPages[normalizedPages.length - 1].length === 0) {
+                    normalizedPages.pop();
+                }
+            }
             return normalizedPages;
         }
 
@@ -200,6 +252,10 @@
 
         function getCurrentDesktopPageIndex() {
             return currentDesktopPage;
+        }
+
+        function getDesktopRowCount() {
+            return DESKTOP_ROWS;
         }
 
         function getDesktopPageElement(pageIndex = currentDesktopPage) {
@@ -351,6 +407,7 @@
         window.serializeDockApps = serializeDockApps;
         window.getDesktopPagesSnapshot = getDesktopPagesSnapshot;
         window.getCurrentDesktopPageIndex = getCurrentDesktopPageIndex;
+        window.getDesktopRowCount = getDesktopRowCount;
         window.switchDesktopPage = switchDesktopPage;
         window.addBlankDesktopPage = addBlankDesktopPage;
         window.deleteCurrentBlankDesktopPage = deleteCurrentBlankDesktopPage;
@@ -526,12 +583,20 @@
         return app;
     }
 
-    function renderLayout(desktopData = [], dockData = [], pageIndex = 0) {
+    function renderLayout(desktopData = [], dockData = [], pageIndex = 0, sourceRows) {
         const dock = document.getElementById('dock');
+        const sourcePages = Array.isArray(desktopData) && Array.isArray(desktopData[0])
+            ? desktopData
+            : [Array.isArray(desktopData) ? desktopData : []];
+        const normalizedSourceRows = normalizeDesktopRowCount(sourceRows, sourcePages);
+        const sourceSlotCount = DESKTOP_COLUMNS * normalizedSourceRows;
+        applyDesktopRowCount(calculateDesktopRowCount());
         dock.innerHTML = '';
         document.getElementById('desktopGrid').innerHTML = '';
-        desktopPages = normalizeDesktopPages(desktopData);
-        currentDesktopPage = Math.max(0, Math.min(Number(pageIndex) || 0, desktopPages.length - 1));
+        desktopPages = normalizeDesktopPages(sourcePages, normalizedSourceRows);
+        const sourcePageIndex = Math.max(0, Number(pageIndex) || 0);
+        const mappedPageIndex = Math.floor(sourcePageIndex * sourceSlotCount / DESKTOP_SLOT_COUNT);
+        currentDesktopPage = Math.max(0, Math.min(mappedPageIndex, desktopPages.length - 1));
 
             // show three-dots button; click to expand vertical capsule menu
         let hasSettings = false;
@@ -580,6 +645,30 @@
             dock.appendChild(createAppElement(appData.name, appData.icon, appData.appId));
         });
     }
+
+    let desktopResizeTimer = null;
+
+    function reflowDesktopForViewport() {
+        if (isEditMode || dragGhost || draggedApp) return;
+        const nextRows = calculateDesktopRowCount();
+        if (nextRows === DESKTOP_ROWS) return;
+
+        const sourceRows = DESKTOP_ROWS;
+        const pages = getDesktopPagesSnapshot();
+        const dockApps = serializeDockApps();
+        const sourcePage = currentDesktopPage;
+        applyDesktopRowCount(nextRows);
+        renderLayout(pages, dockApps, sourcePage, sourceRows);
+        if (typeof window.saveLayout === 'function') window.saveLayout();
+    }
+
+    function scheduleDesktopViewportReflow() {
+        clearTimeout(desktopResizeTimer);
+        desktopResizeTimer = setTimeout(reflowDesktopForViewport, 180);
+    }
+
+    window.addEventListener('resize', scheduleDesktopViewportReflow, { passive: true });
+    window.addEventListener('orientationchange', scheduleDesktopViewportReflow, { passive: true });
 
             // show three-dots button; click to expand vertical capsule menu
 
@@ -686,6 +775,7 @@
         
             // show three-dots button; click to expand vertical capsule menu
         saveLayout();
+        scheduleDesktopViewportReflow();
     }
 
     editDone.addEventListener('click', exitEditMode);

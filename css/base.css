@@ -9,6 +9,7 @@
             --app-height: 100vh;
             --system-bar-color: #fdfbfb;
             --top-safe-area: env(safe-area-inset-top, 0px);
+            --desktop-rows: 6;
         }
         *, *::before, *::after, input, button, textarea, select {
             margin: 0;
@@ -257,11 +258,11 @@
             }
         }
 
-        /* 桌面 4x6 网格 */
+        /* 桌面根据可用高度显示 6 或 7 行 */
         .desktop-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            grid-template-rows: repeat(6, 80px);
+            grid-template-rows: repeat(var(--desktop-rows), 80px);
             gap: 15px 10px;
             padding: 25px 20px;
             margin-top: 30px;

@@ -130,6 +130,9 @@
         const currentPage = typeof window.getCurrentDesktopPageIndex === 'function'
             ? window.getCurrentDesktopPageIndex()
             : 0;
+        const desktopRows = typeof window.getDesktopRowCount === 'function'
+            ? window.getDesktopRowCount()
+            : 6;
 
         const transaction = db.transaction([storeName], "readwrite");
         const store = transaction.objectStore(storeName);
@@ -138,7 +141,8 @@
             pages,
             desktop: pages[0] || [],
             dock: dockApps,
-            currentPage
+            currentPage,
+            desktopRows
         });
         
         if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
@@ -154,7 +158,7 @@
             // show three-dots button; click to expand vertical capsule menu
             if (data && (Array.isArray(data.pages) || Array.isArray(data.desktop)) && Array.isArray(data.dock)) {
                 const pages = Array.isArray(data.pages) && data.pages.length > 0 ? data.pages : [data.desktop || []];
-                renderLayout(pages, data.dock, data.currentPage || 0);
+                renderLayout(pages, data.dock, data.currentPage || 0, data.desktopRows);
             } else {
             // show three-dots button; click to expand vertical capsule menu
                 renderDefaultLayout();
