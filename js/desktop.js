@@ -131,14 +131,27 @@
         let desktopPages = [[]];
         let currentDesktopPage = 0;
 
+        const PLACEHOLDER_DESKTOP_APP_BATCHES = Object.freeze({
+            v1: Object.freeze([
+                { name: '相逢', appId: 'placeholder-xiangfeng', icon: 'linear-gradient(145deg, #ff7b89, #ffb36b)' },
+                { name: '音乐', appId: 'placeholder-music', icon: 'linear-gradient(145deg, #7868e6, #e66db2)' },
+                { name: '吃什么', appId: 'placeholder-food', icon: 'linear-gradient(145deg, #ff9f43, #feca57)' },
+                { name: '今日', appId: 'placeholder-today', icon: 'linear-gradient(145deg, #22a6b3, #7ed6df)' },
+                { name: '枕上书', appId: 'placeholder-bedtime-book', icon: 'linear-gradient(145deg, #596275, #a4b0be)' },
+                { name: '阴阳', appId: 'placeholder-yinyang', icon: 'linear-gradient(145deg, #2f3640, #dcdde1)' },
+                { name: 'B站', appId: 'placeholder-bilibili', icon: 'linear-gradient(145deg, #00a1d6, #70d7f2)' }
+            ]),
+            v2: Object.freeze([
+                { name: '健康', appId: 'placeholder-health', icon: 'linear-gradient(145deg, #ff5e78, #ff9aa9)' },
+                { name: '家居', appId: 'placeholder-home', icon: 'linear-gradient(145deg, #34c759, #8ee5a2)' },
+                { name: '游戏中心', appId: 'placeholder-game-center', icon: 'linear-gradient(145deg, #5856d6, #64d2ff)' },
+                { name: '邮件', appId: 'placeholder-mail', icon: 'linear-gradient(145deg, #0a84ff, #5ac8fa)' },
+                { name: '相册', appId: 'placeholder-photos', icon: 'linear-gradient(145deg, #ff375f, #ffd60a)' }
+            ])
+        });
         const PLACEHOLDER_DESKTOP_APPS = Object.freeze([
-            { name: '相逢', appId: 'placeholder-xiangfeng', icon: 'linear-gradient(145deg, #ff7b89, #ffb36b)' },
-            { name: '音乐', appId: 'placeholder-music', icon: 'linear-gradient(145deg, #7868e6, #e66db2)' },
-            { name: '吃什么', appId: 'placeholder-food', icon: 'linear-gradient(145deg, #ff9f43, #feca57)' },
-            { name: '今日', appId: 'placeholder-today', icon: 'linear-gradient(145deg, #22a6b3, #7ed6df)' },
-            { name: '枕上书', appId: 'placeholder-bedtime-book', icon: 'linear-gradient(145deg, #596275, #a4b0be)' },
-            { name: '阴阳', appId: 'placeholder-yinyang', icon: 'linear-gradient(145deg, #2f3640, #dcdde1)' },
-            { name: 'B站', appId: 'placeholder-bilibili', icon: 'linear-gradient(145deg, #00a1d6, #70d7f2)' }
+            ...PLACEHOLDER_DESKTOP_APP_BATCHES.v1,
+            ...PLACEHOLDER_DESKTOP_APP_BATCHES.v2
         ]);
 
         function cloneDesktopPage(page) {
@@ -268,7 +281,7 @@
             return DESKTOP_ROWS;
         }
 
-        function addMissingPlaceholderApps(pages, dockData = []) {
+        function addMissingPlaceholderApps(pages, dockData = [], candidateApps = PLACEHOLDER_DESKTOP_APPS) {
             const normalizedPages = normalizeDesktopPages(pages, DESKTOP_ROWS);
             const existingAppIds = new Set();
             normalizedPages.forEach(page => page.forEach(app => {
@@ -278,7 +291,7 @@
                 if (app && app.appId) existingAppIds.add(app.appId);
             });
 
-            const missingApps = PLACEHOLDER_DESKTOP_APPS.filter(app => !existingAppIds.has(app.appId));
+            const missingApps = candidateApps.filter(app => !existingAppIds.has(app.appId));
             if (missingApps.length === 0) return { pages: normalizedPages, changed: false };
 
             const occupiedSlots = normalizedPages.map(page => {
@@ -313,10 +326,13 @@
             return { pages: normalizedPages, changed: true };
         }
 
-        function ensurePlaceholderAppsOnDesktop() {
+        function ensurePlaceholderAppsOnDesktop(batchName) {
             const pages = getDesktopPagesSnapshot();
             const dockData = serializeDockApps();
-            const result = addMissingPlaceholderApps(pages, dockData);
+            const candidateApps = batchName
+                ? PLACEHOLDER_DESKTOP_APP_BATCHES[batchName] || []
+                : PLACEHOLDER_DESKTOP_APPS;
+            const result = addMissingPlaceholderApps(pages, dockData, candidateApps);
             if (!result.changed) return false;
             renderLayout(result.pages, dockData, currentDesktopPage, DESKTOP_ROWS);
             return true;
