@@ -136,7 +136,7 @@
                 { name: '相逢', appId: 'placeholder-xiangfeng', icon: 'linear-gradient(145deg, #ff7b89, #ffb36b)' },
                 { name: '音乐', appId: 'placeholder-music', icon: "url('https://nos.netease.com/ysf/44b1b063945538f0ebf2e1670a156958.jpg')" },
                 { name: '吃什么', appId: 'placeholder-food', icon: 'linear-gradient(145deg, #ff9f43, #feca57)' },
-                { name: '今日', appId: 'placeholder-today', icon: 'linear-gradient(145deg, #22a6b3, #7ed6df)' },
+                { name: '今日', appId: 'placeholder-today', icon: null },
                 { name: '枕上书', appId: 'placeholder-bedtime-book', icon: 'linear-gradient(145deg, #596275, #a4b0be)' },
                 { name: '阴阳', appId: 'placeholder-yinyang', icon: 'linear-gradient(145deg, #2f3640, #dcdde1)' },
                 { name: 'B站', appId: 'placeholder-bilibili', icon: "url('https://nos.netease.com/ysf/a113c9347d79566ad7ec58c6dd563c98.png')" }
@@ -662,6 +662,47 @@
         saveLayout();
     }
 
+    const TODAY_CALENDAR_APP_ID = 'placeholder-today';
+    const TODAY_CALENDAR_WEEKDAYS = Object.freeze(['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']);
+    let todayCalendarRefreshTimer = null;
+
+    function renderTodayCalendarIcon(iconEl, date = new Date()) {
+        if (!iconEl) return;
+        iconEl.className = 'app-icon today-calendar-icon';
+        iconEl.style.backgroundImage = '';
+        iconEl.style.backgroundColor = '';
+        iconEl.dataset.calendarDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+        iconEl.innerHTML = `
+            <span class="today-calendar-shine"></span>
+            <span class="today-calendar-weekday">${TODAY_CALENDAR_WEEKDAYS[date.getDay()]}</span>
+            <span class="today-calendar-day">${date.getDate()}</span>
+        `;
+    }
+
+    function refreshTodayCalendarIcons() {
+        const now = new Date();
+        document.querySelectorAll(`[data-app-id="${TODAY_CALENDAR_APP_ID}"] .app-icon`).forEach(iconEl => {
+            renderTodayCalendarIcon(iconEl, now);
+        });
+    }
+
+    function scheduleTodayCalendarRefresh() {
+        clearTimeout(todayCalendarRefreshTimer);
+        const now = new Date();
+        const nextDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        todayCalendarRefreshTimer = setTimeout(() => {
+            refreshTodayCalendarIcons();
+            scheduleTodayCalendarRefresh();
+        }, nextDay.getTime() - now.getTime() + 1000);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') return;
+        refreshTodayCalendarIcons();
+        scheduleTodayCalendarRefresh();
+    });
+    scheduleTodayCalendarRefresh();
+
         function createAppElement(name, icon, appId, isWidget=false, widgetContent='', width='', height='', presetSize='') {
         const app = document.createElement('div');
         app.className = isWidget ? 'app-item is-widget' : 'app-item';
@@ -684,8 +725,10 @@
             app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="widget-edit-hotzone" aria-label="长按进入编辑模式"></div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims2.width}px; height: ${dims2.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${makeDesktopWidgetFrameHTML(normalizedWidgetContent)}</div><div class="app-name" style="display:none;">组件</div>`;
         } else {
             app.innerHTML = `<div class="app-icon"></div><div class="app-name">${name}</div>`;
-            if (icon) {
-                const iconEl = app.querySelector('.app-icon');
+            const iconEl = app.querySelector('.app-icon');
+            if (appId === TODAY_CALENDAR_APP_ID) {
+                renderTodayCalendarIcon(iconEl);
+            } else if (icon) {
                 iconEl.style.backgroundImage = icon;
                 iconEl.style.backgroundColor = 'transparent';
                 iconEl.classList.add('has-custom-icon');
