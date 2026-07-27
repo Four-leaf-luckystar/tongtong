@@ -249,7 +249,7 @@
             }
 
             html.ios-installed .iphone.desktop-editing > .desktop-grid {
-                margin-top: max(calc(var(--top-safe-area) + 30px), 88px);
+                margin-top: max(calc(var(--top-safe-area) + 26px), 84px);
             }
 
             html.ios-installed .iphone.desktop-editing > .edit-ui::after {
@@ -257,11 +257,11 @@
             }
         }
 
-        /* 桌面 4x7 网格 */
+        /* 桌面 4x6 网格 */
         .desktop-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            grid-template-rows: repeat(7, 80px);
+            grid-template-rows: repeat(6, 80px);
             gap: 15px 10px;
             padding: 25px 20px;
             margin-top: 30px;

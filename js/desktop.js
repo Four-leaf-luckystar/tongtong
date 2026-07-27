@@ -1,3 +1,7 @@
+        const DESKTOP_COLUMNS = 4;
+        const DESKTOP_ROWS = 6;
+        const DESKTOP_SLOT_COUNT = DESKTOP_COLUMNS * DESKTOP_ROWS;
+
                 function getWidgetDimensions(widgetData) {
             const LEGACY_SLOT_SIZE = 140;
             const COLUMN_GAP = 10;
@@ -7,7 +11,9 @@
             const gridStyle = grid ? window.getComputedStyle(grid) : null;
             const horizontalPadding = gridStyle ? parseFloat(gridStyle.paddingLeft) + parseFloat(gridStyle.paddingRight) : 0;
             const gridWidth = grid ? grid.clientWidth - horizontalPadding : 0;
-            const columnWidth = gridWidth > 0 ? (gridWidth - COLUMN_GAP * 3) / 4 : 80;
+            const columnWidth = gridWidth > 0
+                ? (gridWidth - COLUMN_GAP * (DESKTOP_COLUMNS - 1)) / DESKTOP_COLUMNS
+                : 80;
 
             let columns = 1;
             let rows = 1;
@@ -24,8 +30,8 @@
                 }
             }
 
-            columns = Math.min(4, columns);
-            rows = Math.min(7, rows);
+            columns = Math.min(DESKTOP_COLUMNS, columns);
+            rows = Math.min(DESKTOP_ROWS, rows);
             return {
                 width: columns * columnWidth + (columns - 1) * COLUMN_GAP,
                 height: rows * ROW_HEIGHT + (rows - 1) * ROW_GAP
@@ -88,7 +94,64 @@
             const pages = Array.isArray(data) && data.length > 0 && Array.isArray(data[0])
                 ? data
                 : [Array.isArray(data) ? data : []];
-            return pages.length > 0 ? pages.map(cloneDesktopPage) : [[]];
+            const normalizedPages = pages.length > 0 ? pages.map(() => []) : [[]];
+            const occupiedSlots = normalizedPages.map(() => new Set());
+            const overflowApps = [];
+
+            function getAppSpan(app) {
+                return app && (app.isWidget || app.widgetContent)
+                    ? getWidgetGridSpan(app)
+                    : { columns: 1, rows: 1 };
+            }
+
+            function getAvailableIndexes(startIndex, span, occupied) {
+                const indexes = getDesktopAreaIndexes(startIndex, span.columns, span.rows);
+                return indexes.length === span.columns * span.rows && indexes.every(index => !occupied.has(index))
+                    ? indexes
+                    : [];
+            }
+
+            pages.forEach((page, pageIndex) => {
+                cloneDesktopPage(page).forEach(app => {
+                    const span = getAppSpan(app);
+                    const startIndex = Number(app.index);
+                    const indexes = Number.isInteger(startIndex)
+                        ? getAvailableIndexes(startIndex, span, occupiedSlots[pageIndex])
+                        : [];
+
+                    if (indexes.length > 0) {
+                        indexes.forEach(index => occupiedSlots[pageIndex].add(index));
+                        normalizedPages[pageIndex].push({ ...app, index: startIndex });
+                    } else {
+                        overflowApps.push({ app, sourcePage: pageIndex, span });
+                    }
+                });
+            });
+
+            overflowApps.forEach(({ app, sourcePage, span }) => {
+                let targetPage = sourcePage + 1;
+                let placed = false;
+
+                while (!placed) {
+                    if (!normalizedPages[targetPage]) {
+                        normalizedPages[targetPage] = [];
+                        occupiedSlots[targetPage] = new Set();
+                    }
+
+                    for (let startIndex = 0; startIndex < DESKTOP_SLOT_COUNT; startIndex++) {
+                        const indexes = getAvailableIndexes(startIndex, span, occupiedSlots[targetPage]);
+                        if (indexes.length === 0) continue;
+                        indexes.forEach(index => occupiedSlots[targetPage].add(index));
+                        normalizedPages[targetPage].push({ ...app, index: startIndex });
+                        placed = true;
+                        break;
+                    }
+
+                    if (!placed) targetPage++;
+                }
+            });
+
+            return normalizedPages;
         }
 
         function serializeAppElement(app, index) {
@@ -156,7 +219,7 @@
             page.className = 'desktop-page';
             page.dataset.pageIndex = String(pageIndex);
             page.hidden = true;
-            for (let i = 0; i < 28; i++) {
+            for (let i = 0; i < DESKTOP_SLOT_COUNT; i++) {
                 const slot = document.createElement('div');
                 slot.className = 'desktop-slot' + (isEditMode ? ' show-grid' : '');
                 const appData = pageData.find(d => d.index === i);
@@ -305,17 +368,20 @@
                 columns = parts[0] || 1;
                 rows = parts[1] || 1;
             }
-            return { columns: Math.min(4, Math.max(1, columns)), rows: Math.min(7, Math.max(1, rows)) };
+            return {
+                columns: Math.min(DESKTOP_COLUMNS, Math.max(1, columns)),
+                rows: Math.min(DESKTOP_ROWS, Math.max(1, rows))
+            };
         }
 
         function getDesktopAreaIndexes(startIndex, columns, rows) {
-            const startColumn = startIndex % 4;
-            const startRow = Math.floor(startIndex / 4);
-            if (startColumn + columns > 4 || startRow + rows > 7) return [];
+            const startColumn = startIndex % DESKTOP_COLUMNS;
+            const startRow = Math.floor(startIndex / DESKTOP_COLUMNS);
+            if (startColumn + columns > DESKTOP_COLUMNS || startRow + rows > DESKTOP_ROWS) return [];
             const indexes = [];
             for (let row = 0; row < rows; row++) {
                 for (let column = 0; column < columns; column++) {
-                    indexes.push(startIndex + row * 4 + column);
+                    indexes.push(startIndex + row * DESKTOP_COLUMNS + column);
                 }
             }
             return indexes;
