@@ -145,7 +145,8 @@
             desktopRows,
             placeholderAppsV1: true,
             placeholderAppsV2: true,
-            placeholderAppsV3: true
+            placeholderAppsV3: true,
+            placeholderAppIconsV1: true
         });
         
         if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
@@ -173,6 +174,10 @@
                 }
                 if (data.placeholderAppsV3 !== true && typeof window.ensurePlaceholderAppsOnDesktop === 'function') {
                     window.ensurePlaceholderAppsOnDesktop('v3');
+                    placeholderAppsMigrated = true;
+                }
+                if (data.placeholderAppIconsV1 !== true && typeof window.updatePlaceholderAppIcons === 'function') {
+                    window.updatePlaceholderAppIcons();
                     placeholderAppsMigrated = true;
                 }
                 if (placeholderAppsMigrated) {

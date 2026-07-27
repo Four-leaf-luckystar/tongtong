@@ -134,22 +134,22 @@
         const PLACEHOLDER_DESKTOP_APP_BATCHES = Object.freeze({
             v1: Object.freeze([
                 { name: '相逢', appId: 'placeholder-xiangfeng', icon: 'linear-gradient(145deg, #ff7b89, #ffb36b)' },
-                { name: '音乐', appId: 'placeholder-music', icon: 'linear-gradient(145deg, #7868e6, #e66db2)' },
+                { name: '音乐', appId: 'placeholder-music', icon: "url('https://nos.netease.com/ysf/44b1b063945538f0ebf2e1670a156958.jpg')" },
                 { name: '吃什么', appId: 'placeholder-food', icon: 'linear-gradient(145deg, #ff9f43, #feca57)' },
                 { name: '今日', appId: 'placeholder-today', icon: 'linear-gradient(145deg, #22a6b3, #7ed6df)' },
                 { name: '枕上书', appId: 'placeholder-bedtime-book', icon: 'linear-gradient(145deg, #596275, #a4b0be)' },
                 { name: '阴阳', appId: 'placeholder-yinyang', icon: 'linear-gradient(145deg, #2f3640, #dcdde1)' },
-                { name: 'B站', appId: 'placeholder-bilibili', icon: 'linear-gradient(145deg, #00a1d6, #70d7f2)' }
+                { name: 'B站', appId: 'placeholder-bilibili', icon: "url('https://nos.netease.com/ysf/a113c9347d79566ad7ec58c6dd563c98.png')" }
             ]),
             v2: Object.freeze([
-                { name: '健康', appId: 'placeholder-health', icon: 'linear-gradient(145deg, #ff5e78, #ff9aa9)' },
-                { name: '家居', appId: 'placeholder-home', icon: 'linear-gradient(145deg, #34c759, #8ee5a2)' },
+                { name: '健康', appId: 'placeholder-health', icon: "url('https://nos.netease.com/ysf/71d2d06f946d0e2edcf1a1db219cc93c.jpg')" },
+                { name: '家居', appId: 'placeholder-home', icon: "url('https://nos.netease.com/ysf/09e991e8c030af3963027b3e0d20d243.jpg')" },
                 { name: '游戏中心', appId: 'placeholder-game-center', icon: 'linear-gradient(145deg, #5856d6, #64d2ff)' },
-                { name: '邮件', appId: 'placeholder-mail', icon: 'linear-gradient(145deg, #0a84ff, #5ac8fa)' },
-                { name: '相册', appId: 'placeholder-photos', icon: 'linear-gradient(145deg, #ff375f, #ffd60a)' }
+                { name: '邮件', appId: 'placeholder-mail', icon: "url('https://nos.netease.com/ysf/e3e0cd38a75d199af2613b0373ef5750.jpg')" },
+                { name: '相册', appId: 'placeholder-photos', icon: "url('https://nos.netease.com/ysf/23270ba74c92c441837d98bfb9aa7d6e.jpg')" }
             ]),
             v3: Object.freeze([
-                { name: '阅读', appId: 'placeholder-reading', icon: 'linear-gradient(145deg, #ff9500, #ffcc00)' }
+                { name: '阅读', appId: 'placeholder-reading', icon: "url('https://nos.netease.com/ysf/48a26bca2ea29a6fb2c3a6ca537c9e2e.jpg')" }
             ])
         });
         const PLACEHOLDER_DESKTOP_APPS = Object.freeze([
@@ -342,6 +342,30 @@
             return true;
         }
 
+        function updatePlaceholderAppIcons() {
+            const iconByAppId = new Map(
+                PLACEHOLDER_DESKTOP_APPS
+                    .filter(app => app.icon.startsWith('url('))
+                    .map(app => [app.appId, app.icon])
+            );
+            const pages = getDesktopPagesSnapshot();
+            const dockData = serializeDockApps();
+            let changed = false;
+
+            const updateIcon = app => {
+                const nextIcon = app && iconByAppId.get(app.appId);
+                if (!nextIcon || app.icon === nextIcon) return;
+                app.icon = nextIcon;
+                changed = true;
+            };
+            pages.forEach(page => page.forEach(updateIcon));
+            dockData.forEach(updateIcon);
+
+            if (!changed) return false;
+            renderLayout(pages, dockData, currentDesktopPage, DESKTOP_ROWS);
+            return true;
+        }
+
         function getDesktopPageElement(pageIndex = currentDesktopPage) {
             const desktopGrid = document.getElementById('desktopGrid');
             return desktopGrid
@@ -493,6 +517,7 @@
         window.getCurrentDesktopPageIndex = getCurrentDesktopPageIndex;
         window.getDesktopRowCount = getDesktopRowCount;
         window.ensurePlaceholderAppsOnDesktop = ensurePlaceholderAppsOnDesktop;
+        window.updatePlaceholderAppIcons = updatePlaceholderAppIcons;
         window.switchDesktopPage = switchDesktopPage;
         window.addBlankDesktopPage = addBlankDesktopPage;
         window.deleteCurrentBlankDesktopPage = deleteCurrentBlankDesktopPage;
