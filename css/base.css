@@ -91,7 +91,7 @@
         }
 
         html.ios-installed body .iphone .desktop-grid {
-            margin-top: 38px;
+            margin-top: max(calc(var(--top-safe-area) + 26px), 84px);
             height: calc(100% - 180px);
         }
 
