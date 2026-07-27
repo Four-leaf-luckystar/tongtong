@@ -672,18 +672,20 @@
 
     let editPlusTouchHandledAt = 0;
 
-    editPlusTouchTarget.addEventListener('touchend', (event) => {
-        editPlusTouchHandledAt = Date.now();
-        forwardEditTouchTarget(event, editPlus);
-    }, { passive: false });
-    editPlusTouchTarget.addEventListener('click', (event) => {
-        if (Date.now() - editPlusTouchHandledAt < 700) {
+    function handleEditPlusTouchTarget(event) {
+        const now = Date.now();
+        if (now - editPlusTouchHandledAt < 700) {
             event.preventDefault();
             event.stopPropagation();
             return;
         }
+        editPlusTouchHandledAt = now;
         forwardEditTouchTarget(event, editPlus);
-    });
+    }
+
+    editPlusTouchTarget.addEventListener('pointerup', handleEditPlusTouchTarget);
+    editPlusTouchTarget.addEventListener('touchend', handleEditPlusTouchTarget, { passive: false });
+    editPlusTouchTarget.addEventListener('click', handleEditPlusTouchTarget);
     editDoneTouchTarget.addEventListener('click', (event) => {
         forwardEditTouchTarget(event, editDone);
     });

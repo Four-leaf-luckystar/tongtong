@@ -227,10 +227,8 @@
         }
 
         .edit-plus-touch-target {
-            left: 4px;
-            width: 64px;
-            height: 64px;
-            background: rgba(255, 255, 255, 0.001);
+            left: 12px;
+            width: 48px;
         }
 
         .edit-done-touch-target {
@@ -240,14 +238,18 @@
 
         @media (max-width: 768px) {
             html.ios-installed .iphone.desktop-editing > .edit-ui {
-                top: max(calc(var(--top-safe-area) - 14px), 38px);
+                top: max(calc(var(--top-safe-area) - 6px), 46px);
                 touch-action: manipulation;
                 -webkit-tap-highlight-color: transparent;
             }
 
             html.ios-installed .iphone.desktop-editing > .edit-touch-target {
                 display: block;
-                top: max(calc(var(--top-safe-area) - 30px), 22px);
+                top: max(calc(var(--top-safe-area) - 6px), 46px);
+            }
+
+            html.ios-installed .iphone.desktop-editing > .desktop-grid {
+                margin-top: max(calc(var(--top-safe-area) + 20px), 78px);
             }
 
             html.ios-installed .iphone.desktop-editing > .edit-ui::after {
