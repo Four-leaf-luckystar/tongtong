@@ -147,11 +147,15 @@
                 { name: '游戏中心', appId: 'placeholder-game-center', icon: 'linear-gradient(145deg, #5856d6, #64d2ff)' },
                 { name: '邮件', appId: 'placeholder-mail', icon: 'linear-gradient(145deg, #0a84ff, #5ac8fa)' },
                 { name: '相册', appId: 'placeholder-photos', icon: 'linear-gradient(145deg, #ff375f, #ffd60a)' }
+            ]),
+            v3: Object.freeze([
+                { name: '阅读', appId: 'placeholder-reading', icon: 'linear-gradient(145deg, #ff9500, #ffcc00)' }
             ])
         });
         const PLACEHOLDER_DESKTOP_APPS = Object.freeze([
             ...PLACEHOLDER_DESKTOP_APP_BATCHES.v1,
-            ...PLACEHOLDER_DESKTOP_APP_BATCHES.v2
+            ...PLACEHOLDER_DESKTOP_APP_BATCHES.v2,
+            ...PLACEHOLDER_DESKTOP_APP_BATCHES.v3
         ]);
 
         function cloneDesktopPage(page) {
@@ -654,7 +658,7 @@
             app.style.height = dims2.height + 'px';
             app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="widget-edit-hotzone" aria-label="长按进入编辑模式"></div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims2.width}px; height: ${dims2.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${makeDesktopWidgetFrameHTML(normalizedWidgetContent)}</div><div class="app-name" style="display:none;">组件</div>`;
         } else {
-            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon"></div><div class="app-name">${name}</div>`;
+            app.innerHTML = `<div class="app-icon"></div><div class="app-name">${name}</div>`;
             if (icon) {
                 const iconEl = app.querySelector('.app-icon');
                 iconEl.style.backgroundImage = icon;
@@ -833,7 +837,7 @@
             e.stopPropagation();
             e.preventDefault();
             const appItem = btn.closest('.app-item');
-            if (appItem) {
+            if (appItem && appItem.classList.contains('is-widget')) {
                 appItem.remove();
                 rebuildDesktopWidgetOccupancy();
                 if (typeof window.saveLayout === 'function') {
