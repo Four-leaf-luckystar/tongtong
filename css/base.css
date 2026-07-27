@@ -227,8 +227,10 @@
         }
 
         .edit-plus-touch-target {
-            left: 12px;
-            width: 48px;
+            left: 4px;
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.001);
         }
 
         .edit-done-touch-target {

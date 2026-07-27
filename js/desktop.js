@@ -670,7 +670,18 @@
         control.click();
     }
 
+    let editPlusTouchHandledAt = 0;
+
+    editPlusTouchTarget.addEventListener('touchend', (event) => {
+        editPlusTouchHandledAt = Date.now();
+        forwardEditTouchTarget(event, editPlus);
+    }, { passive: false });
     editPlusTouchTarget.addEventListener('click', (event) => {
+        if (Date.now() - editPlusTouchHandledAt < 700) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
         forwardEditTouchTarget(event, editPlus);
     });
     editDoneTouchTarget.addEventListener('click', (event) => {
