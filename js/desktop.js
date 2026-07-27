@@ -144,18 +144,22 @@
             v2: Object.freeze([
                 { name: '健康', appId: 'placeholder-health', icon: "url('https://nos.netease.com/ysf/71d2d06f946d0e2edcf1a1db219cc93c.jpg')" },
                 { name: '家居', appId: 'placeholder-home', icon: "url('https://nos.netease.com/ysf/09e991e8c030af3963027b3e0d20d243.jpg')" },
-                { name: '游戏中心', appId: 'placeholder-game-center', icon: 'linear-gradient(145deg, #5856d6, #64d2ff)' },
+                { name: '游戏中心', appId: 'placeholder-game-center', icon: "url('https://nos.netease.com/ysf/f20ff48c726869054a57f61aebbeb278.jpg')" },
                 { name: '邮件', appId: 'placeholder-mail', icon: "url('https://nos.netease.com/ysf/e3e0cd38a75d199af2613b0373ef5750.jpg')" },
                 { name: '相册', appId: 'placeholder-photos', icon: "url('https://nos.netease.com/ysf/23270ba74c92c441837d98bfb9aa7d6e.jpg')" }
             ]),
             v3: Object.freeze([
                 { name: '阅读', appId: 'placeholder-reading', icon: "url('https://nos.netease.com/ysf/48a26bca2ea29a6fb2c3a6ca537c9e2e.jpg')" }
+            ]),
+            v4: Object.freeze([
+                { name: 'icity', appId: 'placeholder-icity', icon: "url('https://nos.netease.com/ysf/1b49764d130e8005ea149180a1d764db.jpg')" }
             ])
         });
         const PLACEHOLDER_DESKTOP_APPS = Object.freeze([
             ...PLACEHOLDER_DESKTOP_APP_BATCHES.v1,
             ...PLACEHOLDER_DESKTOP_APP_BATCHES.v2,
-            ...PLACEHOLDER_DESKTOP_APP_BATCHES.v3
+            ...PLACEHOLDER_DESKTOP_APP_BATCHES.v3,
+            ...PLACEHOLDER_DESKTOP_APP_BATCHES.v4
         ]);
 
         function cloneDesktopPage(page) {

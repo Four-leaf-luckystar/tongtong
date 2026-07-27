@@ -146,7 +146,9 @@
             placeholderAppsV1: true,
             placeholderAppsV2: true,
             placeholderAppsV3: true,
-            placeholderAppIconsV1: true
+            placeholderAppsV4: true,
+            placeholderAppIconsV1: true,
+            placeholderAppIconsV2: true
         });
         
         if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
@@ -176,7 +178,15 @@
                     window.ensurePlaceholderAppsOnDesktop('v3');
                     placeholderAppsMigrated = true;
                 }
+                if (data.placeholderAppsV4 !== true && typeof window.ensurePlaceholderAppsOnDesktop === 'function') {
+                    window.ensurePlaceholderAppsOnDesktop('v4');
+                    placeholderAppsMigrated = true;
+                }
                 if (data.placeholderAppIconsV1 !== true && typeof window.updatePlaceholderAppIcons === 'function') {
+                    window.updatePlaceholderAppIcons();
+                    placeholderAppsMigrated = true;
+                }
+                if (data.placeholderAppIconsV2 !== true && typeof window.updatePlaceholderAppIcons === 'function') {
                     window.updatePlaceholderAppIcons();
                     placeholderAppsMigrated = true;
                 }
