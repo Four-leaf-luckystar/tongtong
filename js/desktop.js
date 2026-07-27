@@ -131,6 +131,16 @@
         let desktopPages = [[]];
         let currentDesktopPage = 0;
 
+        const PLACEHOLDER_DESKTOP_APPS = Object.freeze([
+            { name: '相逢', appId: 'placeholder-xiangfeng', icon: 'linear-gradient(145deg, #ff7b89, #ffb36b)' },
+            { name: '音乐', appId: 'placeholder-music', icon: 'linear-gradient(145deg, #7868e6, #e66db2)' },
+            { name: '吃什么', appId: 'placeholder-food', icon: 'linear-gradient(145deg, #ff9f43, #feca57)' },
+            { name: '今日', appId: 'placeholder-today', icon: 'linear-gradient(145deg, #22a6b3, #7ed6df)' },
+            { name: '枕上书', appId: 'placeholder-bedtime-book', icon: 'linear-gradient(145deg, #596275, #a4b0be)' },
+            { name: '阴阳', appId: 'placeholder-yinyang', icon: 'linear-gradient(145deg, #2f3640, #dcdde1)' },
+            { name: 'B站', appId: 'placeholder-bilibili', icon: 'linear-gradient(145deg, #00a1d6, #70d7f2)' }
+        ]);
+
         function cloneDesktopPage(page) {
             return Array.isArray(page) ? page.map(app => ({ ...app })) : [];
         }
@@ -256,6 +266,60 @@
 
         function getDesktopRowCount() {
             return DESKTOP_ROWS;
+        }
+
+        function addMissingPlaceholderApps(pages, dockData = []) {
+            const normalizedPages = normalizeDesktopPages(pages, DESKTOP_ROWS);
+            const existingAppIds = new Set();
+            normalizedPages.forEach(page => page.forEach(app => {
+                if (app && app.appId) existingAppIds.add(app.appId);
+            }));
+            dockData.forEach(app => {
+                if (app && app.appId) existingAppIds.add(app.appId);
+            });
+
+            const missingApps = PLACEHOLDER_DESKTOP_APPS.filter(app => !existingAppIds.has(app.appId));
+            if (missingApps.length === 0) return { pages: normalizedPages, changed: false };
+
+            const occupiedSlots = normalizedPages.map(page => {
+                const occupied = new Set();
+                page.forEach(app => {
+                    const span = app && (app.isWidget || app.widgetContent)
+                        ? getWidgetGridSpan(app)
+                        : { columns: 1, rows: 1 };
+                    getDesktopAreaIndexes(Number(app.index) || 0, span.columns, span.rows)
+                        .forEach(index => occupied.add(index));
+                });
+                return occupied;
+            });
+
+            missingApps.forEach(app => {
+                let placed = false;
+                for (let pageIndex = 0; !placed; pageIndex++) {
+                    if (!normalizedPages[pageIndex]) {
+                        normalizedPages[pageIndex] = [];
+                        occupiedSlots[pageIndex] = new Set();
+                    }
+                    for (let index = 0; index < DESKTOP_SLOT_COUNT; index++) {
+                        if (occupiedSlots[pageIndex].has(index)) continue;
+                        normalizedPages[pageIndex].push({ ...app, index });
+                        occupiedSlots[pageIndex].add(index);
+                        placed = true;
+                        break;
+                    }
+                }
+            });
+
+            return { pages: normalizedPages, changed: true };
+        }
+
+        function ensurePlaceholderAppsOnDesktop() {
+            const pages = getDesktopPagesSnapshot();
+            const dockData = serializeDockApps();
+            const result = addMissingPlaceholderApps(pages, dockData);
+            if (!result.changed) return false;
+            renderLayout(result.pages, dockData, currentDesktopPage, DESKTOP_ROWS);
+            return true;
         }
 
         function getDesktopPageElement(pageIndex = currentDesktopPage) {
@@ -408,6 +472,7 @@
         window.getDesktopPagesSnapshot = getDesktopPagesSnapshot;
         window.getCurrentDesktopPageIndex = getCurrentDesktopPageIndex;
         window.getDesktopRowCount = getDesktopRowCount;
+        window.ensurePlaceholderAppsOnDesktop = ensurePlaceholderAppsOnDesktop;
         window.switchDesktopPage = switchDesktopPage;
         window.addBlankDesktopPage = addBlankDesktopPage;
         window.deleteCurrentBlankDesktopPage = deleteCurrentBlankDesktopPage;
@@ -547,7 +612,8 @@
             { index: 1, name: '信息', icon: iconMap['信息'] }, 
             { index: 2, name: '主题', appId: 'theme', icon: iconMap['主题'] }
         ];
-        renderLayout(defaultDesktop, defaultDock);
+        const layoutWithPlaceholders = addMissingPlaceholderApps([defaultDesktop], defaultDock);
+        renderLayout(layoutWithPlaceholders.pages, defaultDock, 0, DESKTOP_ROWS);
         saveLayout();
     }
 

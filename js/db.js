@@ -142,7 +142,8 @@
             desktop: pages[0] || [],
             dock: dockApps,
             currentPage,
-            desktopRows
+            desktopRows,
+            placeholderAppsV1: true
         });
         
         if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
@@ -159,6 +160,12 @@
             if (data && (Array.isArray(data.pages) || Array.isArray(data.desktop)) && Array.isArray(data.dock)) {
                 const pages = Array.isArray(data.pages) && data.pages.length > 0 ? data.pages : [data.desktop || []];
                 renderLayout(pages, data.dock, data.currentPage || 0, data.desktopRows);
+                if (data.placeholderAppsV1 !== true) {
+                    if (typeof window.ensurePlaceholderAppsOnDesktop === 'function') {
+                        window.ensurePlaceholderAppsOnDesktop();
+                    }
+                    saveLayout();
+                }
             } else {
             // show three-dots button; click to expand vertical capsule menu
                 renderDefaultLayout();
