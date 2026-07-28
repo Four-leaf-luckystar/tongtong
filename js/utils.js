@@ -1,3 +1,125 @@
+    (function initTongtongDiagnostics() {
+        const maxLogs = 30;
+        const memoryLogs = [];
+
+        function canUseAppSettings() {
+            try {
+                return typeof appSettings !== 'undefined' && appSettings;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function readStoredLogs() {
+            if (!canUseAppSettings() || !Array.isArray(appSettings.diagnostic_error_logs)) return [];
+            return appSettings.diagnostic_error_logs;
+        }
+
+        function writeStoredLogs(logs) {
+            if (!canUseAppSettings()) return false;
+            appSettings.diagnostic_error_logs = logs.slice(0, maxLogs);
+            if (typeof saveAppSettings === 'function') saveAppSettings();
+            return true;
+        }
+
+        function normalizeValue(value) {
+            if (value instanceof Error) return value.stack || value.message || String(value);
+            if (typeof value === 'string') return value;
+            try {
+                return JSON.stringify(value);
+            } catch (error) {
+                return String(value);
+            }
+        }
+
+        function uniqLogs(logs) {
+            const seen = new Set();
+            return logs.filter(log => {
+                const key = [log.time, log.type, log.message, log.source, log.line, log.column].join('|');
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            }).slice(0, maxLogs);
+        }
+
+        function getLogs() {
+            return uniqLogs(memoryLogs.concat(readStoredLogs()));
+        }
+
+        function setLogs(logs) {
+            const nextLogs = uniqLogs(logs);
+            memoryLogs.length = 0;
+            memoryLogs.push(...nextLogs);
+            writeStoredLogs(nextLogs);
+            return nextLogs;
+        }
+
+        function record(detail) {
+            const entry = {
+                time: new Date().toISOString(),
+                type: detail.type || 'error',
+                message: detail.message || 'Unknown error',
+                source: detail.source || location.href,
+                line: detail.line || null,
+                column: detail.column || null,
+                stack: detail.stack || '',
+                userAgent: navigator.userAgent
+            };
+            setLogs([entry].concat(getLogs()));
+        }
+
+        function toText() {
+            return JSON.stringify({
+                generatedAt: new Date().toISOString(),
+                page: location.href,
+                userAgent: navigator.userAgent,
+                logs: getLogs()
+            }, null, 2);
+        }
+
+        function flush() {
+            return setLogs(getLogs());
+        }
+
+        window.tongtongDiagnostics = {
+            getLogs,
+            toText,
+            record,
+            flush,
+            clear() {
+                setLogs([]);
+            }
+        };
+
+        window.addEventListener('error', event => {
+            record({
+                type: 'window.error',
+                message: event.message,
+                source: event.filename,
+                line: event.lineno,
+                column: event.colno,
+                stack: event.error && event.error.stack ? event.error.stack : ''
+            });
+        });
+
+        window.addEventListener('unhandledrejection', event => {
+            const reason = event.reason;
+            record({
+                type: 'unhandledrejection',
+                message: normalizeValue(reason),
+                stack: reason && reason.stack ? reason.stack : ''
+            });
+        });
+
+        const originalConsoleError = console.error.bind(console);
+        console.error = function captureConsoleError(...args) {
+            record({
+                type: 'console.error',
+                message: args.map(normalizeValue).join(' ')
+            });
+            return originalConsoleError(...args);
+        };
+    })();
 
 
             // show three-dots button; click to expand vertical capsule menu

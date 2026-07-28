@@ -441,6 +441,18 @@
         .ds-sun-icon.small { width: 16px; height: 16px; }
         .ds-slider { flex: 1; margin: 0 15px; -webkit-appearance: none; height: 4px; border-radius: 2px; outline: none; background: linear-gradient(to right, #007aff 30%, #e5e5ea 30%); }
         .ds-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 3px 8px rgba(0,0,0,0.15); cursor: pointer; }
+        .standby-diagnostics-container .ds-diagnostic-card { padding: 16px; box-sizing: border-box; }
+        .ds-diagnostic-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+        .ds-diagnostic-title { font-size: 17px; font-weight: 600; color: #111; margin-bottom: 4px; }
+        .ds-diagnostic-desc { font-size: 13px; color: #8e8e93; line-height: 1.35; }
+        .ds-diagnostic-count { flex-shrink: 0; font-size: 12px; color: #007aff; background: rgba(0, 122, 255, 0.1); border-radius: 999px; padding: 5px 9px; font-weight: 600; }
+        .ds-diagnostic-output { width: 100%; min-height: 220px; resize: vertical; border: 0; outline: none; border-radius: 12px; background: #f2f2f7; color: #1c1c1e; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.45; padding: 12px; box-sizing: border-box; }
+        .ds-diagnostic-output::placeholder { color: #8e8e93; }
+        .ds-diagnostic-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .ds-diagnostic-btn { flex: 1; border: 0; border-radius: 12px; padding: 10px 8px; background: #007aff; color: #fff; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
+        .ds-diagnostic-btn.secondary { background: #e5e5ea; color: #1c1c1e; }
+        .ds-diagnostic-btn.danger { background: rgba(255, 59, 48, 0.12); color: #ff3b30; }
+        .ds-diagnostic-btn:active { transform: scale(0.98); opacity: 0.86; }
 
         /* ===== Widget 小组件库 (作用域: #themeAppUI 内, 前缀隔离) ===== */
         #themeAppUI .widget-app-container { flex: 1; display: flex; flex-direction: column; position: relative; height: 100%; padding-bottom: 90px; }

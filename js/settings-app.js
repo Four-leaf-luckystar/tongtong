@@ -34,6 +34,70 @@
             displayUI.style.display = 'none';
         }, 300);
     }
+    function openStandbyDiagnosticsApp() {
+        const diagnosticsUI = document.getElementById('standbyDiagnosticsUI');
+        diagnosticsUI.style.display = 'flex';
+        renderDiagnosticErrorLog();
+        setTimeout(() => {
+            diagnosticsUI.classList.add('show');
+        }, 10);
+    }
+
+    function closeStandbyDiagnosticsApp() {
+        const diagnosticsUI = document.getElementById('standbyDiagnosticsUI');
+        diagnosticsUI.classList.remove('show');
+        setTimeout(() => {
+            diagnosticsUI.style.display = 'none';
+        }, 300);
+    }
+
+    function renderDiagnosticErrorLog() {
+        const output = document.getElementById('diagnosticErrorText');
+        const count = document.getElementById('diagnosticErrorCount');
+        const diagnostics = window.tongtongDiagnostics;
+        if (diagnostics && typeof diagnostics.flush === 'function') diagnostics.flush();
+        const logs = diagnostics && typeof diagnostics.getLogs === 'function' ? diagnostics.getLogs() : [];
+        if (count) count.textContent = `${logs.length} 条`;
+        if (!output) return;
+        output.value = logs.length && diagnostics && typeof diagnostics.toText === 'function'
+            ? diagnostics.toText()
+            : '';
+    }
+
+    function copyDiagnosticErrorLog() {
+        renderDiagnosticErrorLog();
+        const output = document.getElementById('diagnosticErrorText');
+        const text = output ? output.value.trim() : '';
+        if (!text) {
+            if (typeof showToast === 'function') showToast('暂无报错数据');
+            return;
+        }
+        const fallbackCopy = () => {
+            output.focus();
+            output.select();
+            document.execCommand('copy');
+        };
+        const done = () => {
+            if (typeof showToast === 'function') showToast('报错数据已复制');
+        };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(done).catch(() => {
+                fallbackCopy();
+                done();
+            });
+        } else {
+            fallbackCopy();
+            done();
+        }
+    }
+
+    function clearDiagnosticErrorLog() {
+        if (window.tongtongDiagnostics && typeof window.tongtongDiagnostics.clear === 'function') {
+            window.tongtongDiagnostics.clear();
+        }
+        renderDiagnosticErrorLog();
+        if (typeof showToast === 'function') showToast('报错数据已清空');
+    }
 
     function toggleDsAppearance(mode) {
         const lightOpt = document.getElementById('dsLightOption');
