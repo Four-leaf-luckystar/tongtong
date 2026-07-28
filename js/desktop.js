@@ -889,6 +889,17 @@
             toggle.setAttribute('aria-checked', String(shouldShow));
         }
     }
+    window.applyStatusBarVisibility = applyStatusBarVisibility;
+
+    function syncStatusBarAfterReturnHome() {
+        requestAnimationFrame(applyStatusBarVisibility);
+    }
+    window.syncStatusBarAfterReturnHome = syncStatusBarAfterReturnHome;
+
+    window.addEventListener('pageshow', syncStatusBarAfterReturnHome);
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) syncStatusBarAfterReturnHome();
+    });
 
     function toggleStatusBarVisibility() {
         appSettings.simulatedStatusBarVisible = !isStatusBarVisible();

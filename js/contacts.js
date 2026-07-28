@@ -314,6 +314,7 @@
         root.setAttribute('aria-hidden', 'true');
         setTimeout(() => {
             if (!root.classList.contains('show')) root.style.display = 'none';
+            if (typeof window.syncStatusBarAfterReturnHome === 'function') window.syncStatusBarAfterReturnHome();
         }, 320);
     }
 

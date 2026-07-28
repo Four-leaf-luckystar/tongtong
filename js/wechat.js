@@ -1423,7 +1423,10 @@
         const wechatUI = document.getElementById('wechatAppUI');
         if (wechatUI) {
             wechatUI.classList.remove('show');
-            setTimeout(() => { wechatUI.style.display = 'none'; }, 300);
+            setTimeout(() => {
+                wechatUI.style.display = 'none';
+                if (typeof window.syncStatusBarAfterReturnHome === 'function') window.syncStatusBarAfterReturnHome();
+            }, 300);
         }
     }
 

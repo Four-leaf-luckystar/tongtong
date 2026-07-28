@@ -11,6 +11,7 @@
         settingsUI.classList.remove('show');
         setTimeout(() => {
             settingsUI.style.display = 'none';
+            if (typeof window.syncStatusBarAfterReturnHome === 'function') window.syncStatusBarAfterReturnHome();
         }, 300);
     }
 

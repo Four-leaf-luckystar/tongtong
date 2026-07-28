@@ -15,6 +15,7 @@
         themeAppUI.classList.remove('show');
         setTimeout(() => {
             themeAppUI.style.display = 'none';
+            if (typeof window.syncStatusBarAfterReturnHome === 'function') window.syncStatusBarAfterReturnHome();
         }, 300);
     }
 
