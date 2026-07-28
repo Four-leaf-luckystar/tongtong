@@ -118,6 +118,38 @@
                 : '<style>html,body{margin:0;padding:0;width:100%;height:100%;box-sizing:border-box;}</style>' + frameContent;
         }
 
+        function createWidgetPickerPreview(widgetData) {
+            const previewSize = 60;
+            const preview = document.createElement('div');
+            preview.style.cssText = "width: 60px; height: 60px; border-radius: 12px; background: rgba(255,255,255,0.55); flex-shrink: 0; overflow: hidden; position: relative; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.45);";
+
+            const widgetContent = normalizeStoredWidgetContent(widgetData && widgetData.content ? widgetData.content : '');
+            if (!widgetContent) {
+                preview.style.background = (widgetData && widgetData.preview) || 'rgba(255,255,255,0.55)';
+                return preview;
+            }
+
+            const previewDims = getWidgetDimensions(widgetData || {});
+            const previewScale = Math.min(previewSize / previewDims.width, previewSize / previewDims.height);
+            const frame = document.createElement('iframe');
+            frame.setAttribute('sandbox', 'allow-scripts');
+            frame.setAttribute('title', ((widgetData && widgetData.name) || '组件') + '预览');
+            frame.style.cssText = "position: absolute; border: 0; background: transparent; transform-origin: top left; pointer-events: none;";
+            frame.style.width = previewDims.width + 'px';
+            frame.style.height = previewDims.height + 'px';
+            frame.style.left = (previewSize - previewDims.width * previewScale) / 2 + 'px';
+            frame.style.top = (previewSize - previewDims.height * previewScale) / 2 + 'px';
+            frame.style.transform = 'scale(' + previewScale + ')';
+            frame.addEventListener('load', function () {
+                if (typeof window.syncGlobalFontToWidgetFrame === 'function') {
+                    window.syncGlobalFontToWidgetFrame(frame);
+                }
+            });
+            frame.srcdoc = buildDesktopWidgetSrcdoc(widgetContent);
+            preview.appendChild(frame);
+            return preview;
+        }
+
         function refreshDesktopWidgetFrames() {
             document.querySelectorAll('#desktopGrid .app-item.is-widget').forEach(app => {
                 const frame = app.querySelector('.widget-render-frame');
@@ -1016,8 +1048,7 @@
                 const item = document.createElement('div');
                 item.style.cssText = "background: rgba(255,255,255,0.8); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 16px; cursor: pointer; backdrop-filter: blur(10px);";
                 
-                const preview = document.createElement('div');
-                preview.style.cssText = "width: 60px; height: 60px; border-radius: 12px; background: " + (widget.preview || '#ccc') + "; flex-shrink: 0;";
+                const preview = createWidgetPickerPreview(widget);
                 
                 const name = document.createElement('div');
                 name.style.cssText = "flex: 1; font-weight: bold; color: black; font-size: 16px;";
