@@ -148,7 +148,8 @@
             placeholderAppsV3: true,
             placeholderAppsV4: true,
             placeholderAppIconsV1: true,
-            placeholderAppIconsV2: true
+            placeholderAppIconsV2: true,
+            placeholderAppMetadataV1: true
         });
         
         if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
@@ -187,6 +188,10 @@
                     placeholderAppsMigrated = true;
                 }
                 if (data.placeholderAppIconsV2 !== true && typeof window.updatePlaceholderAppIcons === 'function') {
+                    window.updatePlaceholderAppIcons();
+                    placeholderAppsMigrated = true;
+                }
+                if (data.placeholderAppMetadataV1 !== true && typeof window.updatePlaceholderAppIcons === 'function') {
                     window.updatePlaceholderAppIcons();
                     placeholderAppsMigrated = true;
                 }

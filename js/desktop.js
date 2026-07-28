@@ -165,18 +165,18 @@
 
         const PLACEHOLDER_DESKTOP_APP_BATCHES = Object.freeze({
             v1: Object.freeze([
-                { name: '相逢', appId: 'placeholder-xiangfeng', icon: 'linear-gradient(145deg, #ff7b89, #ffb36b)' },
+                { name: '见面', appId: 'placeholder-xiangfeng', icon: "url('https://bee-reg-ab.imagency.cn/p/d67cfeab9dd12a014d827e3923f05e3b.jpg')" },
                 { name: '音乐', appId: 'placeholder-music', icon: "url('https://nos.netease.com/ysf/44b1b063945538f0ebf2e1670a156958.jpg')" },
-                { name: '吃什么', appId: 'placeholder-food', icon: 'linear-gradient(145deg, #ff9f43, #feca57)' },
+                { name: '厨神驾到', appId: 'placeholder-food', icon: "url('https://bee-reg-ab.imagency.cn/p/f2c483d68ffb62b0d3222572086197f4.png')" },
                 { name: '今日', appId: 'placeholder-today', icon: null },
-                { name: '枕上书', appId: 'placeholder-bedtime-book', icon: 'linear-gradient(145deg, #596275, #a4b0be)' },
-                { name: '阴阳', appId: 'placeholder-yinyang', icon: 'linear-gradient(145deg, #2f3640, #dcdde1)' },
+                { name: '记忆', appId: 'placeholder-bedtime-book', icon: "url('https://bee-reg-ab.imagency.cn/p/54fceecb56f9f9fdc289b88a0523cf37.jpg')" },
+                { name: '问爻', appId: 'placeholder-yinyang', icon: "url('https://bee-reg-ab.imagency.cn/p/d9b54ca4207d610898fa47fd608a1e4c.png')" },
                 { name: 'B站', appId: 'placeholder-bilibili', icon: "url('https://nos.netease.com/ysf/a113c9347d79566ad7ec58c6dd563c98.png')" }
             ]),
             v2: Object.freeze([
                 { name: '健康', appId: 'placeholder-health', icon: "url('https://nos.netease.com/ysf/71d2d06f946d0e2edcf1a1db219cc93c.jpg')" },
                 { name: '家居', appId: 'placeholder-home', icon: "url('https://nos.netease.com/ysf/09e991e8c030af3963027b3e0d20d243.jpg')" },
-                { name: '游戏中心', appId: 'placeholder-game-center', icon: "url('https://nos.netease.com/ysf/f20ff48c726869054a57f61aebbeb278.jpg')" },
+                { name: '游戏中心', appId: 'placeholder-game-center', icon: "url('https://bee-reg-ab.imagency.cn/p/d7187d71c6220e6bd4ccf91d927122da.png')" },
                 { name: '邮件', appId: 'placeholder-mail', icon: "url('https://nos.netease.com/ysf/e3e0cd38a75d199af2613b0373ef5750.jpg')" },
                 { name: '相册', appId: 'placeholder-photos', icon: "url('https://nos.netease.com/ysf/23270ba74c92c441837d98bfb9aa7d6e.jpg')" }
             ]),
@@ -192,6 +192,13 @@
             ...PLACEHOLDER_DESKTOP_APP_BATCHES.v2,
             ...PLACEHOLDER_DESKTOP_APP_BATCHES.v3,
             ...PLACEHOLDER_DESKTOP_APP_BATCHES.v4
+        ]);
+        const PLACEHOLDER_DESKTOP_APP_METADATA_UPDATE_IDS = new Set([
+            'placeholder-food',
+            'placeholder-game-center',
+            'placeholder-xiangfeng',
+            'placeholder-bedtime-book',
+            'placeholder-yinyang'
         ]);
 
         function cloneDesktopPage(page) {
@@ -381,21 +388,31 @@
         function updatePlaceholderAppIcons() {
             const iconByAppId = new Map(
                 PLACEHOLDER_DESKTOP_APPS
-                    .filter(app => app.icon.startsWith('url('))
+                    .filter(app => app.icon && app.icon.startsWith('url('))
                     .map(app => [app.appId, app.icon])
+            );
+            const metadataByAppId = new Map(
+                PLACEHOLDER_DESKTOP_APPS
+                    .filter(app => PLACEHOLDER_DESKTOP_APP_METADATA_UPDATE_IDS.has(app.appId))
+                    .map(app => [app.appId, { name: app.name, icon: app.icon }])
             );
             const pages = getDesktopPagesSnapshot();
             const dockData = serializeDockApps();
             let changed = false;
 
-            const updateIcon = app => {
+            const updateApp = app => {
+                const nextMetadata = app && metadataByAppId.get(app.appId);
+                if (nextMetadata && app.name !== nextMetadata.name) {
+                    app.name = nextMetadata.name;
+                    changed = true;
+                }
                 const nextIcon = app && iconByAppId.get(app.appId);
                 if (!nextIcon || app.icon === nextIcon) return;
                 app.icon = nextIcon;
                 changed = true;
             };
-            pages.forEach(page => page.forEach(updateIcon));
-            dockData.forEach(updateIcon);
+            pages.forEach(page => page.forEach(updateApp));
+            dockData.forEach(updateApp);
 
             if (!changed) return false;
             renderLayout(pages, dockData, currentDesktopPage, DESKTOP_ROWS);
