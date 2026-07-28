@@ -873,77 +873,12 @@
     let dragEdgeTimer = null;
     let dragEdgeDirection = 0;
     let dragEdgeLocked = false;
-    let dragGhostFrame = null;
-    let dragGhostX = 0;
-    let dragGhostY = 0;
-    let dragGridRect = null;
     let desktopPointerSwipe = null;
     let desktopTouchSwipe = null;
     let desktopSwipeHandledUntil = 0;
 
-    function getDesktopGridElement() {
-        return document.getElementById('desktopGrid');
-    }
-
-    function canStartDesktopSwipeFromTarget(target) {
-        if (!target || !target.closest('#desktopGrid')) return false;
-        return !isEditMode || !target.closest('.app-item');
-    }
-
-    function getDesktopSwipeOffset(deltaX) {
-        const isBlockedAtStart = currentDesktopPage <= 0 && deltaX > 0;
-        const isBlockedAtEnd = currentDesktopPage >= desktopPages.length - 1 && deltaX < 0;
-        return isBlockedAtStart || isBlockedAtEnd ? deltaX * 0.28 : deltaX;
-    }
-
-    function applyDesktopSwipeOffset(deltaX) {
-        const desktopGrid = getDesktopGridElement();
-        if (!desktopGrid) return;
-        desktopGrid.classList.add('is-swiping');
-        desktopGrid.style.setProperty('--desktop-swipe-offset', `${getDesktopSwipeOffset(deltaX)}px`);
-    }
-
-    function resetDesktopSwipeOffset() {
-        const desktopGrid = getDesktopGridElement();
-        if (!desktopGrid) return;
-        desktopGrid.classList.remove('is-swiping');
-        desktopGrid.style.removeProperty('--desktop-swipe-offset');
-    }
-
-    function updateDesktopSwipeGesture(swipe, clientX, clientY) {
-        if (!swipe) return;
-        const deltaX = clientX - swipe.clientX;
-        const deltaY = clientY - swipe.clientY;
-        if (!swipe.isTracking) {
-            if (Math.abs(deltaX) <= 8 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.05) return;
-            swipe.isTracking = true;
-            if (pressTimer) {
-                clearTimeout(pressTimer);
-                pressTimer = null;
-            }
-        }
-        applyDesktopSwipeOffset(deltaX);
-    }
-
-    function setDragGhostPosition(clientX, clientY) {
-        dragGhostX = clientX - offsetX;
-        dragGhostY = clientY - offsetY;
-        if (dragGhostFrame) return;
-        dragGhostFrame = requestAnimationFrame(() => {
-            dragGhostFrame = null;
-            if (!dragGhost) return;
-            dragGhost.style.transform = `translate3d(${dragGhostX}px, ${dragGhostY}px, 0) scale(1.15)`;
-        });
-    }
-
-    function cancelDragGhostFrame() {
-        if (dragGhostFrame) cancelAnimationFrame(dragGhostFrame);
-        dragGhostFrame = null;
-    }
-
     function finishDesktopSwipe(deltaX, deltaY) {
         const isHorizontalSwipe = Math.abs(deltaX) >= 42 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2;
-        resetDesktopSwipeOffset();
         if (!isHorizontalSwipe) return false;
         if (pressTimer) {
             clearTimeout(pressTimer);
@@ -1244,14 +1179,12 @@
         const app = e.target.closest('.app-item');
         const desktopGrid = e.target.closest('#desktopGrid');
 
-        desktopPointerSwipe = canStartDesktopSwipeFromTarget(e.target) ? {
-            pointerId: e.pointerId,
-            clientX: e.clientX,
-            clientY: e.clientY,
-            isTracking: false
-        } : null;
-
         if (!isEditMode) {
+            desktopPointerSwipe = desktopGrid ? {
+                pointerId: e.pointerId,
+                clientX: e.clientX,
+                clientY: e.clientY
+            } : null;
             if (!app) return;
             startX = e.clientX;
             startY = e.clientY;
@@ -1262,10 +1195,6 @@
             if (!app) return;
             e.preventDefault();
             draggedApp = app;
-            try {
-                if (app.setPointerCapture) app.setPointerCapture(e.pointerId);
-            } catch (error) {
-            }
             const parent = app.parentNode;
             dragOrigin = {
                 page: currentDesktopPage,
@@ -1290,26 +1219,14 @@
             dragGhost.style.zIndex = '1000';
             dragGhost.style.transform = `translate3d(${rect.left}px, ${rect.top}px, 0) scale(1.15)`;
             dragGhost.style.willChange = 'transform';
-            dragGhost.style.transition = 'none';
-            dragGhost.style.backfaceVisibility = 'hidden';
-            dragGhost.style.contain = 'layout paint style';
             dragGhost.classList.remove('jiggling');
-            dragGhost.classList.add('desktop-drag-ghost');
-            dragGhost.querySelectorAll('iframe').forEach(frame => {
-                frame.style.pointerEvents = 'none';
-            });
             document.body.appendChild(dragGhost);
-            dragGridRect = desktopGrid ? desktopGrid.getBoundingClientRect() : null;
 
             app.style.opacity = '0';
         }
     });
 
     document.addEventListener('pointermove', (e) => {
-        if (desktopPointerSwipe && desktopPointerSwipe.pointerId === e.pointerId && !dragGhost) {
-            updateDesktopSwipeGesture(desktopPointerSwipe, e.clientX, e.clientY);
-        }
-
         if (!isEditMode) {
             if (pressTimer && (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10)) {
                 clearTimeout(pressTimer);
@@ -1318,7 +1235,7 @@
         } else {
             if (!dragGhost) return;
             e.preventDefault();
-            setDragGhostPosition(e.clientX, e.clientY);
+            dragGhost.style.transform = `translate3d(${e.clientX - offsetX}px, ${e.clientY - offsetY}px, 0) scale(1.15)`;
             scheduleDragEdgeNavigation(e.clientX, e.clientY);
         }
     });
@@ -1338,7 +1255,7 @@
 
     function scheduleDragEdgeNavigation(clientX, clientY) {
         const grid = document.getElementById('desktopGrid');
-        const rect = dragGridRect || grid.getBoundingClientRect();
+        const rect = grid.getBoundingClientRect();
         const insideVerticalRange = clientY >= rect.top && clientY <= rect.bottom;
         const direction = insideVerticalRange && clientX <= rect.left + 34
             ? -1
@@ -1363,10 +1280,6 @@
             const targetPage = currentDesktopPage + direction;
             if (targetPage >= 0 && targetPage < desktopPages.length) {
                 switchDesktopPage(targetPage, { skipCommit: true, skipSave: true });
-                requestAnimationFrame(() => {
-                    const nextGrid = document.getElementById('desktopGrid');
-                    dragGridRect = nextGrid ? nextGrid.getBoundingClientRect() : null;
-                });
             }
             dragEdgeLocked = true;
         }, 520);
@@ -1397,7 +1310,7 @@
         }
 
         let didSwipePage = false;
-        if (desktopPointerSwipe && desktopPointerSwipe.pointerId === e.pointerId) {
+        if (!isEditMode && desktopPointerSwipe && desktopPointerSwipe.pointerId === e.pointerId) {
             didSwipePage = finishDesktopSwipe(
                 e.clientX - desktopPointerSwipe.clientX,
                 e.clientY - desktopPointerSwipe.clientY
@@ -1427,8 +1340,6 @@
         if (isEditMode && dragGhost && draggedApp) {
             clearDragEdgeNavigation();
             dragEdgeLocked = false;
-            dragGridRect = null;
-            cancelDragGhostFrame();
             dragGhost.remove();
             dragGhost = null;
             draggedApp.style.opacity = '1';
@@ -1492,12 +1403,9 @@
     document.addEventListener('pointercancel', () => {
         if (pressTimer) clearTimeout(pressTimer);
         desktopPointerSwipe = null;
-        resetDesktopSwipeOffset();
         clearDragEdgeNavigation();
         dragEdgeLocked = false;
-        dragGridRect = null;
         if (dragGhost) {
-            cancelDragGhostFrame();
             dragGhost.remove();
             dragGhost = null;
             if (draggedApp) {
@@ -1510,7 +1418,7 @@
     });
 
     document.addEventListener('touchstart', (event) => {
-        if (event.touches.length !== 1 || !canStartDesktopSwipeFromTarget(event.target)) {
+        if (isEditMode || event.touches.length !== 1 || !event.target.closest('#desktopGrid')) {
             desktopTouchSwipe = null;
             return;
         }
@@ -1518,24 +1426,12 @@
         desktopTouchSwipe = {
             identifier: touch.identifier,
             clientX: touch.clientX,
-            clientY: touch.clientY,
-            isTracking: false
+            clientY: touch.clientY
         };
     }, { passive: true });
 
-    document.addEventListener('touchmove', (event) => {
-        if (!desktopTouchSwipe) return;
-        for (let index = 0; index < event.touches.length; index++) {
-            const touch = event.touches[index];
-            if (touch.identifier === desktopTouchSwipe.identifier) {
-                updateDesktopSwipeGesture(desktopTouchSwipe, touch.clientX, touch.clientY);
-                break;
-            }
-        }
-    }, { passive: true });
-
     document.addEventListener('touchend', (event) => {
-        if (!desktopTouchSwipe) return;
+        if (!desktopTouchSwipe || isEditMode) return;
         let endTouch = null;
         for (let index = 0; index < event.changedTouches.length; index++) {
             if (event.changedTouches[index].identifier === desktopTouchSwipe.identifier) {
@@ -1554,7 +1450,6 @@
 
     document.addEventListener('touchcancel', () => {
         desktopTouchSwipe = null;
-        resetDesktopSwipeOffset();
     }, { passive: true });
 
             // show three-dots button; click to expand vertical capsule menu
