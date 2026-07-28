@@ -1,6 +1,12 @@
     (function initTongtongDiagnostics() {
-        const maxLogs = 30;
+        const maxLogs = 50;
+        const longTaskThreshold = 200;
+        const slowInputThreshold = 120;
+        const slowLoadThreshold = 5000;
+        const eventLoopThreshold = 1000;
         const memoryLogs = [];
+        let lastLongTaskTime = 0;
+        let lastSlowInputTime = 0;
 
         function canUseAppSettings() {
             try {
@@ -30,6 +36,31 @@
             } catch (error) {
                 return String(value);
             }
+        }
+
+        function getEnvironmentSnapshot() {
+            const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            const memory = performance.memory;
+            return {
+                page: location.href,
+                visibility: document.visibilityState,
+                online: navigator.onLine,
+                viewport: `${window.innerWidth}x${window.innerHeight}`,
+                screen: `${screen.width}x${screen.height}`,
+                devicePixelRatio: window.devicePixelRatio || 1,
+                connection: connection ? {
+                    effectiveType: connection.effectiveType || '',
+                    downlink: connection.downlink || null,
+                    rtt: connection.rtt || null,
+                    saveData: Boolean(connection.saveData)
+                } : null,
+                memory: memory ? {
+                    usedJSHeapSize: memory.usedJSHeapSize,
+                    totalJSHeapSize: memory.totalJSHeapSize,
+                    jsHeapSizeLimit: memory.jsHeapSizeLimit
+                } : null,
+                wasDiscarded: Boolean(document.wasDiscarded)
+            };
         }
 
         function uniqLogs(logs) {
@@ -63,7 +94,10 @@
                 line: detail.line || null,
                 column: detail.column || null,
                 stack: detail.stack || '',
-                userAgent: navigator.userAgent
+                severity: detail.severity || 'error',
+                meta: detail.meta || null,
+                userAgent: navigator.userAgent,
+                environment: getEnvironmentSnapshot()
             };
             setLogs([entry].concat(getLogs()));
         }
@@ -71,8 +105,8 @@
         function toText() {
             return JSON.stringify({
                 generatedAt: new Date().toISOString(),
-                page: location.href,
                 userAgent: navigator.userAgent,
+                environment: getEnvironmentSnapshot(),
                 logs: getLogs()
             }, null, 2);
         }
@@ -92,6 +126,16 @@
         };
 
         window.addEventListener('error', event => {
+            const target = event.target;
+            if (target && target !== window) {
+                record({
+                    type: 'resource.error',
+                    message: `资源加载失败: ${target.tagName || 'unknown'}`,
+                    source: target.currentSrc || target.src || target.href || location.href,
+                    severity: 'warning'
+                });
+                return;
+            }
             record({
                 type: 'window.error',
                 message: event.message,
@@ -100,7 +144,7 @@
                 column: event.colno,
                 stack: event.error && event.error.stack ? event.error.stack : ''
             });
-        });
+        }, true);
 
         window.addEventListener('unhandledrejection', event => {
             const reason = event.reason;
@@ -110,6 +154,110 @@
                 stack: reason && reason.stack ? reason.stack : ''
             });
         });
+
+        window.addEventListener('securitypolicyviolation', event => {
+            record({
+                type: 'security.csp',
+                message: `内容安全策略拦截: ${event.violatedDirective || 'unknown'}`,
+                source: event.blockedURI || location.href,
+                severity: 'warning',
+                meta: {
+                    effectiveDirective: event.effectiveDirective || '',
+                    originalPolicy: event.originalPolicy || ''
+                }
+            });
+        });
+
+        window.addEventListener('offline', () => {
+            record({
+                type: 'network.offline',
+                message: '网络连接已断开',
+                severity: 'warning'
+            });
+        });
+
+        window.addEventListener('freeze', () => {
+            record({
+                type: 'lifecycle.freeze',
+                message: '页面进入冻结状态',
+                severity: 'info'
+            });
+        });
+
+        if (document.wasDiscarded) {
+            record({
+                type: 'lifecycle.discarded',
+                message: '页面曾被系统回收后重新加载，可能与闪退或内存压力有关',
+                severity: 'warning'
+            });
+        }
+
+        if ('PerformanceObserver' in window) {
+            try {
+                const longTaskObserver = new PerformanceObserver(list => {
+                    list.getEntries().forEach(entry => {
+                        const now = Date.now();
+                        if (entry.duration < longTaskThreshold || now - lastLongTaskTime < 10000) return;
+                        lastLongTaskTime = now;
+                        record({
+                            type: 'performance.long_task',
+                            message: `检测到页面卡顿: 主线程阻塞 ${Math.round(entry.duration)}ms`,
+                            severity: 'warning',
+                            meta: { durationMs: Math.round(entry.duration) }
+                        });
+                    });
+                });
+                longTaskObserver.observe({ type: 'longtask', buffered: true });
+            } catch (error) {
+            }
+
+            try {
+                const inputObserver = new PerformanceObserver(list => {
+                    list.getEntries().forEach(entry => {
+                        const now = Date.now();
+                        if (entry.duration < slowInputThreshold || now - lastSlowInputTime < 5000) return;
+                        lastSlowInputTime = now;
+                        record({
+                            type: 'performance.slow_input',
+                            message: `检测到操作响应偏慢: ${entry.name} ${Math.round(entry.duration)}ms`,
+                            severity: 'warning',
+                            meta: { eventName: entry.name, durationMs: Math.round(entry.duration) }
+                        });
+                    });
+                });
+                inputObserver.observe({ type: 'event', buffered: true, durationThreshold: slowInputThreshold });
+            } catch (error) {
+            }
+        }
+
+        window.addEventListener('load', () => {
+            const navigation = performance.getEntriesByType('navigation')[0];
+            if (!navigation || navigation.duration < slowLoadThreshold) return;
+            record({
+                type: 'performance.slow_load',
+                message: `页面加载偏慢: ${Math.round(navigation.duration)}ms`,
+                severity: 'warning',
+                meta: {
+                    durationMs: Math.round(navigation.duration),
+                    domContentLoadedMs: Math.round(navigation.domContentLoadedEventEnd),
+                    responseStartMs: Math.round(navigation.responseStart)
+                }
+            });
+        });
+
+        let expectedEventLoopTime = performance.now() + 5000;
+        window.setInterval(() => {
+            const now = performance.now();
+            const delay = now - expectedEventLoopTime;
+            expectedEventLoopTime = now + 5000;
+            if (document.visibilityState !== 'visible' || delay < eventLoopThreshold) return;
+            record({
+                type: 'performance.event_loop_delay',
+                message: `检测到页面卡顿: 事件循环延迟 ${Math.round(delay)}ms`,
+                severity: 'warning',
+                meta: { delayMs: Math.round(delay) }
+            });
+        }, 5000);
 
         const originalConsoleError = console.error.bind(console);
         console.error = function captureConsoleError(...args) {
