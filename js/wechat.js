@@ -3900,7 +3900,31 @@
             
             voiceContainer.addEventListener('click', (e) => {
                 e.stopPropagation();
-                voiceContainer.classList.toggle('show-text');
+                if (!(message.audioBlob instanceof Blob)) {
+                    voiceContainer.classList.toggle('show-text');
+                    return;
+                }
+
+                const previousAudio = voiceContainer._wcVoiceAudio;
+                if (previousAudio && !previousAudio.paused) {
+                    previousAudio.pause();
+                    previousAudio.currentTime = 0;
+                    return;
+                }
+
+                const audioUrl = URL.createObjectURL(message.audioBlob);
+                const audio = new Audio(audioUrl);
+                voiceContainer._wcVoiceAudio = audio;
+                const releaseAudio = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    if (voiceContainer._wcVoiceAudio === audio) voiceContainer._wcVoiceAudio = null;
+                };
+                audio.addEventListener('ended', releaseAudio, { once: true });
+                audio.addEventListener('error', releaseAudio, { once: true });
+                audio.play().catch(() => {
+                    releaseAudio();
+                    voiceContainer.classList.toggle('show-text');
+                });
             });
             
             bubble.appendChild(voiceContainer);
@@ -4046,7 +4070,7 @@
         wcScrollToBottom();
     }
 
-    function wcAppendChatMessage(text, type, contactId = wcCurrentChatContactId, imageUrl = null, replyTo = null, isVoice = false) {
+    function wcAppendChatMessage(text, type, contactId = wcCurrentChatContactId, imageUrl = null, replyTo = null, isVoice = false, audioBlob = null) {
         if (!contactId) return;
         const message = {
             id: typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -4057,6 +4081,7 @@
             imageUrl: imageUrl,
             replyTo: replyTo,
             isVoice: isVoice,
+            audioBlob: audioBlob instanceof Blob ? audioBlob : null,
             createdAt: Date.now()
         };
         if (!Array.isArray(wcChatMessagesByContact[contactId])) wcChatMessagesByContact[contactId] = [];
@@ -5170,7 +5195,15 @@
 
             // 9. 逐个渲染气泡
             for (let i = 0; i < finalMessages.length; i++) {
-                wcAppendChatMessage(finalMessages[i].text, 'received', chatContactId, finalMessages[i].imageUrl, finalMessages[i].replyToId, finalMessages[i].isVoice);
+                let audioBlob = null;
+                if (finalMessages[i].isVoice && typeof window.synthesizeConnectedVoice === 'function') {
+                    try {
+                        audioBlob = await window.synthesizeConnectedVoice(finalMessages[i].text);
+                    } catch (error) {
+                        console.warn('聊天语音合成失败，已保留语音文本描述：', error);
+                    }
+                }
+                wcAppendChatMessage(finalMessages[i].text, 'received', chatContactId, finalMessages[i].imageUrl, finalMessages[i].replyToId, finalMessages[i].isVoice, audioBlob);
                 if (i < finalMessages.length - 1) {
                     wcSetApiTypingStatus(true);
                     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));

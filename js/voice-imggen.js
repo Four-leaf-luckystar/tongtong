@@ -1190,7 +1190,105 @@
     function playAudio(scope, bytes, mime) {
         var audio = el('voice-' + scope + '-audio'); var url = URL.createObjectURL(new Blob([bytes], { type: mime })); audio.src = url; audio.style.display = 'block'; audio.play().catch(function () {});
     }
+
+    function connectedVoicePreset() {
+        var preset = (voiceDataList || []).find(function (item) { return item.id === voiceConnectedId; });
+        if (!preset || !trimSlash(preset.url)) return null;
+
+        var provider = preset.provider || 'minimax';
+        if ((provider === 'minimax' || provider === 'elevenlabs') && !preset.key) return null;
+        if ((provider === 'elevenlabs' || provider === 'sovits') && !preset.voiceId) return null;
+        return preset;
+    }
+
+    function voiceMime(format) {
+        return ({ mp3: 'audio/mpeg', wav: 'audio/wav', flac: 'audio/flac', ogg: 'audio/ogg', aac: 'audio/aac', pcm: 'audio/pcm' })[format] || 'audio/mpeg';
+    }
+
+    async function synthesizeConnectedVoice(text) {
+        var preset = connectedVoicePreset();
+        if (!preset || !String(text || '').trim()) return null;
+
+        var provider = preset.provider || 'minimax';
+        var params = preset.params || {};
+        var base = trimSlash(preset.url);
+        var response;
+
+        if (provider === 'minimax') {
+            var audioFormat = params.audioFormat || 'mp3';
+            var voiceSetting = {
+                voice_id: preset.voiceId || 'male-qn-qingse',
+                speed: params.speed == null ? 1 : params.speed,
+                vol: params.vol == null ? 1 : params.vol,
+                pitch: params.pitch == null ? 0 : params.pitch
+            };
+            if (params.emotion) voiceSetting.emotion = params.emotion;
+            response = await fetch(base + '/v1/t2a_v2', {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + preset.key, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: preset.model || 'speech-02-hd',
+                    text: String(text).trim(),
+                    voice_setting: voiceSetting,
+                    audio_setting: { audio_format: audioFormat, sample_rate: params.sampleRate || 32000 }
+                })
+            });
+            if (!response.ok) throw new Error('MiniMax HTTP ' + response.status);
+            var data = await response.json();
+            var hex = data && data.data && data.data.audio;
+            if (!hex) throw new Error('MiniMax 返回数据缺少 data.audio');
+            var bytes = new Uint8Array(hex.length / 2);
+            for (var i = 0; i < bytes.length; i++) bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+            return new Blob([bytes], { type: voiceMime(audioFormat) });
+        }
+
+        if (provider === 'elevenlabs') {
+            response = await fetch(base + '/v1/text-to-speech/' + encodeURIComponent(preset.voiceId), {
+                method: 'POST',
+                headers: { 'xi-api-key': preset.key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+                body: JSON.stringify({
+                    text: String(text).trim(),
+                    model_id: preset.model || 'eleven_multilingual_v2',
+                    voice_settings: {
+                        stability: params.stability == null ? 0.5 : params.stability,
+                        similarity_boost: params.similarityBoost == null ? 0.75 : params.similarityBoost,
+                        style: params.style == null ? 0 : params.style,
+                        use_speaker_boost: params.useSpeakerBoost !== false
+                    }
+                })
+            });
+            if (!response.ok) throw new Error('ElevenLabs HTTP ' + response.status);
+            return new Blob([await response.arrayBuffer()], { type: 'audio/mpeg' });
+        }
+
+        var mediaFormat = params.mediaFormat || 'wav';
+        var headers = { 'Content-Type': 'application/json', Accept: voiceMime(mediaFormat) };
+        if (preset.key) headers.Authorization = 'Bearer ' + preset.key;
+        response = await fetch(base + '/tts', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+                text: String(text).trim(),
+                text_lang: params.textLang || 'zh',
+                ref_audio_path: preset.voiceId,
+                prompt_text: params.promptText || '',
+                prompt_lang: params.promptLang || 'zh',
+                text_split_method: params.textSplitMethod || 'cut5',
+                top_p: params.topP == null ? 1 : params.topP,
+                temperature: params.temperature == null ? 1 : params.temperature,
+                speed_factor: params.speed == null ? 1 : params.speed,
+                media_type: mediaFormat,
+                streaming_mode: false
+            })
+        });
+        if (!response.ok) throw new Error('GPT-SoVITS HTTP ' + response.status);
+        var audio = await response.blob();
+        if (!audio.size) throw new Error('GPT-SoVITS 返回音频为空');
+        return audio.type ? audio : new Blob([audio], { type: voiceMime(mediaFormat) });
+    }
+
     window.testVoice = enhancedTestVoice;
+    window.synthesizeConnectedVoice = synthesizeConnectedVoice;
 
     var oldOpenImageAdd = window.openImageGenAddPage;
     window.openImageGenAddPage = function () { oldOpenImageAdd(); setActive('imggen-add-provider', 'openai'); renderImageFields('add', 'openai', {}); };
