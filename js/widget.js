@@ -301,7 +301,7 @@
                 preview: '#f0f2f5',
                 content: `<style>
     .widget-cat-space { width: 100%; height: 100%; background-color: #ffffff; border-radius: 28px; overflow: hidden; display: flex; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    .widget-cat-space .banner { height: 135px; width: 100%; background-color: #dcedfa; background-image: radial-gradient(circle at 20% 30%, #ffffff 2px, transparent 3px), radial-gradient(circle at 80% 20%, #ffffff 2px, transparent 3px), radial-gradient(circle at 50% 60%, #ffffff 2px, transparent 3px), radial-gradient(circle at 10% 80%, #ffffff 2px, transparent 3px), radial-gradient(circle at 90% 70%, #ffffff 2px, transparent 3px); background-size: 100px 100px; }
+    .widget-cat-space .banner { height: 135px; width: 100%; background-color: #dcedfa; background-image: radial-gradient(circle at 20% 30%, #ffffff 2px, transparent 3px), radial-gradient(circle at 80% 20%, #ffffff 2px, transparent 3px), radial-gradient(circle at 50% 60%, #ffffff 2px, transparent 3px), radial-gradient(circle at 10% 80%, #ffffff 2px, transparent 3px), radial-gradient(circle at 90% 70%, #ffffff 2px, transparent 3px); background-size: cover; background-position: center; background-repeat: no-repeat; }
     .widget-cat-space .profile-section { display: flex; align-items: flex-start; padding: 0 20px; margin-top: -45px; position: relative; z-index: 2; }
     .widget-cat-space .avatar-outer { width: 90px; height: 90px; border-radius: 50%; position: relative; }
     .widget-cat-space .avatar-inner { width: 100%; height: 100%; background-color: #ffffff; border-radius: 50%; background-size: cover; background-position: center; border: 3px solid #ffffff; box-sizing: border-box; background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3CclipPath id='finalClip'%3E%3Ccircle cx='50' cy='50' r='44'/%3E%3C/clipPath%3E%3ClinearGradient id='avatarBgGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23A3A8B0' /%3E%3Cstop offset='100%25' stop-color='%237A7F88' /%3E%3C/linearGradient%3E%3ClinearGradient id='avatarFigureGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23FFFFFF' /%3E%3Cstop offset='100%25' stop-color='%23E5E5EA' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='50' fill='url(%23avatarBgGrad)'/%3E%3Ccircle cx='50' cy='36' r='16' fill='url(%23avatarFigureGrad)'/%3E%3Cpath d='M 50 59 C 20 59 10 82 8 106 L 92 106 C 90 82 80 59 50 59 Z' fill='url(%23avatarFigureGrad)' clip-path='url(%23finalClip)'/%3E%3C/svg%3E"); }
@@ -438,7 +438,290 @@
         if(levelEl) levelEl.textContent = '100%';
     }
 </script>`
+            },
+            {
+                name: 'Oㅈo：뭐?',
+                presetSize: '4x2',
+                preview: 'linear-gradient(135deg, #a8b0b8, #6a7076)',
+                content: `<style>
+    .widget-container-ozo { width: 100%; height: 100%; background-color: #ffffff; border-radius: 28px; padding: 20px 24px; box-sizing: border-box; display: flex; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .widget-header-ozo { display: flex; align-items: center; margin-bottom: 16px; }
+    .widget-title-ozo { font-size: 18px; font-weight: 700; color: #333333; letter-spacing: 0.5px; outline: none; }
+    .widget-content-ozo { display: flex; gap: 14px; align-items: center; flex: 1; }
+    .color-box-ozo { flex: 1; height: 100%; border-radius: 16px; background-size: cover; background-position: center; }
+    .box-1-ozo { background-color: #9fb4c7; }
+    .box-2-ozo { background-color: #e4e9ed; }
+    .box-3-ozo { background-color: #c5d3e0; }
+</style>
+<div class="widget-container-ozo">
+    <div class="widget-header-ozo">
+        <div class="widget-title-ozo" contenteditable="true">Oㅈo：뭐?</div>
+    </div>
+    <div class="widget-content-ozo">
+        <div class="color-box-ozo box-1-ozo uploadable-img"></div>
+        <div class="color-box-ozo box-2-ozo uploadable-img"></div>
+        <div class="color-box-ozo box-3-ozo uploadable-img"></div>
+    </div>
+</div>`
+            },
+            {
+                name: '纯净拍立得',
+                presetSize: '4x2',
+                preview: '#e0e0e0',
+                content: `<style>
+    .widget-polaroid-container { width: 100%; height: 100%; background-color: transparent; position: relative; display: flex; justify-content: space-evenly; align-items: center; overflow: hidden; }
+    .polaroid { background-color: #ffffff; padding: 4px 4px 18px 4px; box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.1); position: relative; width: 80px; height: 96px; display: flex; flex-direction: column; border-radius: 2px; }
+    .photo { width: 100%; height: 100%; background-color: #e0e0e0; background-size: cover; background-position: center; border-radius: 1px; }
+    .polaroid.left { transform: rotate(-3deg) translateY(4px); }
+    .polaroid.middle { transform: rotate(4deg) translateY(-6px); z-index: 2; }
+    .polaroid.right { transform: rotate(-2deg) translateY(6px); }
+</style>
+<div class="widget-polaroid-container">
+    <div class="polaroid left">
+        <div class="photo uploadable-img" style="background-color: #dcdcdc;"></div>
+    </div>
+    <div class="polaroid middle">
+        <div class="photo uploadable-img" style="background-color: #eeeeee;"></div>
+    </div>
+    <div class="polaroid right">
+        <div class="photo uploadable-img" style="background-color: #e8e8e8;"></div>
+    </div>
+</div>`
+            },
+            {
+                name: '小猫饼图文',
+                presetSize: '4x3',
+                preview: '#e8eaed',
+                content: `<style>
+    .widget-4x3-cat { width: 100%; height: 100%; display: flex; flex-direction: column; gap: 16px; box-sizing: border-box; background: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .widget-4x3-cat .card { background-color: #f4f5f7; border-radius: 24px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06); border: 1px solid #ebebeb; box-sizing: border-box; }
+    .widget-4x3-cat .top-card { display: flex; align-items: center; padding: 16px 24px; }
+    .widget-4x3-cat .top-icon-frame { width: 52px; height: 52px; background-color: #b8b8b8; border-radius: 14px; padding: 4px; box-sizing: border-box; flex-shrink: 0; }
+    .widget-4x3-cat .top-icon-inner { width: 100%; height: 100%; background-color: #fff; border-radius: 10px; overflow: hidden; display: flex; justify-content: center; align-items: center; background-size: cover; background-position: center; }
+    .widget-4x3-cat .top-text-group { margin-left: 16px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+    .widget-4x3-cat .top-title { font-size: 17px; font-weight: 600; color: #333; outline: none; }
+    .widget-4x3-cat .top-subtitle { font-size: 13px; color: #666; outline: none; }
+    .widget-4x3-cat .music-icon { width: 24px; height: 24px; color: #555; }
+    .widget-4x3-cat .bottom-card { flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 24px; }
+    .widget-4x3-cat .image-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-grow: 1; }
+    .widget-4x3-cat .image-frame { flex: 1; aspect-ratio: 1 / 1; background-color: #b8b8b8; border-radius: 20px; padding: 6px; box-sizing: border-box; }
+    .widget-4x3-cat .image-inner { width: 100%; height: 100%; background-color: #ffffff; border-radius: 14px; overflow: hidden; display: flex; justify-content: center; align-items: center; background-size: cover; background-position: center; }
+    .widget-4x3-cat .bottom-text-row { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 16px; padding-left: 4px; padding-right: 4px; }
+    .widget-4x3-cat .bottom-text { font-size: 11px; color: #555; letter-spacing: 0.5px; font-weight: 600; outline: none; }
+</style>
+<div class="widget-4x3-cat">
+    <div class="card top-card">
+        <div class="top-icon-frame">
+            <div class="top-icon-inner uploadable-img"></div>
+        </div>
+        <div class="top-text-group">
+            <div class="top-title" contenteditable="true">小猫饼</div>
+            <div class="top-subtitle" contenteditable="true">Trou、verJasm1ne</div>
+        </div>
+        <svg class="music-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path fill="#555555" fill-rule="evenodd" d="M7.75 0.851a0.75 0.75 0 0 0 -1.5 0V13.15a0.75 0.75 0 0 0 1.5 0V0.851ZM4 2.466a0.75 0.75 0 0 1 0.75 0.75v7.568a0.75 0.75 0 1 1 -1.5 0V3.216a0.75 0.75 0 0 1 0.75 -0.75ZM1 4.831a0.75 0.75 0 0 1 0.75 0.75V8.42a0.75 0.75 0 0 1 -1.5 0V5.581a0.75 0.75 0 0 1 0.75 -0.75Zm9 -2.365a0.75 0.75 0 0 1 0.75 0.75v7.568a0.75 0.75 0 1 1 -1.5 0V3.216a0.75 0.75 0 0 1 0.75 -0.75Zm3.75 3.115a0.75 0.75 0 0 0 -1.5 0V8.42a0.75 0.75 0 0 0 1.5 0V5.581Z" clip-rule="evenodd"></path></svg>
+    </div>
+    <div class="card bottom-card">
+        <div class="image-row">
+            <div class="image-frame"><div class="image-inner uploadable-img"></div></div>
+            <div class="image-frame"><div class="image-inner uploadable-img"></div></div>
+            <div class="image-frame"><div class="image-inner uploadable-img"></div></div>
+        </div>
+        <div class="bottom-text-row">
+            <div class="bottom-text" contenteditable="true">@ We don't talk anymore.</div>
+            <div class="bottom-text" contenteditable="true">✩₊행복…은 손에 닿을 듯 가깝다.*✩</div>
+        </div>
+    </div>
+</div>`
+            },
+            {
+                name: '小猫饼对话',
+                presetSize: '4x3',
+                preview: '#e8eaed',
+                content: `<style>
+    .widget-4x3-msg { width: 100%; height: 100%; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; background: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .widget-4x3-msg .top-card { background-color: #f4f5f7; border-radius: 24px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06); border: 1px solid #ebebeb; box-sizing: border-box; display: flex; align-items: center; padding: 12px 20px; }
+    .widget-4x3-msg .top-icon-frame { width: 52px; height: 52px; background-color: #b8b8b8; border-radius: 14px; padding: 4px; box-sizing: border-box; flex-shrink: 0; }
+    .widget-4x3-msg .top-icon-inner { width: 100%; height: 100%; background-color: #fff; border-radius: 10px; overflow: hidden; display: flex; justify-content: center; align-items: center; background-size: cover; background-position: center; }
+    .widget-4x3-msg .top-text-group { margin-left: 16px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+    .widget-4x3-msg .top-title { font-size: 17px; font-weight: 600; color: #333; outline: none; }
+    .widget-4x3-msg .top-subtitle { font-size: 13px; color: #666; outline: none; }
+    .widget-4x3-msg .music-icon { width: 24px; height: 24px; color: #555; }
+    .widget-4x3-msg .bottom-chat-section { flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 0 8px 4px 8px; }
+    .widget-4x3-msg .chat-timestamp { text-align: center; font-size: 11px; color: #999; line-height: 1.4; outline: none; width: 100%; margin-bottom: 2px; }
+    .widget-4x3-msg .chat-group { display: flex; flex-direction: column; width: 100%; gap: 4px; }
+    .widget-4x3-msg .chat-group.left { align-items: flex-start; }
+    .widget-4x3-msg .chat-group.right { align-items: flex-end; }
+    .widget-4x3-msg .chat-row { display: flex; align-items: flex-end; gap: 8px; max-width: 100%; }
+    .widget-4x3-msg .chat-group.right .chat-row { flex-direction: row-reverse; }
+    .widget-4x3-msg .chat-avatar { width: 36px; height: 36px; border-radius: 50%; background-color: #d1d1d6; flex-shrink: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); background-size: cover; background-position: center; }
+    .widget-4x3-msg .chat-bubble { padding: 8px 14px; font-size: 14px; line-height: 1.4; max-width: 65%; word-wrap: break-word; box-shadow: 0 2px 6px rgba(0,0,0,0.08); border-radius: 20px; outline: none; }
+    .widget-4x3-msg .chat-group.left .chat-bubble { background-color: #ffffff; color: #000; }
+    .widget-4x3-msg .chat-group.right .chat-bubble { background-color: #007aff; color: #fff; }
+    .widget-4x3-msg .chat-delivered { font-size: 10px; color: #999; padding-right: 44px; outline: none; line-height: 1; }
+    .widget-4x3-msg .imessage-bar { display: flex; align-items: center; border: 1px solid #c8c8cc; border-radius: 20px; padding: 6px 12px; background-color: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); gap: 10px; margin-top: 2px; }
+    .widget-4x3-msg .imessage-icon { color: #8e8e93; width: 20px; height: 20px; flex-shrink: 0; }
+    .widget-4x3-msg .imessage-input { flex-grow: 1; font-size: 14px; color: #3c3c43; outline: none; }
+</style>
+<div class="widget-4x3-msg">
+    <div class="top-card">
+        <div class="top-icon-frame">
+            <div class="top-icon-inner uploadable-img"></div>
+        </div>
+        <div class="top-text-group">
+            <div class="top-title" contenteditable="true">小猫饼</div>
+            <div class="top-subtitle" contenteditable="true">Trou、verJasm1ne</div>
+        </div>
+        <svg class="music-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path fill="#555555" fill-rule="evenodd" d="M7.75 0.851a0.75 0.75 0 0 0 -1.5 0V13.15a0.75 0.75 0 0 0 1.5 0V0.851ZM4 2.466a0.75 0.75 0 0 1 0.75 0.75v7.568a0.75 0.75 0 1 1 -1.5 0V3.216a0.75 0.75 0 0 1 0.75 -0.75ZM1 4.831a0.75 0.75 0 0 1 0.75 0.75V8.42a0.75 0.75 0 0 1 -1.5 0V5.581a0.75 0.75 0 0 1 0.75 -0.75Zm9 -2.365a0.75 0.75 0 0 1 0.75 0.75v7.568a0.75 0.75 0 1 1 -1.5 0V3.216a0.75 0.75 0 0 1 0.75 -0.75Zm3.75 3.115a0.75 0.75 0 0 0 -1.5 0V8.42a0.75 0.75 0 0 0 1.5 0V5.581Z" clip-rule="evenodd"></path></svg>
+    </div>
+    <div class="bottom-chat-section">
+        <div class="chat-timestamp" contenteditable="true">iMessage메시지 오늘 16:47</div>
+        
+        <div class="chat-group left">
+            <div class="chat-row">
+                <div class="chat-avatar uploadable-img"></div>
+                <div class="chat-bubble" contenteditable="true">今天天气真不错呀！☀️</div>
+            </div>
+        </div>
+        
+        <div class="chat-group right">
+            <div class="chat-row">
+                <div class="chat-avatar uploadable-img"></div>
+                <div class="chat-bubble" contenteditable="true">是啊，刚好适合做小组件~</div>
+            </div>
+            <div class="chat-delivered" contenteditable="true">已送达</div>
+        </div>
+        
+        <div class="imessage-bar">
+            <svg class="imessage-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <div class="imessage-input" contenteditable="true">iMessage</div>
+            <svg class="imessage-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8.25 4.5a3.75 3.75 0 1 1 7.5 0v8.25a3.75 3.75 0 1 1-7.5 0V4.5Z" /><path d="M6 10.5a.75.75 0 0 1 .75.75v1.5a5.25 5.25 0 1 0 10.5 0v-1.5a.75.75 0 0 1 1.5 0v1.5a6.751 6.751 0 0 1-6 6.709v2.291h3a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5h3v-2.291a6.751 6.751 0 0 1-6-6.709v-1.5A.75.75 0 0 1 6 10.5Z" /></svg>
+        </div>
+    </div>
+</div>`
+            },
+            {
+                name: '甜品店挂牌',
+                presetSize: '4x2',
+                preview: '#f5f5f5',
+                content: `<style>
+    .widget-container-dessert { width: 100%; height: 100%; background: transparent; position: relative; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .widget-container-dessert .pole-system { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; pointer-events: none; }
+    .widget-container-dessert .pole-vertical { position: absolute; left: 6%; top: 10%; width: 8px; height: calc(38% - 2px); background-color: #d1d1d5; }
+    .widget-container-dessert .pole-vertical::before { content: ''; position: absolute; top: -5px; left: -3px; width: 14px; height: 6px; background-color: #d1d1d5; border-radius: 3px; }
+    .widget-container-dessert .pole-horizontal { position: absolute; left: 6%; top: 43%; width: 86%; height: 6px; background-color: #d1d1d5; transform: translateY(-50%); }
+    .widget-container-dessert .pole-horizontal::after { content: ''; position: absolute; right: -4px; top: 50%; width: 12px; height: 12px; background-color: #d1d1d5; border-radius: 50%; transform: translateY(-50%); }
+    .widget-container-dessert .pole-joint { position: absolute; left: calc(6% + 4px); top: 43%; width: 18px; height: 18px; background-color: #d1d1d5; border-radius: 50%; transform: translate(-50%, -50%); z-index: 2; }
+    .widget-container-dessert .main-sign { position: absolute; left: calc(6% + 7px); top: 18%; width: 83%; height: 17%; background-color: #ffffff; border: 1.5px solid #d1d1d5; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; z-index: 0; }
+    .widget-container-dessert .editable-text { outline: none; cursor: text; transition: background-color 0.2s; }
+    .widget-container-dessert .editable-text:hover { background-color: rgba(0,0,0,0.03); border-radius: 4px; }
+    .widget-container-dessert .sign-text { font-weight: 900; font-size: clamp(12px, 3vw, 18px); letter-spacing: 1px; padding-left: 4%; color: #000000; white-space: nowrap; }
+    .widget-container-dessert .sign-pattern { width: 6%; height: 100%; border-left: 1.5px solid #d1d1d5; background-image: radial-gradient(#f4cdd8 30%, transparent 30%); background-size: 6px 6px; background-position: 0 0; }
+    .widget-container-dessert .tags-container { position: absolute; top: 43%; left: 12%; width: 76%; height: 52%; display: flex; justify-content: space-between; z-index: 0; }
+    .widget-container-dessert .tag-wrapper { display: flex; flex-direction: column; align-items: center; width: 22%; height: 100%; }
+    .widget-container-dessert .connector { width: 6px; height: 12%; background-color: #d1d1d5; position: relative; }
+    .widget-container-dessert .connector::before { content: ''; position: absolute; top: -2px; left: -3px; width: 12px; height: 4px; background-color: #d1d1d5; border-radius: 2px; }
+    .widget-container-dessert .tag { width: 100%; height: 88%; border-radius: 0 0 20px 20px; display: flex; flex-direction: column; align-items: center; padding-top: 10%; box-sizing: border-box; }
+    .widget-container-dessert .tag.pink { background-color: #fdf0f4; }
+    .widget-container-dessert .tag.blue { background-color: #f0f5fd; }
+    .widget-container-dessert .icon-box { width: 70%; aspect-ratio: 1 / 1; background-color: #ffffff; border-radius: 4px; background-size: cover; background-position: center; background-repeat: no-repeat; overflow: hidden; position: relative; }
+    .widget-container-dessert .icon-box.gray-bg { background-color: #d0d0d4; }
+    .widget-container-dessert .tag-text { font-size: clamp(10px, 1.5vw, 13px); font-weight: 900; margin-top: 6%; color: #444444; width: 70%; text-align: left; }
+</style>
+<div class="widget-container-dessert">
+    <div class="pole-system">
+        <div class="pole-vertical"></div>
+        <div class="pole-horizontal"></div>
+        <div class="pole-joint"></div>
+    </div>
+    <div class="main-sign">
+        <div class="sign-text editable-text" contenteditable="true" spellcheck="false">[ㅇㅅㅇ] ୨ · DESSERT SHOP · ୧</div>
+        <div class="sign-pattern"></div>
+    </div>
+    <div class="tags-container">
+        <div class="tag-wrapper">
+            <div class="connector"></div>
+            <div class="tag pink">
+                <div class="icon-box uploadable-img" style="background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%22-12 -12 124 124%22%3E%3Cpolygon points=%2220,50 30,15 50,35%22 fill=%22%23c8c8c8%22 stroke=%22%23c8c8c8%22 stroke-width=%224%22 stroke-linejoin=%22round%22/%3E%3Cpolygon points=%2280,50 70,15 50,35%22 fill=%22%23c8c8c8%22 stroke=%22%23c8c8c8%22 stroke-width=%224%22 stroke-linejoin=%22round%22/%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2232%22 fill=%22%23c8c8c8%22/%3E%3Cpath d=%22M 20 110 Q 50 70 80 110%22 fill=%22%23c8c8c8%22/%3E%3C/svg%3E');"></div>
+                <div class="tag-text editable-text" contenteditable="true" spellcheck="false">No.1</div>
+            </div>
+        </div>
+        <div class="tag-wrapper">
+            <div class="connector"></div>
+            <div class="tag blue">
+                <div class="icon-box gray-bg uploadable-img" style="background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%22-12 -12 124 124%22%3E%3Ccircle cx=%2230%22 cy=%2230%22 r=%2212%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%2270%22 cy=%2230%22 r=%2212%22 fill=%22%23ffffff%22/%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2230%22 fill=%22%23ffffff%22/%3E%3Cpath d=%22M 20 110 Q 50 75 80 110%22 fill=%22%23ffffff%22/%3E%3C/svg%3E');"></div>
+                <div class="tag-text editable-text" contenteditable="true" spellcheck="false">No.2</div>
+            </div>
+        </div>
+        <div class="tag-wrapper">
+            <div class="connector"></div>
+            <div class="tag pink">
+                <div class="icon-box uploadable-img" style="background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%22-12 -12 124 124%22%3E%3Cpath d=%22M 50 85 C 50 85 15 55 15 35 C 15 20 30 10 45 20 C 50 24 50 24 50 24 C 50 24 50 24 55 20 C 70 10 85 20 85 35 C 85 55 50 85 50 85 Z%22 fill=%22%23f4b3c2%22/%3E%3C/svg%3E');"></div>
+            </div>
+        </div>
+        <div class="tag-wrapper">
+            <div class="connector"></div>
+            <div class="tag blue">
+                <div class="icon-box uploadable-img" style="background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%22-12 -12 124 124%22%3E%3Ccircle cx=%2220%22 cy=%2220%22 r=%223%22 fill=%22%23f4e1e6%22/%3E%3Ccircle cx=%2280%22 cy=%2220%22 r=%223%22 fill=%22%23f4e1e6%22/%3E%3Ccircle cx=%2220%22 cy=%2280%22 r=%223%22 fill=%22%23f4e1e6%22/%3E%3Ccircle cx=%2280%22 cy=%2280%22 r=%223%22 fill=%22%23f4e1e6%22/%3E%3Cline x1=%2265%22 y1=%2215%22 x2=%2255%22 y2=%2240%22 stroke=%22%23d1d1d5%22 stroke-width=%224%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M 35 35 L 65 35 L 60 80 C 60 85 40 85 40 80 Z%22 fill=%22%23fbe4eb%22/%3E%3Cpath d=%22M 38 50 Q 50 60 62 50%22 fill=%22none%22 stroke=%22%23f4cdd8%22 stroke-width=%223%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M 39 65 Q 50 75 61 65%22 fill=%22none%22 stroke=%22%23f4cdd8%22 stroke-width=%223%22 stroke-linecap=%22round%22/%3E%3C/svg%3E');"></div>
+            </div>
+        </div>
+    </div>
+</div>`
+            },
+            {
+                name: '人机验证',
+                presetSize: '4x4',
+                preview: '#f4f6fc',
+                content: `<style>
+    /* 新增外层 wrapper，利用 padding: 5% 让内部卡片缩小一圈 */
+    .widget-captcha-wrapper { width: 100%; height: 100%; padding: 5%; box-sizing: border-box; display: flex; justify-content: center; align-items: center; background: transparent; }
+    .widget-captcha-container { width: 100%; height: 100%; background-color: #ffffff; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); padding: 8px; display: flex; flex-direction: column; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .widget-captcha-header { background-color: #7a92d5; color: #ffffff; padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; }
+    .widget-captcha-header [contenteditable="true"] { outline: none; border-radius: 2px; transition: background-color 0.2s; }
+    .widget-captcha-header [contenteditable="true"]:hover { background-color: rgba(255, 255, 255, 0.2); cursor: text; }
+    .captcha-text-small { font-size: 12px; opacity: 0.9; }
+    .captcha-text-large { font-size: 22px; font-weight: bold; margin: 2px 0; }
+    .widget-captcha-image-area { flex-grow: 1; position: relative; margin-top: 8px; overflow: hidden; }
+    .captcha-placeholder-box { width: 100%; height: 100%; background-color: #d9e2ec; background-size: cover; background-position: center; background-repeat: no-repeat; }
+    .captcha-grid-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); pointer-events: none; }
+    .captcha-grid-overlay div { border: 1px solid #ffffff; }
+    .captcha-grid-overlay div:nth-child(-n+3) { border-top: none; }
+    .captcha-grid-overlay div:nth-child(3n+1) { border-left: none; }
+    .captcha-grid-overlay div:nth-child(3n) { border-right: none; }
+    .captcha-grid-overlay div:nth-child(n+7) { border-bottom: none; }
+    .widget-captcha-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 8px; margin-top: 8px; border-top: 1px solid #f0f0f0; }
+    .captcha-footer-icons { display: flex; gap: 12px; padding-left: 8px; align-items: center; }
+    .captcha-footer-icons svg { width: 26px; height: 26px; color: #999999; }
+    .captcha-skip-btn { background-color: #7a92d5; color: #ffffff; border: none; padding: 8px 24px; font-size: 14px; font-weight: 500; text-transform: uppercase; text-align: center; }
+</style>
+<!-- 在最外层套上 wrapper -->
+<div class="widget-captcha-wrapper">
+    <div class="widget-captcha-container">
+        <div class="widget-captcha-header">
+            <span class="captcha-text-small" contenteditable="true" spellcheck="false">Select all squares that show</span>
+            <span class="captcha-text-large" contenteditable="true" spellcheck="false">You</span>
+            <span class="captcha-text-small" contenteditable="true" spellcheck="false">If there are none,click skip</span>
+        </div>
+        <div class="widget-captcha-image-area">
+            <!-- 注意这里加上了 uploadable-img 类名，你的系统会自动接管点击上传 -->
+            <div class="captcha-placeholder-box uploadable-img"></div>
+            <div class="captcha-grid-overlay">
+                <div></div><div></div><div></div>
+                <div></div><div></div><div></div>
+                <div></div><div></div><div></div>
+            </div>
+        </div>
+        <div class="widget-captcha-footer">
+            <div class="captcha-footer-icons">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.2577 3.50828c0.2803 0.11609 0.463 0.38957 0.463 0.69291v4.24264c0 0.41422 -0.3358 0.75 -0.75 0.75H13.728c-0.3033 0 -0.5768 -0.18273 -0.6929 -0.46298 -0.116 -0.28026 -0.0519 -0.60285 0.1626 -0.81735l1.603 -1.603c-2.6333 -1.10138 -5.78464 -0.5796 -7.92722 1.56298 -2.83131 2.83132 -2.83131 7.42172 0 10.25302 2.8313 2.8313 7.42172 2.8313 10.25302 0 1.6462 -1.6462 2.3357 -3.8864 2.067 -6.0328 -0.0515 -0.411 0.24 -0.7859 0.651 -0.8374 0.411 -0.0514 0.7859 0.24 0.8374 0.651 0.3238 2.5861 -0.5073 5.2924 -2.4947 7.2799 -3.4171 3.4171 -8.9573 3.4171 -12.37438 0 -3.41709 -3.4171 -3.41709 -8.9573 0 -12.37438C8.55119 4.07444 12.6515 3.5312 15.9309 5.18028l1.5095 -1.50942c0.2145 -0.21449 0.537 -0.27866 0.8173 -0.16258Z" fill="currentColor" stroke="currentColor" stroke-width="0.8"></path></svg>
+                <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 3c-4.97 0-9 4.03-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1c0-3.87 3.13-7 7-7s7 3.13 7 7v1h-4v8h4c1.1 0 2-.9 2-2v-7c0-4.97-4.03-9-9-9z"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+            <button class="captcha-skip-btn">SKIP</button>
+        </div>
+    </div>
+</div>`
             }
+
         ];
         const customWidgets = window.customWidgets || [];
 
