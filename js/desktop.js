@@ -943,7 +943,8 @@
     let dragOrigin = null;
     let dragEdgeTimer = null;
     let dragEdgeDirection = 0;
-    let dragEdgeLocked = false;
+    let dragPointerX = null;
+    let dragPointerY = null;
     let dragGhostFrame = null;
     let dragGhostX = 0;
     let dragGhostY = 0;
@@ -1370,6 +1371,8 @@
             });
             document.body.appendChild(dragGhost);
             dragGridRect = desktopGrid ? desktopGrid.getBoundingClientRect() : null;
+            dragPointerX = e.clientX;
+            dragPointerY = e.clientY;
 
             app.style.opacity = '0';
         }
@@ -1389,6 +1392,8 @@
             if (!dragGhost) return;
             e.preventDefault();
             setDragGhostPosition(e.clientX, e.clientY);
+            dragPointerX = e.clientX;
+            dragPointerY = e.clientY;
             scheduleDragEdgeNavigation(e.clientX, e.clientY);
         }
     });
@@ -1418,14 +1423,14 @@
 
         if (!direction) {
             clearDragEdgeNavigation();
-            dragEdgeLocked = false;
             return;
         }
-        if (dragEdgeLocked || (dragEdgeTimer && dragEdgeDirection === direction)) return;
+        if (dragEdgeTimer && dragEdgeDirection === direction) return;
         clearDragEdgeNavigation();
         dragEdgeDirection = direction;
         dragEdgeTimer = setTimeout(() => {
             dragEdgeTimer = null;
+            if (!dragGhost || !draggedApp) return;
             detachDraggedAppFromDesktopPage();
             if (direction > 0 && currentDesktopPage === desktopPages.length - 1) {
                 desktopPages.push([]);
@@ -1436,9 +1441,11 @@
                 requestAnimationFrame(() => {
                     const nextGrid = document.getElementById('desktopGrid');
                     dragGridRect = nextGrid ? nextGrid.getBoundingClientRect() : null;
+                    if (dragGhost && dragPointerX !== null && dragPointerY !== null) {
+                        scheduleDragEdgeNavigation(dragPointerX, dragPointerY);
+                    }
                 });
             }
-            dragEdgeLocked = true;
         }, 520);
     }
 
@@ -1498,7 +1505,8 @@
 
         if (isEditMode && dragGhost && draggedApp) {
             clearDragEdgeNavigation();
-            dragEdgeLocked = false;
+            dragPointerX = null;
+            dragPointerY = null;
             dragGridRect = null;
             cancelDragGhostFrame();
             dragGhost.remove();
@@ -1566,7 +1574,8 @@
         desktopPointerSwipe = null;
         resetDesktopSwipeOffset();
         clearDragEdgeNavigation();
-        dragEdgeLocked = false;
+        dragPointerX = null;
+        dragPointerY = null;
         dragGridRect = null;
         if (dragGhost) {
             cancelDragGhostFrame();
