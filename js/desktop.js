@@ -166,7 +166,7 @@
 
         const PLACEHOLDER_DESKTOP_APP_BATCHES = Object.freeze({
             v1: Object.freeze([
-                { name: '见面', appId: 'placeholder-xiangfeng', icon: "url('https://bee-reg-ab.imagency.cn/p/d67cfeab9dd12a014d827e3923f05e3b.jpg')" },
+                { name: '见面', appId: 'placeholder-xiangfeng', icon: "url('https://bee-reg-ab.imagency.cn/p/0f23a6d0217da63a01275713dec6ab44.png')" },
                 { name: '音乐', appId: 'placeholder-music', icon: "url('https://nos.netease.com/ysf/44b1b063945538f0ebf2e1670a156958.jpg')" },
                 { name: '厨神驾到', appId: 'placeholder-food', icon: "url('https://bee-reg-ab.imagency.cn/p/f2c483d68ffb62b0d3222572086197f4.png')" },
                 { name: '今日', appId: 'placeholder-today', icon: null },
