@@ -3507,6 +3507,125 @@
         wcSendMessage();
     }
 
+    function wcStripLinkPreviewMarkup(value) {
+        return String(value || '')
+            .replace(/!\[[^\]]*]\([^)]*\)/g, '')
+            .replace(/\[([^\]]+)]\([^)]*\)/g, '$1')
+            .replace(/[\x60*_>#]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function wcGetLinkPreviewData(item) {
+        const url = String(item?.url || '');
+        const content = String(item?.content || '');
+        let host = '';
+        try {
+            host = new URL(url).hostname.replace(/^www\./i, '');
+        } catch (error) {
+            host = url;
+        }
+
+        const normalizedHost = host.toLowerCase();
+        let sourceName = host || '\u7f51\u9875';
+        let sourceType = 'web';
+        let sourceMark = host ? host.slice(0, 1).toUpperCase() : '\u7f51';
+        if (/(xiaohongshu|xhslink)/.test(normalizedHost)) {
+            sourceName = '\u5c0f\u7ea2\u4e66';
+            sourceType = 'xiaohongshu';
+            sourceMark = '\u5c0f\u7ea2';
+        } else if (/(douyin|iesdouyin)/.test(normalizedHost)) {
+            sourceName = '\u6296\u97f3';
+            sourceType = 'douyin';
+            sourceMark = '\u266a';
+        } else if (/bilibili/.test(normalizedHost)) {
+            sourceName = '\u54d4\u54e9\u54d4\u54e9';
+            sourceType = 'bilibili';
+            sourceMark = 'b';
+        }
+
+        const rawLines = content.replace(/\r/g, '').split('\n').map(line => line.trim()).filter(Boolean);
+        const titleLine = rawLines.find(line => /^#{1,6}\s+\S/.test(line))
+            || rawLines.find(line => /^(?:title|\u6807\u9898)\s*[:\uff1a]/i.test(line))
+            || rawLines.find(line => !/^(?:url source|published time|markdown content)\s*:/i.test(line))
+            || '';
+        const title = wcStripLinkPreviewMarkup(titleLine.replace(/^#{1,6}\s*/, '').replace(/^(?:title|\u6807\u9898)\s*[:\uff1a]\s*/i, ''))
+            || sourceName;
+        const description = rawLines
+            .filter(line => line !== titleLine)
+            .filter(line => !/^#{1,6}\s+/.test(line))
+            .filter(line => !/^(?:title|\u6807\u9898|url source|published time|markdown content)\s*[:\uff1a]/i.test(line))
+            .map(wcStripLinkPreviewMarkup)
+            .find(Boolean) || '';
+        const imageMatch = content.match(/!\[[^\]]*]\((https?:\/\/[^)\s]+)(?:\s+["'][^"']*["'])?\)/i);
+
+        return {
+            url,
+            title: title.slice(0, 80),
+            description: description.slice(0, 120),
+            imageUrl: imageMatch?.[1] || '',
+            sourceName,
+            sourceType,
+            sourceMark
+        };
+    }
+
+    function wcGetLinkMessageCaption(text) {
+        return String(text || '')
+            .replace(WC_LINK_PATTERN, '')
+            .replace(/\s+/g, ' ')
+            .replace(/^[,;:\-\u3002\uff0c\uff1b\uff1a\s]+|[,;:\-\u3002\uff0c\uff1b\uff1a\s]+$/g, '')
+            .trim();
+    }
+
+    function wcCreateLinkPreviewCard(item) {
+        const data = wcGetLinkPreviewData(item);
+        const card = document.createElement('div');
+        card.className = 'wc-link-card';
+
+        const main = document.createElement('div');
+        main.className = 'wc-link-card-main';
+        const copy = document.createElement('div');
+        copy.className = 'wc-link-card-copy';
+        const title = document.createElement('div');
+        title.className = 'wc-link-card-title';
+        title.textContent = data.title;
+        copy.appendChild(title);
+        if (data.description) {
+            const description = document.createElement('div');
+            description.className = 'wc-link-card-description';
+            description.textContent = data.description;
+            copy.appendChild(description);
+        }
+
+        const thumbnail = document.createElement('div');
+        thumbnail.className = 'wc-link-card-thumbnail';
+        const fallback = document.createElement('span');
+        fallback.className = 'wc-link-card-fallback wc-link-source-' + data.sourceType;
+        fallback.textContent = data.sourceMark;
+        thumbnail.appendChild(fallback);
+        if (/^https?:\/\//i.test(data.imageUrl)) {
+            const image = document.createElement('img');
+            image.src = data.imageUrl;
+            image.alt = '';
+            image.addEventListener('load', () => fallback.remove());
+            image.addEventListener('error', () => image.remove());
+            thumbnail.appendChild(image);
+        }
+
+        main.append(copy, thumbnail);
+        const source = document.createElement('div');
+        source.className = 'wc-link-card-source';
+        const mark = document.createElement('span');
+        mark.className = 'wc-link-source-mark wc-link-source-' + data.sourceType;
+        mark.textContent = data.sourceMark;
+        const sourceName = document.createElement('span');
+        sourceName.textContent = data.sourceName;
+        source.append(mark, sourceName);
+        card.append(main, source);
+        return card;
+    }
+
     function wcCreateChatMessageElement(message) {
         const text = message.text;
         const type = message.type;
@@ -3853,7 +3972,17 @@
             }
         }
         
-        if (message.imageUrl) {
+        if (message.linkPreview?.status === 'ready' && Array.isArray(message.linkPreview.items) && message.linkPreview.items.length > 0 && !message.imageUrl && !message.isVoice) {
+            bubble.classList.add('wc-link-message-bubble');
+            const caption = wcGetLinkMessageCaption(text);
+            if (caption) {
+                const captionElement = document.createElement('div');
+                captionElement.className = 'msg-text wc-link-message-caption';
+                captionElement.textContent = caption;
+                bubble.appendChild(captionElement);
+            }
+            message.linkPreview.items.forEach(item => bubble.appendChild(wcCreateLinkPreviewCard(item)));
+        } else if (message.imageUrl) {
             bubble.style.backgroundColor = 'transparent';
             bubble.style.padding = '0';
             
@@ -4178,7 +4307,7 @@
         }
 
         wcSaveChatData();
-        if (contactId === wcCurrentChatContactId) wcRequestApiReply();
+        if (contactId === wcCurrentChatContactId) wcRenderChatMessages(contactId);
     }
 
     function wcSendMessage() {
@@ -5316,8 +5445,10 @@
             const prevIsSame = prevRow && prevRow.classList.contains(isSent ? 'sent' : 'received');
             const nextIsSame = nextRow && nextRow.classList.contains(isSent ? 'sent' : 'received');
             const bubble = row.querySelector('.message-bubble');
+            const isLinkMessage = bubble.classList.contains('wc-link-message-bubble');
             row.className = `message-row ${isSent ? 'sent' : 'received'}`;
             bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
+            if (isLinkMessage) bubble.classList.add('wc-link-message-bubble');
             if (!prevIsSame && !nextIsSame) bubble.classList.add('tail');
             else if (!prevIsSame && nextIsSame) { row.classList.add('group-top'); bubble.classList.add('group-top'); }
             else if (prevIsSame && nextIsSame) { row.classList.add('group-mid'); bubble.classList.add('group-mid'); }
