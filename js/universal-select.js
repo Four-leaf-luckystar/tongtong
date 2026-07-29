@@ -43,22 +43,25 @@
             return;
         }
 
-        let html = '';
+        container.replaceChildren();
         filtered.forEach(item => {
             const isSelected = window.univSelCurrentValue === item.value ? 'selected' : '';
-            const safeValue = item.value.replace(/'/g, "\\'");
-            html += `
-                <div class="univ-sel-card ${isSelected}" onclick="selectUniversalItem(this, '${safeValue}')">
-                    <div class="univ-sel-radio">
-                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    </div>
-                    <div class="univ-sel-info">
-                        <div class="univ-sel-name">${item.label}</div>
-                    </div>
-                </div>
-            `;
+            const card = document.createElement('div');
+            card.className = `univ-sel-card ${isSelected}`;
+            card.addEventListener('click', () => selectUniversalItem(card, item.value));
+
+            const radio = document.createElement('div');
+            radio.className = 'univ-sel-radio';
+            radio.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            const info = document.createElement('div');
+            info.className = 'univ-sel-info';
+            const name = document.createElement('div');
+            name.className = 'univ-sel-name';
+            name.textContent = item.label;
+            info.appendChild(name);
+            card.append(radio, info);
+            container.appendChild(card);
         });
-        container.innerHTML = html;
         
         if (window.univSelCurrentValue !== null && window.univSelCurrentValue !== undefined && window.univSelCurrentValue !== '') {
             document.getElementById('univSelSaveBtn').classList.remove('disabled');

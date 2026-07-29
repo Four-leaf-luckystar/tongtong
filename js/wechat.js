@@ -138,23 +138,25 @@
             const listContainer = document.getElementById('wcUserMaskDrawerList');
             if (!listContainer) return;
             
-            let html = '';
+            listContainer.replaceChildren();
             users.forEach(u => {
-                const avatarStyle = u.avatar ? `background-image: url('${u.avatar}');` : '';
-                const fallback = u.avatar ? '' : (u.name ? u.name.substring(0, 1) : 'U');
-                // 转义单引号防止 HTML 属性断裂
-                const safeName = (u.name || '未命名 User').replace(/'/g, "\\'");
-                const safeAvatar = (u.avatar || '').replace(/'/g, "\\'");
-                
-                html += `
-                    <div class="wc-user-drawer-item" onclick="wcSelectUserMask('${u.id}', '${safeName}', '${safeAvatar}')">
-                        <div class="wc-user-drawer-avatar" style="${avatarStyle}">${fallback}</div>
-                        <div class="wc-user-drawer-name">${u.name || '未命名 User'}</div>
-                    </div>
-                `;
+                const name = String(u.name || '未命名 User');
+                const item = document.createElement('div');
+                item.className = 'wc-user-drawer-item';
+                item.addEventListener('click', () => wcSelectUserMask(u.id, name, u.avatar || ''));
+
+                const avatar = document.createElement('div');
+                avatar.className = 'wc-user-drawer-avatar';
+                if (!wcApplyAvatarBackground(avatar, u.avatar)) {
+                    avatar.textContent = name.substring(0, 1) || 'U';
+                }
+
+                const label = document.createElement('div');
+                label.className = 'wc-user-drawer-name';
+                label.textContent = name;
+                item.append(avatar, label);
+                listContainer.appendChild(item);
             });
-            
-            listContainer.innerHTML = html;
             document.getElementById('wcUserMaskDrawerOverlay').classList.add('show');
 
         } catch (error) {
@@ -175,14 +177,18 @@
         
         const previewEl = document.getElementById('wc-register-avatar-preview');
         if (previewEl) {
-            if (wcSelectedUserMaskAvatar) {
-                previewEl.style.backgroundImage = `url('${wcSelectedUserMaskAvatar}')`;
+            if (wcApplyAvatarBackground(previewEl, wcSelectedUserMaskAvatar)) {
                 previewEl.style.backgroundSize = 'cover';
                 previewEl.style.backgroundPosition = 'center';
                 previewEl.innerHTML = ''; // 清除里面的相机图标
             } else {
-                previewEl.style.backgroundImage = 'none';
-                previewEl.innerHTML = '<span style="font-size: 24px; font-weight: bold; color: #8E8E93;">' + wcSelectedUserMaskName.substring(0, 1) + '</span>';
+                previewEl.replaceChildren();
+                const fallback = document.createElement('span');
+                fallback.style.fontSize = '24px';
+                fallback.style.fontWeight = 'bold';
+                fallback.style.color = '#8E8E93';
+                fallback.textContent = wcSelectedUserMaskName.substring(0, 1);
+                previewEl.appendChild(fallback);
             }
         }
         showToast(`已绑定面具：${wcSelectedUserMaskName}`);
@@ -3578,6 +3584,28 @@
             .trim();
     }
 
+    function wcGetSafeImageUrl(value) {
+        const rawUrl = String(value || '').trim();
+        if (!rawUrl) return '';
+
+        try {
+            const url = new URL(rawUrl, window.location.href);
+            const allowedProtocols = ['http:', 'https:', 'blob:', 'data:'];
+            if (!allowedProtocols.includes(url.protocol)) return '';
+            if (url.protocol === 'data:' && !/^data:image\//i.test(rawUrl)) return '';
+            return url.href;
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function wcApplyAvatarBackground(element, value) {
+        const safeImageUrl = wcGetSafeImageUrl(value);
+        element.style.backgroundColor = 'transparent';
+        element.style.backgroundImage = safeImageUrl ? `url(${JSON.stringify(safeImageUrl)})` : 'none';
+        return Boolean(safeImageUrl);
+    }
+
     function wcCreateLinkPreviewCard(item) {
         const data = wcGetLinkPreviewData(item);
         const card = document.createElement('div');
@@ -3652,12 +3680,9 @@
                 const avatarUrl = isSent
                     ? (typeof appSettings !== 'undefined' && appSettings.wc_current_user_avatar ? appSettings.wc_current_user_avatar : '')
                     : contact?.avatar;
-                if (avatarUrl) {
-                    avatar.style.backgroundImage = `url("${String(avatarUrl).replace(/"/g, '\\"')}")`;
+                if (wcApplyAvatarBackground(avatar, avatarUrl)) {
                     avatar.style.backgroundColor = 'transparent';
                 } else {
-                    avatar.style.backgroundImage = 'none';
-                    avatar.style.backgroundColor = 'transparent';
                     avatar.innerHTML = getWcDefaultAvatarSvg();
                 }
                 
@@ -3831,12 +3856,9 @@
                     const avatarUrl = isSent
                         ? (typeof appSettings !== 'undefined' && appSettings.wc_current_user_avatar ? appSettings.wc_current_user_avatar : '')
                         : contact?.avatar;
-                    if (avatarUrl) {
-                        avatar.style.backgroundImage = `url("${String(avatarUrl).replace(/"/g, '\\"')}")`;
+                    if (wcApplyAvatarBackground(avatar, avatarUrl)) {
                         avatar.style.backgroundColor = 'transparent';
                     } else {
-                        avatar.style.backgroundImage = 'none';
-                        avatar.style.backgroundColor = 'transparent';
                         avatar.innerHTML = getWcDefaultAvatarSvg();
                     }
                     
@@ -3929,12 +3951,9 @@
         const avatarUrl = isSent
             ? (typeof appSettings !== 'undefined' && appSettings.wc_current_user_avatar ? appSettings.wc_current_user_avatar : '')
             : contact?.avatar;
-        if (avatarUrl) {
-            avatar.style.backgroundImage = `url("${String(avatarUrl).replace(/"/g, '\\"')}")`;
+        if (wcApplyAvatarBackground(avatar, avatarUrl)) {
             avatar.style.backgroundColor = 'transparent';
         } else {
-            avatar.style.backgroundImage = 'none';
-            avatar.style.backgroundColor = 'transparent';
             avatar.innerHTML = getWcDefaultAvatarSvg();
         }
 
@@ -3962,13 +3981,17 @@
             const replyMsg = wcChatMessagesByContact[wcCurrentChatContactId]?.find(m => m.id === message.replyTo);
             if (replyMsg) {
                 const replyName = replyMsg.type === 'sent' ? (typeof appSettings !== 'undefined' && appSettings.wc_current_user_name ? appSettings.wc_current_user_name : '我') : (contact?.name || '对方');
-                const replyHtml = `
-                    <div class="wc-bubble-reply" onclick="wcJumpToMessage('${replyMsg.id}')">
-                        <div class="wc-bubble-reply-name">${replyName}</div>
-                        <div class="wc-bubble-reply-text">${replyMsg.text || '[图片]'}</div>
-                    </div>
-                `;
-                bubble.insertAdjacentHTML('afterbegin', replyHtml);
+                const reply = document.createElement('div');
+                reply.className = 'wc-bubble-reply';
+                reply.addEventListener('click', () => wcJumpToMessage(replyMsg.id));
+                const replyNameElement = document.createElement('div');
+                replyNameElement.className = 'wc-bubble-reply-name';
+                replyNameElement.textContent = replyName;
+                const replyTextElement = document.createElement('div');
+                replyTextElement.className = 'wc-bubble-reply-text';
+                replyTextElement.textContent = replyMsg.text || '[图片]';
+                reply.append(replyNameElement, replyTextElement);
+                bubble.prepend(reply);
             }
         }
         
@@ -4001,8 +4024,6 @@
             const rawAvatarUrl = isSent
                 ? (typeof appSettings !== 'undefined' && appSettings.wc_current_user_avatar ? appSettings.wc_current_user_avatar : '')
                 : contact?.avatar;
-            const inlineAvatarStyle = rawAvatarUrl ? `background-image: url('${String(rawAvatarUrl).replace(/'/g, "\\'")}');` : '';
-            const inlineAvatarContent = rawAvatarUrl ? '' : getWcDefaultAvatarSvg();
             const micSvg = `<svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>`;
             
             let wavesHtml = '';
@@ -4021,7 +4042,7 @@
             voiceContainer.innerHTML = `
                 <div class="wc-voice-content">
                     <div class="wc-voice-avatar-wrap">
-                        <div class="wc-voice-avatar" style="${inlineAvatarStyle}">${inlineAvatarContent}</div>
+                        <div class="wc-voice-avatar"></div>
                         <div class="wc-voice-mic-badge">${micSvg}</div>
                     </div>
                     ${playSvg}
@@ -4029,8 +4050,13 @@
                     <div class="wc-voice-waves">${wavesHtml}</div>
                     <div class="wc-voice-duration">${durationStr}</div>
                 </div>
-                <div class="wc-voice-text">${text}</div>
+                <div class="wc-voice-text"></div>
             `;
+            const voiceAvatar = voiceContainer.querySelector('.wc-voice-avatar');
+            if (!wcApplyAvatarBackground(voiceAvatar, rawAvatarUrl)) {
+                voiceAvatar.innerHTML = getWcDefaultAvatarSvg();
+            }
+            voiceContainer.querySelector('.wc-voice-text').textContent = text;
             
             voiceContainer.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -4136,8 +4162,8 @@
                             ${iconHtml}
                         </div>
                         <div class="wc-transfer-info">
-                            <div class="wc-transfer-amount">¥${amount}</div>
-                            <div class="wc-transfer-desc">${descText}${note ? ' - ' + note : ''}</div>
+                            <div class="wc-transfer-amount"></div>
+                            <div class="wc-transfer-desc"></div>
                         </div>
                     </div>
                     <div class="wc-transfer-bottom">
@@ -4147,6 +4173,8 @@
                 </div>
             `;
             bubble.innerHTML = transferHtml;
+            bubble.querySelector('.wc-transfer-amount').textContent = `¥${amount}`;
+            bubble.querySelector('.wc-transfer-desc').textContent = note ? `${descText} - ${note}` : descText;
             
             // 5. 绑定点击事件 (所有状态均可点击)
             bubble.querySelector('.wc-transfer-card').addEventListener('click', (e) => {
@@ -4720,12 +4748,9 @@
         const chatArea = document.getElementById('wc-chat-area');
         const thinkingId = 'thinking_' + Date.now();
         const contact = wcContactsList.find(item => item.id === chatContactId);
-        const avatarUrl = contact?.avatar ? `url('${String(contact.avatar).replace(/'/g, "\\'")}')` : 'none';
-        const avatarContent = contact?.avatar ? '' : getWcDefaultAvatarSvg();
-        
         const thinkingHtml = `
             <div class="message-row received" id="${thinkingId}">
-                <div class="msg-avatar" style="background-image: ${avatarUrl}; background-color: transparent;">${avatarContent}</div>
+                <div class="msg-avatar"></div>
                 <div class="message-bubble received tail">
                     <div class="msg-text wc-thinking-dots">
                         <span></span><span></span><span></span>
@@ -4735,6 +4760,10 @@
         `;
         if (chatArea) {
             chatArea.insertAdjacentHTML('beforeend', thinkingHtml);
+            const thinkingAvatar = document.getElementById(thinkingId).querySelector('.msg-avatar');
+            if (!wcApplyAvatarBackground(thinkingAvatar, contact?.avatar)) {
+                thinkingAvatar.innerHTML = getWcDefaultAvatarSvg();
+            }
             wcScrollToBottom();
         }
 
@@ -5548,7 +5577,7 @@
             return;
         }
 
-        let html = '';
+        resultsContainer.replaceChildren();
         // 倒序显示，最新的在最上面
         results.slice().reverse().forEach(msg => {
             const isSent = msg.type === 'sent';
@@ -5559,28 +5588,57 @@
             const dateObj = Number.isFinite(createdAt) ? new Date(createdAt) : new Date();
             const timeStr = `${(dateObj.getMonth()+1).toString().padStart(2, '0')}-${dateObj.getDate().toString().padStart(2, '0')} ${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
 
-            // 高亮关键字
-            const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')})`, 'gi');
-            const highlightedText = msg.text.replace(regex, '<span class="wc-chat-search-highlight">$1</span>');
+            const resultItem = document.createElement('div');
+            resultItem.className = 'wc-chat-search-result-item';
+            resultItem.addEventListener('click', () => wcJumpToMessage(msg.id));
 
-            const avatarStyle = avatar ? `background-image: url('${avatar.replace(/'/g, "\\'")}'); background-color: transparent;` : 'background-color: transparent;';
-            const avatarContent = avatar ? '' : getWcDefaultAvatarSvg();
+            const avatarElement = document.createElement('div');
+            avatarElement.className = 'wc-chat-search-avatar';
+            if (!wcApplyAvatarBackground(avatarElement, avatar)) {
+                avatarElement.innerHTML = getWcDefaultAvatarSvg();
+            }
 
-            html += `
-                <div class="wc-chat-search-result-item" onclick="wcJumpToMessage('${msg.id}')">
-                    <div class="wc-chat-search-avatar" style="${avatarStyle}">${avatarContent}</div>
-                    <div class="wc-chat-search-info">
-                        <div class="wc-chat-search-name-time">
-                            <div class="wc-chat-search-name">${name}</div>
-                            <div class="wc-chat-search-time">${timeStr}</div>
-                        </div>
-                        <div class="wc-chat-search-text">${highlightedText}</div>
-                    </div>
-                </div>
-            `;
+            const info = document.createElement('div');
+            info.className = 'wc-chat-search-info';
+            const nameTime = document.createElement('div');
+            nameTime.className = 'wc-chat-search-name-time';
+            const nameElement = document.createElement('div');
+            nameElement.className = 'wc-chat-search-name';
+            nameElement.textContent = name;
+            const timeElement = document.createElement('div');
+            timeElement.className = 'wc-chat-search-time';
+            timeElement.textContent = timeStr;
+            nameTime.append(nameElement, timeElement);
+
+            const messageText = document.createElement('div');
+            messageText.className = 'wc-chat-search-text';
+            wcAppendHighlightedText(messageText, msg.text, keyword);
+            info.append(nameTime, messageText);
+            resultItem.append(avatarElement, info);
+            resultsContainer.appendChild(resultItem);
         });
+    }
 
-        resultsContainer.innerHTML = html;
+    function wcAppendHighlightedText(container, text, keyword) {
+        const sourceText = String(text || '');
+        const escapedKeyword = String(keyword || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        if (!escapedKeyword) {
+            container.textContent = sourceText;
+            return;
+        }
+
+        const regex = new RegExp(escapedKeyword, 'gi');
+        let cursor = 0;
+        let match;
+        while ((match = regex.exec(sourceText)) !== null) {
+            container.append(document.createTextNode(sourceText.slice(cursor, match.index)));
+            const highlight = document.createElement('span');
+            highlight.className = 'wc-chat-search-highlight';
+            highlight.textContent = match[0];
+            container.append(highlight);
+            cursor = match.index + match[0].length;
+        }
+        container.append(document.createTextNode(sourceText.slice(cursor)));
     }
 
     function wcJumpToMessage(msgId) {
