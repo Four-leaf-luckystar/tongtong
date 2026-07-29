@@ -13,12 +13,34 @@
         return new TextDecoder().decode(bytes);
     }
 
+    function bindMusicHomeExit(frame) {
+        const homeTitle = frame.contentDocument?.querySelector('#view-home .header h1');
+        if (!homeTitle) return false;
+        if (homeTitle.dataset.musicExitBound === 'true') return true;
+
+        homeTitle.dataset.musicExitBound = 'true';
+        homeTitle.setAttribute('role', 'button');
+        homeTitle.tabIndex = 0;
+        homeTitle.style.cursor = 'pointer';
+        homeTitle.setAttribute('onclick', 'window.parent.closeMusicApp()');
+        homeTitle.setAttribute('onkeydown', "if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.parent.closeMusicApp(); }");
+        return true;
+    }
+
     window.openMusicApp = function openMusicApp() {
         const { container, frame } = getMusicAppElements();
         if (!container || !frame) return;
 
         if (!frame.srcdoc) {
+            const bindWhenMusicDocumentLoads = () => {
+                if (bindMusicHomeExit(frame)) {
+                    frame.removeEventListener('load', bindWhenMusicDocumentLoads);
+                }
+            };
+            frame.addEventListener('load', bindWhenMusicDocumentLoads);
             frame.srcdoc = decodeMusicAppDocument();
+        } else {
+            bindMusicHomeExit(frame);
         }
         container.classList.add('is-open');
         container.setAttribute('aria-hidden', 'false');
