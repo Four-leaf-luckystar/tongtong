@@ -132,6 +132,7 @@
             const previewDims = getWidgetDimensions(widgetData || {});
             const previewScale = Math.min(previewSize / previewDims.width, previewSize / previewDims.height);
             const frame = document.createElement('iframe');
+            frame.className = 'widget-render-frame';
             frame.setAttribute('sandbox', 'allow-scripts');
             frame.setAttribute('title', ((widgetData && widgetData.name) || '组件') + '预览');
             frame.style.cssText = "position: absolute; border: 0; background: transparent; transform-origin: top left; pointer-events: none;";
@@ -644,7 +645,7 @@
             return null;
         }
 
-        function addDesktopWidget(widgetData) {
+        function addDesktopWidget(widgetData, preloadedFrame) {
         const span = getWidgetGridSpan(widgetData);
         const emptySlot = findAvailableWidgetSlot(span.columns, span.rows);
 
@@ -663,7 +664,17 @@
             const dims1 = getWidgetDimensions(widgetData);
             app.style.width = dims1.width + 'px';
             app.style.height = dims1.height + 'px';
-            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="widget-edit-hotzone" aria-label="长按进入编辑模式"></div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims1.width}px; height: ${dims1.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${makeDesktopWidgetFrameHTML(widgetContent)}</div><div class="app-name" style="display:none;">${widgetData.name || "组件"}</div>`;
+            const frameHTML = preloadedFrame && preloadedFrame.classList.contains('widget-render-frame')
+                ? ''
+                : makeDesktopWidgetFrameHTML(widgetContent);
+            app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="widget-edit-hotzone" aria-label="长按进入编辑模式"></div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims1.width}px; height: ${dims1.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${frameHTML}</div><div class="app-name" style="display:none;">${widgetData.name || "组件"}</div>`;
+
+            if (preloadedFrame && preloadedFrame.classList.contains('widget-render-frame')) {
+                const icon = app.querySelector('.app-icon');
+                preloadedFrame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:transparent;pointer-events:auto;';
+                preloadedFrame.setAttribute('title', '组件');
+                icon.replaceChildren(preloadedFrame);
+            }
 
             if (isEditMode) app.classList.add('jiggling');
             emptySlot.appendChild(app);
@@ -1092,7 +1103,7 @@
                 
                 item.onclick = () => {
                     modal.style.display = 'none';
-                    addDesktopWidget(widget);
+                    addDesktopWidget(widget, preview.querySelector('.widget-render-frame'));
                 };
                 
                 list.appendChild(item);

@@ -4,6 +4,7 @@
             src: url(https://nos.netease.com/ysf/260de1ccc0fffea1b1af12b7f5b50c3c.ttf) format(truetype);
             font-weight: normal;
             font-style: normal;
+            font-display: swap;
         }
         :root {
             --app-height: 100vh;
