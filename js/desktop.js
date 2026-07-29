@@ -1479,6 +1479,8 @@
                     openWechatApp();
                 } else if (appId === 'contacts') {
                     openContactsApp();
+                } else if (appId === 'placeholder-music') {
+                    openMusicApp();
                 }
             }
         }
