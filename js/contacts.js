@@ -31,12 +31,14 @@
     let persistQueue = Promise.resolve();
     let migratedFromLocalStorage = false;
     let externalReturnCallback = null;
+    let legacyIdSequence = 0;
 
     function makeId(prefix) {
         if (window.crypto && typeof window.crypto.randomUUID === 'function') {
             return prefix + '_' + window.crypto.randomUUID();
         }
-        return prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+        legacyIdSequence += 1;
+        return prefix + '_' + Date.now() + '_' + legacyIdSequence;
     }
 
     function clone(value) {
@@ -206,10 +208,26 @@
         return target ? target.value : '';
     }
 
+    function getSafeAvatarUrl(value) {
+        const rawUrl = String(value || '').trim();
+        if (!rawUrl) return '';
+
+        try {
+            const url = new URL(rawUrl, window.location.href);
+            const allowedProtocols = ['http:', 'https:', 'blob:', 'data:'];
+            if (!allowedProtocols.includes(url.protocol)) return '';
+            if (url.protocol === 'data:' && !/^data:image\//i.test(rawUrl)) return '';
+            return url.href;
+        } catch (error) {
+            return '';
+        }
+    }
+
     function avatarContent(image, fallback) {
-        if (image) {
+        const safeImageUrl = getSafeAvatarUrl(image);
+        if (safeImageUrl) {
             const img = document.createElement('img');
-            img.src = image;
+            img.src = safeImageUrl;
             img.alt = '';
             return img;
         }

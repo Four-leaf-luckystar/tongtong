@@ -54,20 +54,47 @@
         const resetSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`;
 
             // show three-dots button; click to expand vertical capsule menu
-        const safeIcon = icon ? icon.replace(/"/g, "'") : '';
-        const iconStyle = safeIcon && safeIcon !== 'none' ? `background-image: ${safeIcon}; background-color: transparent;` : '';
+        const originalName = document.createElement('div');
+        originalName.className = 'theme-original-name';
+        originalName.textContent = name;
 
-        card.innerHTML = `
-            <div class="theme-original-name">${name}</div>
-            <div class="theme-reset-btn" onclick="resetThemeApp(${index})" title="恢复默认">${resetSvg}</div>
-            <div class="theme-icon-wrapper">
-                <div class="theme-app-icon" id="theme-icon-${index}" style="${iconStyle}" onclick="openIconMenu(event, ${index})"></div>
-            </div>
-            <div class="theme-text-wrapper">
-                ${themeSvg}
-                <span class="theme-app-name-input" id="theme-name-${index}" contenteditable="true" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}" onblur="updateThemeAppName(${index}, this.innerText)">${name}</span>
-            </div>
-        `;
+        const resetButton = document.createElement('div');
+        resetButton.className = 'theme-reset-btn';
+        resetButton.title = '恢复默认';
+        resetButton.innerHTML = resetSvg;
+        resetButton.addEventListener('click', () => resetThemeApp(index));
+
+        const iconWrapper = document.createElement('div');
+        iconWrapper.className = 'theme-icon-wrapper';
+        const iconElement = document.createElement('div');
+        iconElement.className = 'theme-app-icon';
+        iconElement.id = `theme-icon-${index}`;
+        if (icon && icon !== 'none') {
+            iconElement.style.backgroundImage = icon;
+            iconElement.style.backgroundColor = 'transparent';
+        }
+        iconElement.addEventListener('click', event => openIconMenu(event, index));
+        iconWrapper.appendChild(iconElement);
+
+        const textWrapper = document.createElement('div');
+        textWrapper.className = 'theme-text-wrapper';
+        const themeIconTemplate = document.createElement('template');
+        themeIconTemplate.innerHTML = themeSvg;
+        const themeIcon = themeIconTemplate.content.firstElementChild;
+        const nameInput = document.createElement('span');
+        nameInput.className = 'theme-app-name-input';
+        nameInput.id = `theme-name-${index}`;
+        nameInput.contentEditable = 'true';
+        nameInput.textContent = name;
+        nameInput.addEventListener('keydown', event => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                nameInput.blur();
+            }
+        });
+        nameInput.addEventListener('blur', () => updateThemeAppName(index, nameInput.innerText));
+        textWrapper.append(themeIcon, nameInput);
+        card.append(originalName, resetButton, iconWrapper, textWrapper);
         themeAppGrid.appendChild(card);
     }
 
@@ -1203,7 +1230,7 @@
         }
         
             // show three-dots button; click to expand vertical capsule menu
-        styleTag.innerHTML = `
+        styleTag.textContent = `
             .app-name { font-size: ${12 * scale}px !important; }
             .theme-app-name-input { font-size: ${13 * scale}px !important; }
             .font-item-title, .font-name-text { font-size: ${16 * scale}px !important; }
@@ -1242,10 +1269,10 @@
 
         if (fontFamily === 'default') {
             previewBox.style.fontFamily = '"Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif';
-            styleTag.innerHTML = `*, *::before, *::after, input, button, textarea, select { font-family: "Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif !important; }`;
+            styleTag.textContent = `*, *::before, *::after, input, button, textarea, select { font-family: "Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif !important; }`;
         } else {
             previewBox.style.fontFamily = `"${fontFamily}", "Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif`;
-            styleTag.innerHTML = `*, *::before, *::after, input, button, textarea, select { font-family: "${fontFamily}", "Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif !important; }`;
+            styleTag.textContent = `*, *::before, *::after, input, button, textarea, select { font-family: "${fontFamily}", "Geomini", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif !important; }`;
         }
         if (typeof window.syncAllWidgetFonts === 'function') {
             setTimeout(window.syncAllWidgetFonts, 0);
@@ -1268,24 +1295,41 @@
             selectFont(fontFamily, this); 
         };
         
-        newItem.innerHTML = `
-            <div class="font-swipe-actions">
-                <div class="font-swipe-btn font-swipe-edit" onclick="openEditFontModal('${fontFamily}')">编辑</div>
-                <div class="font-swipe-btn font-swipe-delete" onclick="deleteFont(this, '${fontFamily}')">删除</div>
-            </div>
-            <div class="font-item-inner">
-                <div class="font-item-content">
-                    <div class="font-name-text" style="font-family: '${fontFamily}', 'Geomini', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif">${fontName}</div>
-                    <div class="font-preview-subtext" style="font-family: '${fontFamily}', 'Geomini', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif">The quick brown fox / 探索宇宙</div>
-                </div>
-                <div class="font-checkmark">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </div>
-                <div class="delete-font-btn" onclick="deleteFont(this, '${fontFamily}')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                </div>
-            </div>
-        `;
+        const swipeActions = document.createElement('div');
+        swipeActions.className = 'font-swipe-actions';
+        const editButton = document.createElement('div');
+        editButton.className = 'font-swipe-btn font-swipe-edit';
+        editButton.textContent = '编辑';
+        editButton.addEventListener('click', () => openEditFontModal(fontFamily));
+        const deleteSwipeButton = document.createElement('div');
+        deleteSwipeButton.className = 'font-swipe-btn font-swipe-delete';
+        deleteSwipeButton.textContent = '删除';
+        deleteSwipeButton.addEventListener('click', () => deleteFont(deleteSwipeButton, fontFamily));
+        swipeActions.append(editButton, deleteSwipeButton);
+
+        const itemInner = document.createElement('div');
+        itemInner.className = 'font-item-inner';
+        const content = document.createElement('div');
+        content.className = 'font-item-content';
+        const name = document.createElement('div');
+        name.className = 'font-name-text';
+        name.style.fontFamily = fontFamily;
+        name.textContent = fontName;
+        const preview = document.createElement('div');
+        preview.className = 'font-preview-subtext';
+        preview.style.fontFamily = fontFamily;
+        preview.textContent = 'The quick brown fox / 探索宇宙';
+        content.append(name, preview);
+
+        const checkmark = document.createElement('div');
+        checkmark.className = 'font-checkmark';
+        checkmark.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        const deleteButton = document.createElement('div');
+        deleteButton.className = 'delete-font-btn';
+        deleteButton.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
+        deleteButton.addEventListener('click', () => deleteFont(deleteButton, fontFamily));
+        itemInner.append(content, checkmark, deleteButton);
+        newItem.append(swipeActions, itemInner);
         fontList.appendChild(newItem);
         
         if (!isRestore) {

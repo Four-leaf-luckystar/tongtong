@@ -276,17 +276,26 @@
             const overlay = document.getElementById('customDialogOverlay');
             const dialog = document.getElementById('customDialog');
             
-            dialog.innerHTML = `
-                <div class="custom-dialog-text">
-                    <div class="custom-dialog-title">${title}</div>
-                    <div class="custom-dialog-message">${message}</div>
-                </div>
-                <div class="custom-dialog-btns">
-                    <button class="custom-dialog-btn bold" id="customAlertBtn">好</button>
-                </div>
-            `;
-            
-            document.getElementById('customAlertBtn').onclick = () => {
+            dialog.replaceChildren();
+            const text = document.createElement('div');
+            text.className = 'custom-dialog-text';
+            const titleElement = document.createElement('div');
+            titleElement.className = 'custom-dialog-title';
+            titleElement.textContent = title;
+            const messageElement = document.createElement('div');
+            messageElement.className = 'custom-dialog-message';
+            messageElement.textContent = message;
+            text.append(titleElement, messageElement);
+            const buttons = document.createElement('div');
+            buttons.className = 'custom-dialog-btns';
+            const alertButton = document.createElement('button');
+            alertButton.className = 'custom-dialog-btn bold';
+            alertButton.id = 'customAlertBtn';
+            alertButton.textContent = '好';
+            buttons.appendChild(alertButton);
+            dialog.append(text, buttons);
+
+            alertButton.onclick = () => {
                 overlay.classList.remove('show');
                 setTimeout(() => resolve(), 300);
             };
@@ -300,25 +309,35 @@
             const overlay = document.getElementById('customDialogOverlay');
             const dialog = document.getElementById('customDialog');
             
-            const dangerClass = isDanger ? 'danger bold' : 'bold';
-            
-            dialog.innerHTML = `
-                <div class="custom-dialog-text">
-                    <div class="custom-dialog-title">${title}</div>
-                    <div class="custom-dialog-message">${message}</div>
-                </div>
-                <div class="custom-dialog-btns">
-                    <button class="custom-dialog-btn" id="customConfirmCancel">取消</button>
-                    <button class="custom-dialog-btn ${dangerClass}" id="customConfirmOk">${confirmText}</button>
-                </div>
-            `;
-            
-            document.getElementById('customConfirmCancel').onclick = () => {
+            dialog.replaceChildren();
+            const text = document.createElement('div');
+            text.className = 'custom-dialog-text';
+            const titleElement = document.createElement('div');
+            titleElement.className = 'custom-dialog-title';
+            titleElement.textContent = title;
+            const messageElement = document.createElement('div');
+            messageElement.className = 'custom-dialog-message';
+            messageElement.textContent = message;
+            text.append(titleElement, messageElement);
+            const buttons = document.createElement('div');
+            buttons.className = 'custom-dialog-btns';
+            const cancelButton = document.createElement('button');
+            cancelButton.className = 'custom-dialog-btn';
+            cancelButton.id = 'customConfirmCancel';
+            cancelButton.textContent = '取消';
+            const confirmButton = document.createElement('button');
+            confirmButton.className = `custom-dialog-btn ${isDanger ? 'danger bold' : 'bold'}`;
+            confirmButton.id = 'customConfirmOk';
+            confirmButton.textContent = confirmText;
+            buttons.append(cancelButton, confirmButton);
+            dialog.append(text, buttons);
+
+            cancelButton.onclick = () => {
                 overlay.classList.remove('show');
                 setTimeout(() => resolve(false), 300);
             };
             
-            document.getElementById('customConfirmOk').onclick = () => {
+            confirmButton.onclick = () => {
                 overlay.classList.remove('show');
                 setTimeout(() => resolve(true), 300);
             };

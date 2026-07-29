@@ -1,8 +1,10 @@
     // 微信 APP 逻辑 (已进行命名空间隔离)
     // ==========================================
     
+    let wcDefaultAvatarSequence = 0;
+
     function getWcDefaultAvatarSvg() {
-        const uid = Math.random().toString(36).substring(2, 9);
+        const uid = `default_${++wcDefaultAvatarSequence}`;
         return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%; border-radius: 50%; display: block;">
             <defs>
                 <clipPath id="wcClip_${uid}"><circle cx="50" cy="50" r="44"/></clipPath>
@@ -2842,7 +2844,7 @@
         }
         
         if (!cssText.trim()) {
-            styleTag.innerHTML = '';
+            styleTag.textContent = '';
             return;
         }
 
@@ -2858,7 +2860,7 @@
             return p1 + ' ' + prefixed + ' ';
         });
 
-        styleTag.innerHTML = processedCss;
+        styleTag.textContent = processedCss;
     }
 
     function wcCopyOriginalCSS() {
@@ -3143,7 +3145,7 @@
             // Default bubble dark mode removed
         }
 
-        styleTag.innerHTML = css;
+        styleTag.textContent = css;
         appSettings.wc_bubble_theme = wcCurrentBubbleTheme;
         appSettings.wc_bubble_color = wcCurrentColorScheme;
         saveAppSettings();
@@ -3202,20 +3204,22 @@
                 `;
             }
 
-            if (wcAvatarSettings.frameUrlChat) {
-                css += `#wechatAppUI .message-row.received .msg-avatar::after { background-image: url('${wcAvatarSettings.frameUrlChat}') !important; }`;
+            const chatFrameUrl = wcGetSafeImageUrl(wcAvatarSettings.frameUrlChat);
+            const userFrameUrl = wcGetSafeImageUrl(wcAvatarSettings.frameUrlUser);
+            if (chatFrameUrl) {
+                css += `#wechatAppUI .message-row.received .msg-avatar::after { background-image: url(${JSON.stringify(chatFrameUrl)}) !important; }`;
             } else {
                 css += `#wechatAppUI .message-row.received .msg-avatar::after { background-image: none !important; }`;
             }
-            if (wcAvatarSettings.frameUrlUser) {
-                css += `#wechatAppUI .message-row.sent .msg-avatar::after { background-image: url('${wcAvatarSettings.frameUrlUser}') !important; }`;
+            if (userFrameUrl) {
+                css += `#wechatAppUI .message-row.sent .msg-avatar::after { background-image: url(${JSON.stringify(userFrameUrl)}) !important; }`;
             } else {
                 css += `#wechatAppUI .message-row.sent .msg-avatar::after { background-image: none !important; }`;
             }
         } else {
             css += `#wechatAppUI .msg-avatar { display: none !important; }`;
         }
-        styleTag.innerHTML = css;
+        styleTag.textContent = css;
     }
 
     function wcToggleAvatarEnable(el) {
@@ -3334,7 +3338,7 @@
             fontFamilyStr = `"${wcCurrentFontFamily}", ` + fontFamilyStr;
         }
 
-        styleTag.innerHTML = `
+        styleTag.textContent = `
             #wechatAppUI * { font-family: ${fontFamilyStr} !important; }
             #wechatAppUI .msg-text, #wechatAppUI .wc-voice-text { font-size: ${size}px !important; }
             #wechatAppUI .message-bubble.received .msg-text, #wechatAppUI .message-bubble.received .wc-voice-text { color: ${colorReceived} !important; }

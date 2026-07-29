@@ -788,8 +788,12 @@
             app.style.height = dims2.height + 'px';
             app.innerHTML = `<div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="widget-edit-hotzone" aria-label="长按进入编辑模式"></div><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims2.width}px; height: ${dims2.height}px; position: absolute; left: 0; top: 0; z-index: 10;">${makeDesktopWidgetFrameHTML(normalizedWidgetContent)}</div><div class="app-name" style="display:none;">组件</div>`;
         } else {
-            app.innerHTML = `<div class="app-icon"></div><div class="app-name">${name}</div>`;
-            const iconEl = app.querySelector('.app-icon');
+            const iconEl = document.createElement('div');
+            iconEl.className = 'app-icon';
+            const nameEl = document.createElement('div');
+            nameEl.className = 'app-name';
+            nameEl.textContent = name || '';
+            app.append(iconEl, nameEl);
             if (appId === TODAY_CALENDAR_APP_ID) {
                 renderTodayCalendarIcon(iconEl);
             } else if (icon) {
