@@ -4310,14 +4310,60 @@
         if (contactId === wcCurrentChatContactId) wcRenderChatMessages(contactId);
     }
 
+    function wcCreateImageDescriptionUrl(description) {
+        const safeText = String(description || '图片描述').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#E5E5EA"/><text x="50%" y="50%" font-family="sans-serif" font-size="16" fill="#8E8E93" text-anchor="middle" dominant-baseline="middle">${safeText}</text></svg>`;
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    function wcBuildImageIntentPrompt(text, contact) {
+        const request = String(text || '').trim();
+        if (!request || /(?:别|不要|不想|不用|无需|不必).{0,8}(?:发|来|拍|生成|画|看).{0,6}(?:图|图片|照片|自拍|相片|写真|头像|照)/.test(request)) return null;
+
+        const isRequest = /(?:看(?:看)?|想看|给我看|让我看)\s*(?:你|你的|本人|自拍|照片|图|脸|样子)/.test(request)
+            || /(?:发|来|拍|给我|给|整|生成|画|做|出|想要|要)\s*(?:一|1|几)?\s*(?:张|幅|个)?[\s\S]{0,24}?(?:图|图片|照片|自拍|相片|写真|头像|照)/.test(request)
+            || /(?:图|图片|照片|自拍|相片|写真|头像)\s*(?:呢|呀|吗|嘛)$/.test(request);
+        if (!isRequest) return null;
+
+        const subject = contact?.name || '聊天对象';
+        const persona = contact?.persona || contact?.desc || '';
+        const selfView = /(?:看(?:看)?|想看|给我看|让我看)\s*(?:你|你的|本人|自拍|脸|样子)/.test(request);
+        const scene = request
+            .replace(/^(?:请|麻烦|能不能|可以|给我|帮我|让我)?\s*(?:看看?|想看|发|来|拍|给|整|生成|画|做|出)\s*(?:一|1|几)?\s*(?:张|幅|个)?\s*/i, '')
+            .replace(/(?:图|图片|照片|自拍|相片|写真|头像|照)\s*(?:吧|呀|呢|吗|嘛)?$/i, '')
+            .trim();
+        const requestDetail = scene || (selfView ? '自然的近景生活照或自拍' : '一张适合聊天分享的自然生活照片');
+        return `为微信聊天生成一张可直接发送的图片。人物是“${subject}”。${persona ? '人物设定：' + persona.slice(0, 800) + '。' : ''}用户想看：${requestDetail}。画面自然、真实、无文字、适合私人聊天分享。`;
+    }
+
+    async function wcReplyWithRequestedImage(text, contactId, replyTo) {
+        const contact = wcContactsList.find(item => item.id === contactId);
+        const prompt = wcBuildImageIntentPrompt(text, contact);
+        if (!prompt) return;
+
+        const description = `图片描述：${String(text).trim()}`;
+        let imageUrl = null;
+        if (typeof window.generateChatImage === 'function') {
+            try {
+                imageUrl = await window.generateChatImage(prompt);
+            } catch (error) {
+                console.warn('聊天生图失败，已发送文字描述图：', error);
+            }
+        }
+        wcAppendChatMessage('[图片]', 'received', contactId, imageUrl || wcCreateImageDescriptionUrl(description), replyTo);
+    }
+
     function wcSendMessage() {
         const input = document.getElementById('wc-chat-input');
         const text = input?.value.trim();
         if (!text) return;
-        const message = wcAppendChatMessage(text, 'sent', wcCurrentChatContactId, null, wcCurrentReplyMsgId);
+        const contactId = wcCurrentChatContactId;
+        const replyTo = wcCurrentReplyMsgId;
+        const message = wcAppendChatMessage(text, 'sent', contactId, null, replyTo);
         input.value = '';
         wcCloseReplyPreview();
-        if (wcExtractLinks(text).length > 0) wcResolveChatLinks(message, wcCurrentChatContactId);
+        if (wcExtractLinks(text).length > 0) wcResolveChatLinks(message, contactId);
+        wcReplyWithRequestedImage(text, contactId, replyTo);
     }
 
     let wcCurrentLongPressMsgId = null;

@@ -717,6 +717,127 @@
         }
     }
 
+    function _vigBytesToDataUrl(bytes, mime) {
+        let binary = '';
+        const chunkSize = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+        }
+        return 'data:' + mime + ';base64,' + btoa(binary);
+    }
+
+    function _vigChatImagePreset() {
+        const preset = _vigConnectedImggen();
+        return preset && _vigTrimSlash(preset.url) && preset.key ? preset : null;
+    }
+
+    async function generateChatImage(prompt) {
+        const preset = _vigChatImagePreset();
+        const positive = String(prompt || '').trim();
+        if (!preset || !positive) return null;
+
+        const settings = preset.params || imageGenSettings || {};
+        const base = _vigTrimSlash(preset.url);
+        const model = preset.model || '';
+
+        if (preset.provider === 'openai') {
+            const isDalle = /dall-e|dalle/i.test(model || 'gpt-image-1');
+            const body = {
+                model: model || 'gpt-image-1',
+                prompt: positive,
+                n: parseInt(settings.n, 10) || 1,
+                size: settings.size || '1024x1024',
+                quality: settings.quality || 'auto'
+            };
+            if (isDalle) {
+                body.style = settings.style || 'vivid';
+                body.response_format = 'b64_json';
+            } else {
+                body.background = settings.background || 'auto';
+                body.output_format = settings.outputFormat || 'png';
+            }
+            const response = await fetch(base + '/images/generations', {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + preset.key, 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!response.ok) throw new Error('OpenAI 生图 HTTP ' + response.status);
+            const result = (await response.json())?.data?.[0];
+            if (!result) throw new Error('OpenAI 生图接口没有返回图片');
+            if (result.b64_json) return 'data:image/' + (settings.outputFormat || 'png') + ';base64,' + result.b64_json;
+            if (result.url) return result.url;
+            throw new Error('OpenAI 生图接口没有返回图片地址');
+        }
+
+        if (preset.provider === 'nai') {
+            const seed = settings.seed != null && String(settings.seed).trim() !== ''
+                ? parseInt(String(settings.seed), 10)
+                : Math.floor(Math.random() * 4294967295);
+            const response = await fetch(base + '/ai/generate-image', {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + preset.key, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    input: positive,
+                    model: model || 'nai-diffusion-3',
+                    action: 'generate',
+                    parameters: {
+                        params_version: 3,
+                        width: parseInt(settings.width, 10) || 832,
+                        height: parseInt(settings.height, 10) || 1216,
+                        scale: parseFloat(settings.scale) || 5,
+                        sampler: settings.sampler || 'k_euler',
+                        steps: parseInt(settings.steps, 10) || 28,
+                        seed: seed,
+                        n_samples: parseInt(settings.n, 10) || 1,
+                        ucPreset: 0,
+                        quality_toggle: settings.qualityToggle !== false,
+                        negative_prompt: settings.negativePrompt || '',
+                        sm: !!settings.sm,
+                        sm_dyn: !!settings.smDyn,
+                        noise_schedule: settings.noiseSchedule || 'native'
+                    }
+                })
+            });
+            if (!response.ok) throw new Error('NovelAI 生图 HTTP ' + response.status);
+            return _vigBytesToDataUrl(_vigExtractPngFromZip(await response.arrayBuffer()), 'image/png');
+        }
+
+        if (preset.provider === 'mj') {
+            const flags = [];
+            if (settings.negativePrompt && settings.negativePrompt.trim()) flags.push('--no ' + settings.negativePrompt.trim());
+            flags.push('--ar ' + (settings.aspectRatio || '1:1'));
+            flags.push('--q ' + String(settings.quality || '1'));
+            if (settings.seed != null && String(settings.seed).trim() !== '') flags.push('--seed ' + String(settings.seed).trim());
+            if (settings.version) flags.push('--v ' + String(settings.version));
+            if (settings.stylize != null && String(settings.stylize).trim() !== '') flags.push('--s ' + String(settings.stylize));
+            flags.push(settings.mode === 'relax' ? '--relax' : settings.mode === 'turbo' ? '--turbo' : '--fast');
+
+            const headers = { 'Content-Type': 'application/json', 'mj-api-key': preset.key, Authorization: 'Bearer ' + preset.key };
+            const body = JSON.stringify({ botType: 'MID_JOURNEY', prompt: positive + ' ' + flags.join(' ') });
+            let response = await fetch(base + '/mj/submit/imagine', { method: 'POST', headers: headers, body: body });
+            let path = '/mj';
+            if (response.status === 404) {
+                response = await fetch(base + '/submit/imagine', { method: 'POST', headers: headers, body: body });
+                path = '';
+            }
+            if (!response.ok) throw new Error('Midjourney 提交失败 HTTP ' + response.status);
+            const submitted = await response.json();
+            const taskId = submitted.result || submitted.data?.id;
+            if (!taskId) throw new Error('Midjourney 未返回任务 ID');
+            for (let i = 0; i < 60; i++) {
+                await _vigSleep(3000);
+                const task = await fetch(base + path + '/task/' + taskId + '/fetch', { headers: headers });
+                if (!task.ok) throw new Error('Midjourney 查询失败 HTTP ' + task.status);
+                const data = await task.json();
+                if (data.status === 'SUCCESS' && data.imageUrl) return data.imageUrl;
+                if (data.status === 'FAILURE') throw new Error(data.failReason || 'Midjourney 任务失败');
+            }
+            throw new Error('Midjourney 任务超时');
+        }
+
+        throw new Error('未知的生图服务商: ' + preset.provider);
+    }
+
     // ===== 暴露给全局 (供 onclick 调用) =====
     window.openVoiceApp = openVoiceApp;
     window.closeVoiceApp = closeVoiceApp;
@@ -744,6 +865,7 @@
     window.saveImageGenDrawer = saveImageGenDrawer;
     window.deleteImageGenDrawer = deleteImageGenDrawer;
     window.generateImage = generateImage;
+    window.generateChatImage = generateChatImage;
 
     // 页面加载时预绑定服务商选择段
     document.addEventListener('DOMContentLoaded', function () {
