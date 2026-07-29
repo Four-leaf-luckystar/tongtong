@@ -108,6 +108,15 @@
         #wechatAppUI .wc-link-source-douyin { background: #111; font-size: 15px; }
         #wechatAppUI .wc-link-source-bilibili { background: #00A1D6; font-size: 14px; }
         #wechatAppUI .wc-link-source-web { background: #6E7D90; }
+        #wechatAppUI .message-bubble.wc-file-message-bubble { width: min(270px, 100%); padding: 0; background: transparent !important; box-shadow: none; }
+        #wechatAppUI .wc-chat-file-card { width: 100%; min-height: 98px; padding: 13px; display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 11px; row-gap: 9px; overflow: hidden; background: #fff; border-radius: 14px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); color: #161616; }
+        #wechatAppUI .wc-chat-file-icon { width: 44px; height: 52px; border-radius: 8px; display: flex; align-items: center; justify-content: center; align-self: center; color: #fff; background: #737C8C; font-size: 10px; font-weight: 800; letter-spacing: 0; }
+        #wechatAppUI .wc-chat-file-icon.wc-chat-file-docx { background: #2B72D6; }
+        #wechatAppUI .wc-chat-file-icon.wc-chat-file-txt { background: #64748B; }
+        #wechatAppUI .wc-chat-file-copy { min-width: 0; align-self: center; display: flex; flex-direction: column; gap: 5px; }
+        #wechatAppUI .wc-chat-file-name { overflow: hidden; color: #202124; font-size: 15px; font-weight: 700; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+        #wechatAppUI .wc-chat-file-meta { color: #8E8E93; font-size: 12px; line-height: 1.25; }
+        #wechatAppUI .wc-chat-file-preview { grid-column: 1 / -1; display: -webkit-box; overflow: hidden; padding-top: 9px; border-top: 1px solid #F0F0F0; color: #757575; font-size: 12px; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; word-break: break-word; }
         
         /* 微信语音消息样式 */
         #wechatAppUI .wc-voice-container { display: flex; flex-direction: column; min-width: 140px; }

@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="css/theme-app.css?v=20260726-ios-widget-layout1">
     <link rel="stylesheet" href="css/settings.css">
     <link rel="stylesheet" href="css/worldbook.css">
-    <link rel="stylesheet" href="css/wechat.css?v=20260729-link-card1">
+    <link rel="stylesheet" href="css/wechat.css?v=20260730-file-attachments1">
     <link rel="stylesheet" href="css/contacts.css" id="contactsAppStyles">
     <link rel="stylesheet" href="css/dialogs.css">
     <link rel="stylesheet" href="css/dark-mode.css">
@@ -2142,6 +2142,10 @@
                         <div class="wc-function-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></div>
                         <div class="wc-function-text">拍照</div>
                     </div>
+                    <div class="wc-function-item" onclick="document.getElementById('wc-chat-file-input').click(); wcCloseFunctionPanel();">
+                        <div class="wc-function-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line></svg></div>
+                        <div class="wc-function-text">&#25991;&#20214;</div>
+                    </div>
                     <div class="wc-function-item" onclick="wcOpenTransferPage()">
                         <div class="wc-function-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
                         <div class="wc-function-text">转账</div>
@@ -2156,6 +2160,7 @@
                     </div>
                 </div>
                 <input type="file" id="wc-chat-image-input" accept="image/*" multiple style="display: none;" onchange="wcHandleSendRealImages(event)">
+                <input type="file" id="wc-chat-file-input" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display: none;" onchange="wcHandleSendChatFile(event)">
             </div>
 
             <!-- 悬浮表情面板 -->
@@ -3435,7 +3440,7 @@ fill="currentColor" viewBox="0 0 24 24" >
    <script src="js/vendor/jsQR.min.js"></script>
     <script src="js/vendor/pako_inflate.min.js"></script>
     <script src="js/voice-imggen.js"></script>
-   <script src="js/wechat.js?v=20260729-link-card1"></script>
+   <script src="js/wechat.js?v=20260730-file-attachments1"></script>
 <script src="js/search.js"></script>
 <script src="js/universal-select.js"></script>
     <!-- Widget Picker Modal -->
