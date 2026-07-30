@@ -3141,6 +3141,36 @@ fill="currentColor" viewBox="0 0 24 24" >
             </div>
         </div>
 
+        <!-- 底部抽屉弹窗 (图片详情) -->
+        <div class="bottom-sheet-overlay" id="wcImageBottomSheetOverlay" onclick="wcCloseImageBottomSheet(event)">
+            <div class="bottom-sheet" onclick="event.stopPropagation()">
+                <div class="sheet-header">
+                    <div class="circle-btn back-btn" onclick="wcCloseImageBottomSheet()">
+                        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </div>
+                    <div class="sheet-title">Photo</div>
+                    <div class="sheet-header-right">
+                        <div class="pill-btn" onclick="wcActionGenerateImage()">生成</div>
+                        <div class="circle-btn download-btn" onclick="wcActionDownloadImage()">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="flip-container" id="wcImageFlipContainer">
+                    <div class="flipper" id="wcImageFlipper">
+                        <div class="front" id="wcImageSheetFront"></div>
+                        <div class="back" id="wcImageSheetBack" onclick="wcFlipImageBack()">
+                            <div class="back-text-content" id="wcImageSheetBackText"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="wechat-home-indicator" onclick="closeWechatApp()"></div>
     </div>
 
