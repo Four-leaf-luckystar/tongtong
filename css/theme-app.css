@@ -1022,16 +1022,25 @@
             flex: 1; overflow-y: auto; scrollbar-width: none; padding-bottom: 100px;
         }
         .detail-content::-webkit-scrollbar { display: none; }
+        #presetPreviewPagesContainer::-webkit-scrollbar { display: none; }
         .preview-carousel {
-            display: flex; justify-content: center;
-            padding: 40px 30px 20px 30px; /* 修改：增加顶部 padding 将手机往下移 */
+            display: flex; 
+            padding: 40px calc(50% - 116px) 20px; /* 动态计算 padding 使卡片居中 */
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 20px;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
         }
+        .preview-carousel::-webkit-scrollbar { display: none; }
         .preview-phone-mockup {
             width: 220px; height: 476px; background-color: #fff;
             border-radius: 32px; border: 6px solid #e5e5ea;
             box-shadow: 0 15px 35px rgba(0,0,0,0.1);
             position: relative; overflow: hidden;
             box-sizing: content-box; /* 新增：防止边框向内挤压导致内容偏移 */
+            flex-shrink: 0;
+            scroll-snap-align: center;
         }
         /* 1:1 缩放容器，将 375x812 的桌面等比缩小放入 220x476 的模型中 */
         .preview-scale-container {
