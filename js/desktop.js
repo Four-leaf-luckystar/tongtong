@@ -575,6 +575,7 @@
         window.switchDesktopPage = switchDesktopPage;
         window.addBlankDesktopPage = addBlankDesktopPage;
         window.deleteCurrentBlankDesktopPage = deleteCurrentBlankDesktopPage;
+        window.makeDesktopWidgetFrameHTML = makeDesktopWidgetFrameHTML;
 
         function getWidgetGridSpan(widgetData) {
             const legacyWidth = parseInt(widgetData.width, 10);

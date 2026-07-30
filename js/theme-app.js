@@ -849,68 +849,97 @@
         let sizeKB = sizeMB * 1024;
         document.getElementById('detailSize').innerText = sizeKB < 1024 ? sizeKB.toFixed(2) + ' KB' : sizeMB.toFixed(2) + ' MB';
         
-        const container = document.getElementById('previewScaleContainer');
-        container.style.backgroundImage = preset.wallpaper ? `url('${preset.wallpaper}')` : ''; // 清空内联样式，跟随 CSS 深浅色
+        const carousel = document.querySelector('.preview-carousel');
+        carousel.innerHTML = ''; // 清空现有的手机模型
         
-            // show three-dots button; click to expand vertical capsule menu
         const previewPages = getPresetPages(preset);
         const previewPageIndex = Math.max(0, Math.min(Number(preset.currentPage) || 0, previewPages.length - 1));
-        const previewPage = previewPages[previewPageIndex] || [];
-        let desktopHTML = '<div class="desktop-grid" style="height: calc(100% - 180px);">';
-        for (let i = 0; i < 28; i++) {
-            const appData = previewPage.find(d => d.index === i);
-            if (appData) {
-            // show three-dots button; click to expand vertical capsule menu
-                const safeIcon = appData.icon ? appData.icon.replace(/"/g, "'") : '';
-                const iconStyle = safeIcon ? `background-image: ${safeIcon};` : '';
-                const customClass = appData.icon ? 'has-custom-icon' : '';
-                
-                let innerHTML = '';
-                let extraClass = '';
-                if (appData.appId === 'placeholder-today' && !appData.icon) {
-                    extraClass = 'today-calendar-icon';
-                    const date = new Date();
-                    const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-                    innerHTML = `
-                        <span class="today-calendar-shine"></span>
-                        <span class="today-calendar-weekday">${weekdays[date.getDay()]}</span>
-                        <span class="today-calendar-day">${date.getDate()}</span>
-                    `;
+        
+        previewPages.forEach((page, pageIndex) => {
+            let desktopHTML = '<div class="desktop-grid" style="height: calc(100% - 180px);">';
+            for (let i = 0; i < 28; i++) {
+                const appData = page.find(d => d.index === i);
+                if (appData) {
+                    if (appData.isWidget || appData.widgetContent) {
+                        const widgetContent = appData.widgetContent ? decodeURIComponent(appData.widgetContent) : '';
+                        const width = appData.width || '';
+                        const height = appData.height || '';
+                        const presetSize = appData.presetSize || '';
+                        const dims = window.getWidgetDimensions ? window.getWidgetDimensions({ width, height, presetSize }) : { width: 140, height: 140 };
+                        
+                        desktopHTML += `<div class="desktop-slot"><div class="app-item is-widget" style="width: ${dims.width}px; height: ${dims.height}px;"><div class="app-icon" style="background: transparent; box-shadow: none; border-radius: 20px; overflow: hidden; width: ${dims.width}px; height: ${dims.height}px; position: absolute; left: 0; top: 0; z-index: 10;">`;
+                        if (window.makeDesktopWidgetFrameHTML) {
+                            desktopHTML += window.makeDesktopWidgetFrameHTML(widgetContent);
+                        }
+                        desktopHTML += `</div></div></div>`;
+                    } else {
+                        const safeIcon = appData.icon ? appData.icon.replace(/"/g, "'") : '';
+                        const iconStyle = safeIcon ? `background-image: ${safeIcon};` : '';
+                        const customClass = appData.icon ? 'has-custom-icon' : '';
+                        
+                        let innerHTML = '';
+                        let extraClass = '';
+                        if (appData.appId === 'placeholder-today' && !appData.icon) {
+                            extraClass = 'today-calendar-icon';
+                            const date = new Date();
+                            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+                            innerHTML = `
+                                <span class="today-calendar-shine"></span>
+                                <span class="today-calendar-weekday">${weekdays[date.getDay()]}</span>
+                                <span class="today-calendar-day">${date.getDate()}</span>
+                            `;
+                        }
+                        
+                        desktopHTML += `<div class="desktop-slot"><div class="app-item"><div class="app-icon ${customClass} ${extraClass}" style="${iconStyle}">${innerHTML}</div><div class="app-name">${appData.name}</div></div></div>`;
+                    }
+                } else {
+                    desktopHTML += `<div class="desktop-slot"></div>`;
                 }
-                
-                desktopHTML += `<div class="desktop-slot"><div class="app-item"><div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon ${customClass} ${extraClass}" style="${iconStyle}">${innerHTML}</div><div class="app-name">${appData.name}</div></div></div>`;
-            } else {
-                desktopHTML += `<div class="desktop-slot"></div>`;
             }
-        }
-        desktopHTML += '</div>';
-        if (previewPages.length > 1) {
-            desktopHTML += '<div class="desktop-page-dots" style="position:absolute;left:50%;bottom:125px;transform:translateX(-50%);">';
-            previewPages.forEach((page, index) => {
-                desktopHTML += `<span class="desktop-page-dot ${index === previewPageIndex ? 'active' : ''}"></span>`;
-            });
             desktopHTML += '</div>';
-        }
 
-            // show three-dots button; click to expand vertical capsule menu
-        let dockHTML = '<div class="dock" style="bottom: 15px;">';
-        if (preset.dock) {
-            preset.dock.forEach(appData => {
-            // show three-dots button; click to expand vertical capsule menu
-                const safeIcon = appData.icon ? appData.icon.replace(/"/g, "'") : '';
-                const iconStyle = safeIcon ? `background-image: ${safeIcon};` : '';
-                const customClass = appData.icon ? 'has-custom-icon' : '';
-                dockHTML += `<div class="app-item"><div class="app-icon ${customClass}" style="${iconStyle}"></div><div class="app-name" style="display:none;">${appData.name}</div></div>`;
-            });
-        }
-        dockHTML += '</div>';
+            if (previewPages.length > 1) {
+                desktopHTML += '<div class="desktop-page-dots" style="position:absolute;left:50%;bottom:125px;transform:translateX(-50%);">';
+                previewPages.forEach((_, index) => {
+                    desktopHTML += `<span class="desktop-page-dot ${index === pageIndex ? 'active' : ''}"></span>`;
+                });
+                desktopHTML += '</div>';
+            }
 
-        container.innerHTML = desktopHTML + dockHTML;
+            let dockHTML = '<div class="dock" style="bottom: 15px;">';
+            if (preset.dock) {
+                preset.dock.forEach(appData => {
+                    const safeIcon = appData.icon ? appData.icon.replace(/"/g, "'") : '';
+                    const iconStyle = safeIcon ? `background-image: ${safeIcon};` : '';
+                    const customClass = appData.icon ? 'has-custom-icon' : '';
+                    dockHTML += `<div class="app-item"><div class="app-icon ${customClass}" style="${iconStyle}"></div><div class="app-name" style="display:none;">${appData.name}</div></div>`;
+                });
+            }
+            dockHTML += '</div>';
+
+            const mockup = document.createElement('div');
+            mockup.className = 'preview-phone-mockup';
+            
+            const scaleContainer = document.createElement('div');
+            scaleContainer.className = 'preview-scale-container';
+            scaleContainer.style.backgroundImage = preset.wallpaper ? `url('${preset.wallpaper}')` : '';
+            scaleContainer.innerHTML = desktopHTML + dockHTML;
+            
+            mockup.appendChild(scaleContainer);
+            carousel.appendChild(mockup);
+        });
         
         const detailPage = document.getElementById('presetDetailPage');
         detailPage.style.display = 'flex';
         setTimeout(() => {
             detailPage.classList.add('show');
+            if (previewPages.length > 1 && carousel.children[previewPageIndex]) {
+                const targetMockup = carousel.children[previewPageIndex];
+                carousel.scrollTo({
+                    left: targetMockup.offsetLeft - (carousel.clientWidth / 2) + (targetMockup.clientWidth / 2),
+                    behavior: 'smooth'
+                });
+            }
         }, 10);
     }
 

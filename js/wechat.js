@@ -3264,19 +3264,26 @@
             
             css += `
                 #wechatAppUI .message-row.group-top, #wechatAppUI .message-row.group-mid { margin-bottom: 3px !important; }
-                #wechatAppUI .message-bubble { padding: 7px 14px !important; border-radius: 20px !important; min-height: 17px !important; margin-bottom: 14px !important; }
-                #wechatAppUI .msg-meta { position: static !important; margin-bottom: -2px !important; }
+                #wechatAppUI .message-bubble { padding: 7px 14px !important; border-radius: 20px !important; min-height: 17px !important; margin-bottom: 14px !important; overflow: visible !important; }
+                #wechatAppUI .msg-meta { position: absolute !important; bottom: 0 !important; margin-bottom: 0 !important; align-items: flex-end !important; }
+                
+                /* 修复溢出：时间戳放在靠近屏幕中心的一侧 */
+                #wechatAppUI .message-bubble.received .msg-meta { left: calc(100% + 6px) !important; right: auto !important; }
+                #wechatAppUI .message-bubble.sent .msg-meta { right: calc(100% + 6px) !important; left: auto !important; }
+                
+                #wechatAppUI .message-bubble.received .msg-meta svg { display: none !important; }
+                #wechatAppUI .message-bubble.sent .msg-meta svg { display: inline-block !important; }
                 
                 /* 尾巴逻辑：利用你代码中已有的 tail 类名来控制只在第一条显示尾巴 */
                 #wechatAppUI .message-bubble.received.tail::before { 
                     display: block !important; content: '' !important; position: absolute !important; 
-                    top: 3px !important; left: -3px !important; width: 9px !important; height: 11px !important; 
+                    top: 3px !important; left: -2px !important; width: 10px !important; height: 12px !important; 
                     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 10,2 C 6,3 3,2 0,0.5 C 4,6 7,9 10,11 Z' fill='${leftSvgColor}' stroke='${leftSvgColor}' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") !important; 
                     background-size: contain !important; background-repeat: no-repeat !important; z-index: 1 !important;
                 }
                 #wechatAppUI .message-bubble.sent.tail::before { 
                     display: block !important; content: '' !important; position: absolute !important; 
-                    top: 3px !important; right: -3px !important; width: 9px !important; height: 11px !important; 
+                    top: 3px !important; right: -2px !important; width: 10px !important; height: 12px !important; 
                     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 0,2 C 4,3 7,2 10,0.5 C 6,6 3,9 0,11 Z' fill='${rightSvgColor}' stroke='${rightSvgColor}' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E") !important; 
                     background-size: contain !important; background-repeat: no-repeat !important; z-index: 1 !important;
                 }
