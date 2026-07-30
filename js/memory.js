@@ -5,6 +5,7 @@
     const STORE_NAME = 'layoutStore';
     const PREFERENCES_KEY = 'memoryAppPreferencesV1';
     const MEMORY_ITEMS_KEY = 'memoryItemsV1';
+    const MEMORY_OUTBOX_KEY = 'memoryOutboxV1';
     const CONTACTS_KEY = 'wechatContactsData';
     const CHATS_KEY = 'wechatChatData';
     let root = null;
@@ -13,6 +14,7 @@
     let cachedContacts = [];
     let cachedConversations = {};
     let cachedMemoryItems = [];
+    let cachedOutbox = [];
 
     function readRecords(keys) {
         return new Promise((resolve) => {
@@ -58,6 +60,33 @@
                 }
                 const transaction = database.transaction(STORE_NAME, 'readwrite');
                 transaction.objectStore(STORE_NAME).put(record);
+                transaction.oncomplete = () => {
+                    database.close();
+                    resolve(true);
+                };
+                transaction.onerror = () => {
+                    database.close();
+                    resolve(false);
+                };
+            };
+        });
+    }
+
+    function writeMemoryState(items, outbox) {
+        return new Promise((resolve) => {
+            const request = indexedDB.open(DB_NAME);
+            request.onerror = () => resolve(false);
+            request.onsuccess = () => {
+                const database = request.result;
+                if (!database.objectStoreNames.contains(STORE_NAME)) {
+                    database.close();
+                    resolve(false);
+                    return;
+                }
+                const transaction = database.transaction(STORE_NAME, 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                store.put({ id: MEMORY_ITEMS_KEY, schemaVersion: 1, items });
+                store.put({ id: MEMORY_OUTBOX_KEY, schemaVersion: 1, items: outbox });
                 transaction.oncomplete = () => {
                     database.close();
                     resolve(true);
@@ -134,6 +163,114 @@
             .filter((item) => item && item.bindingId === contactId && item.status === 'active')
             .filter((item) => !kind || item.kind === kind)
             .sort((left, right) => String(right.createdAt || '').localeCompare(String(left.createdAt || '')));
+    }
+
+    function normalizeMemoryText(value) {
+        return String(value || '').replace(/\s+/g, ' ').trim();
+    }
+
+    function isSensitiveAutomaticMemory(value) {
+        return /(过敏|疾病|病史|诊断|药物|医院|怀孕|流产|住址|地址|身份证|银行卡|工资|收入|债务|欠债|性经历|创伤|自杀)/i.test(value);
+    }
+
+    function getPromptMemories(contactId, limit = 6) {
+        const maxItems = Math.max(1, Math.min(Number(limit) || 6, 8));
+        return getActiveItems(contactId, 'memory')
+            .filter((item) => item.authority === 'user_confirmed' || item.authority === 'user_quote')
+            .sort((left, right) => {
+                const authorityWeight = (item) => item.authority === 'user_confirmed' ? 1 : 0;
+                return authorityWeight(right) - authorityWeight(left);
+            })
+            .map((item) => normalizeMemoryText(item.content))
+            .filter((content) => content && content.length <= 180)
+            .slice(0, maxItems);
+    }
+
+    async function preload() {
+        const records = await readRecords([MEMORY_ITEMS_KEY, MEMORY_OUTBOX_KEY]);
+        cachedMemoryItems = Array.isArray(records[MEMORY_ITEMS_KEY] && records[MEMORY_ITEMS_KEY].items)
+            ? records[MEMORY_ITEMS_KEY].items.filter((item) => item && item.id && item.bindingId && item.content)
+            : [];
+        cachedOutbox = Array.isArray(records[MEMORY_OUTBOX_KEY] && records[MEMORY_OUTBOX_KEY].items)
+            ? records[MEMORY_OUTBOX_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sourceMessages))
+            : [];
+        return cachedMemoryItems;
+    }
+
+    async function enqueueChatTurn({ bindingId, turnId, sourceMessages }) {
+        if (!bindingId || !turnId || !Array.isArray(sourceMessages)) return false;
+        if (cachedOutbox.some((item) => item.id === turnId)) return true;
+
+        const item = {
+            id: turnId,
+            bindingId,
+            sourceMessages: sourceMessages
+                .filter((message) => message && message.id && message.type === 'sent' && normalizeMemoryText(message.text))
+                .map((message) => ({ id: String(message.id), type: 'sent', text: String(message.text) }))
+                .slice(-8),
+            createdAt: new Date().toISOString()
+        };
+        if (item.sourceMessages.length === 0) return false;
+
+        const nextOutbox = [...cachedOutbox, item].slice(-60);
+        const saved = await writeRecord({ id: MEMORY_OUTBOX_KEY, schemaVersion: 1, items: nextOutbox });
+        if (saved) cachedOutbox = nextOutbox;
+        return saved;
+    }
+
+    function getPendingChatTurns(bindingId, limit = 1) {
+        return cachedOutbox
+            .filter((item) => !bindingId || item.bindingId === bindingId)
+            .slice(0, Math.max(1, Number(limit) || 1))
+            .map((item) => ({ ...item, sourceMessages: item.sourceMessages.map((message) => ({ ...message })) }));
+    }
+
+    async function completeChatTurn(turnId, candidates) {
+        const queuedTurn = cachedOutbox.find((item) => item.id === turnId);
+        if (!queuedTurn) return false;
+
+        const sourceById = new Map(queuedTurn.sourceMessages.map((message) => [String(message.id), message]));
+        const existingContents = new Set(
+            cachedMemoryItems
+                .filter((item) => item.bindingId === queuedTurn.bindingId)
+                .map((item) => normalizeMemoryText(item.content).toLowerCase())
+        );
+        const now = new Date().toISOString();
+        const newItems = [];
+
+        (Array.isArray(candidates) ? candidates : []).slice(0, 2).forEach((candidate) => {
+            const message = sourceById.get(String(candidate && candidate.messageId || ''));
+            const quote = normalizeMemoryText(candidate && candidate.quote);
+            if (!message || !quote || quote.length < 4 || quote.length > 180) return;
+            if (!String(message.text).includes(quote) || isSensitiveAutomaticMemory(quote)) return;
+            const normalizedQuote = quote.toLowerCase();
+            if (existingContents.has(normalizedQuote)) return;
+
+            existingContents.add(normalizedQuote);
+            newItems.push({
+                id: 'memory_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+                schemaVersion: 1,
+                bindingId: queuedTurn.bindingId,
+                kind: 'memory',
+                tier: 'L1',
+                status: 'active',
+                authority: 'user_quote',
+                subjectType: 'user_persona',
+                visibility: 'current_binding',
+                content: quote,
+                sourceRefs: [{ type: 'chat_quote', messageId: message.id, quote, createdAt: now }],
+                createdAt: now,
+                updatedAt: now
+            });
+        });
+
+        const nextItems = newItems.length ? [...cachedMemoryItems, ...newItems] : cachedMemoryItems;
+        const nextOutbox = cachedOutbox.filter((item) => item.id !== turnId);
+        const saved = await writeMemoryState(nextItems, nextOutbox);
+        if (!saved) return false;
+        cachedMemoryItems = nextItems;
+        cachedOutbox = nextOutbox;
+        return true;
     }
 
     function formatMemoryDate(value) {
@@ -317,7 +454,7 @@
     }
 
     async function refresh() {
-        const records = await readRecords([PREFERENCES_KEY, MEMORY_ITEMS_KEY, CONTACTS_KEY, CHATS_KEY]);
+        const records = await readRecords([PREFERENCES_KEY, MEMORY_ITEMS_KEY, MEMORY_OUTBOX_KEY, CONTACTS_KEY, CHATS_KEY]);
         const contactsData = records[CONTACTS_KEY];
         cachedContacts = Array.isArray(contactsData && contactsData.contacts)
             ? contactsData.contacts.filter((contact) => contact && contact.id)
@@ -327,6 +464,9 @@
             : {};
         cachedMemoryItems = Array.isArray(records[MEMORY_ITEMS_KEY] && records[MEMORY_ITEMS_KEY].items)
             ? records[MEMORY_ITEMS_KEY].items.filter((item) => item && item.id && item.bindingId && item.content)
+            : [];
+        cachedOutbox = Array.isArray(records[MEMORY_OUTBOX_KEY] && records[MEMORY_OUTBOX_KEY].items)
+            ? records[MEMORY_OUTBOX_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sourceMessages))
             : [];
 
         const preferredId = records[PREFERENCES_KEY] && records[PREFERENCES_KEY].selectedContactId;
@@ -531,5 +671,18 @@
         root.setAttribute('aria-hidden', 'true');
     }
 
-    window.MemoryApp = { init, open, close, refresh };
+    window.MemoryApp = {
+        init,
+        open,
+        close,
+        refresh,
+        preload,
+        getPromptMemories,
+        enqueueChatTurn,
+        getPendingChatTurns,
+        completeChatTurn
+    };
+
+    // The chat path reads this in-memory cache only. IndexedDB is warmed in the background.
+    void preload();
 })();
