@@ -838,7 +838,7 @@
     .plus-badge::before, .plus-badge::after { content: ''; position: absolute; background-color: #ffffff; border-radius: 1px; }
     .plus-badge::before { width: 10px; height: 2px; }
     .plus-badge::after { width: 2px; height: 10px; }
-    .text-line-1 { font-size: 11px; color: #444444; font-weight: 600; margin-bottom: 6px; outline: none; text-align: center; letter-spacing: 0.5px; }
+            .text-line-1 { font-size: 11px; color: #444444; font-weight: 600; margin-bottom: 6px; outline: none; text-align: center; letter-spacing: 0.5px; }
     .text-line-1 i { font-family: "Times New Roman", Times, serif; font-style: italic; font-weight: 700; font-size: 13px; }
     .text-line-2 { font-size: 9px; color: #666666; background-color: #e8e8e8; padding: 4px 12px; border-radius: 20px; outline: none; text-align: center; letter-spacing: 0.5px; }
 </style>
@@ -856,6 +856,221 @@
     </div>
     <div class="text-line-1" contenteditable="true" spellcheck="false">* ₊ ˚ ⋆ ♡ <i>weekend</i> 🥛 :)</div>
     <div class="text-line-2" contenteditable="true" spellcheck="false"> ੈ♡ 消えない記憶 ⊹ ｡ ﾟ</div>
+</div>`
+            },
+            {
+                name: '微信气泡',
+                presetSize: '2x2',
+                preview: '#e9ecef',
+                content: `<style>
+    .widget-wechat-bubble { width: 100%; height: 100%; background: transparent; display: flex; align-items: center; justify-content: center; position: relative; }
+    .widget-graphic { position: relative; width: 145px; height: 145px; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.08)); }
+    .wechat-svg { width: 100%; height: 100%; display: block; }
+</style>
+<div class="widget-wechat-bubble">
+    <div class="widget-graphic">
+        <svg class="wechat-svg" viewBox="-1 -1 18 18" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <clipPath id="clip-large">
+                    <path d="M3.638513333333333 12.123133333333332C2.239333333333333 11.117999999999999 1.3339866666666667 9.600066666666667 1.3339866666666667 7.938533333333333c0 -3.0564199999999997 2.983533333333333 -5.538466666666666 6.6666799999999995 -5.538466666666666 3.683133333333333 0 6.666666666666666 2.4820466666666663 6.666666666666666 5.538466666666666 0 3.0564 -2.983533333333333 5.538466666666666 -6.666666666666666 5.538466666666666 -0.7613333333333332 0 -1.5020733333333331 -0.1026 -2.1810866666666664 -0.3077333333333333 -0.061726666666666666 -0.020466666666666668 -0.14403333333333332 -0.020466666666666668 -0.20576 -0.020466666666666668 -0.12345999999999999 0 -0.24691333333333332 0.040999999999999995 -0.3497933333333333 0.10253333333333332l-1.4609066666666666 0.8410666666666666c-0.04115333333333333 0.020466666666666668 -0.08230666666666667 0.040999999999999995 -0.12345333333333333 0.040999999999999995 -0.12345999999999999 0 -0.22633999999999999 -0.10253333333333332 -0.22633999999999999 -0.22566666666666668 0 -0.06153333333333333 0.020573333333333332 -0.10253333333333332 0.04115333333333333 -0.16406666666666667 0.020573333333333332 -0.020533333333333334 0.20576 -0.6974666666666667 0.30863999999999997 -1.1077333333333332 0 -0.040999999999999995 0.020573333333333332 -0.10253333333333332 0.020573333333333332 -0.14353333333333332 0 -0.16413333333333333 -0.061726666666666666 -0.2872 -0.18518 -0.36926666666666663Z" />
+                </clipPath>
+                <!-- 核心修改：将小气泡的原始路径作为裁剪遮罩，不在这里做缩放 -->
+                <clipPath id="clip-small-raw">
+                    <path d="M11.176 14.429c-2.665 0 -4.826 -1.8 -4.826 -4.018 0 -2.22 2.159 -4.02 4.824 -4.02S16 8.191 16 10.411c0 1.21 -0.65 2.301 -1.666 3.036a0.32 0.32 0 0 0 -0.12 0.366l0.218 0.81a0.6 0.6 0 0 1 0.029 0.117 0.166 0.166 0 0 1 -0.162 0.162 0.2 0.2 0 0 1 -0.092 -0.03l-1.057 -0.61a0.5 0.5 0 0 0 -0.256 -0.074 0.5 0.5 0 0 0 -0.142 0.021 5.7 5.7 0 0 1 -1.576 0.22Z" />
+                </clipPath>
+            </defs>
+            <g>
+                <path d="M3.638513333333333 12.123133333333332C2.239333333333333 11.117999999999999 1.3339866666666667 9.600066666666667 1.3339866666666667 7.938533333333333c0 -3.0564199999999997 2.983533333333333 -5.538466666666666 6.6666799999999995 -5.538466666666666 3.683133333333333 0 6.666666666666666 2.4820466666666663 6.666666666666666 5.538466666666666 0 3.0564 -2.983533333333333 5.538466666666666 -6.666666666666666 5.538466666666666 -0.7613333333333332 0 -1.5020733333333331 -0.1026 -2.1810866666666664 -0.3077333333333333 -0.061726666666666666 -0.020466666666666668 -0.14403333333333332 -0.020466666666666668 -0.20576 -0.020466666666666668 -0.12345999999999999 0 -0.24691333333333332 0.040999999999999995 -0.3497933333333333 0.10253333333333332l-1.4609066666666666 0.8410666666666666c-0.04115333333333333 0.020466666666666668 -0.08230666666666667 0.040999999999999995 -0.12345333333333333 0.040999999999999995 -0.12345999999999999 0 -0.22633999999999999 -0.10253333333333332 -0.22633999999999999 -0.22566666666666668 0 -0.06153333333333333 0.020573333333333332 -0.10253333333333332 0.04115333333333333 -0.16406666666666667 0.020573333333333332 -0.020533333333333334 0.20576 -0.6974666666666667 0.30863999999999997 -1.1077333333333332 0 -0.040999999999999995 0.020573333333333332 -0.10253333333333332 0.020573333333333332 -0.14353333333333332 0 -0.16413333333333333 -0.061726666666666666 -0.2872 -0.18518 -0.36926666666666663Z" fill="#fff" stroke="#f3d8e3" stroke-width="1.2" stroke-linejoin="round" />
+                <image href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23ffe6f0'/%3E%3C/svg%3E" x="1" y="2" width="14" height="14" preserveAspectRatio="xMidYMid slice" clip-path="url(#clip-large)" />
+            </g>
+            <!-- 核心修改：将缩放和位移应用在整个组 <g> 上，内部的图片和裁剪遮罩坐标保持原始比例，彻底解决错位问题 -->
+            <g transform="translate(3.5, 3.5) scale(0.7)">
+                <path d="M11.176 14.429c-2.665 0 -4.826 -1.8 -4.826 -4.018 0 -2.22 2.159 -4.02 4.824 -4.02S16 8.191 16 10.411c0 1.21 -0.65 2.301 -1.666 3.036a0.32 0.32 0 0 0 -0.12 0.366l0.218 0.81a0.6 0.6 0 0 1 0.029 0.117 0.166 0.166 0 0 1 -0.162 0.162 0.2 0.2 0 0 1 -0.092 -0.03l-1.057 -0.61a0.5 0.5 0 0 0 -0.256 -0.074 0.5 0.5 0 0 0 -0.142 0.021 5.7 5.7 0 0 1 -1.576 0.22Z" fill="#fff" stroke="#f3d8e3" stroke-width="1.7" stroke-linejoin="round" />
+                <image href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23e6f0ff'/%3E%3C/svg%3E" x="5" y="5" width="12" height="12" preserveAspectRatio="xMidYMid slice" clip-path="url(#clip-small-raw)" />
+            </g>
+        </svg>
+    </div>
+</div>`
+            },
+            {
+                name: '小猫边框',
+                presetSize: '2x2',
+                preview: '#e9ecef',
+                content: `<style>
+    .widget-cat-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: transparent; }
+    /* 核心修改：将小猫边框进一步放大到 175px */
+    .widget-cat-graphic { width: 175px; height: 175px; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.08)); }
+    .cat-svg { width: 100%; height: 100%; display: block; }
+</style>
+<div class="widget-cat-container">
+    <div class="widget-cat-graphic">
+        <svg class="cat-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <clipPath id="cat-shape-clip">
+                    <path d="M9.60601 5.5625c0.76609 0 0.91369 -0.15614 2.39399 -0.15614 1.4804 0 1.6279 0.15614 2.394 0.15614 0.6384 0 2.5537 -1.56239 3.5113 -1.56239 0.9576 0 2.0748 0.5625 2.0748 2.1875V8.0625c-0.002 0.49219 -0.1808 2.0009 -0.8808 1.59772 1.112 1.31418 0.8807 2.92128 0.8808 4.33978 0 3.9062 -5.2669 5 -7.9801 5 -2.71323 0 -7.98006 -1.0938 -7.98006 -5 0.00001 -1.4185 -0.23119 -3.0256 0.88072 -4.33978 -0.69994 0.40318 -0.87878 -1.10553 -0.88071 -1.59772v-1.875C4.01995 4.5625 5.13715 4 6.09476 4c0.9576 0 2.87284 1.5625 3.51125 1.5625Z" />
+                </clipPath>
+            </defs>
+            <image href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23ffe4e1'/%3E%3C/svg%3E" x="0" y="0" width="24" height="24" preserveAspectRatio="xMidYMid slice" clip-path="url(#cat-shape-clip)" />
+            <path d="M9.60601 5.5625c0.76609 0 0.91369 -0.15614 2.39399 -0.15614 1.4804 0 1.6279 0.15614 2.394 0.15614 0.6384 0 2.5537 -1.56239 3.5113 -1.56239 0.9576 0 2.0748 0.5625 2.0748 2.1875V8.0625c-0.002 0.49219 -0.1808 2.0009 -0.8808 1.59772 1.112 1.31418 0.8807 2.92128 0.8808 4.33978 0 3.9062 -5.2669 5 -7.9801 5 -2.71323 0 -7.98006 -1.0938 -7.98006 -5 0.00001 -1.4185 -0.23119 -3.0256 0.88072 -4.33978 -0.69994 0.40318 -0.87878 -1.10553 -0.88071 -1.59772v-1.875C4.01995 4.5625 5.13715 4 6.09476 4c0.9576 0 2.87284 1.5625 3.51125 1.5625Z" fill="none" stroke="#555555" stroke-width="0.4" stroke-linejoin="round" />
+            <g fill="#333333">
+                <path d="M17.8633 13.375c0 -0.4142 0.3358 -0.75 0.75 -0.75 0.2957 0 0.6502 0.0674 0.9806 0.1487 0.3447 0.0848 0.7194 0.1992 1.0765 0.3213 0.6839 0.2339 1.4092 0.5321 1.7369 0.7437 0.3479 0.2247 0.4478 0.689 0.2231 1.0369 -0.2247 0.348 -0.689 0.4479 -1.0369 0.2232 -0.1562 -0.1009 -0.7213 -0.3495 -1.4084 -0.5844 -0.3283 -0.1123 -0.6592 -0.2127 -0.9496 -0.2842 -0.3047 -0.0749 -0.5148 -0.1052 -0.6222 -0.1052 -0.4142 0 -0.75 -0.3358 -0.75 -0.75Z" />
+                <path d="M17.968 15.125c-0.4143 0 -0.75 0.3358 -0.75 0.75s0.3357 0.75 0.75 0.75c0.2062 0 0.5496 0.1152 0.9802 0.3428 0.342 0.1807 0.6557 0.3855 0.901 0.5456 0.0461 0.0301 0.0902 0.0589 0.1312 0.0854 0.348 0.2247 0.8122 0.1248 1.037 -0.2232 0.2247 -0.3479 0.1248 -0.8122 -0.2232 -1.0369 -0.0331 -0.0214 -0.0709 -0.0461 -0.1129 -0.0735 -0.2424 -0.1585 -0.6226 -0.4071 -1.0323 -0.6236 -0.4564 -0.2412 -1.0808 -0.5166 -1.681 -0.5166Z" />
+                <path d="M3.81532 14.5144c-0.68709 0.2349 -1.25212 0.4835 -1.40834 0.5844 -0.34795 0.2247 -0.8122 0.1248 -1.03692 -0.2232 -0.22472 -0.3479 -0.12482 -0.8122 0.22314 -1.0369 0.32765 -0.2116 1.05294 -0.5098 1.73683 -0.7437 0.35715 -0.1221 0.73187 -0.2365 1.07657 -0.3213 0.33036 -0.0813 0.68484 -0.1487 0.98059 -0.1487 0.41422 0 0.75 0.3358 0.75 0.75s-0.33578 0.75 -0.75 0.75c-0.10746 0 -0.31751 0.0303 -0.62223 0.1052 -0.29038 0.0715 -0.62131 0.1719 -0.94964 0.2842Z" />
+                <path d="M4.02026 17.5988c0.04113 -0.0266 0.08496 -0.0552 0.13121 -0.0854 0.24533 -0.1601 0.55901 -0.3649 0.90101 -0.5456 0.43065 -0.2276 0.77406 -0.3428 0.98025 -0.3428 0.41422 0 0.75 -0.3358 0.75 -0.75s-0.33578 -0.75 -0.75 -0.75c-0.60026 0 -1.2246 0.2754 -1.68104 0.5166 -0.40972 0.2165 -0.78991 0.4651 -1.03231 0.6236 -0.04187 0.0273 -0.07982 0.0522 -0.1129 0.0735 -0.34796 0.2247 -0.44786 0.689 -0.22314 1.0369 0.22472 0.348 0.68897 0.4479 1.03692 0.2232Z" />
+            </g>
+        </svg>
+    </div>
+</div>`
+            },
+            {
+                name: '双人音乐卡片',
+                presetSize: '2x2',
+                preview: '#eef0f5',
+                content: `<style>
+    .widget-music-duo { width: 100%; height: 100%; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; background-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .widget-music-duo .avatars-section { display: flex; justify-content: center; gap: 4px; margin-top: 4px; }
+    .widget-music-duo .avatar-group { display: flex; flex-direction: column; align-items: center; }
+    .widget-music-duo .tooltip { background-color: #ffffff; padding: 6px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; color: #111; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); margin-bottom: -10px; position: relative; z-index: 2; }
+    .widget-music-duo .tooltip::after { content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); border-width: 5px 5px 0; border-style: solid; border-color: #ffffff transparent transparent transparent; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.03)); }
+    .widget-music-duo .avatar-wrapper { position: relative; width: 56px; height: 56px; border-radius: 50%; border: 2px solid #dcdcdc; padding: 2px; box-sizing: border-box; z-index: 1; }
+    .widget-music-duo .avatar-placeholder { width: 100%; height: 100%; border-radius: 50%; background-color: #d8d8d8; background-size: cover; background-position: center; }
+    .widget-music-duo .badge { position: absolute; bottom: 0; right: 0; width: 16px; height: 16px; background-color: #52c41a; border-radius: 50%; border: 1.5px solid #ffffff; display: flex; justify-content: center; align-items: center; }
+    .widget-music-duo .music-card { background-color: #f5f6fa; border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+    .widget-music-duo .music-cover { width: 32px; height: 32px; background-color: #345bb5; border-radius: 6px; display: flex; justify-content: center; align-items: center; background-size: cover; background-position: center; flex-shrink: 0; }
+    .widget-music-duo .play-icon-svg { width: 10px; height: 10px; margin-left: 2px; fill: #ffffff; stroke: #ffffff; stroke-width: 2px; stroke-linejoin: round; stroke-linecap: round; }
+    .widget-music-duo .music-info { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+    .widget-music-duo .music-title { font-size: 12px; color: #333; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .widget-music-duo .music-artist { font-size: 9px; color: #999; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .widget-music-duo .action-bar { display: flex; justify-content: space-between; align-items: center; padding: 0 2px; margin-bottom: 2px; }
+    .widget-music-duo .action-left { display: flex; gap: 6px; }
+    .widget-music-duo .action-btn { display: flex; align-items: center; gap: 3px; color: #888; font-size: 10px; }
+    .widget-music-duo .action-btn svg { width: 11px; height: 11px; }
+    .widget-music-duo .more-btn { color: #888; font-size: 12px; letter-spacing: 1px; margin-bottom: 4px; }
+    .widget-music-duo [contenteditable="true"] { outline: none; transition: background-color 0.2s; }
+</style>
+<div class="widget-music-duo">
+    <div class="avatars-section">
+        <div class="avatar-group">
+            <div class="tooltip" contenteditable="true" spellcheck="false">@itoshirin</div>
+            <div class="avatar-wrapper">
+                <div class="avatar-placeholder uploadable-img" style="background-color: #e0e0e0;"></div>
+                <div class="badge">
+                    <svg viewBox="0 0 24 24" width="10" height="10" stroke="#ffffff" stroke-width="4" stroke-linecap="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="avatar-group">
+            <div class="tooltip" contenteditable="true" spellcheck="false">@itoshisae</div>
+            <div class="avatar-wrapper">
+                <div class="avatar-placeholder uploadable-img" style="background-color: #d0d0d0;"></div>
+                <div class="badge" style="background-color: #52c41a;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="music-card">
+        <div class="music-cover uploadable-img">
+            <svg class="play-icon-svg" viewBox="0 0 24 24">
+                <path d="M6 4.5L19 12 6 19.5z"></path>
+            </svg>
+        </div>
+        <div class="music-info">
+            <div class="music-title" contenteditable="true" spellcheck="false">水星</div>
+            <div class="music-artist" contenteditable="true" spellcheck="false">ラブリーサマーちゃん</div>
+        </div>
+    </div>
+    <div class="action-bar">
+        <div class="action-left">
+            <div class="action-btn">
+                <svg viewBox="0 0 16 16" fill="currentColor" stroke="currentColor" stroke-width="0.5" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7.333333333333333 1.3662533333333333v1.341673333333333C4.702459999999999 3.035993333333333 2.6666666666666665 5.280253333333333 2.6666666666666665 8c0 2.9455333333333336 2.387813333333333 5.333333333333333 5.333333333333333 5.333333333333333 2.719733333333333 0 4.9639999999999995 -2.0358 5.292066666666667 -4.666666666666666h1.3416666666666668c-0.3344666666666667 3.3688666666666665 -3.1768666666666663 6 -6.633733333333333 6 -3.6818999999999997 0 -6.666666666666666 -2.9848 -6.666666666666666 -6.666666666666666 0 -3.4568999999999996 2.63112 -6.299266666666666 6 -6.633746666666667Zm6 2.24322 -5.333333333333333 5.333326666666666L7.0572 8l5.333333333333333 -5.333333333333333H9.333333333333332V1.3333333333333333h5.333333333333333v5.333333333333333h-1.3333333333333333V3.609473333333333Z"></path>
+                </svg>
+                分享
+            </div>
+            <div class="action-btn">
+                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M11.925533333333334 5.651H4.096533333333333c-0.2076 0 -0.4067333333333333 0.08246666666666666 -0.5536 0.22926666666666665 -0.14679999999999999 0.14679999999999999 -0.22926666666666665 0.3459333333333333 -0.22926666666666665 0.5536 0 0.2076 0.08246666666666666 0.40679999999999994 0.22926666666666665 0.5536 0.14686666666666665 0.14679999999999999 0.346 0.22926666666666665 0.5536 0.22926666666666665h7.828999999999999c0.2076 0 0.40679999999999994 -0.08246666666666666 0.5536 -0.22926666666666665s0.22926666666666665 -0.346 0.22926666666666665 -0.5536c0 -0.20766666666666667 -0.08253333333333332 -0.40679999999999994 -0.22926666666666665 -0.5536 -0.14679999999999999 -0.14679999999999999 -0.346 -0.22926666666666665 -0.5536 -0.22926666666666665Zm-3.1315999999999997 3.1315333333333335H4.096533333333333c-0.2076 0 -0.4067333333333333 0.08253333333333332 -0.5536 0.2293333333333333 -0.14679999999999999 0.14679999999999999 -0.22926666666666665 0.3459333333333333 -0.22926666666666665 0.5536 0 0.2076 0.08246666666666666 0.40679999999999994 0.22926666666666665 0.5536 0.14686666666666665 0.14679999999999999 0.346 0.22926666666666665 0.5536 0.22926666666666665h4.6974c0.2076 0 0.40679999999999994 -0.08246666666666666 0.5536 -0.22926666666666665s0.22926666666666665 -0.346 0.22926666666666665 -0.5536c0 -0.20766666666666667 -0.08246666666666666 -0.40679999999999994 -0.22926666666666665 -0.5536s-0.346 -0.2293333333333333 -0.5536 -0.2293333333333333ZM8.011066666666666 0.17066666666666666c-1.0281333333333333 0 -2.0462 0.20253333333333334 -2.9960666666666667 0.596 -0.9498666666666666 0.39339999999999997 -1.8128666666666666 0.9700666666666666 -2.5398666666666667 1.6970666666666665C1.0069333333333332 3.9319333333333333 0.18206666666666665 5.923266666666667 0.18206666666666665 7.999666666666666c-0.006866666666666667 1.8077999999999999 0.6191333333333333 3.561 1.7693333333333332 4.955733333333333L0.3856 14.5212c-0.10859999999999999 0.11006666666666666 -0.18219999999999997 0.24986666666666668 -0.21146666666666664 0.40173333333333333 -0.029266666666666667 0.1519333333333333 -0.012866666666666667 0.30906666666666666 0.04706666666666666 0.4516 0.06506666666666666 0.14086666666666664 0.17046666666666666 0.2592 0.3028666666666666 0.34006666666666663 0.1324 0.08093333333333333 0.28586666666666666 0.12053333333333333 0.44086666666666663 0.114h7.046133333333334c2.0763999999999996 0 4.067666666666666 -0.8248666666666666 5.535933333333333 -2.2929999999999997 1.4681333333333333 -1.4682666666666666 2.2929999999999997 -3.4595333333333333 2.2929999999999997 -5.535933333333333 0 -2.0763999999999996 -0.8248666666666666 -4.067733333333333 -2.2929999999999997 -5.535933333333333C12.078733333333332 0.9955333333333334 10.087466666666666 0.17066666666666666 8.011066666666666 0.17066666666666666Zm0 14.092133333333333h-5.159333333333333l0.7281333333333333 -0.7280666666666666c0.14579999999999999 -0.14673333333333333 0.22759999999999997 -0.34506666666666663 0.22759999999999997 -0.5519333333333333s-0.0818 -0.4052 -0.22759999999999997 -0.5519333333333333c-1.0252 -1.0240666666666667 -1.663533333333333 -2.3718 -1.8064 -3.8136666666666668 -0.14286666666666664 -1.4419333333333333 0.21860000000000002 -2.888733333333333 1.0228666666666666 -4.093999999999999C3.6006 3.318 4.797866666666666 2.4288666666666665 6.184133333333333 2.0073333333333334c1.3862666666666668 -0.42146666666666666 2.8758 -0.34926666666666667 4.2148666666666665 0.2043333333333333 1.3390666666666666 0.5535333333333333 2.444733333333333 1.5543333333333333 3.1286666666666663 2.831666666666666 0.6839333333333333 1.2773999999999999 0.9037999999999999 2.7523999999999997 0.6221333333333333 4.173733333333333 -0.28159999999999996 1.4213333333333333 -1.0473333333333332 2.7009999999999996 -2.166733333333333 3.6210666666666667 -1.1193333333333333 0.9200666666666667 -2.523066666666667 1.4235333333333333 -3.972 1.4246666666666665Z" fill="currentColor" stroke-width="0.6667"></path>
+                </svg>
+                评论
+            </div>
+            <div class="action-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                </svg>
+                赞
+            </div>
+        </div>
+        <div class="more-btn">⋮</div>
+    </div>
+</div>`
+            },
+            {
+                name: '可爱气泡对话',
+                presetSize: '2x2',
+                preview: '#e9ecef',
+                content: `<style>
+    .widget-cute-bubble { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 12px; box-sizing: border-box; font-family: 'Nunito', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: transparent; }
+    .widget-cute-bubble .bubble { display: flex; align-items: center; background-color: #f4f5f7; border-radius: 50px; padding: 6px; width: 100%; box-sizing: border-box; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .widget-cute-bubble .bubble-top { padding-right: 12px; }
+    .widget-cute-bubble .bubble-bottom { padding-left: 12px; justify-content: flex-end; }
+    .widget-cute-bubble .avatar-container { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; overflow: hidden; }
+    .widget-cute-bubble .avatar-grey { background-color: #b3b3b3; margin-right: 8px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' opacity='0.8' d='M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z' transform='scale(0.3) translate(20, 20)'/%3E%3C/svg%3E"); background-size: 12px 12px; }
+    .widget-cute-bubble .avatar-blue { background-color: #eef4fa; margin-left: 8px; background-image: radial-gradient(#c5d6e8 15%, transparent 16%); background-size: 8px 8px; background-position: 0 0, 4px 4px; }
+    .widget-cute-bubble .avatar-inner { width: 100%; height: 100%; background-size: cover; background-position: center; background-repeat: no-repeat; }
+    .widget-cute-bubble .content { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+    .widget-cute-bubble .content-center { align-items: center; text-align: center; }
+    .widget-cute-bubble [contenteditable="true"] { outline: none; border-bottom: 1px dashed transparent; white-space: nowrap; }
+    .widget-cute-bubble .time { font-size: 9px; color: #666666; }
+    .widget-cute-bubble .text { font-size: 11px; color: #4a4a4a; font-weight: 600; }
+    .widget-cute-bubble .text-kaomoji { font-size: 10px; color: #555555; font-weight: 500; }
+</style>
+<div class="widget-cute-bubble">
+    <div class="bubble bubble-top">
+        <div class="avatar-container avatar-grey">
+            <div class="avatar-inner uploadable-img"></div>
+        </div>
+        <div class="content">
+            <div class="time" contenteditable="true" spellcheck="false">2026-07-13 11:12</div>
+            <div class="text" contenteditable="true" spellcheck="false">i luv u &lt;3... ☓ ₊* ♡</div>
+        </div>
+    </div>
+    <div class="bubble bubble-bottom">
+        <div class="content content-center">
+            <div class="text-kaomoji" contenteditable="true" spellcheck="false">- ѡ - ₊⁺ 딩동 ⁺ ₊</div>
+            <div class="text-kaomoji" contenteditable="true" spellcheck="false">✞ ₊ ˚ ʚ행복 확산ɞ ✩ ‧ ₊ ⊖</div>
+        </div>
+        <div class="avatar-container avatar-blue">
+            <div class="avatar-inner uploadable-img"></div>
+        </div>
+    </div>
+</div>`
+            },
+            {
+                name: '双图选择卡片',
+                presetSize: '2x2',
+                preview: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)',
+                content: `<style>
+    .widget-custom-2x2 { width: 100%; height: 100%; background-color: transparent; border-radius: 18px; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .widget-custom-2x2 .widget-title { text-align: center; font-size: 11px; color: #333333; font-weight: 600; margin-top: 4px; letter-spacing: 0.5px; outline: none; white-space: nowrap; overflow: hidden; text-shadow: 0 1px 2px rgba(255,255,255,0.5); }
+    .widget-custom-2x2 .widget-images { display: flex; justify-content: space-between; gap: 8px; flex-grow: 1; margin: 8px 0; }
+    .widget-custom-2x2 .image-item { flex: 1; border-radius: 10px; background-size: cover; background-position: center; background-repeat: no-repeat; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .widget-custom-2x2 .img-left { background-color: #c2d6c6; }
+    .widget-custom-2x2 .img-right { background-color: #dcdcdc; }
+    .widget-custom-2x2 .widget-footer { display: flex; justify-content: center; margin-bottom: 2px; }
+    .widget-custom-2x2 .action-btn { width: 85%; padding: 6px 0; border-radius: 20px; border: 1.5px solid rgba(255, 255, 255, 0.6); background-color: rgba(255, 255, 255, 0.3); color: #333333; font-size: 11px; font-weight: 600; text-align: center; outline: none; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+</style>
+<div class="widget-custom-2x2">
+    <div class="widget-title" contenteditable="true" spellcheck="false">선택해 주십시오.</div>
+    <div class="widget-images">
+        <!-- 加上了 uploadable-img，您的系统会自动接管点击上传 -->
+        <div class="image-item img-left uploadable-img"></div>
+        <div class="image-item img-right uploadable-img"></div>
+    </div>
+    <div class="widget-footer">
+        <div class="action-btn" contenteditable="true" spellcheck="false">사용</div>
+    </div>
 </div>`
             }
 
