@@ -14,26 +14,186 @@
     }
 
     function bindMusicHomeExit(frame) {
-        const homeTitle = frame.contentDocument?.querySelector('#view-home .header h1');
-        if (!homeTitle) return false;
-        if (homeTitle.dataset.musicExitBound === 'true') return true;
+        const doc = frame.contentDocument;
+        if (!doc) return false;
 
-        homeTitle.dataset.musicExitBound = 'true';
-        homeTitle.setAttribute('role', 'button');
-        homeTitle.tabIndex = 0;
-        homeTitle.style.cursor = 'pointer';
-        homeTitle.setAttribute('onclick', 'window.parent.closeMusicApp()');
-        homeTitle.setAttribute('onkeydown', "if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.parent.closeMusicApp(); }");
-        return true;
+        const headers = doc.querySelectorAll('.header h1');
+        if (!headers || headers.length === 0) return false;
+
+        let bound = false;
+        headers.forEach(title => {
+            if (title.dataset.musicExitBound === 'true') {
+                bound = true;
+                return;
+            }
+            title.dataset.musicExitBound = 'true';
+            title.setAttribute('role', 'button');
+            title.tabIndex = 0;
+            title.style.cursor = 'pointer';
+            title.setAttribute('onclick', 'window.parent.closeMusicApp()');
+            title.setAttribute('onkeydown', "if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.parent.closeMusicApp(); }");
+            bound = true;
+        });
+
+        // 动态注入 CSS 修复歌名过长导致间距参差不齐的问题 + 深色模式适配
+        if (!doc.getElementById('music-app-custom-fixes')) {
+            const style = doc.createElement('style');
+            style.id = 'music-app-custom-fixes';
+            style.textContent = `
+                .song-item {
+                    width: 110px !important;
+                    max-width: 110px !important;
+                    overflow: hidden !important;
+                }
+                .song-info {
+                    width: 100% !important;
+                    overflow: hidden !important;
+                }
+                .song-name, .song-artist {
+                    width: 100% !important;
+                    white-space: nowrap !important;
+                    overflow: hidden !important;
+                    text-overflow: ellipsis !important;
+                    display: block !important;
+                }
+                /* 深色模式适配 */
+                body.dark-mode {
+                    --bg-color: #000000;
+                    --text-main: #ffffff;
+                    --text-secondary: #8e8e93;
+                    --glass-bg: rgba(28, 28, 30, 0.5);
+                    --glass-border: rgba(255, 255, 255, 0.1);
+                    --glass-shadow: rgba(0, 0, 0, 0.2);
+                }
+                body.dark-mode .glass-btn {
+                    background: rgba(28, 28, 30, 0.75);
+                    border-color: rgba(255, 255, 255, 0.1);
+                }
+                body.dark-mode .glass-btn svg {
+                    fill: #ffffff;
+                }
+                body.dark-mode .search-bar {
+                    background-color: rgba(255, 255, 255, 0.1);
+                }
+                body.dark-mode .search-bar input {
+                    color: #ffffff;
+                }
+                body.dark-mode .search-type-tabs > div {
+                    background: rgba(255, 255, 255, 0.1) !important;
+                }
+                body.dark-mode .search-tab[style*="background: #fff"],
+                body.dark-mode .search-tab[style*="background: rgb(255, 255, 255)"] {
+                    background: #2c2c2e !important;
+                    color: #ffffff !important;
+                }
+                body.dark-mode .lib-list-item,
+                body.dark-mode .pl-item,
+                body.dark-mode .recent-search-item,
+                body.dark-mode .chart-item,
+                body.dark-mode .playlist-detail-song-item,
+                body.dark-mode .song-item {
+                    border-bottom-color: rgba(255, 255, 255, 0.1);
+                }
+                body.dark-mode .nav-bar {
+                    background: rgba(28, 28, 30, 0.85);
+                    border-color: rgba(255, 255, 255, 0.1);
+                }
+                body.dark-mode .nav-btn-fixed {
+                    background: rgba(28, 28, 30, 0.75);
+                    border-color: rgba(255, 255, 255, 0.1);
+                    color: #ffffff;
+                }
+                body.dark-mode .playlist-detail-btn {
+                    background: rgba(28, 28, 30, 0.75);
+                    border-color: rgba(255, 255, 255, 0.1);
+                    color: var(--theme-active);
+                }
+                body.dark-mode .playlist-bottom-btn {
+                    background: rgba(28, 28, 30, 0.75);
+                    border-color: rgba(255, 255, 255, 0.1);
+                }
+                body.dark-mode .playlist-bottom-btn svg {
+                    fill: #ffffff;
+                }
+                body.dark-mode .playlist-bottom-player-pill {
+                    background: rgba(28, 28, 30, 0.75);
+                    border-color: rgba(255, 255, 255, 0.1);
+                }
+                body.dark-mode .playlist-bottom-title {
+                    color: #ffffff;
+                }
+                body.dark-mode .playlist-bottom-controls svg {
+                    fill: #ffffff;
+                }
+                body.dark-mode .ctrl-playpause svg {
+                    fill: #ffffff;
+                }
+                body.dark-mode .ctrl-next {
+                    fill: #ffffff;
+                }
+                body.dark-mode .modal-content {
+                    background: #1c1c1e;
+                    color: #ffffff;
+                }
+                body.dark-mode .modal-header {
+                    border-bottom-color: rgba(255, 255, 255, 0.1);
+                }
+                body.dark-mode .title-input-wrapper input {
+                    color: #ffffff;
+                }
+                body.dark-mode .title-input-wrapper {
+                    border-bottom-color: rgba(255, 255, 255, 0.1);
+                }
+                body.dark-mode .cover-upload-area {
+                    background: #2c2c2e;
+                }
+                body.dark-mode .song-cover, body.dark-mode .pl-cover {
+                    background-color: #2c2c2e;
+                }
+                body.dark-mode .nav-btn-fixed.circle svg {
+                    fill: #ffffff;
+                }
+                body.dark-mode .nav-btn-fixed.pill svg {
+                    fill: #ffffff;
+                }
+                body.dark-mode .artist-bottom-btn {
+                    background: rgba(28, 28, 30, 0.75);
+                    border-color: rgba(255, 255, 255, 0.1);
+                }
+                body.dark-mode .artist-bottom-btn svg {
+                    fill: #ffffff;
+                }
+                body.dark-mode .artist-bottom-player-pill {
+                    background: rgba(28, 28, 30, 0.75);
+                    border-color: rgba(255, 255, 255, 0.1);
+                }
+                body.dark-mode .artist-bottom-title {
+                    color: #ffffff;
+                }
+                body.dark-mode .artist-bottom-controls svg {
+                    fill: #ffffff;
+                }
+            `;
+            doc.head.appendChild(style);
+        }
+
+        return bound;
     }
 
     window.openMusicApp = function openMusicApp() {
         const { container, frame } = getMusicAppElements();
         if (!container || !frame) return;
 
+        const isDarkMode = document.querySelector('.iphone').classList.contains('dark-mode');
+
         if (!frame.srcdoc) {
             const bindWhenMusicDocumentLoads = () => {
                 if (bindMusicHomeExit(frame)) {
+                    if (isDarkMode) {
+                        frame.contentDocument.body.classList.add('dark-mode');
+                    } else {
+                        frame.contentDocument.body.classList.remove('dark-mode');
+                    }
                     frame.removeEventListener('load', bindWhenMusicDocumentLoads);
                 }
             };
@@ -41,6 +201,11 @@
             frame.srcdoc = decodeMusicAppDocument();
         } else {
             bindMusicHomeExit(frame);
+            if (isDarkMode) {
+                frame.contentDocument.body.classList.add('dark-mode');
+            } else {
+                frame.contentDocument.body.classList.remove('dark-mode');
+            }
         }
         container.classList.add('is-open');
         container.setAttribute('aria-hidden', 'false');
