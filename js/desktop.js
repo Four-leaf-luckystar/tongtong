@@ -170,7 +170,6 @@
                 { name: '音乐', appId: 'placeholder-music', icon: "url('https://nos.netease.com/ysf/44b1b063945538f0ebf2e1670a156958.jpg')" },
                 { name: '厨神驾到', appId: 'placeholder-food', icon: "url('https://bee-reg-ab.imagency.cn/p/f2c483d68ffb62b0d3222572086197f4.png')" },
                 { name: '今日', appId: 'placeholder-today', icon: null },
-                { name: '记忆', appId: 'placeholder-bedtime-book', icon: "url('https://nos.netease.com/ysf/d7efc8377e018aef7b88be373106a333.png')" },
                 { name: '问爻', appId: 'placeholder-yinyang', icon: "url('https://bee-reg-ab.imagency.cn/p/d9b54ca4207d610898fa47fd608a1e4c.png')" },
                 { name: 'B站', appId: 'placeholder-bilibili', icon: "url('https://nos.netease.com/ysf/a113c9347d79566ad7ec58c6dd563c98.png')" }
             ]),
@@ -198,7 +197,6 @@
             'placeholder-food',
             'placeholder-game-center',
             'placeholder-xiangfeng',
-            'placeholder-bedtime-book',
             'placeholder-yinyang'
         ]);
 
@@ -734,7 +732,7 @@
             { index: 5, name: '音乐', appId: 'placeholder-music', icon: iconMap['音乐'] },
             { index: 6, name: '厨神驾到', appId: 'placeholder-food', icon: iconMap['厨神驾到'] },
             { index: 7, name: '今日', appId: 'placeholder-today', icon: iconMap['今日'] },
-            { index: 8, name: '记忆', appId: 'placeholder-bedtime-book', icon: iconMap['记忆'] },
+            { index: 8, name: '记忆', appId: 'memory', icon: iconMap['记忆'] },
             { index: 9, name: '问爻', appId: 'placeholder-yinyang', icon: iconMap['问爻'] },
             { index: 10, name: 'B站', appId: 'placeholder-bilibili', icon: iconMap['B站'] },
             { index: 11, name: '健康', appId: 'placeholder-health', icon: iconMap['健康'] },
@@ -859,8 +857,13 @@
             // show three-dots button; click to expand vertical capsule menu
         let hasSettings = false;
         let hasTheme = false;
+        let repairedMemoryAppId = false;
 
         const checkAndHeal = (app) => {
+            if (app.appId === 'placeholder-bedtime-book' || (!app.appId && app.name === '记忆')) {
+                app.appId = 'memory';
+                repairedMemoryAppId = true;
+            }
             if (app.appId === 'settings') hasSettings = true;
             if (app.appId === 'theme') hasTheme = true;
             // show three-dots button; click to expand vertical capsule menu
@@ -902,6 +905,7 @@
         dockData.forEach(appData => {
             dock.appendChild(createAppElement(appData.name, appData.icon, appData.appId));
         });
+        if (repairedMemoryAppId) saveLayout();
     }
 
     let desktopResizeTimer = null;
@@ -1242,6 +1246,62 @@
     }
     window.openContactsApp = openContactsApp;
 
+    let memoryAppLoadPromise = null;
+
+    function loadMemoryAppScript() {
+        if (window.MemoryApp) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+            const existingScript = document.getElementById('memoryAppScript');
+            if (existingScript) {
+                existingScript.addEventListener('load', resolve, { once: true });
+                existingScript.addEventListener('error', () => reject(new Error('记忆脚本加载失败')), { once: true });
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.id = 'memoryAppScript';
+            script.src = 'js/memory.js?v=20260731-memory-profile-v1';
+            script.onload = resolve;
+            script.onerror = () => {
+                script.remove();
+                reject(new Error('记忆脚本加载失败'));
+            };
+            document.body.appendChild(script);
+        });
+    }
+
+    function loadMemoryApp() {
+        if (window.MemoryApp) return Promise.resolve(window.MemoryApp);
+        if (memoryAppLoadPromise) return memoryAppLoadPromise;
+
+        memoryAppLoadPromise = loadMemoryAppScript()
+            .then(() => {
+                if (!window.MemoryApp) throw new Error('记忆模块未正确初始化');
+                return window.MemoryApp.init().then(() => window.MemoryApp);
+            })
+            .catch(error => {
+                memoryAppLoadPromise = null;
+                throw error;
+            });
+
+        return memoryAppLoadPromise;
+    }
+    window.loadMemoryApp = loadMemoryApp;
+
+    function openMemoryApp() {
+        loadMemoryApp()
+            .then(app => app.open())
+            .catch(error => {
+                console.error('Memory app could not be opened:', error);
+                if (typeof showCustomAlert === 'function') {
+                    showCustomAlert('加载失败', '记忆页面暂时无法打开，请稍后重试。');
+                } else {
+                    alert('记忆页面暂时无法打开，请稍后重试。');
+                }
+            });
+    }
+    window.openMemoryApp = openMemoryApp;
+
     function findDesktopWidgetFrame(sourceWindow) {
         const frames = document.querySelectorAll('#desktopGrid .app-item.is-widget .widget-render-frame');
         for (const frame of frames) {
@@ -1537,6 +1597,8 @@
                     openWechatApp();
                 } else if (appId === 'contacts') {
                     openContactsApp();
+                } else if (appId === 'memory' || appId === 'placeholder-bedtime-book') {
+                    openMemoryApp();
                 } else if (appId === 'placeholder-music') {
                     openMusicApp();
                 }

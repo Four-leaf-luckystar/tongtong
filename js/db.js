@@ -245,7 +245,7 @@
                     { index: 5, name: '音乐', appId: 'placeholder-music', icon: "url('https://nos.netease.com/ysf/44b1b063945538f0ebf2e1670a156958.jpg')" },
                     { index: 6, name: '厨神驾到', appId: 'placeholder-food', icon: "url('https://bee-reg-ab.imagency.cn/p/f2c483d68ffb62b0d3222572086197f4.png')" },
                     { index: 7, name: '今日', appId: 'placeholder-today', icon: null },
-                    { index: 8, name: '记忆', appId: 'placeholder-bedtime-book', icon: "url('https://nos.netease.com/ysf/d7efc8377e018aef7b88be373106a333.png')" },
+                    { index: 8, name: '记忆', appId: 'memory', icon: "url('https://nos.netease.com/ysf/d7efc8377e018aef7b88be373106a333.png')" },
                     { index: 9, name: '问爻', appId: 'placeholder-yinyang', icon: "url('https://bee-reg-ab.imagency.cn/p/d9b54ca4207d610898fa47fd608a1e4c.png')" },
                     { index: 10, name: 'B站', appId: 'placeholder-bilibili', icon: "url('https://nos.netease.com/ysf/a113c9347d79566ad7ec58c6dd563c98.png')" },
                     { index: 11, name: '健康', appId: 'placeholder-health', icon: "url('https://nos.netease.com/ysf/71d2d06f946d0e2edcf1a1db219cc93c.jpg')" },
