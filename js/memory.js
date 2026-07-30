@@ -9,6 +9,9 @@
     const MEMORY_SUMMARIES_KEY = 'memorySummariesV1';
     const CONTACTS_KEY = 'wechatContactsData';
     const CHATS_KEY = 'wechatChatData';
+    const DEFAULT_SUMMARY_INTERVAL = 48;
+    const MIN_SUMMARY_INTERVAL = 8;
+    const MAX_SUMMARY_INTERVAL = 80;
     let root = null;
     let selectedContactId = '';
     let activeTab = 'memory';
@@ -17,6 +20,7 @@
     let cachedMemoryItems = [];
     let cachedOutbox = [];
     let cachedSummaries = [];
+    let summaryIntervalMessages = DEFAULT_SUMMARY_INTERVAL;
     const invalidatedSourceIds = new Set();
 
     function readRecords(keys) {
@@ -106,7 +110,13 @@
     }
 
     function savePreferences() {
-        return writeRecord({ id: PREFERENCES_KEY, selectedContactId });
+        return writeRecord({ id: PREFERENCES_KEY, selectedContactId, summaryIntervalMessages });
+    }
+
+    function normalizeSummaryInterval(value) {
+        const numericValue = Number.parseInt(value, 10);
+        if (!Number.isFinite(numericValue)) return DEFAULT_SUMMARY_INTERVAL;
+        return Math.max(MIN_SUMMARY_INTERVAL, Math.min(MAX_SUMMARY_INTERVAL, numericValue));
     }
 
     function getContactMessages(contactId) {
@@ -232,21 +242,31 @@
     }
 
     function getSummaryJob(bindingId, messages) {
-        const sourceMessages = (Array.isArray(messages) ? messages : [])
+        const allSourceMessages = (Array.isArray(messages) ? messages : [])
             .filter((message) => message && message.id && (message.type === 'sent' || message.type === 'received') && normalizeMemoryText(message.text))
-            .slice(-36)
             .map((message) => ({ id: String(message.id), type: message.type, text: normalizeMemoryText(message.text).slice(0, 240) }));
-        if (sourceMessages.length < 8) return null;
+        if (allSourceMessages.length < summaryIntervalMessages) return null;
 
         const previous = getActiveSummary(bindingId);
-        const previousSourceIds = new Set(previous && Array.isArray(previous.sourceMessageIds) ? previous.sourceMessageIds.map(String) : []);
-        const unseenCount = sourceMessages.filter((message) => !previousSourceIds.has(message.id)).length;
-        if (previous && unseenCount < 8) return null;
+        let newMessageCount = allSourceMessages.length;
+        if (previous) {
+            const lastProcessedIndex = allSourceMessages.findIndex((message) => message.id === previous.lastProcessedMessageId);
+            if (lastProcessedIndex >= 0) {
+                newMessageCount = allSourceMessages.length - lastProcessedIndex - 1;
+            } else {
+                const previousSourceIds = new Set(Array.isArray(previous.sourceMessageIds) ? previous.sourceMessageIds.map(String) : []);
+                newMessageCount = allSourceMessages.filter((message) => !previousSourceIds.has(message.id)).length;
+            }
+        }
+        if (previous && newMessageCount < summaryIntervalMessages) return null;
+
+        const sourceMessages = allSourceMessages.slice(-Math.min(MAX_SUMMARY_INTERVAL, Math.max(summaryIntervalMessages, 48)));
 
         return {
             id: 'summary_job_' + bindingId + '_' + sourceMessages[sourceMessages.length - 1].id,
             bindingId,
             sourceMessages,
+            lastProcessedMessageId: allSourceMessages[allSourceMessages.length - 1].id,
             previousSummary: previous ? {
                 id: previous.id,
                 text: getPromptSummary(bindingId),
@@ -298,6 +318,7 @@
             status: 'active',
             revision: (previous && Number(previous.revision) || 0) + 1,
             sourceMessageIds,
+            lastProcessedMessageId: job.lastProcessedMessageId,
             inputHash: sourceMessageIds.join('|'),
             sections,
             history: priorHistory.slice(0, 20),
@@ -360,7 +381,7 @@
     }
 
     async function preload() {
-        const records = await readRecords([MEMORY_ITEMS_KEY, MEMORY_OUTBOX_KEY, MEMORY_SUMMARIES_KEY]);
+        const records = await readRecords([PREFERENCES_KEY, MEMORY_ITEMS_KEY, MEMORY_OUTBOX_KEY, MEMORY_SUMMARIES_KEY]);
         cachedMemoryItems = Array.isArray(records[MEMORY_ITEMS_KEY] && records[MEMORY_ITEMS_KEY].items)
             ? records[MEMORY_ITEMS_KEY].items.filter((item) => item && item.id && item.bindingId && item.content)
             : [];
@@ -370,6 +391,7 @@
         cachedSummaries = Array.isArray(records[MEMORY_SUMMARIES_KEY] && records[MEMORY_SUMMARIES_KEY].items)
             ? records[MEMORY_SUMMARIES_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sections))
             : [];
+        summaryIntervalMessages = normalizeSummaryInterval(records[PREFERENCES_KEY] && records[PREFERENCES_KEY].summaryIntervalMessages);
         return cachedMemoryItems;
     }
 
@@ -617,6 +639,42 @@
         root.querySelector('[data-memory-composer]').setAttribute('aria-hidden', 'true');
     }
 
+    function openSummarySettings() {
+        if (!root) return;
+        const sheet = root.querySelector('[data-memory-summary-settings]');
+        const input = root.querySelector('[data-memory-summary-interval]');
+        const error = root.querySelector('[data-memory-summary-error]');
+        input.value = String(summaryIntervalMessages);
+        error.textContent = '';
+        root.classList.add('is-configuring-summary');
+        sheet.setAttribute('aria-hidden', 'false');
+        requestAnimationFrame(() => input.focus());
+    }
+
+    function closeSummarySettings() {
+        if (!root) return;
+        root.classList.remove('is-configuring-summary');
+        root.querySelector('[data-memory-summary-settings]').setAttribute('aria-hidden', 'true');
+    }
+
+    async function saveSummarySettings() {
+        const input = root.querySelector('[data-memory-summary-interval]');
+        const error = root.querySelector('[data-memory-summary-error]');
+        const rawValue = Number.parseInt(input.value, 10);
+        if (!Number.isFinite(rawValue) || rawValue < MIN_SUMMARY_INTERVAL || rawValue > MAX_SUMMARY_INTERVAL) {
+            error.textContent = '请输入 ' + MIN_SUMMARY_INTERVAL + ' 到 ' + MAX_SUMMARY_INTERVAL + ' 之间的整数。';
+            input.focus();
+            return;
+        }
+        summaryIntervalMessages = normalizeSummaryInterval(rawValue);
+        const saved = await savePreferences();
+        if (!saved) {
+            error.textContent = '暂时无法保存，请稍后重试。';
+            return;
+        }
+        closeSummarySettings();
+    }
+
     async function saveManualMemory() {
         const input = root.querySelector('[data-memory-composer-input]');
         const error = root.querySelector('[data-memory-composer-error]');
@@ -695,6 +753,8 @@
             ? records[MEMORY_SUMMARIES_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sections))
             : [];
 
+        summaryIntervalMessages = normalizeSummaryInterval(records[PREFERENCES_KEY] && records[PREFERENCES_KEY].summaryIntervalMessages);
+
         const preferredId = records[PREFERENCES_KEY] && records[PREFERENCES_KEY].selectedContactId;
         if (cachedContacts.some((contact) => contact.id === selectedContactId)) {
             // Keep the current in-app selection while refreshing.
@@ -717,6 +777,7 @@
                     <button class="memory-back" type="button" data-memory-action="close" aria-label="返回桌面">‹</button>
                     <div class="memory-header-actions">
                         <button class="memory-switch-role" type="button" data-memory-action="switch-role">切换</button>
+                        <button class="memory-summary-settings-button" type="button" data-memory-action="summary-settings" aria-label="摘要更新频率" title="摘要更新频率">•••</button>
                         <button class="memory-add" type="button" data-memory-action="add" aria-label="新增记忆" title="新增记忆">+</button>
                     </div>
                 </header>
@@ -773,11 +834,28 @@
             </div>`;
         root.appendChild(composer);
 
+        const summarySettings = document.createElement('section');
+        summarySettings.className = 'memory-summary-settings';
+        summarySettings.setAttribute('data-memory-summary-settings', '');
+        summarySettings.setAttribute('aria-hidden', 'true');
+        summarySettings.innerHTML = `
+            <div class="memory-summary-settings-sheet" role="dialog" aria-modal="true" aria-labelledby="memorySummarySettingsTitle">
+                <div class="memory-composer-header"><button type="button" data-memory-action="close-summary-settings">取消</button><h2 id="memorySummarySettingsTitle">摘要更新</h2><button type="button" data-memory-action="save-summary-settings">保存</button></div>
+                <p class="memory-summary-settings-copy">每累计多少条新消息，更新一次近期摘要</p>
+                <label class="memory-summary-settings-input"><input type="number" inputmode="numeric" min="8" max="80" step="1" data-memory-summary-interval><span>条新消息</span></label>
+                <p class="memory-summary-settings-note">可设置 8–80 条。摘要在后台更新，不影响聊天发送。</p>
+                <p class="memory-composer-error" data-memory-summary-error aria-live="polite"></p>
+            </div>`;
+        root.appendChild(summarySettings);
+
         root.querySelectorAll('[data-memory-action="close"]').forEach((button) => button.addEventListener('click', close));
         root.querySelector('[data-memory-action="switch-role"]').addEventListener('click', showRolePicker);
+        root.querySelector('[data-memory-action="summary-settings"]').addEventListener('click', openSummarySettings);
         root.querySelector('[data-memory-action="add"]').addEventListener('click', openComposer);
         root.querySelector('[data-memory-action="close-composer"]').addEventListener('click', closeComposer);
         root.querySelector('[data-memory-action="save-memory"]').addEventListener('click', saveManualMemory);
+        root.querySelector('[data-memory-action="close-summary-settings"]').addEventListener('click', closeSummarySettings);
+        root.querySelector('[data-memory-action="save-summary-settings"]').addEventListener('click', saveSummarySettings);
         root.querySelector('[data-memory-action="open-contacts"]').addEventListener('click', () => {
             close();
             if (typeof window.openContactsApp === 'function') window.openContactsApp();
@@ -791,6 +869,7 @@
         root.addEventListener('keydown', (event) => {
             if (event.key !== 'Escape') return;
             if (root.classList.contains('is-composing')) closeComposer();
+            else if (root.classList.contains('is-configuring-summary')) closeSummarySettings();
             else close();
         });
         const host = document.querySelector('.iphone') || document.body;
@@ -809,6 +888,7 @@
             .memory-back { width: 42px; height: 42px; border: 0; padding: 0 0 5px; border-radius: 50%; background: rgba(255,255,255,.72); color: var(--memory-blue); box-shadow: 0 2px 8px rgba(60,60,67,.08); font: 37px/37px Georgia, serif; cursor: pointer; }
             .memory-header-actions { display: flex; align-items: center; gap: 9px; }
             .memory-switch-role { min-width: 46px; height: 34px; border: 0; border-radius: 17px; padding: 0 11px; background: rgba(255,255,255,.72); color: var(--memory-blue); font: 13px/1 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
+            .memory-summary-settings-button { width: 34px; height: 34px; border: 0; border-radius: 50%; padding: 0 0 6px; background: rgba(255,255,255,.72); color: var(--memory-blue); box-shadow: 0 2px 8px rgba(60,60,67,.08); font: 16px/1 Arial, sans-serif; letter-spacing: 2px; cursor: pointer; }
             .memory-add { width: 34px; height: 34px; border: 0; border-radius: 50%; padding: 0 0 2px; background: var(--memory-blue); color: #fff; box-shadow: 0 4px 10px rgba(28,28,30,.22); font: 25px/30px Arial, sans-serif; cursor: pointer; }
             .memory-profile-main { flex: 1 0 auto; display: flex; flex-direction: column; align-items: center; padding: 24px 0 16px; }
             .memory-avatar-shell { display: grid; width: 150px; height: 150px; padding: 7px; border: 5px solid #d1d1d6; border-radius: 50%; box-sizing: border-box; background: var(--memory-background); box-shadow: 0 3px 10px rgba(60,60,67,.08); }
@@ -870,6 +950,13 @@
             .memory-composer textarea { display: block; width: 100%; min-height: 142px; resize: none; border: 0; border-radius: 14px; padding: 14px; box-sizing: border-box; outline: 0; background: #f2f2f7; color: #1c1c1e; font: 16px/1.6 "Noto Serif SC", "STSong", "SimSun", serif; }
             .memory-composer textarea::placeholder { color: #8e8e93; }
             .memory-composer-error { min-height: 18px; margin: 7px 0 0; color: #ff3b30; font-size: 12px; }
+            .memory-summary-settings { position: absolute; inset: 0; z-index: 5; display: none; align-items: flex-end; background: rgba(0,0,0,.28); }
+            .memory-app-container.is-configuring-summary .memory-summary-settings { display: flex; }
+            .memory-summary-settings-sheet { width: 100%; padding: 14px 20px calc(25px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0; box-sizing: border-box; background: var(--memory-card); box-shadow: 0 -12px 28px rgba(0,0,0,.12); }
+            .memory-summary-settings-copy { margin: 24px 0 12px; color: #1c1c1e; font-size: 16px; line-height: 1.6; }
+            .memory-summary-settings-input { display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 14px; border-radius: 14px; box-sizing: border-box; background: #f2f2f7; color: var(--memory-secondary); font-size: 15px; }
+            .memory-summary-settings-input input { width: 78px; border: 0; padding: 0; outline: 0; background: transparent; color: #1c1c1e; font: 24px/1.2 Georgia, "Noto Serif SC", "STSong", "SimSun", serif; }
+            .memory-summary-settings-note { margin: 11px 0 0; color: var(--memory-secondary); font-size: 13px; line-height: 1.6; }
             @media (max-width: 360px) { .memory-app-scroll, .memory-role-picker { padding-right: 15px; padding-left: 15px; } .memory-avatar-shell { width: 136px; height: 136px; } .memory-name-line h1 { font-size: 28px; } .memory-stats { gap: 9px; } .memory-stats article { min-height: 84px; border-radius: 17px; } .memory-stats b { font-size: 22px; } .memory-content-card { padding-right: 20px; padding-left: 20px; border-radius: 20px; } }
         `;
         document.head.appendChild(style);
@@ -891,6 +978,7 @@
     function close() {
         if (!root) return;
         closeComposer();
+        closeSummarySettings();
         root.classList.remove('is-picking-role');
         root.querySelector('[data-memory-role-picker]').setAttribute('aria-hidden', 'true');
         root.classList.remove('is-open');
