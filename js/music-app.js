@@ -17,23 +17,38 @@
         const doc = frame.contentDocument;
         if (!doc) return false;
 
-        const headers = doc.querySelectorAll('.header h1');
-        if (!headers || headers.length === 0) return false;
+        const homeTitle = doc.querySelector('#view-home .header h1');
+        if (!homeTitle) return false;
 
-        let bound = false;
-        headers.forEach(title => {
-            if (title.dataset.musicExitBound === 'true') {
-                bound = true;
-                return;
-            }
-            title.dataset.musicExitBound = 'true';
-            title.setAttribute('role', 'button');
-            title.tabIndex = 0;
-            title.style.cursor = 'pointer';
-            title.setAttribute('onclick', 'window.parent.closeMusicApp()');
-            title.setAttribute('onkeydown', "if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.parent.closeMusicApp(); }");
-            bound = true;
-        });
+        const closeMusicApp = event => {
+            event.preventDefault();
+            event.stopPropagation();
+            window.closeMusicApp();
+        };
+        if (homeTitle.dataset.musicExitBound !== 'true') {
+            homeTitle.dataset.musicExitBound = 'true';
+            homeTitle.setAttribute('role', 'button');
+            homeTitle.tabIndex = 0;
+            homeTitle.style.cursor = 'pointer';
+            homeTitle.style.touchAction = 'manipulation';
+            homeTitle.addEventListener('click', closeMusicApp);
+            homeTitle.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') closeMusicApp(event);
+            });
+        }
+
+        const lyricsView = doc.getElementById('player-lyrics-view');
+        if (lyricsView && !doc.getElementById('music-lyrics-exit')) {
+            const exitButton = doc.createElement('button');
+            exitButton.id = 'music-lyrics-exit';
+            exitButton.type = 'button';
+            exitButton.className = 'music-lyrics-exit';
+            exitButton.setAttribute('aria-label', '退出音乐');
+            exitButton.title = '退出音乐';
+            exitButton.textContent = '×';
+            exitButton.addEventListener('click', closeMusicApp);
+            lyricsView.appendChild(exitButton);
+        }
 
         // 动态注入 CSS 修复歌名过长导致间距参差不齐的问题 + 深色模式适配
         if (!doc.getElementById('music-app-custom-fixes')) {
@@ -177,7 +192,14 @@
             doc.head.appendChild(style);
         }
 
-        return bound;
+        if (!doc.getElementById('music-lyrics-exit-style')) {
+            const lyricsExitStyle = doc.createElement('style');
+            lyricsExitStyle.id = 'music-lyrics-exit-style';
+            lyricsExitStyle.textContent = '#player-lyrics-view .music-lyrics-exit{position:fixed;left:50%;bottom:max(22px,calc(env(safe-area-inset-bottom,0px) + 14px));z-index:1000;width:48px;height:48px;padding:0;transform:translateX(-50%);border:1px solid rgba(255,255,255,.22);border-radius:50%;background:rgba(255,255,255,.22);color:#fff;font:400 34px/42px -apple-system,BlinkMacSystemFont,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.24);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);touch-action:manipulation;}';
+            doc.head.appendChild(lyricsExitStyle);
+        }
+
+        return true;
     }
 
     window.openMusicApp = function openMusicApp() {

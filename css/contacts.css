@@ -267,8 +267,14 @@
 #contactsAppUI .ct-reference-remove { display: none; color: var(--ct-red); }
 #contactsAppUI .ct-reference-remove.is-visible { display: block; }
 #contactsAppUI .ct-qr-display { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 170px; gap: 10px; color: var(--ct-subtext); font-size: 13px; }
-#contactsAppUI .ct-qr-display #ctQrPreview { display: flex; align-items: center; justify-content: center; width: 86px; height: 86px; border: 1px solid rgba(184, 184, 189, 0.65); border-radius: 6px; overflow: hidden; }
-#contactsAppUI .ct-qr-display img { width: 100%; height: 100%; object-fit: cover; }
+#contactsAppUI .ct-qr-display #ctQrPreview { display: flex; align-items: center; justify-content: center; width: 86px; height: 86px; padding: 0; border: 1px solid rgba(184, 184, 189, 0.65); border-radius: 6px; overflow: hidden; background: #fff; cursor: pointer; }
+#contactsAppUI .ct-qr-display img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+#contactsAppUI .ct-qr-modal { position: absolute; inset: 0; z-index: 240; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(0, 0, 0, 0.42); }
+#contactsAppUI .ct-qr-modal.is-open { display: flex; }
+#contactsAppUI .ct-qr-modal-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 18px; width: min(100%, 340px); padding: 22px; border: 1px solid rgba(255, 255, 255, 0.72); border-radius: 8px; background: rgba(255, 255, 255, 0.96); box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22); }
+#contactsAppUI .ct-qr-modal-card img { display: block; width: min(100%, 286px); aspect-ratio: 1; object-fit: contain; image-rendering: pixelated; }
+#contactsAppUI .ct-qr-modal-close { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border-radius: 50%; color: var(--ct-subtext); font: 400 28px/30px -apple-system, BlinkMacSystemFont, sans-serif; }
+#contactsAppUI .ct-qr-download { min-height: 40px; padding: 0 18px; border-radius: 7px; color: #fff; background: var(--ct-blue); font-size: 14px; font-weight: 650; }
 #contactsAppUI .ct-danger-card { display: none; min-height: 50px; margin: 30px 0 10px; color: var(--ct-red); font-weight: 700; text-align: center; }
 #contactsAppUI .ct-danger-card.is-visible { display: block; }
 

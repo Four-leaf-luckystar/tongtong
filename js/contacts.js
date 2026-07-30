@@ -683,10 +683,10 @@
         });
         const QRCode = await loadQrCodeLibrary();
         const holder = document.createElement('div');
-        holder.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:256px;height:256px;';
+        holder.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1024px;height:1024px;';
         document.body.appendChild(holder);
         try {
-            new QRCode(holder, { text: payload, width: 320, height: 320, correctLevel: QRCode.CorrectLevel.H });
+            new QRCode(holder, { text: payload, width: 1024, height: 1024, correctLevel: QRCode.CorrectLevel.M });
             const image = holder.querySelector('img');
             if (image?.src) return image.src;
             const canvas = holder.querySelector('canvas');
@@ -1143,6 +1143,48 @@
         }
     }
 
+    function closeQrPreview() {
+        const modal = el('#ctQrModal');
+        if (!modal) return;
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function openQrPreview() {
+        const qrCode = contactDraft?.security?.qrCode;
+        if (!qrCode) {
+            showToast('请先生成专属二维码');
+            return;
+        }
+        let modal = el('#ctQrModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'ctQrModal';
+            modal.className = 'ct-qr-modal';
+            modal.setAttribute('role', 'dialog');
+            modal.setAttribute('aria-modal', 'true');
+            modal.setAttribute('aria-label', '专属二维码');
+            modal.setAttribute('aria-hidden', 'true');
+            modal.innerHTML = '<div class="ct-qr-modal-card"><button class="ct-qr-modal-close" type="button" aria-label="关闭二维码">×</button><img alt="专属二维码高清预览"><button class="ct-qr-download" type="button">保存二维码</button></div>';
+            modal.addEventListener('click', event => {
+                if (event.target === modal) closeQrPreview();
+            });
+            modal.querySelector('.ct-qr-modal-close').addEventListener('click', closeQrPreview);
+            modal.querySelector('.ct-qr-download').addEventListener('click', () => {
+                const link = document.createElement('a');
+                link.href = modal.querySelector('img').src;
+                link.download = (contactDraft?.name || 'contact') + '-qr.png';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            });
+            root.appendChild(modal);
+        }
+        modal.querySelector('img').src = qrCode;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+
     function resetPasswordVisibility() {
         all('.ct-password-toggle').forEach(button => {
             const input = el('#' + button.dataset.target);
@@ -1431,6 +1473,7 @@
             case 'save-contact': saveContact(); break;
             case 'switch-section': switchEditorSection(actionElement.dataset.section); break;
             case 'toggle-password': togglePassword(actionElement); break;
+            case 'open-qr-preview': openQrPreview(); break;
             case 'choose-group': syncContactDraft(); openGroupSelect(); break;
             case 'choose-worldbooks': syncContactDraft(); openPicker('worldbook'); break;
             case 'open-voice': syncContactDraft(); showPage('voice', 'forward'); break;

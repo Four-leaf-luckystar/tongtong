@@ -1083,7 +1083,7 @@
             transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             overflow: hidden; /* 新增：防止整个页面被水平拖动 */
         }
-        #themeAppUI .widget-content-area { flex: 1; position: relative; overflow: hidden; }
+        #themeAppUI .widget-content-area { flex: 1; min-height: 0; position: relative; overflow: hidden; }
         /* 分段控件 */
         #themeAppUI .widget-segment-control { position: relative; display: flex; background: rgba(118,118,128,0.12); border-radius: 9px; padding: 2px; margin: 16px 20px 12px; height: 32px; flex-shrink: 0; }
         #themeAppUI .widget-segment-indicator { position: absolute; top: 2px; left: 2px; width: calc(50% - 2px); height: calc(100% - 4px); background: #fff; border-radius: 7px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 1; }
@@ -1107,7 +1107,7 @@
         #themeAppUI .widget-pagination .widget-dot { width: 6px; height: 6px; border-radius: 50%; background-color: #d1d1d6; transition: background-color 0.3s; }
         #themeAppUI .widget-pagination .widget-dot.active { background-color: #000; }
         /* 垂直列表 */
-        #themeAppUI .widget-list-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; padding: 0 20px 20px; display: flex; flex-direction: column; gap: 12px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        #themeAppUI .widget-list-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; box-sizing: border-box; padding: 0 20px 104px; scroll-padding-bottom: 104px; overscroll-behavior: contain; touch-action: pan-y; display: flex; flex-direction: column; gap: 12px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         #themeAppUI .widget-list-container::-webkit-scrollbar { display: none; }
         #themeAppUI .widget-list-item { background: #fff; border-radius: 20px; padding: 16px; display: flex; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); transition: transform 0.2s; position: relative; overflow: hidden; }
         #themeAppUI .widget-list-item:active { transform: scale(0.98); }

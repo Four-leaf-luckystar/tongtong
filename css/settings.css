@@ -455,4 +455,4 @@
         .ds-diagnostic-btn:active { transform: scale(0.98); opacity: 0.86; }
 
         /* ===== Widget 小组件库 (作用域: #themeAppUI 内, 前缀隔离) ===== */
-        #themeAppUI .widget-app-container { flex: 1; display: flex; flex-direction: column; position: relative; height: 100%; padding-bottom: 90px; }
+        #themeAppUI .widget-app-container { flex: 1; display: flex; flex-direction: column; position: relative; width: 100%; height: 100%; min-height: 0; padding-bottom: 0; box-sizing: border-box; }

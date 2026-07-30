@@ -23,14 +23,14 @@
     <!-- Web App Manifest -->
     <link rel="manifest" href="manifest.json">
         <link rel="stylesheet" href="css/base.css?v=20260728-desktop-swipe-drag-fix">
-    <link rel="stylesheet" href="css/theme-app.css?v=20260726-ios-widget-layout1">
-    <link rel="stylesheet" href="css/settings.css">
+    <link rel="stylesheet" href="css/theme-app.css?v=20260730-widget-list-scroll-v1">
+    <link rel="stylesheet" href="css/settings.css?v=20260730-widget-list-scroll-v1">
     <link rel="stylesheet" href="css/worldbook.css">
     <link rel="stylesheet" href="css/wechat.css?v=20260730-file-attachments1">
-    <link rel="stylesheet" href="css/contacts.css" id="contactsAppStyles">
+    <link rel="stylesheet" href="css/contacts.css?v=20260730-qr-password-v1" id="contactsAppStyles">
     <link rel="stylesheet" href="css/dialogs.css">
     <link rel="stylesheet" href="css/dark-mode.css">
-    <link rel="stylesheet" href="css/music-app.css?v=20260729-embedded-v1">
+    <link rel="stylesheet" href="css/music-app.css?v=20260730-home-lyrics-exit-v1">
 
 </head>
 <body>
@@ -3319,13 +3319,13 @@ fill="currentColor" viewBox="0 0 24 24" >
                     <div class="ct-settings-card ct-form-card">
                         <label><span>账号</span><input id="ctSecurityAccount" type="text" autocomplete="off" placeholder="输入账号"></label>
                         <label><span>手机号</span><input id="ctSecurityPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="输入手机号"></label>
-                        <label><span>密码</span><input id="ctSecurityPassword" type="password" autocomplete="new-password" placeholder="输入密码"></label>
-                        <label><span>支付密码</span><input id="ctSecurityPayment" type="password" inputmode="numeric" autocomplete="off" placeholder="输入支付密码"></label>
-                        <label><span>锁屏密码</span><input id="ctSecurityLock" type="password" inputmode="numeric" autocomplete="off" placeholder="输入锁屏密码"></label>
+                        <label><span>密码</span><input id="ctSecurityPassword" type="password" autocomplete="new-password" placeholder="输入密码"><button class="ct-password-toggle" type="button" data-action="toggle-password" data-target="ctSecurityPassword" aria-label="显示密码" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/><path class="ct-password-slash" d="m4 4 16 16"/></svg></button></label>
+                        <label><span>支付密码</span><input id="ctSecurityPayment" type="password" inputmode="numeric" autocomplete="off" placeholder="输入支付密码"><button class="ct-password-toggle" type="button" data-action="toggle-password" data-target="ctSecurityPayment" aria-label="显示支付密码" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/><path class="ct-password-slash" d="m4 4 16 16"/></svg></button></label>
+                        <label><span>锁屏密码</span><input id="ctSecurityLock" type="password" inputmode="numeric" autocomplete="off" placeholder="输入锁屏密码"><button class="ct-password-toggle" type="button" data-action="toggle-password" data-target="ctSecurityLock" aria-label="显示锁屏密码" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/><path class="ct-password-slash" d="m4 4 16 16"/></svg></button></label>
                     </div>
                     <div class="ct-section-label">专属二维码</div>
                     <div class="ct-settings-card ct-qr-display">
-                        <span id="ctQrPreview"></span><span>由 API 生成</span>
+                        <button id="ctQrPreview" type="button" data-action="open-qr-preview" aria-label="放大专属二维码"></button><span>由 API 生成</span>
                     </div>
                 </section>
 
@@ -3472,7 +3472,7 @@ fill="currentColor" viewBox="0 0 24 24" >
 <script src="js/utils.js"></script>
 <script src="js/db.js?v=20260728-placeholder-app-icons-v2"></script>
 <script src="js/desktop.js?v=20260729-continuous-drag-v1"></script>
-<script src="js/music-app.js?v=20260730-home-exit-v3"></script>
+<script src="js/music-app.js?v=20260730-home-lyrics-exit-v4"></script>
 <script src="js/theme-app.js?v=20260727-adaptive-desktop-rows"></script>
 
 <script src="fullscreen.js"></script>
