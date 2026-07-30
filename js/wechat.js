@@ -5565,15 +5565,18 @@
 
                 // 创建临时流式气泡
                 const streamMsgId = 'stream_' + Date.now();
+                const avatarContent = wcGetSafeImageUrl(contact?.avatar) ? '' : getWcDefaultAvatarSvg();
                 const streamHtml = `
                     <div class="message-row received" id="${streamMsgId}">
-                        <div class="msg-avatar" style="background-image: ${avatarUrl}; background-color: transparent;">${avatarContent}</div>
+                        <div class="msg-avatar" style="background-color: transparent;">${avatarContent}</div>
                         <div class="message-bubble received tail">
                             <div class="msg-text" id="${streamMsgId}_text">...</div>
                         </div>
                     </div>
                 `;
                 chatArea.insertAdjacentHTML('beforeend', streamHtml);
+                const streamAvatar = document.getElementById(streamMsgId)?.querySelector('.msg-avatar');
+                if (streamAvatar) wcApplyAvatarBackground(streamAvatar, contact?.avatar);
                 const streamTextEl = document.getElementById(`${streamMsgId}_text`);
                 wcScrollToBottom();
 
