@@ -195,38 +195,39 @@
         root.setAttribute('aria-hidden', 'true');
         root.innerHTML = `
             <div class="memory-app-scroll">
-                <header class="memory-cover" aria-hidden="true">
-                    <span class="memory-cover-shape memory-cover-shape-a"></span>
-                    <span class="memory-cover-shape memory-cover-shape-b"></span>
-                    <span class="memory-cover-shape memory-cover-shape-c"></span>
-                    <span class="memory-cover-line memory-cover-line-a"></span>
-                    <span class="memory-cover-line memory-cover-line-b"></span>
-                </header>
-                <main class="memory-paper">
+                <header class="memory-profile-header">
                     <button class="memory-back" type="button" data-memory-action="close" aria-label="返回桌面">‹</button>
-                    <div class="memory-avatar" data-memory-avatar><img data-memory-avatar-image alt=""><span data-memory-monogram>记</span></div>
+                    <span class="memory-local-badge">本地档案</span>
+                </header>
+                <main class="memory-profile-main">
+                    <div class="memory-avatar-shell">
+                        <div class="memory-avatar" data-memory-avatar><img data-memory-avatar-image alt=""><span data-memory-monogram>记</span></div>
+                    </div>
                     <div class="memory-heading">
                         <div class="memory-name-line"><h1 data-memory-name>记忆</h1><span data-memory-status>读取中</span></div>
                         <p data-memory-subtitle>正在读取本地档案。</p>
                     </div>
                     <div class="memory-contact-selector" data-memory-contact-selector hidden aria-label="选择角色"></div>
                     <section class="memory-stats" aria-label="记忆统计">
-                        <div><b data-memory-count>0</b><span>记忆总条数</span></div>
-                        <div><b data-memory-chat-count>0</b><span>共同对话</span></div>
-                        <div><b data-memory-days>0</b><span>认识天数</span></div>
+                        <article><b data-memory-count>0</b><span>记忆总条数</span></article>
+                        <article><b data-memory-chat-count>0</b><span>共同对话</span></article>
+                        <article><b data-memory-days>0</b><span>认识天数</span></article>
                     </section>
-                    <div class="memory-tabs" role="tablist" aria-label="记忆视图">
-                        <button type="button" data-memory-tab="memory" class="is-active" role="tab" aria-selected="true">记忆</button>
-                        <button type="button" data-memory-tab="relationship" role="tab" aria-selected="false">关系</button>
-                        <button type="button" data-memory-tab="fragment" role="tab" aria-selected="false">片段</button>
-                        <button type="button" data-memory-tab="archive" role="tab" aria-selected="false">档案</button>
-                    </div>
-                    <section class="memory-empty-state">
-                        <span class="memory-empty-mark">✦</span>
-                        <h2 data-memory-empty-title>正在读取</h2>
-                        <p data-memory-empty-text>正在读取本地档案。</p>
+                    <section class="memory-content-card">
+                        <div class="memory-card-kicker">@ memory</div>
+                        <div class="memory-empty-state">
+                            <span class="memory-empty-mark">✦</span>
+                            <h2 data-memory-empty-title>正在读取</h2>
+                            <p data-memory-empty-text>正在读取本地档案。</p>
+                        </div>
                     </section>
                 </main>
+                <nav class="memory-tabs" role="tablist" aria-label="记忆视图">
+                    <button type="button" data-memory-tab="memory" class="is-active" role="tab" aria-selected="true">记忆</button>
+                    <button type="button" data-memory-tab="relationship" role="tab" aria-selected="false">关系</button>
+                    <button type="button" data-memory-tab="fragment" role="tab" aria-selected="false">片段</button>
+                    <button type="button" data-memory-tab="archive" role="tab" aria-selected="false">档案</button>
+                </nav>
             </div>`;
 
         root.querySelector('[data-memory-action="close"]').addEventListener('click', close);
@@ -248,49 +249,41 @@
         const style = document.createElement('style');
         style.id = 'memoryAppStyles';
         style.textContent = `
-            .memory-app-container { position: absolute; inset: 0; z-index: 7200; display: none; overflow: hidden; background: #efeee8; color: #20201d; font-family: "Noto Serif SC", "STSong", "SimSun", serif; }
+            .memory-app-container { position: absolute; inset: 0; z-index: 7200; display: none; overflow: hidden; background: #ececec; color: #20201d; font-family: "Noto Serif SC", "STSong", "SimSun", serif; }
             .memory-app-container.is-open { display: block; }
-            .memory-app-scroll { height: 100%; overflow-y: auto; overscroll-behavior: contain; background: #efeee8; }
-            .memory-cover { position: relative; height: 190px; overflow: hidden; background: #9b9c90; }
-            .memory-cover::before, .memory-cover::after { content: ""; position: absolute; background: #c4c4b7; transform: rotate(-12deg); }
-            .memory-cover::before { width: 210px; height: 190px; top: 18px; left: -25px; }
-            .memory-cover::after { width: 220px; height: 200px; top: -54px; right: -52px; background: #6e7068; transform: rotate(15deg); }
-            .memory-cover-shape { position: absolute; display: block; z-index: 1; }
-            .memory-cover-shape-a { width: 76px; height: 76px; border-radius: 50%; top: 42px; left: 43%; background: #d9d9cc; }
-            .memory-cover-shape-b { width: 105px; height: 137px; bottom: -58px; right: 28px; border: 13px solid #dad9cf; transform: rotate(-9deg); }
-            .memory-cover-shape-c { width: 140px; height: 62px; left: 18px; bottom: -23px; background: #84877d; transform: rotate(17deg); }
-            .memory-cover-line { position: absolute; z-index: 2; display: block; width: 1px; height: 250px; background: rgba(36, 38, 34, .68); transform-origin: top; }
-            .memory-cover-line-a { top: -44px; left: 50%; transform: rotate(-43deg); }
-            .memory-cover-line-b { top: 10px; right: 62px; background: rgba(244, 244, 235, .85); transform: rotate(22deg); }
-            .memory-paper { position: relative; z-index: 1; min-height: calc(100% - 190px); padding: 0 24px calc(34px + env(safe-area-inset-bottom)); background: #fdfcf8; }
-            .memory-back { position: absolute; top: 18px; right: 18px; width: 34px; height: 34px; border: 0; padding: 0 0 4px; border-radius: 50%; background: rgba(255,255,255,.72); color: #292925; font: 31px/30px Georgia, serif; cursor: pointer; }
-            .memory-avatar { position: absolute; z-index: 2; top: -40px; left: 24px; width: 76px; height: 76px; border: 4px solid #fdfcf8; border-radius: 50%; overflow: hidden; box-sizing: border-box; background: #dbd5c9; box-shadow: 0 5px 12px rgba(30, 30, 25, .13); display: grid; place-items: center; color: #5b534a; font-size: 30px; font-weight: 700; }
+            .memory-app-scroll { box-sizing: border-box; display: flex; flex-direction: column; height: 100%; min-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding: max(13px, env(safe-area-inset-top)) 20px calc(18px + env(safe-area-inset-bottom)); background: #ececec; }
+            .memory-profile-header { display: flex; align-items: center; justify-content: space-between; min-height: 46px; }
+            .memory-back { width: 42px; height: 42px; border: 0; padding: 0 0 5px; border-radius: 50%; background: rgba(255,255,255,.52); color: #202020; box-shadow: 0 2px 7px rgba(0,0,0,.035); font: 37px/37px Georgia, serif; cursor: pointer; }
+            .memory-local-badge { padding: 9px 14px; border-radius: 999px; background: rgba(255,255,255,.5); color: #878787; font-size: 12px; line-height: 1; }
+            .memory-profile-main { flex: 1 0 auto; display: flex; flex-direction: column; align-items: center; padding: 24px 0 16px; }
+            .memory-avatar-shell { display: grid; width: 150px; height: 150px; padding: 7px; border: 5px solid #c9c9cb; border-radius: 50%; box-sizing: border-box; background: #ececec; box-shadow: 0 3px 10px rgba(0,0,0,.04); }
+            .memory-avatar { width: 100%; height: 100%; border: 3px solid #f7f7f7; border-radius: 50%; overflow: hidden; box-sizing: border-box; background: #d9d5cd; display: grid; place-items: center; color: #5a544d; font-size: 43px; font-weight: 700; }
             .memory-avatar img { display: none; width: 100%; height: 100%; object-fit: cover; }
             .memory-avatar.has-image img { display: block; }
             .memory-avatar.has-image span { display: none; }
-            .memory-heading { padding-top: 58px; }
-            .memory-name-line { display: flex; align-items: center; gap: 10px; min-width: 0; }
-            .memory-name-line h1 { margin: 0; max-width: 75%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 29px; line-height: 1.25; font-weight: 700; letter-spacing: 0; }
-            .memory-name-line span { padding: 5px 9px; border-radius: 999px; background: #efefeb; color: #77766e; font-family: "Noto Serif SC", "STSong", "SimSun", serif; font-size: 12px; line-height: 1; white-space: nowrap; }
-            .memory-heading p { margin: 7px 0 0; color: #77766f; font-size: 13px; line-height: 1.6; }
-            .memory-contact-selector { display: flex; gap: 7px; margin: 17px 0 0; overflow-x: auto; scrollbar-width: none; }
+            .memory-heading { width: 100%; margin-top: 23px; text-align: center; }
+            .memory-name-line { display: flex; align-items: center; justify-content: center; gap: 10px; min-width: 0; }
+            .memory-name-line h1 { margin: 0; max-width: 68%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 32px; line-height: 1.25; font-weight: 700; letter-spacing: 0; }
+            .memory-name-line span { padding: 5px 9px; border-radius: 999px; background: rgba(255,255,255,.56); color: #858585; font-family: "Noto Serif SC", "STSong", "SimSun", serif; font-size: 12px; line-height: 1; white-space: nowrap; }
+            .memory-heading p { margin: 8px 0 0; color: #aaa9aa; font-size: 14px; line-height: 1.55; }
+            .memory-contact-selector { display: flex; max-width: 100%; gap: 7px; margin: 17px 0 0; overflow-x: auto; scrollbar-width: none; }
             .memory-contact-selector::-webkit-scrollbar { display: none; }
-            .memory-contact-chip { flex: 0 0 auto; border: 0; border-radius: 999px; padding: 6px 10px; background: #efeee9; color: #77766e; font: 12px/1.2 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
-            .memory-contact-chip.is-active { background: #292925; color: #fffefa; }
-            .memory-stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 24px; padding: 17px 0 16px; border-top: 1px solid #e2e0d8; border-bottom: 1px solid #e2e0d8; }
-            .memory-stats div { min-width: 0; padding-left: 10px; border-left: 1px solid #e2e0d8; }
-            .memory-stats div:first-child { padding-left: 0; border-left: 0; }
-            .memory-stats b { display: block; font-size: 23px; line-height: 1.1; font-variant-numeric: tabular-nums; }
-            .memory-stats span { display: block; margin-top: 7px; color: #77766f; font-size: 11px; white-space: nowrap; }
-            .memory-tabs { display: flex; gap: 24px; border-bottom: 1px solid #e2e0d8; }
-            .memory-tabs button { position: relative; height: 54px; border: 0; padding: 0; background: transparent; color: #8a8982; font: 14px/1 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
-            .memory-tabs button.is-active { color: #252521; font-weight: 700; }
-            .memory-tabs button.is-active::after { content: ""; position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: #252521; }
-            .memory-empty-state { display: grid; justify-items: center; padding: 78px 20px 60px; text-align: center; }
-            .memory-empty-mark { color: #aaa99f; font-size: 22px; line-height: 1; }
-            .memory-empty-state h2 { margin: 21px 0 0; font-size: 23px; line-height: 1.45; font-weight: 700; letter-spacing: 0; }
-            .memory-empty-state p { max-width: 230px; margin: 9px 0 0; color: #85847c; font-size: 14px; line-height: 1.75; }
-            @media (max-width: 360px) { .memory-paper { padding-right: 19px; padding-left: 19px; } .memory-avatar { left: 19px; } .memory-tabs { gap: 18px; } .memory-stats b { font-size: 21px; } }
+            .memory-contact-chip { flex: 0 0 auto; border: 0; border-radius: 999px; padding: 7px 11px; background: rgba(255,255,255,.6); color: #858585; font: 12px/1.2 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
+            .memory-contact-chip.is-active { background: #242424; color: #fff; }
+            .memory-stats { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; gap: 12px; margin-top: 28px; }
+            .memory-stats article { display: grid; min-width: 0; min-height: 92px; place-content: center; padding: 10px 6px; border-radius: 24px; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.025); text-align: center; }
+            .memory-stats b { display: block; font-size: 25px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+            .memory-stats span { display: block; margin-top: 9px; color: #898989; font-size: 11px; white-space: nowrap; }
+            .memory-content-card { display: flex; flex: 1 0 300px; flex-direction: column; width: 100%; min-height: 300px; margin-top: 23px; padding: 25px 25px 30px; border-radius: 34px; box-sizing: border-box; background: #fff; box-shadow: 0 10px 24px rgba(0,0,0,.025); }
+            .memory-card-kicker { color: #b0afb0; font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 0; }
+            .memory-empty-state { display: grid; flex: 1; align-content: center; justify-items: center; padding: 36px 12px; text-align: center; }
+            .memory-empty-mark { color: #a7a6a7; font-size: 22px; line-height: 1; }
+            .memory-empty-state h2 { margin: 20px 0 0; font-size: 25px; line-height: 1.45; font-weight: 700; letter-spacing: 0; }
+            .memory-empty-state p { max-width: 240px; margin: 9px 0 0; color: #929192; font-size: 14px; line-height: 1.75; }
+            .memory-tabs { position: sticky; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); width: 100%; margin: 8px 0 0; padding: 6px; border-radius: 28px; box-sizing: border-box; background: rgba(255,255,255,.94); box-shadow: 0 7px 20px rgba(0,0,0,.035); }
+            .memory-tabs button { height: 44px; border: 0; border-radius: 22px; padding: 0; background: transparent; color: #8c8b8c; font: 14px/1 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
+            .memory-tabs button.is-active { background: #f0f0f0; color: #232323; font-weight: 700; }
+            @media (max-width: 360px) { .memory-app-scroll { padding-right: 15px; padding-left: 15px; } .memory-avatar-shell { width: 136px; height: 136px; } .memory-name-line h1 { font-size: 28px; } .memory-stats { gap: 9px; } .memory-stats article { min-height: 84px; border-radius: 21px; } .memory-stats b { font-size: 22px; } .memory-content-card { padding-right: 20px; padding-left: 20px; border-radius: 28px; } }
         `;
         document.head.appendChild(style);
     }
