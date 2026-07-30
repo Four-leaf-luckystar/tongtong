@@ -72,6 +72,13 @@
                     display: block !important;
                 }
                 /* 深色模式适配 */
+                /* Keep the detail block close to the fixed playback controls. */
+                .full-player .player-drag-handle {
+                    margin-top: 20px;
+                }
+                .full-player #player-main-view {
+                    padding-top: 60px;
+                }
                 body.dark-mode {
                     --bg-color: #000000;
                     --text-main: #ffffff;
