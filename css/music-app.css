@@ -18,3 +18,8 @@
     border: 0;
     background: #ffffff;
 }
+
+.iphone.dark-mode .music-app-container,
+.iphone.dark-mode .music-app-frame {
+    background: #000000;
+}
