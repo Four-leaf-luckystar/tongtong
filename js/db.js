@@ -47,6 +47,76 @@
             ? wbGroups.filter(group => group && group.id).map(group => ({ id: group.id, name: group.name }))
             : [];
     };
+    window.importCharacterWorldbook = function (cardName, characterBook) {
+        const entries = Array.isArray(characterBook?.entries) ? characterBook.entries : [];
+        const usableEntries = entries
+            .map((entry, index) => normalizeCharacterWorldbookEntry(entry, index))
+            .filter(Boolean);
+        if (!usableEntries.length) return { groupId: null, entryIds: [] };
+
+        const now = Date.now();
+        const safeName = String(characterBook?.name || cardName || '角色卡世界书').trim() || '角色卡世界书';
+        const groupId = 'g_card_' + now + '_' + Math.random().toString(36).slice(2, 8);
+        const group = { id: groupId, name: safeName, isPinned: false };
+        wbGroups.push(group);
+
+        const entryIds = usableEntries.map((entry, index) => {
+            const id = 'e_card_' + now + '_' + index + '_' + Math.random().toString(36).slice(2, 8);
+            wbEntries.push({
+                id,
+                groupId,
+                title: entry.title,
+                key: entry.key,
+                content: entry.content,
+                isGlobal: false,
+                position: entry.position,
+                depth: entry.depth,
+                isPinned: false,
+                isDeleted: false,
+                updateTime: now
+            });
+            return id;
+        });
+
+        saveWorldbookData();
+        if (typeof window.wbRenderAll === 'function') window.wbRenderAll();
+        return { groupId, entryIds };
+    };
+
+    function normalizeCharacterWorldbookEntry(entry, index) {
+        if (!entry || typeof entry !== 'object') return null;
+        if (entry.enabled === false) return null;
+        const content = String(entry.content || '').trim();
+        if (!content) return null;
+
+        const title = String(entry.comment || entry.name || entry.title || ('世界书条目 ' + (index + 1))).trim().slice(0, 80);
+        const extensions = entry.extensions && typeof entry.extensions === 'object' ? entry.extensions : {};
+        const keySource = Array.isArray(entry.keys) ? entry.keys : (Array.isArray(entry.key) ? entry.key : [entry.key]);
+        const secondarySource = Array.isArray(entry.secondary_keys) ? entry.secondary_keys : [];
+        const keys = entry.constant === true
+            ? []
+            : keySource.concat(secondarySource).map(key => String(key || '').trim()).filter(Boolean);
+
+        return {
+            title: title || ('世界书条目 ' + (index + 1)),
+            key: keys.join(','),
+            content,
+            position: normalizeCharacterWorldbookPosition(entry.position ?? extensions.position),
+            depth: normalizeCharacterWorldbookDepth(entry.depth ?? extensions.depth)
+        };
+    }
+
+    function normalizeCharacterWorldbookPosition(value) {
+        const text = String(value ?? '').toLowerCase();
+        if (text.includes('before') || text.includes('前') || (value !== '' && value != null && Number(value) === 0)) return '前置 (Before)';
+        return '后置 (After)';
+    }
+
+    function normalizeCharacterWorldbookDepth(value) {
+        const depth = Number.parseInt(value, 10);
+        if (!Number.isFinite(depth) || depth < 0) return 4;
+        return String(Math.min(depth, 99));
+    }
    let apiDataList = [];
    let apiConnectedId = null;
     let voiceDataList = [];

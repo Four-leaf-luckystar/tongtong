@@ -1470,6 +1470,7 @@
     function normalizeSillyTavernCard(payload, fileName) {
         const { data } = parseCardJsonPayload(payload);
         const name = String(pickCardValue(data, ['name', 'char_name', 'character_name']) || '').trim();
+        const characterBook = data.character_book && typeof data.character_book === 'object' ? data.character_book : null;
         const sections = [
             ['角色设定', pickCardValue(data, ['description', 'persona', 'char_persona'])],
             ['性格', pickCardValue(data, ['personality'])],
@@ -1488,7 +1489,22 @@
             .filter(Boolean)
             .join('\n\n');
         if (!name && !persona) throw new Error('未找到可导入的角色数据');
-        return { name: name || inferImportedName('', fileName), persona: persona || name };
+        return { name: name || inferImportedName('', fileName), persona: persona || name, characterBook };
+    }
+
+    function importCardWorldbook(importedCard) {
+        if (!importedCard?.characterBook || !contactDraft) return 0;
+        if (typeof window.importCharacterWorldbook !== 'function') {
+            console.warn('Character card worldbook importer is unavailable.');
+            return 0;
+        }
+        const result = window.importCharacterWorldbook(importedCard.name, importedCard.characterBook);
+        const entryIds = Array.isArray(result?.entryIds) ? result.entryIds.filter(Boolean) : [];
+        if (!entryIds.length) return 0;
+        const existing = Array.isArray(contactDraft.worldbookIds) ? contactDraft.worldbookIds : [];
+        contactDraft.worldbookIds = Array.from(new Set(existing.concat(entryIds)));
+        updateWorldbookStatus();
+        return entryIds.length;
     }
 
     function readSillyTavernPng(buffer, fileName) {
@@ -1548,7 +1564,11 @@
                         console.warn('Character card avatar could not be loaded:', avatarError);
                     }
                 }
-                showToast(importedCard.persona.length > persona.length ? '已导入，超出 10000 字的内容已截断' : '已导入角色卡');
+                const importedWorldbookCount = importCardWorldbook(importedCard);
+                const clipped = importedCard.persona.length > persona.length;
+                showToast(importedWorldbookCount
+                    ? (clipped ? '已导入角色卡与世界书，人设已截断' : '已导入角色卡与世界书')
+                    : (clipped ? '已导入，超出 10000 字的内容已截断' : '已导入角色卡'));
                 return;
             }
 
