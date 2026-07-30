@@ -32,20 +32,24 @@
             
             const appName = nameEl.innerText;
             const appIcon = iconEl.style.backgroundImage;
+            const appId = appEl.getAttribute('data-app-id');
+            const iconHTML = iconEl.innerHTML;
             
             // show three-dots button; click to expand vertical capsule menu
             currentEditingApps.push({
                 element: appEl,
                 originalName: appName,
                 currentName: appName,
-                currentIcon: appIcon
+                currentIcon: appIcon,
+                appId: appId,
+                iconHTML: iconHTML
             });
 
-            renderThemeAppCard(appName, appIcon, index);
+            renderThemeAppCard(appName, appIcon, index, appId, iconHTML);
         });
     }
 
-    function renderThemeAppCard(name, icon, index) {
+    function renderThemeAppCard(name, icon, index, appId, iconHTML) {
         const card = document.createElement('div');
         card.className = 'theme-app-card';
         
@@ -72,6 +76,10 @@
         if (icon && icon !== 'none') {
             iconElement.style.backgroundImage = icon;
             iconElement.style.backgroundColor = 'transparent';
+        } else if (appId === 'placeholder-today' || name === '今日') {
+            iconElement.innerHTML = iconHTML || '';
+            iconElement.classList.add('today-calendar-icon');
+            iconElement.style.backgroundColor = '#fff';
         }
         iconElement.addEventListener('click', event => openIconMenu(event, index));
         iconWrapper.appendChild(iconElement);
@@ -236,6 +244,8 @@
         const iconElement = document.getElementById(`theme-icon-${currentIconIndex}`);
         iconElement.style.backgroundImage = `url('${url}')`;
         iconElement.style.backgroundColor = 'transparent';
+        iconElement.innerHTML = ''; // 清空日历文字，防止与自定义图片重叠
+        iconElement.classList.remove('today-calendar-icon'); // 移除日历专属样式，防止遮挡图片
         currentEditingApps[currentIconIndex].currentIcon = `url('${url}')`;
     }
 
@@ -255,7 +265,21 @@
             '世界书': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')",
             '电话': "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')",
             '信息': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')",
-            '主题': "url('https://nos.netease.com/ysf/edecff66f1f78185763da92dcc2bd617.png')"
+            '主题': "url('https://nos.netease.com/ysf/5fcba047f238ed9142ebefe9d4240a80.png')",
+            '见面': "url('https://nos.netease.com/ysf/264a2314c1b49fc41a3bab78fe2b3576.png')",
+            '音乐': "url('https://nos.netease.com/ysf/44b1b063945538f0ebf2e1670a156958.jpg')",
+            '厨神驾到': "url('https://bee-reg-ab.imagency.cn/p/f2c483d68ffb62b0d3222572086197f4.png')",
+            '今日': null,
+            '记忆': "url('https://nos.netease.com/ysf/d7efc8377e018aef7b88be373106a333.png')",
+            '问爻': "url('https://bee-reg-ab.imagency.cn/p/d9b54ca4207d610898fa47fd608a1e4c.png')",
+            'B站': "url('https://nos.netease.com/ysf/a113c9347d79566ad7ec58c6dd563c98.png')",
+            '健康': "url('https://nos.netease.com/ysf/71d2d06f946d0e2edcf1a1db219cc93c.jpg')",
+            '家居': "url('https://nos.netease.com/ysf/09e991e8c030af3963027b3e0d20d243.jpg')",
+            '游戏中心': "url('https://bee-reg-ab.imagency.cn/p/d7187d71c6220e6bd4ccf91d927122da.png')",
+            '邮件': "url('https://nos.netease.com/ysf/e3e0cd38a75d199af2613b0373ef5750.jpg')",
+            '相册': "url('https://nos.netease.com/ysf/23270ba74c92c441837d98bfb9aa7d6e.jpg')",
+            '阅读': "url('https://nos.netease.com/ysf/48a26bca2ea29a6fb2c3a6ca537c9e2e.jpg')",
+            'icity': "url('https://nos.netease.com/ysf/1b49764d130e8005ea149180a1d764db.jpg')"
         };
 
         const defaultIcon = iconMap[appData.originalName];
@@ -265,11 +289,20 @@
             appData.currentIcon = defaultIcon;
             document.getElementById(`theme-icon-${index}`).style.backgroundImage = defaultIcon;
             document.getElementById(`theme-icon-${index}`).style.backgroundColor = 'transparent';
+            document.getElementById(`theme-icon-${index}`).innerHTML = '';
         } else {
             // show three-dots button; click to expand vertical capsule menu
             appData.currentIcon = '';
             document.getElementById(`theme-icon-${index}`).style.backgroundImage = 'none';
-            document.getElementById(`theme-icon-${index}`).style.backgroundColor = '#e5e5ea';
+            if (appData.appId === 'placeholder-today' || appData.originalName === '今日') {
+                document.getElementById(`theme-icon-${index}`).style.backgroundColor = '#fff';
+                document.getElementById(`theme-icon-${index}`).innerHTML = appData.iconHTML || '';
+                document.getElementById(`theme-icon-${index}`).classList.add('today-calendar-icon');
+            } else {
+                document.getElementById(`theme-icon-${index}`).style.backgroundColor = '#e5e5ea';
+                document.getElementById(`theme-icon-${index}`).innerHTML = '';
+                document.getElementById(`theme-icon-${index}`).classList.remove('today-calendar-icon');
+            }
         }
         
         document.getElementById(`theme-name-${index}`).innerText = appData.originalName;
@@ -287,10 +320,17 @@
                     iconEl.style.backgroundImage = appData.currentIcon;
                     iconEl.style.backgroundColor = 'transparent';
                     iconEl.classList.add('has-custom-icon');
+                    iconEl.innerHTML = ''; // 隐藏日历文字
+                    iconEl.classList.remove('today-calendar-icon'); // 移除日历专属样式，防止遮挡图片
                 } else {
                     iconEl.style.backgroundImage = 'none';
                     iconEl.style.backgroundColor = ''; // 恢复默认 CSS 样式
                     iconEl.classList.remove('has-custom-icon');
+                    if (appData.appId === 'placeholder-today' || appData.originalName === '今日') {
+                        if (typeof renderTodayCalendarIcon === 'function') {
+                            renderTodayCalendarIcon(iconEl); // 重新渲染桌面上的动态日历
+                        }
+                    }
                 }
             }
         });
@@ -824,7 +864,21 @@
                 const safeIcon = appData.icon ? appData.icon.replace(/"/g, "'") : '';
                 const iconStyle = safeIcon ? `background-image: ${safeIcon};` : '';
                 const customClass = appData.icon ? 'has-custom-icon' : '';
-                desktopHTML += `<div class="desktop-slot"><div class="app-item"><div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon ${customClass}" style="${iconStyle}"></div><div class="app-name">${appData.name}</div></div></div>`;
+                
+                let innerHTML = '';
+                let extraClass = '';
+                if (appData.appId === 'placeholder-today' && !appData.icon) {
+                    extraClass = 'today-calendar-icon';
+                    const date = new Date();
+                    const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+                    innerHTML = `
+                        <span class="today-calendar-shine"></span>
+                        <span class="today-calendar-weekday">${weekdays[date.getDay()]}</span>
+                        <span class="today-calendar-day">${date.getDate()}</span>
+                    `;
+                }
+                
+                desktopHTML += `<div class="desktop-slot"><div class="app-item"><div class="app-delete-btn" onpointerdown="deleteDesktopApp(this, event)">-</div><div class="app-icon ${customClass} ${extraClass}" style="${iconStyle}">${innerHTML}</div><div class="app-name">${appData.name}</div></div></div>`;
             } else {
                 desktopHTML += `<div class="desktop-slot"></div>`;
             }

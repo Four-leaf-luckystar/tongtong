@@ -707,14 +707,42 @@
             '世界书': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')",
             '电话': "url('https://xffkws.iflytek.com/group1/M01/09/0B/rB_aXmpUoCqAUSc8AAHTcnjGP3Q336.png')",
             '信息': "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/jRVvCDUWmZhAzGjBjgMKqg_20260713082218#.png')",
-            '主题': "url('https://nos.netease.com/ysf/edecff66f1f78185763da92dcc2bd617.png')"
+            '主题': "url('https://nos.netease.com/ysf/5fcba047f238ed9142ebefe9d4240a80.png')",
+            '见面': "url('https://nos.netease.com/ysf/264a2314c1b49fc41a3bab78fe2b3576.png')",
+            '音乐': "url('https://nos.netease.com/ysf/44b1b063945538f0ebf2e1670a156958.jpg')",
+            '厨神驾到': "url('https://bee-reg-ab.imagency.cn/p/f2c483d68ffb62b0d3222572086197f4.png')",
+            '今日': null,
+            '记忆': "url('https://nos.netease.com/ysf/d7efc8377e018aef7b88be373106a333.png')",
+            '问爻': "url('https://bee-reg-ab.imagency.cn/p/d9b54ca4207d610898fa47fd608a1e4c.png')",
+            'B站': "url('https://nos.netease.com/ysf/a113c9347d79566ad7ec58c6dd563c98.png')",
+            '健康': "url('https://nos.netease.com/ysf/71d2d06f946d0e2edcf1a1db219cc93c.jpg')",
+            '家居': "url('https://nos.netease.com/ysf/09e991e8c030af3963027b3e0d20d243.jpg')",
+            '游戏中心': "url('https://bee-reg-ab.imagency.cn/p/d7187d71c6220e6bd4ccf91d927122da.png')",
+            '邮件': "url('https://nos.netease.com/ysf/e3e0cd38a75d199af2613b0373ef5750.jpg')",
+            '相册': "url('https://nos.netease.com/ysf/23270ba74c92c441837d98bfb9aa7d6e.jpg')",
+            '阅读': "url('https://nos.netease.com/ysf/48a26bca2ea29a6fb2c3a6ca537c9e2e.jpg')",
+            'icity': "url('https://nos.netease.com/ysf/1b49764d130e8005ea149180a1d764db.jpg')"
         };
 
         const defaultDesktop = [
             { index: 0, name: '设置', appId: 'settings', icon: iconMap['设置'] }, 
             { index: 1, name: 'wechat', appId: 'wechat', icon: iconMap['wechat'] },
             { index: 2, name: 'Contacts', appId: 'contacts', icon: iconMap['Contacts'] }, 
-            { index: 3, name: '世界书', appId: 'worldbook', icon: iconMap['世界书'] }
+            { index: 3, name: '世界书', appId: 'worldbook', icon: iconMap['世界书'] },
+            { index: 4, name: '见面', appId: 'placeholder-xiangfeng', icon: iconMap['见面'] },
+            { index: 5, name: '音乐', appId: 'placeholder-music', icon: iconMap['音乐'] },
+            { index: 6, name: '厨神驾到', appId: 'placeholder-food', icon: iconMap['厨神驾到'] },
+            { index: 7, name: '今日', appId: 'placeholder-today', icon: iconMap['今日'] },
+            { index: 8, name: '记忆', appId: 'placeholder-bedtime-book', icon: iconMap['记忆'] },
+            { index: 9, name: '问爻', appId: 'placeholder-yinyang', icon: iconMap['问爻'] },
+            { index: 10, name: 'B站', appId: 'placeholder-bilibili', icon: iconMap['B站'] },
+            { index: 11, name: '健康', appId: 'placeholder-health', icon: iconMap['健康'] },
+            { index: 12, name: '家居', appId: 'placeholder-home', icon: iconMap['家居'] },
+            { index: 13, name: '游戏中心', appId: 'placeholder-game-center', icon: iconMap['游戏中心'] },
+            { index: 14, name: '邮件', appId: 'placeholder-mail', icon: iconMap['邮件'] },
+            { index: 15, name: '相册', appId: 'placeholder-photos', icon: iconMap['相册'] },
+            { index: 16, name: '阅读', appId: 'placeholder-reading', icon: iconMap['阅读'] },
+            { index: 17, name: 'icity', appId: 'placeholder-icity', icon: iconMap['icity'] }
         ];
         const defaultDock = [
             { index: 0, name: '电话', icon: iconMap['电话'] }, 
@@ -795,13 +823,20 @@
             nameEl.textContent = name || '';
             app.append(iconEl, nameEl);
             if (appId === TODAY_CALENDAR_APP_ID) {
-                renderTodayCalendarIcon(iconEl);
+                if (icon && icon !== 'none') {
+                    iconEl.style.backgroundImage = icon;
+                    iconEl.style.backgroundColor = 'transparent';
+                    iconEl.classList.add('has-custom-icon');
+                } else {
+                    renderTodayCalendarIcon(iconEl);
+                }
             } else if (icon) {
                 iconEl.style.backgroundImage = icon;
                 iconEl.style.backgroundColor = 'transparent';
                 iconEl.classList.add('has-custom-icon');
             }
         }
+
         return app;
     }
 
