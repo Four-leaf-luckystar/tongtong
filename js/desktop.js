@@ -166,11 +166,11 @@
 
         const PLACEHOLDER_DESKTOP_APP_BATCHES = Object.freeze({
             v1: Object.freeze([
-                { name: '见面', appId: 'placeholder-xiangfeng', icon: "url('https://bee-reg-ab.imagency.cn/p/0f23a6d0217da63a01275713dec6ab44.png')" },
+                { name: '见面', appId: 'placeholder-xiangfeng', icon: "url('https://nos.netease.com/ysf/264a2314c1b49fc41a3bab78fe2b3576.png')" },
                 { name: '音乐', appId: 'placeholder-music', icon: "url('https://nos.netease.com/ysf/44b1b063945538f0ebf2e1670a156958.jpg')" },
                 { name: '厨神驾到', appId: 'placeholder-food', icon: "url('https://bee-reg-ab.imagency.cn/p/f2c483d68ffb62b0d3222572086197f4.png')" },
                 { name: '今日', appId: 'placeholder-today', icon: null },
-                { name: '记忆', appId: 'placeholder-bedtime-book', icon: "url('https://bee-reg-ab.imagency.cn/p/54fceecb56f9f9fdc289b88a0523cf37.jpg')" },
+                { name: '记忆', appId: 'placeholder-bedtime-book', icon: "url('https://nos.netease.com/ysf/d7efc8377e018aef7b88be373106a333.png')" },
                 { name: '问爻', appId: 'placeholder-yinyang', icon: "url('https://bee-reg-ab.imagency.cn/p/d9b54ca4207d610898fa47fd608a1e4c.png')" },
                 { name: 'B站', appId: 'placeholder-bilibili', icon: "url('https://nos.netease.com/ysf/a113c9347d79566ad7ec58c6dd563c98.png')" }
             ]),

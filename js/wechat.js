@@ -1558,12 +1558,10 @@
         wcCloseFunctionPanel();
         showCustomPrompt('模拟发送图片', { placeholder: '请输入图片上的占位文字' }, '发送').then(text => {
             if (text && text.trim()) {
-                const safeText = text.trim().replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                // 生成一个带有文字的 SVG 占位图
-                const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#E5E5EA"/><text x="50%" y="50%" font-family="sans-serif" font-size="16" fill="#8E8E93" text-anchor="middle" dominant-baseline="middle">${safeText}</text></svg>`;
-                const imageUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+                const safeText = text.trim();
+                const imageUrl = 'https://nos.netease.com/ysf/f8351d4c8de1d1407e5044b639f6bddf.png';
                 
-                wcAppendChatMessage('[图片]', 'sent', wcCurrentChatContactId, imageUrl, wcCurrentReplyMsgId, false);
+                wcAppendChatMessage(safeText, 'sent', wcCurrentChatContactId, imageUrl, wcCurrentReplyMsgId, false);
                 wcCloseReplyPreview();
             }
         });
@@ -3233,6 +3231,8 @@
             #wechatAppUI .message-bubble.sent { background-color: ${scheme.rightBg} !important; color: ${scheme.rightText} !important; }
             #wechatAppUI .message-bubble.received .msg-text { color: ${scheme.leftText} !important; }
             #wechatAppUI .message-bubble.sent .msg-text { color: ${scheme.rightText} !important; }
+            #wechatAppUI .message-bubble.received .wc-link-message-caption { background-color: ${scheme.leftBg} !important; }
+            #wechatAppUI .message-bubble.sent .wc-link-message-caption { background-color: ${scheme.rightBg} !important; }
         `;
 
         if (wcCurrentBubbleTheme === 'telegram') {
@@ -3287,6 +3287,13 @@
         } else {
             // Default bubble dark mode removed
         }
+
+        // 强制覆盖动态主题样式，彻底去除图片气泡的背景、内边距、阴影和尾巴
+        css += `
+            #wechatAppUI .message-bubble.wc-image-message-bubble { background-color: transparent !important; padding: 0 !important; box-shadow: none !important; border: none !important; }
+            #wechatAppUI .message-bubble.wc-image-message-bubble::before { display: none !important; background-image: none !important; }
+            #wechatAppUI .message-bubble.wc-link-message-bubble::before { display: none !important; background-image: none !important; }
+        `;
 
         styleTag.textContent = css;
         appSettings.wc_bubble_theme = wcCurrentBubbleTheme;
@@ -3629,7 +3636,7 @@
     let wcApiTypingElement = null;
     let wcApiTypingOriginalText = '';
     const WC_LINK_PATTERN = /(?:https?:\/\/|www\.)[^\s<>"'`]+/gi;
-    const WC_LINK_PARSER_BASE_URL = 'https://r.jina.ai/http://';
+    const WC_LINK_PARSER_BASE_URL = 'https://r.jina.ai/';
     const WC_LINK_PARSER_TIMEOUT_MS = 20000;
     const WC_LINK_PARSER_MAX_LINKS = 3;
     const WC_LINK_PARSER_MAX_CHARS_PER_LINK = 6000;
@@ -3662,9 +3669,12 @@
 
     function wcStripLinkPreviewMarkup(value) {
         return String(value || '')
-            .replace(/!\[[^\]]*]\([^)]*\)/g, '')
-            .replace(/\[([^\]]+)]\([^)]*\)/g, '$1')
+            .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+            .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+            .replace(/(?:https?:\/\/|www\.)[^\s<>"'`]+/gi, '')
             .replace(/[\x60*_>#]/g, '')
+            .replace(/\[\]/g, '')
+            .replace(/\(\)/g, '')
             .replace(/\s+/g, ' ')
             .trim();
     }
@@ -3709,6 +3719,7 @@
             .filter(line => !/^#{1,6}\s+/.test(line))
             .filter(line => !/^(?:title|\u6807\u9898|url source|published time|markdown content)\s*[:\uff1a]/i.test(line))
             .map(wcStripLinkPreviewMarkup)
+            .filter(line => line.length > 2)
             .find(Boolean) || '';
         const imageMatch = content.match(/!\[[^\]]*]\((https?:\/\/[^)\s]+)(?:\s+["'][^"']*["'])?\)/i);
 
@@ -3755,49 +3766,75 @@
 
     function wcCreateLinkPreviewCard(item) {
         const data = wcGetLinkPreviewData(item);
-        const card = document.createElement('div');
-        card.className = 'wc-link-card';
+        const card = document.createElement('a');
+        card.href = data.url || '#';
+        card.target = '_blank';
+        card.className = 'bubble-share';
 
-        const main = document.createElement('div');
-        main.className = 'wc-link-card-main';
-        const copy = document.createElement('div');
-        copy.className = 'wc-link-card-copy';
+        const content = document.createElement('div');
+        content.className = 'share-content';
+        
+        const textArea = document.createElement('div');
+        textArea.className = 'share-text-area';
+        
         const title = document.createElement('div');
-        title.className = 'wc-link-card-title';
+        title.className = 'share-title';
         title.textContent = data.title;
-        copy.appendChild(title);
+        textArea.appendChild(title);
+        
         if (data.description) {
             const description = document.createElement('div');
-            description.className = 'wc-link-card-description';
+            description.className = 'share-desc';
             description.textContent = data.description;
-            copy.appendChild(description);
+            textArea.appendChild(description);
         }
 
-        const thumbnail = document.createElement('div');
-        thumbnail.className = 'wc-link-card-thumbnail';
-        const fallback = document.createElement('span');
-        fallback.className = 'wc-link-card-fallback wc-link-source-' + data.sourceType;
-        fallback.textContent = data.sourceMark;
-        thumbnail.appendChild(fallback);
+        content.appendChild(textArea);
+
         if (/^https?:\/\//i.test(data.imageUrl)) {
             const image = document.createElement('img');
+            image.className = 'share-thumb';
             image.src = data.imageUrl;
-            image.alt = '';
-            image.addEventListener('load', () => fallback.remove());
-            image.addEventListener('error', () => image.remove());
-            thumbnail.appendChild(image);
+            image.alt = 'thumb';
+            content.appendChild(image);
         }
 
-        main.append(copy, thumbnail);
-        const source = document.createElement('div');
-        source.className = 'wc-link-card-source';
-        const mark = document.createElement('span');
-        mark.className = 'wc-link-source-mark wc-link-source-' + data.sourceType;
-        mark.textContent = data.sourceMark;
+        const footer = document.createElement('div');
+        footer.className = 'share-footer';
+        
+        const icon = document.createElement('img');
+        icon.className = 'share-app-icon';
+        
+        let faviconUrl = '';
+        let fallbackSvg = '';
+        if (data.sourceType === 'xiaohongshu') {
+            faviconUrl = 'https://www.xiaohongshu.com/favicon.ico';
+            fallbackSvg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZmMjQ0MiIvPjx0ZXh0IHg9IjUwIiB5PSI2NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjUwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5bCPPC90ZXh0Pjwvc3ZnPg==';
+        } else if (data.sourceType === 'douyin') {
+            faviconUrl = 'https://www.douyin.com/favicon.ico';
+            fallbackSvg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzFjMGIxYiIvPjx0ZXh0IHg9IjUwIiB5PSI2NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjUwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5oqWPC90ZXh0Pjwvc3ZnPg==';
+        } else if (data.sourceType === 'bilibili') {
+            faviconUrl = 'https://www.bilibili.com/favicon.ico';
+            fallbackSvg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2ZiNzI5OSIvPjx0ZXh0IHg9IjUwIiB5PSI2NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjUwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QjwvdGV4dD48L3N2Zz4=';
+        } else {
+            try {
+                const urlObj = new URL(data.url);
+                faviconUrl = `${urlObj.protocol}//${urlObj.host}/favicon.ico`;
+            } catch (e) {
+                faviconUrl = '';
+            }
+            fallbackSvg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzZFN0Q5MCIvPjx0ZXh0IHg9IjUwIiB5PSI2NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjUwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+572RPC90ZXh0Pjwvc3ZnPg==';
+        }
+        
+        icon.src = faviconUrl;
+        icon.onerror = function() { this.src = fallbackSvg; };
+        
         const sourceName = document.createElement('span');
         sourceName.textContent = data.sourceName;
-        source.append(mark, sourceName);
-        card.append(main, source);
+        
+        footer.append(icon, sourceName);
+        card.append(content, footer);
+        
         return card;
     }
 
@@ -4037,9 +4074,7 @@
                     }
                     
                     const bubble = document.createElement('div');
-                    bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
-                    bubble.style.backgroundColor = 'transparent';
-                    bubble.style.padding = '0';
+                    bubble.className = `message-bubble ${isSent ? 'sent' : 'received'} wc-image-message-bubble`;
                     bubble.style.position = 'relative';
                     
                     let pressTimer;
@@ -4065,6 +4100,14 @@
                     img.style.maxHeight = '200px';
                     img.style.borderRadius = '8px';
                     img.style.objectFit = 'contain';
+                    
+                    img.onclick = (e) => {
+                        if (isLongPress) return;
+                        e.stopPropagation();
+                        if (message.text && message.text.startsWith('[表情]')) return;
+                        const isPlaceholder = url === 'https://nos.netease.com/ysf/f8351d4c8de1d1407e5044b639f6bddf.png';
+                        wcOpenImageBottomSheet(isPlaceholder ? 'placeholder' : 'real', url, message.text, message.id);
+                    };
                     
                     bubble.appendChild(img);
                     
@@ -4174,17 +4217,10 @@
             bubble.appendChild(wcCreateChatFileCard(message.fileAttachment));
         } else if (message.linkPreview?.status === 'ready' && Array.isArray(message.linkPreview.items) && message.linkPreview.items.length > 0 && !message.imageUrl && !message.isVoice) {
             bubble.classList.add('wc-link-message-bubble');
-            const caption = wcGetLinkMessageCaption(text);
-            if (caption) {
-                const captionElement = document.createElement('div');
-                captionElement.className = 'msg-text wc-link-message-caption';
-                captionElement.textContent = caption;
-                bubble.appendChild(captionElement);
-            }
+            // 移除 caption 文本渲染逻辑，确保只渲染纯净的分享卡片
             message.linkPreview.items.forEach(item => bubble.appendChild(wcCreateLinkPreviewCard(item)));
         } else if (message.imageUrl) {
-            bubble.style.backgroundColor = 'transparent';
-            bubble.style.padding = '0';
+            bubble.classList.add('wc-image-message-bubble');
             
             const imgUrl = Array.isArray(message.imageUrl) ? message.imageUrl[0] : message.imageUrl;
             const img = document.createElement('img');
@@ -4193,6 +4229,15 @@
             img.style.maxHeight = '120px';
             img.style.borderRadius = '8px';
             img.style.objectFit = 'contain';
+            
+            img.onclick = (e) => {
+                if (isLongPress) return;
+                e.stopPropagation();
+                if (message.text && message.text.startsWith('[表情]')) return;
+                const isPlaceholder = imgUrl === 'https://nos.netease.com/ysf/f8351d4c8de1d1407e5044b639f6bddf.png';
+                wcOpenImageBottomSheet(isPlaceholder ? 'placeholder' : 'real', imgUrl, message.text, message.id);
+            };
+
             bubble.appendChild(img);
         } else if (message.isVoice) {
             const voiceContainer = document.createElement('div');
@@ -4469,7 +4514,8 @@
     }
 
     function wcBuildPublicLinkParserUrl(link) {
-        return WC_LINK_PARSER_BASE_URL + encodeURI(link);
+        const targetLink = /^https?:\/\//i.test(link) ? link : 'http://' + link;
+        return WC_LINK_PARSER_BASE_URL + targetLink;
     }
 
     function wcBuildLinkReference(items) {
@@ -4517,9 +4563,7 @@
     }
 
     function wcCreateImageDescriptionUrl(description) {
-        const safeText = String(description || '图片描述').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#E5E5EA"/><text x="50%" y="50%" font-family="sans-serif" font-size="16" fill="#8E8E93" text-anchor="middle" dominant-baseline="middle">${safeText}</text></svg>`;
-        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        return 'https://nos.netease.com/ysf/f8351d4c8de1d1407e5044b639f6bddf.png';
     }
 
     function wcBuildImageIntentPrompt(text, contact) {
@@ -4548,15 +4592,17 @@
         if (!prompt) return;
 
         const description = `图片描述：${String(text).trim()}`;
-        let imageUrl = null;
         if (typeof window.generateChatImage === 'function') {
             try {
-                imageUrl = await window.generateChatImage(prompt);
+                let imageUrl = await window.generateChatImage(prompt);
+                // 只有成功生成了真实图片才发送，绝对不自动发送占位图
+                if (imageUrl) {
+                    wcAppendChatMessage(description, 'received', contactId, imageUrl, replyTo);
+                }
             } catch (error) {
-                console.warn('聊天生图失败，已发送文字描述图：', error);
+                console.warn('聊天生图失败：', error);
             }
         }
-        wcAppendChatMessage('[图片]', 'received', contactId, imageUrl || wcCreateImageDescriptionUrl(description), replyTo);
     }
 
     function wcSendMessage() {
@@ -4565,10 +4611,18 @@
         if (!text) return;
         const contactId = wcCurrentChatContactId;
         const replyTo = wcCurrentReplyMsgId;
-        const message = wcAppendChatMessage(text, 'sent', contactId, null, replyTo);
+        
+        // 提取链接，如果存在链接，则只保留第一个链接，丢弃其他多余的分享文案
+        let messageText = text;
+        const links = wcExtractLinks(text);
+        if (links.length > 0) {
+            messageText = links[0];
+        }
+        
+        const message = wcAppendChatMessage(messageText, 'sent', contactId, null, replyTo);
         input.value = '';
         wcCloseReplyPreview();
-        if (wcExtractLinks(text).length > 0) wcResolveChatLinks(message, contactId);
+        if (links.length > 0) wcResolveChatLinks(message, contactId);
         wcReplyWithRequestedImage(text, contactId, replyTo);
     }
 
@@ -5007,30 +5061,24 @@
 
                 if (msgData && msgData.imageUrl) {
                     const imgUrlStr = Array.isArray(msgData.imageUrl) ? msgData.imageUrl[0] : msgData.imageUrl;
-                    if (imgUrlStr.startsWith('data:image/svg+xml')) {
-                        // 模拟的占位图，提取 SVG 中的文字描述
-                        try {
-                            const decodedSvg = decodeURIComponent(imgUrlStr.split(',')[1]);
-                            const textMatch = decodedSvg.match(/<text[^>]*>(.*?)<\/text>/);
-                            const imgDesc = textMatch ? textMatch[1] : '未知图片';
-                            contentStr = `[发送了一张图片，图片内容是：${imgDesc}]`;
-                            finalContent = contentStr;
-                        } catch (e) {
-                            contentStr = `[发送了一张图片]`;
-                            finalContent = contentStr;
-                        }
+                    if (imgUrlStr === 'https://nos.netease.com/ysf/f8351d4c8de1d1407e5044b639f6bddf.png') {
+                        // 模拟的占位图，提取文字描述
+                        const imgDesc = msgData.text || '未知图片';
+                        contentStr = `[发送了一张图片，图片内容是：${imgDesc}]`;
+                        finalContent = contentStr;
                     } else {
                         // 真实图片，构建多模态 Vision 格式
                         let imgText = contentStr === '[图片]' ? '[发送了一张真实图片]' : `[发送了一张真实图片，附言：${contentStr}]`;
                         
                         if (Array.isArray(msgData.imageUrl)) {
-                            finalContent = [{ type: "text", text: imgText }];
-                            msgData.imageUrl.forEach(url => {
+                            finalContent = [{ type: "text", text: imgText + " (共 " + msgData.imageUrl.length + " 张图片)" }];
+                            msgData.imageUrl.forEach((url, idx) => {
+                                finalContent.push({ type: "text", text: `[第 ${idx + 1} 张图片]` });
                                 finalContent.push({ type: "image_url", image_url: { url: url } });
                             });
                         } else {
                             finalContent = [
-                                { type: "text", text: imgText },
+                                { type: "text", text: imgText + " [第 1 张图片]" },
                                 { type: "image_url", image_url: { url: msgData.imageUrl } }
                             ];
                         }
@@ -5309,6 +5357,7 @@
             systemPrompt += `- 发转账: {"type":"transfer", "amount":"金额", "note":"备注"}\n`;
             systemPrompt += `- 收转账: {"type":"transfer_action", "action":"receive"}\n`;
             systemPrompt += `- 退转账: {"type":"transfer_action", "action":"reject"}\n`;
+            systemPrompt += `- 换头像: {"type":"change_avatar", "image_index": 1} (如果你想把对方刚刚发送的第几张图片设为自己的头像，请使用此命令，image_index 为图片序号)\n`;
             systemPrompt += `注意：只输出包含 "messages" 数组的纯 JSON，不要包含任何 Markdown 标记或说明文字。`;
 
             // 7. 发起 API 请求 (使用注入了世界书的 finalHistory)
@@ -5418,7 +5467,7 @@
                 let cleanJson = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
                 const parsed = JSON.parse(cleanJson);
                 if (parsed && Array.isArray(parsed.messages)) {
-                    messages = parsed.messages.filter(m => m.content || ['transfer', 'transfer_action', 'reaction'].includes(m.type)); // 保留有效对象
+                    messages = parsed.messages.filter(m => m.content || ['transfer', 'transfer_action', 'reaction', 'change_avatar'].includes(m.type)); // 保留有效对象
                 } else {
                     throw new Error('JSON format missing messages array');
                 }
@@ -5458,6 +5507,13 @@
                     } catch(err) {
                         messages.push({ type: 'reaction', target: rMatch[1], emoji: rMatch[2] });
                     }
+                }
+                
+                // 兜底提取 change_avatar
+                const avatarRegex = /\{\s*"type"\s*:\s*"change_avatar"\s*,\s*"image_index"\s*:\s*(\d+)\s*\}/g;
+                let avMatch;
+                while ((avMatch = avatarRegex.exec(content)) !== null) {
+                    messages.push({ type: 'change_avatar', image_index: parseInt(avMatch[1]) });
                 }
                 
                 // 兜底 2: 如果上面的正则没匹配到，退化为只匹配 content
@@ -5553,8 +5609,42 @@
                 wcRenderChatMessages(chatContactId);
             }
             
-            // 过滤掉 reaction 和 transfer_action，只保留要发送的文本/表情包/转账
-            messages = messages.filter(m => m.type !== 'reaction' && m.type !== 'transfer_action');
+            // 处理 AI 的换头像操作 (change_avatar)
+            let hasAvatarUpdate = false;
+            messages.forEach(msgObj => {
+                if (msgObj.type === 'change_avatar' && msgObj.image_index) {
+                    // 找到最后一条 User 发送的包含真实图片的消息
+                    const targetMsg = wcChatMessagesByContact[chatContactId]?.slice().reverse().find(m => m.type === 'sent' && m.imageUrl && m.imageUrl !== 'https://nos.netease.com/ysf/f8351d4c8de1d1407e5044b639f6bddf.png');
+                    if (targetMsg) {
+                        let newAvatarUrl = null;
+                        const idx = parseInt(msgObj.image_index) - 1;
+                        if (Array.isArray(targetMsg.imageUrl)) {
+                            if (idx >= 0 && idx < targetMsg.imageUrl.length) {
+                                newAvatarUrl = targetMsg.imageUrl[idx];
+                            }
+                        } else {
+                            if (idx === 0) {
+                                newAvatarUrl = targetMsg.imageUrl;
+                            }
+                        }
+                        
+                        if (newAvatarUrl) {
+                            const contact = wcContactsList.find(c => c.id === chatContactId);
+                            if (contact) {
+                                contact.avatar = newAvatarUrl;
+                                wcSaveContactsDataAsync();
+                                hasAvatarUpdate = true;
+                            }
+                        }
+                    }
+                }
+            });
+            if (hasAvatarUpdate) {
+                wcOpenChatRoom(chatContactId); // 刷新聊天室头部和消息
+            }
+            
+            // 过滤掉 reaction, transfer_action, change_avatar，只保留要发送的文本/表情包/转账
+            messages = messages.filter(m => m.type !== 'reaction' && m.type !== 'transfer_action' && m.type !== 'change_avatar');
 
             // 处理 replyTo 转换为 ID
             messages.forEach(msgObj => {
@@ -5603,11 +5693,10 @@
                     // 处理 voice 类型
                     finalMessages.push({ text: msgContent, imageUrl: null, replyToId: replyToId, isVoice: true });
                 } else if (type === 'image') {
-                    // 处理 image 类型，生成占位 SVG
-                    const safeText = msgContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#E5E5EA"/><text x="50%" y="50%" font-family="sans-serif" font-size="16" fill="#8E8E93" text-anchor="middle" dominant-baseline="middle">${safeText}</text></svg>`;
-                    const imgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-                    finalMessages.push({ text: '[图片]', imageUrl: imgUrl, replyToId: replyToId, isVoice: false });
+                    // 处理 image 类型，生成占位图
+                    const safeText = msgContent;
+                    const imgUrl = 'https://nos.netease.com/ysf/f8351d4c8de1d1407e5044b639f6bddf.png';
+                    finalMessages.push({ text: safeText, imageUrl: imgUrl, replyToId: replyToId, isVoice: false });
                 } else if (type === 'transfer') {
                     // 处理 transfer 类型 (AI 主动发起转账)
                     const amount = parseFloat(msgObj.amount) || 0;
@@ -5710,10 +5799,12 @@
             const bubble = row.querySelector('.message-bubble');
             const isLinkMessage = bubble.classList.contains('wc-link-message-bubble');
             const isFileMessage = bubble.classList.contains('wc-file-message-bubble');
+            const isImageMessage = bubble.classList.contains('wc-image-message-bubble');
             row.className = `message-row ${isSent ? 'sent' : 'received'}`;
             bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
             if (isLinkMessage) bubble.classList.add('wc-link-message-bubble');
             if (isFileMessage) bubble.classList.add('wc-file-message-bubble');
+            if (isImageMessage) bubble.classList.add('wc-image-message-bubble');
             if (!prevIsSame && !nextIsSame) bubble.classList.add('tail');
             else if (!prevIsSame && nextIsSame) { row.classList.add('group-top'); bubble.classList.add('group-top'); }
             else if (prevIsSame && nextIsSame) { row.classList.add('group-mid'); bubble.classList.add('group-mid'); }
@@ -7496,4 +7587,101 @@
         }
         // 移除关闭弹窗的代码，让用户手动点击 X 关闭
     }
+
+    // ==========================================
+    // 图片底部抽屉弹窗逻辑
+    // ==========================================
+    let wcImageSheetCurrentMode = '';
+    let wcImageSheetCurrentMsgId = null;
+
+    function wcOpenImageBottomSheet(type, imageSrc, text, msgId) {
+        wcImageSheetCurrentMode = type;
+        wcImageSheetCurrentMsgId = msgId;
+        const overlay = document.getElementById('wcImageBottomSheetOverlay');
+        const flipper = document.getElementById('wcImageFlipper');
+        const front = document.getElementById('wcImageSheetFront');
+        const backText = document.getElementById('wcImageSheetBackText');
+        
+        if (!overlay) return;
+
+        flipper.classList.remove('flipped');
+        
+        if (type === 'real') {
+            front.innerHTML = `<img src="${imageSrc}" alt="图片">`;
+            front.style.backgroundImage = 'none';
+            front.style.backgroundColor = '#E5E5EA';
+            backText.innerText = text === '[图片]' ? '这是一张真实图片' : text;
+            
+            front.onclick = () => flipper.classList.add('flipped');
+        } else {
+            front.innerHTML = `<div class="placeholder-desc-text">${text}</div>`;
+            front.style.backgroundImage = 'none';
+            front.style.backgroundColor = '#E5E5EA';
+            
+            front.onclick = null;
+        }
+
+        overlay.style.display = 'flex';
+        setTimeout(() => overlay.classList.add('show'), 10);
+    }
+
+    function wcCloseImageBottomSheet(event) {
+        if (event && event.target !== document.getElementById('wcImageBottomSheetOverlay')) return;
+        const overlay = document.getElementById('wcImageBottomSheetOverlay');
+        if (!overlay) return;
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.style.display = 'none', 300);
+    }
+
+    function wcFlipImageBack() {
+        const flipper = document.getElementById('wcImageFlipper');
+        if (flipper) flipper.classList.remove('flipped');
+    }
+
+    function wcActionGenerateImage() {
+        if (!wcImageSheetCurrentMsgId || !wcCurrentChatContactId) return;
+        
+        if (typeof showCustomConfirm === 'function') {
+            showCustomConfirm('生成真实图片', '是否确认调用本地生图插件生成真实图片？', '确认', false).then(async confirmed => {
+                if (confirmed) {
+                    if (typeof window.generateChatImage === 'function') {
+                        try {
+                            if (typeof showToast === 'function') showToast('正在生成图片，请稍候...');
+                            
+                            const messages = wcChatMessagesByContact[wcCurrentChatContactId];
+                            const msg = messages.find(m => m.id === wcImageSheetCurrentMsgId);
+                            if (!msg) return;
+                            
+                            const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
+                            const prompt = wcBuildImageIntentPrompt(msg.text, contact) || msg.text;
+                            
+                            const imageUrl = await window.generateChatImage(prompt);
+                            if (imageUrl) {
+                                msg.imageUrl = imageUrl;
+                                wcSaveChatData();
+                                wcRenderChatMessages(wcCurrentChatContactId);
+                                wcCloseImageBottomSheet();
+                                if (typeof showToast === 'function') showToast('图片生成成功');
+                            }
+                        } catch (error) {
+                            console.error('生图失败:', error);
+                            if (typeof showToast === 'function') showToast('图片生成失败');
+                        }
+                    } else {
+                        if (typeof showToast === 'function') showToast('未配置本地生图插件');
+                    }
+                }
+            });
+        }
+    }
+
+    function wcActionDownloadImage() {
+        if (typeof showToast === 'function') showToast('正在下载图片...');
+    }
+    
+    window.wcOpenImageBottomSheet = wcOpenImageBottomSheet;
+    window.wcCloseImageBottomSheet = wcCloseImageBottomSheet;
+    window.wcFlipImageBack = wcFlipImageBack;
+    window.wcActionGenerateImage = wcActionGenerateImage;
+    window.wcActionDownloadImage = wcActionDownloadImage;
 
