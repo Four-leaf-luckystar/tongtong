@@ -17,6 +17,7 @@
     let root = null;
     let selectedContactId = '';
     let activeTab = 'memory';
+    let editingMemoryId = '';
     let cachedContacts = [];
     let cachedConversations = {};
     let cachedMemoryItems = [];
@@ -518,6 +519,34 @@
         return new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric' }).format(timestamp);
     }
 
+    function appendMemoryEntry(list, item) {
+        const entry = document.createElement('article');
+        entry.className = 'memory-entry';
+        const entryHeader = document.createElement('div');
+        entryHeader.className = 'memory-entry-header';
+        const meta = document.createElement('span');
+        meta.className = 'memory-entry-meta';
+        meta.textContent = item.tier === 'L3'
+            ? 'L3 片段 · ' + (formatMemoryDate(item.createdAt) || '聊天记录')
+            : (formatMemoryDate(item.createdAt) || '手动记录');
+        const actions = document.createElement('div');
+        actions.className = 'memory-entry-actions';
+        const editButton = document.createElement('button');
+        editButton.type = 'button';
+        editButton.textContent = '编辑';
+        editButton.addEventListener('click', () => openComposer(item));
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.textContent = '删除';
+        deleteButton.addEventListener('click', () => requestArchiveMemory(item.id));
+        actions.append(editButton, deleteButton);
+        entryHeader.append(meta, actions);
+        const text = document.createElement('p');
+        text.textContent = item.content || '';
+        entry.append(entryHeader, text);
+        list.appendChild(entry);
+    }
+
     function renderMemoryContent(contact) {
         const content = root.querySelector('[data-memory-content]');
         const title = root.querySelector('[data-memory-card-title]');
@@ -545,19 +574,7 @@
                 });
             }
 
-            items.forEach((item) => {
-                const entry = document.createElement('article');
-                entry.className = 'memory-entry';
-                const meta = document.createElement('span');
-                meta.className = 'memory-entry-meta';
-                meta.textContent = item.tier === 'L3'
-                    ? 'L3 片段 · ' + (formatMemoryDate(item.createdAt) || '聊天记录')
-                    : (formatMemoryDate(item.createdAt) || '手动记录');
-                const text = document.createElement('p');
-                text.textContent = item.content || '';
-                entry.append(meta, text);
-                list.appendChild(entry);
-            });
+            items.forEach((item) => appendMemoryEntry(list, item));
             content.appendChild(list);
             return;
         }
@@ -630,19 +647,20 @@
         render();
     }
 
-    function openComposer() {
+    function openComposer(item = null) {
         const contact = cachedContacts.find((item) => item.id === selectedContactId);
         if (!contact) {
             showRolePicker();
             return;
         }
+        editingMemoryId = item && item.id ? item.id : '';
         root.classList.add('is-composing');
         root.querySelector('[data-memory-composer]').setAttribute('aria-hidden', 'false');
-        root.querySelector('[data-memory-composer-title]').textContent = '新增' + getTabLabel();
+        root.querySelector('[data-memory-composer-title]').textContent = editingMemoryId ? '修改记忆' : '新增' + getTabLabel();
         root.querySelector('[data-memory-composer-role]').textContent = contact.name || '未命名角色';
         const input = root.querySelector('[data-memory-composer-input]');
         const error = root.querySelector('[data-memory-composer-error]');
-        input.value = '';
+        input.value = item && item.content ? item.content : '';
         error.textContent = '';
         requestAnimationFrame(() => input.focus());
     }
@@ -651,6 +669,7 @@
         if (!root) return;
         root.classList.remove('is-composing');
         root.querySelector('[data-memory-composer]').setAttribute('aria-hidden', 'true');
+        editingMemoryId = '';
     }
 
     function openSummarySettings() {
@@ -698,8 +717,22 @@
             input.focus();
             return;
         }
+        if (content.length > 30000) {
+            error.textContent = '单条记忆不能超过 30000 字。';
+            input.focus();
+            return;
+        }
         const now = new Date().toISOString();
-        const item = {
+        const existingItem = editingMemoryId && cachedMemoryItems.find((item) => item.id === editingMemoryId && item.bindingId === selectedContactId);
+        const item = existingItem ? {
+            ...existingItem,
+            status: 'active',
+            authority: 'user_confirmed',
+            content,
+            keywords: existingItem.tier === 'L3' ? createTextTerms(content) : existingItem.keywords,
+            sourceRefs: [{ type: 'manual_edit', createdAt: now }],
+            updatedAt: now
+        } : {
             id: 'memory_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
             schemaVersion: 1,
             bindingId: selectedContactId,
@@ -713,15 +746,55 @@
             createdAt: now,
             updatedAt: now
         };
-        const nextItems = [...cachedMemoryItems, item];
-        const saved = await writeRecord({ id: MEMORY_ITEMS_KEY, schemaVersion: 1, items: nextItems });
+        const nextItems = existingItem
+            ? cachedMemoryItems.map((memory) => memory.id === existingItem.id ? item : memory)
+            : [...cachedMemoryItems, item];
+        const nextSummaries = existingItem
+            ? cachedSummaries.map((summary) => summary.bindingId === selectedContactId && summary.status === 'active'
+                ? { ...summary, status: 'dirty', updatedAt: now }
+                : summary)
+            : null;
+        const saved = existingItem
+            ? await writeMemoryState(nextItems, cachedOutbox, nextSummaries)
+            : await writeRecord({ id: MEMORY_ITEMS_KEY, schemaVersion: 1, items: nextItems });
         if (!saved) {
             error.textContent = '暂时无法保存，请稍后重试。';
             return;
         }
         cachedMemoryItems = nextItems;
+        if (nextSummaries) cachedSummaries = nextSummaries;
         closeComposer();
         render();
+    }
+
+    async function archiveMemory(itemId) {
+        const item = cachedMemoryItems.find((memory) => memory.id === itemId && memory.bindingId === selectedContactId && memory.status === 'active');
+        if (!item) return false;
+        const now = new Date().toISOString();
+        const nextItems = cachedMemoryItems.map((memory) => memory.id === itemId ? { ...memory, status: 'archived', updatedAt: now } : memory);
+        const nextSummaries = cachedSummaries.map((summary) => summary.bindingId === selectedContactId && summary.status === 'active'
+            ? { ...summary, status: 'dirty', updatedAt: now }
+            : summary);
+        const saved = await writeMemoryState(nextItems, cachedOutbox, nextSummaries);
+        if (!saved) return false;
+        cachedMemoryItems = nextItems;
+        cachedSummaries = nextSummaries;
+        render();
+        return true;
+    }
+
+    function requestArchiveMemory(itemId) {
+        const archive = async () => {
+            const saved = await archiveMemory(itemId);
+            if (!saved && typeof showToast === 'function') showToast('暂时无法删除，请稍后重试。');
+        };
+        if (typeof showCustomConfirm === 'function') {
+            showCustomConfirm('删除记忆', '删除后不会再被角色引用。', '删除', true).then((confirmed) => {
+                if (confirmed) void archive();
+            });
+        } else if (window.confirm('删除后不会再被角色引用，确定删除吗？')) {
+            void archive();
+        }
     }
 
     function render() {
@@ -843,7 +916,7 @@
             <div class="memory-composer-sheet" role="dialog" aria-modal="true" aria-labelledby="memoryComposerTitle">
                 <div class="memory-composer-header"><button type="button" data-memory-action="close-composer">取消</button><h2 id="memoryComposerTitle" data-memory-composer-title>新增记忆</h2><button type="button" data-memory-action="save-memory">保存</button></div>
                 <p class="memory-composer-role">写入 <span data-memory-composer-role></span> 的独立档案</p>
-                <textarea data-memory-composer-input maxlength="500" placeholder="写下想让角色记住的事…"></textarea>
+                <textarea data-memory-composer-input maxlength="30000" placeholder="写下想让角色记住的事…"></textarea>
                 <p class="memory-composer-error" data-memory-composer-error aria-live="polite"></p>
             </div>`;
         root.appendChild(composer);
@@ -928,7 +1001,11 @@
             .memory-empty-state p { max-width: 240px; margin: 9px 0 0; color: var(--memory-secondary); font-size: 14px; line-height: 1.75; }
             .memory-entry-list { display: grid; width: 100%; align-content: start; gap: 10px; padding: 20px 0 0; overflow-y: auto; }
             .memory-entry { padding: 14px 15px; border-radius: 14px; background: #f2f2f7; }
+            .memory-entry-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
             .memory-entry-meta { display: block; color: var(--memory-blue); font-size: 11px; }
+            .memory-entry-actions { display: flex; flex: 0 0 auto; gap: 6px; }
+            .memory-entry-actions button { border: 0; padding: 3px 0; background: transparent; color: var(--memory-secondary); font: 12px/1 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
+            .memory-entry-actions button:last-child { color: #ff3b30; }
             .memory-entry p { margin: 7px 0 0; color: #1c1c1e; font-size: 15px; line-height: 1.62; white-space: pre-wrap; }
             .memory-tabs { position: sticky; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); width: 100%; margin: 8px 0 0; padding: 5px; border-radius: 24px; box-sizing: border-box; background: rgba(255,255,255,.94); box-shadow: 0 7px 20px rgba(60,60,67,.08); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
             .memory-tabs button { height: 44px; border: 0; border-radius: 19px; padding: 0; background: transparent; color: var(--memory-secondary); font: 14px/1 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
