@@ -436,14 +436,14 @@
         const style = document.createElement('style');
         style.id = 'memoryAppStyles';
         style.textContent = `
-            .memory-app-container { --memory-blue: #007aff; --memory-background: #f2f2f7; --memory-card: #ffffff; --memory-label: #3c3c43; --memory-secondary: #8e8e93; --memory-separator: #c6c6c8; position: absolute; inset: 0; z-index: 7200; display: none; overflow: hidden; background: var(--memory-background); color: #000; font-family: "Noto Serif SC", "STSong", "SimSun", serif; }
+            .memory-app-container { --memory-blue: #1c1c1e; --memory-background: #f2f2f7; --memory-card: #ffffff; --memory-label: #3c3c43; --memory-secondary: #8e8e93; --memory-separator: #c6c6c8; position: absolute; inset: 0; z-index: 7200; display: none; overflow: hidden; background: var(--memory-background); color: #000; font-family: "Noto Serif SC", "STSong", "SimSun", serif; }
             .memory-app-container.is-open { display: block; }
             .memory-app-scroll { box-sizing: border-box; display: flex; flex-direction: column; height: 100%; min-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding: max(13px, env(safe-area-inset-top)) 20px calc(18px + env(safe-area-inset-bottom)); background: var(--memory-background); }
             .memory-profile-header, .memory-picker-header { display: flex; align-items: center; justify-content: space-between; min-height: 46px; }
             .memory-back { width: 42px; height: 42px; border: 0; padding: 0 0 5px; border-radius: 50%; background: rgba(255,255,255,.72); color: var(--memory-blue); box-shadow: 0 2px 8px rgba(60,60,67,.08); font: 37px/37px Georgia, serif; cursor: pointer; }
             .memory-header-actions { display: flex; align-items: center; gap: 9px; }
             .memory-switch-role { min-width: 46px; height: 34px; border: 0; border-radius: 17px; padding: 0 11px; background: rgba(255,255,255,.72); color: var(--memory-blue); font: 13px/1 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
-            .memory-add { width: 34px; height: 34px; border: 0; border-radius: 50%; padding: 0 0 2px; background: var(--memory-blue); color: #fff; box-shadow: 0 4px 10px rgba(0,122,255,.22); font: 25px/30px Arial, sans-serif; cursor: pointer; }
+            .memory-add { width: 34px; height: 34px; border: 0; border-radius: 50%; padding: 0 0 2px; background: var(--memory-blue); color: #fff; box-shadow: 0 4px 10px rgba(28,28,30,.22); font: 25px/30px Arial, sans-serif; cursor: pointer; }
             .memory-profile-main { flex: 1 0 auto; display: flex; flex-direction: column; align-items: center; padding: 24px 0 16px; }
             .memory-avatar-shell { display: grid; width: 150px; height: 150px; padding: 7px; border: 5px solid #d1d1d6; border-radius: 50%; box-sizing: border-box; background: var(--memory-background); box-shadow: 0 3px 10px rgba(60,60,67,.08); }
             .memory-avatar { width: 100%; height: 100%; border: 3px solid #fff; border-radius: 50%; overflow: hidden; box-sizing: border-box; background: #e5e5ea; display: grid; place-items: center; color: var(--memory-blue); font-size: 43px; font-weight: 700; }
@@ -453,7 +453,7 @@
             .memory-heading { width: 100%; margin-top: 23px; text-align: center; }
             .memory-name-line { display: flex; align-items: center; justify-content: center; gap: 10px; min-width: 0; }
             .memory-name-line h1 { margin: 0; max-width: 68%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 32px; line-height: 1.25; font-weight: 700; letter-spacing: 0; }
-            .memory-name-line span { padding: 5px 9px; border-radius: 999px; background: #e5f1ff; color: var(--memory-blue); font-family: "Noto Serif SC", "STSong", "SimSun", serif; font-size: 12px; line-height: 1; white-space: nowrap; }
+            .memory-name-line span { padding: 5px 9px; border-radius: 999px; background: #e5e5ea; color: var(--memory-blue); font-family: "Noto Serif SC", "STSong", "SimSun", serif; font-size: 12px; line-height: 1; white-space: nowrap; }
             .memory-heading p { margin: 8px 0 0; color: var(--memory-secondary); font-size: 14px; line-height: 1.55; }
             .memory-stats { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; gap: 12px; margin-top: 28px; }
             .memory-stats article { display: grid; min-width: 0; min-height: 92px; place-content: center; padding: 10px 6px; border-radius: 20px; background: var(--memory-card); box-shadow: 0 6px 18px rgba(60,60,67,.06); text-align: center; }
