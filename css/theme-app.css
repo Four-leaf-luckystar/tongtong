@@ -377,6 +377,10 @@
         #themeAppUI.is-widget-tab > .theme-content-area {
             padding-top: 104px;
         }
+        #themeAppUI.is-widget-tab .widget-app-container {
+            height: calc(100% - 88px - env(safe-area-inset-bottom, 0px));
+            max-height: calc(100% - 88px - env(safe-area-inset-bottom, 0px));
+        }
 
         .theme-grid-container {
             display: grid;
