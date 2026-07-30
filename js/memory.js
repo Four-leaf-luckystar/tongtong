@@ -9,9 +9,11 @@
     const MEMORY_SUMMARIES_KEY = 'memorySummariesV1';
     const CONTACTS_KEY = 'wechatContactsData';
     const CHATS_KEY = 'wechatChatData';
-    const DEFAULT_SUMMARY_INTERVAL = 48;
-    const MIN_SUMMARY_INTERVAL = 8;
-    const MAX_SUMMARY_INTERVAL = 80;
+    const DEFAULT_SUMMARY_INTERVAL = 200;
+    const MIN_SUMMARY_INTERVAL = 1;
+    const MAX_SUMMARY_INTERVAL = 500;
+    const SUMMARY_PREFERENCES_VERSION = 2;
+    const MAX_SUMMARY_SOURCE_MESSAGES = 160;
     let root = null;
     let selectedContactId = '';
     let activeTab = 'memory';
@@ -110,13 +112,25 @@
     }
 
     function savePreferences() {
-        return writeRecord({ id: PREFERENCES_KEY, selectedContactId, summaryIntervalMessages });
+        return writeRecord({
+            id: PREFERENCES_KEY,
+            selectedContactId,
+            summaryIntervalMessages,
+            summaryPreferencesVersion: SUMMARY_PREFERENCES_VERSION
+        });
     }
 
     function normalizeSummaryInterval(value) {
         const numericValue = Number.parseInt(value, 10);
         if (!Number.isFinite(numericValue)) return DEFAULT_SUMMARY_INTERVAL;
         return Math.max(MIN_SUMMARY_INTERVAL, Math.min(MAX_SUMMARY_INTERVAL, numericValue));
+    }
+
+    function readSummaryInterval(preferences) {
+        if (!preferences || preferences.summaryPreferencesVersion !== SUMMARY_PREFERENCES_VERSION) {
+            return DEFAULT_SUMMARY_INTERVAL;
+        }
+        return normalizeSummaryInterval(preferences.summaryIntervalMessages);
     }
 
     function getContactMessages(contactId) {
@@ -260,7 +274,7 @@
         }
         if (previous && newMessageCount < summaryIntervalMessages) return null;
 
-        const sourceMessages = allSourceMessages.slice(-Math.min(MAX_SUMMARY_INTERVAL, Math.max(summaryIntervalMessages, 48)));
+        const sourceMessages = allSourceMessages.slice(-Math.min(MAX_SUMMARY_SOURCE_MESSAGES, Math.max(summaryIntervalMessages, 48)));
 
         return {
             id: 'summary_job_' + bindingId + '_' + sourceMessages[sourceMessages.length - 1].id,
@@ -292,12 +306,12 @@
         if (previous && Array.isArray(previous.sourceMessageIds)) {
             previous.sourceMessageIds.forEach((id) => validSourceIds.add(String(id)));
         }
-        const sections = candidate.sections.slice(0, 4).map((section) => {
-            const content = normalizeMemoryText(section && section.content).slice(0, 360);
+        const sections = candidate.sections.slice(0, 1).map((section) => {
+            const content = normalizeMemoryText(section && section.content);
             const sourceMessageIds = Array.from(new Set((Array.isArray(section && section.sourceMessageIds) ? section.sourceMessageIds : [])
                 .map(String)
                 .filter((id) => validSourceIds.has(id))));
-            if (!content || sourceMessageIds.length === 0 || isSensitiveAutomaticMemory(content) || !hasVerifiedMilestone(job.bindingId, content)) return null;
+            if (!content || content.length > 30 || sourceMessageIds.length === 0 || isSensitiveAutomaticMemory(content) || !hasVerifiedMilestone(job.bindingId, content)) return null;
             return { title: normalizeMemoryText(section && section.title).slice(0, 20) || '近况', content, sourceMessageIds };
         }).filter(Boolean);
         if (sections.length === 0) return false;
@@ -391,7 +405,7 @@
         cachedSummaries = Array.isArray(records[MEMORY_SUMMARIES_KEY] && records[MEMORY_SUMMARIES_KEY].items)
             ? records[MEMORY_SUMMARIES_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sections))
             : [];
-        summaryIntervalMessages = normalizeSummaryInterval(records[PREFERENCES_KEY] && records[PREFERENCES_KEY].summaryIntervalMessages);
+        summaryIntervalMessages = readSummaryInterval(records[PREFERENCES_KEY]);
         return cachedMemoryItems;
     }
 
@@ -753,7 +767,7 @@
             ? records[MEMORY_SUMMARIES_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sections))
             : [];
 
-        summaryIntervalMessages = normalizeSummaryInterval(records[PREFERENCES_KEY] && records[PREFERENCES_KEY].summaryIntervalMessages);
+        summaryIntervalMessages = readSummaryInterval(records[PREFERENCES_KEY]);
 
         const preferredId = records[PREFERENCES_KEY] && records[PREFERENCES_KEY].selectedContactId;
         if (cachedContacts.some((contact) => contact.id === selectedContactId)) {
@@ -842,8 +856,8 @@
             <div class="memory-summary-settings-sheet" role="dialog" aria-modal="true" aria-labelledby="memorySummarySettingsTitle">
                 <div class="memory-composer-header"><button type="button" data-memory-action="close-summary-settings">取消</button><h2 id="memorySummarySettingsTitle">摘要更新</h2><button type="button" data-memory-action="save-summary-settings">保存</button></div>
                 <p class="memory-summary-settings-copy">每累计多少条新消息，更新一次近期摘要</p>
-                <label class="memory-summary-settings-input"><input type="number" inputmode="numeric" min="8" max="80" step="1" data-memory-summary-interval><span>条新消息</span></label>
-                <p class="memory-summary-settings-note">可设置 8–80 条。摘要在后台更新，不影响聊天发送。</p>
+                <label class="memory-summary-settings-input"><input type="number" inputmode="numeric" min="1" max="500" step="1" data-memory-summary-interval><span>条新消息</span></label>
+                <p class="memory-summary-settings-note">可设置 1–500 条。摘要在后台更新，不影响聊天发送。</p>
                 <p class="memory-composer-error" data-memory-summary-error aria-live="polite"></p>
             </div>`;
         root.appendChild(summarySettings);
