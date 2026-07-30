@@ -897,7 +897,7 @@
         style.textContent = `
             .memory-app-container { --memory-blue: #1c1c1e; --memory-background: #f2f2f7; --memory-card: #ffffff; --memory-label: #3c3c43; --memory-secondary: #8e8e93; --memory-separator: #c6c6c8; position: absolute; inset: 0; z-index: 7200; display: none; overflow: hidden; background: var(--memory-background); color: #000; font-family: "Noto Serif SC", "STSong", "SimSun", serif; }
             .memory-app-container.is-open { display: block; }
-            .memory-app-scroll { box-sizing: border-box; display: flex; flex-direction: column; height: 100%; min-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding: max(13px, env(safe-area-inset-top)) 20px calc(18px + env(safe-area-inset-bottom)); background: var(--memory-background); }
+            .memory-app-scroll { box-sizing: border-box; display: flex; flex-direction: column; height: 100%; min-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding: max(46px, calc(env(safe-area-inset-top) + 13px)) 20px calc(18px + env(safe-area-inset-bottom)); background: var(--memory-background); }
             .memory-profile-header, .memory-picker-header { display: flex; align-items: center; justify-content: space-between; min-height: 46px; }
             .memory-back { width: 42px; height: 42px; border: 0; padding: 0 0 5px; border-radius: 50%; background: rgba(255,255,255,.72); color: var(--memory-blue); box-shadow: 0 2px 8px rgba(60,60,67,.08); font: 37px/37px Georgia, serif; cursor: pointer; }
             .memory-header-actions { display: flex; align-items: center; gap: 9px; }
@@ -933,7 +933,7 @@
             .memory-tabs { position: sticky; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); width: 100%; margin: 8px 0 0; padding: 5px; border-radius: 24px; box-sizing: border-box; background: rgba(255,255,255,.94); box-shadow: 0 7px 20px rgba(60,60,67,.08); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
             .memory-tabs button { height: 44px; border: 0; border-radius: 19px; padding: 0; background: transparent; color: var(--memory-secondary); font: 14px/1 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
             .memory-tabs button.is-active { background: var(--memory-blue); color: #fff; font-weight: 700; }
-            .memory-role-picker { position: absolute; inset: 0; z-index: 3; display: none; flex-direction: column; overflow-y: auto; padding: max(13px, env(safe-area-inset-top)) 20px calc(22px + env(safe-area-inset-bottom)); box-sizing: border-box; background: var(--memory-background); }
+            .memory-role-picker { position: absolute; inset: 0; z-index: 3; display: none; flex-direction: column; overflow-y: auto; padding: max(46px, calc(env(safe-area-inset-top) + 13px)) 20px calc(22px + env(safe-area-inset-bottom)); box-sizing: border-box; background: var(--memory-background); }
             .memory-app-container.is-picking-role .memory-role-picker { display: flex; }
             .memory-picker-header span { color: var(--memory-secondary); font-size: 14px; }
             .memory-picker-intro { margin-top: 35px; }
