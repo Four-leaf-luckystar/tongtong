@@ -93,6 +93,76 @@
 
         const officialWidgets = window.officialWidgets || [
             {
+                name: '个人收藏集',
+                presetSize: '4x2',
+                preview: '#e5e5e5',
+                content: `<style>
+    .widget-doris-container { width: 100%; height: 100%; background-color: #ffffff; display: flex; flex-direction: column; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .widget-doris-container .top-section { display: flex; align-items: center; padding: 16px 20px 12px 20px; }
+    .widget-doris-container .avatar-wrapper { position: relative; width: 60px; height: 60px; margin-right: 14px; }
+    .widget-doris-container .uploadable-item { cursor: pointer; background-size: cover; background-position: center; background-repeat: no-repeat; transition: opacity 0.2s; }
+    .widget-doris-container .uploadable-item:hover { opacity: 0.8; }
+    .widget-doris-container .main-avatar { width: 100%; height: 100%; border-radius: 16px; background-color: #dbe4f0; }
+    .widget-doris-container .camera-badge { position: absolute; bottom: -4px; right: -4px; width: 22px; height: 22px; background-color: #000000; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid #ffffff; pointer-events: none; }
+    .widget-doris-container .camera-badge svg { width: 13px; height: 13px; }
+    .widget-doris-container .info-section { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+    .widget-doris-container .editable-text { outline: none; cursor: text; border-radius: 4px; transition: background-color 0.2s; }
+    .widget-doris-container .editable-text:hover, .widget-doris-container .editable-text:focus { background-color: #f5f5f5; }
+    .widget-doris-container .info-name { font-size: 22px; font-weight: 800; color: #222222; margin: 0 0 2px 0; letter-spacing: 0.5px; display: inline-block; align-self: flex-start; }
+    .widget-doris-container .info-subtitle { font-size: 14px; color: #8e8e93; margin: 0; font-weight: 500; display: inline-block; align-self: flex-start; }
+    .widget-doris-container .follow-btn { background-color: #d1d1d6; color: #ffffff; border: none; border-radius: 20px; padding: 8px 16px; font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; }
+    .widget-doris-container .bottom-section { display: flex; justify-content: space-between; align-items: center; padding: 4px 20px 16px 20px; flex-grow: 1; }
+    .widget-doris-container .circle-item { width: 52px; height: 52px; border-radius: 50%; box-sizing: border-box; }
+    .widget-doris-container .circle-avatar-1 { background-color: #e8f0fe; }
+    .widget-doris-container .circle-avatar-2 { background-color: #fef0e8; }
+    .widget-doris-container .pattern-dots { background-image: radial-gradient(#b0b0b0 1.5px, transparent 1.5px); background-size: 10px 10px; background-position: 0 0; background-color: #ffffff; border: 1px solid #e5e5e5; }
+    .widget-doris-container .add-btn { border: 1px solid #e5e5e5; background-color: #fafafa; display: flex; justify-content: center; align-items: center; cursor: default; }
+    .widget-doris-container .add-btn svg { width: 24px; height: 24px; stroke: #c7c7cc; stroke-width: 1.5; }
+</style>
+<div class="widget-doris-container">
+    <div class="top-section">
+        <div class="avatar-wrapper">
+            <!-- 加上了 uploadable-img，你的系统会自动接管点击上传 -->
+            <div class="uploadable-item main-avatar uploadable-img"></div>
+            <div class="camera-badge">
+                <svg viewBox="0 0 24 24">
+                    <defs>
+                        <linearGradient id="metal-shine" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ffffff" />
+                            <stop offset="30%" stop-color="#f0f0f0" />
+                            <stop offset="50%" stop-color="#b0b0b0" />
+                            <stop offset="70%" stop-color="#f0f0f0" />
+                            <stop offset="100%" stop-color="#ffffff" />
+                        </linearGradient>
+                    </defs>
+                    <path fill="url(#metal-shine)" d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="info-section">
+            <h1 class="info-name editable-text" contenteditable="true" spellcheck="false">Doris</h1>
+            <p class="info-subtitle editable-text" contenteditable="true" spellcheck="false">#收藏集</p>
+        </div>
+        <button class="follow-btn">Follow</button>
+    </div>
+    <div class="bottom-section">
+        <!-- 加上了 uploadable-img，你的系统会自动接管点击上传 -->
+        <div class="circle-item uploadable-item circle-avatar-1 uploadable-img"></div>
+        <div class="circle-item uploadable-item pattern-dots uploadable-img"></div>
+        <div class="circle-item uploadable-item circle-avatar-2 uploadable-img"></div>
+        <div class="circle-item uploadable-item pattern-dots uploadable-img"></div>
+        
+        <!-- 加号按钮没有 uploadable-img，因此不可上传 -->
+        <div class="circle-item add-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </div>
+    </div>
+</div>`
+            },
+            {
                 name: '时间胶囊',
                 presetSize: '4x2',
                 preview: 'linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%)',
@@ -493,8 +563,8 @@
                 presetSize: '4x3',
                 preview: '#e8eaed',
                 content: `<style>
-    .widget-4x3-cat { width: 100%; height: 100%; display: flex; flex-direction: column; gap: 16px; box-sizing: border-box; background: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    .widget-4x3-cat .card { background-color: #f4f5f7; border-radius: 24px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06); border: 1px solid #ebebeb; box-sizing: border-box; }
+    .widget-4x3-cat { width: 100%; height: 100%; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; background: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; }
+    .widget-4x3-cat .card { background-color: #f4f5f7; border-radius: 24px; box-sizing: border-box; }
     .widget-4x3-cat .top-card { display: flex; align-items: center; padding: 16px 24px; }
     .widget-4x3-cat .top-icon-frame { width: 52px; height: 52px; background-color: #b8b8b8; border-radius: 14px; padding: 4px; box-sizing: border-box; flex-shrink: 0; }
     .widget-4x3-cat .top-icon-inner { width: 100%; height: 100%; background-color: #fff; border-radius: 10px; overflow: hidden; display: flex; justify-content: center; align-items: center; background-size: cover; background-position: center; }
@@ -502,7 +572,7 @@
     .widget-4x3-cat .top-title { font-size: 17px; font-weight: 600; color: #333; outline: none; }
     .widget-4x3-cat .top-subtitle { font-size: 13px; color: #666; outline: none; }
     .widget-4x3-cat .music-icon { width: 24px; height: 24px; color: #555; }
-    .widget-4x3-cat .bottom-card { flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 24px; }
+    .widget-4x3-cat .bottom-card { flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 16px 24px; }
     .widget-4x3-cat .image-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-grow: 1; }
     .widget-4x3-cat .image-frame { flex: 1; aspect-ratio: 1 / 1; background-color: #b8b8b8; border-radius: 20px; padding: 6px; box-sizing: border-box; }
     .widget-4x3-cat .image-inner { width: 100%; height: 100%; background-color: #ffffff; border-radius: 14px; overflow: hidden; display: flex; justify-content: center; align-items: center; background-size: cover; background-position: center; }
@@ -538,7 +608,7 @@
                 presetSize: '4x3',
                 preview: '#e8eaed',
                 content: `<style>
-    .widget-4x3-msg { width: 100%; height: 100%; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; background: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .widget-4x3-msg { width: 100%; height: 100%; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; background: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; }
     .widget-4x3-msg .top-card { background-color: #f4f5f7; border-radius: 24px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06); border: 1px solid #ebebeb; box-sizing: border-box; display: flex; align-items: center; padding: 12px 20px; }
     .widget-4x3-msg .top-icon-frame { width: 52px; height: 52px; background-color: #b8b8b8; border-radius: 14px; padding: 4px; box-sizing: border-box; flex-shrink: 0; }
     .widget-4x3-msg .top-icon-inner { width: 100%; height: 100%; background-color: #fff; border-radius: 10px; overflow: hidden; display: flex; justify-content: center; align-items: center; background-size: cover; background-position: center; }
@@ -554,7 +624,7 @@
     .widget-4x3-msg .chat-row { display: flex; align-items: flex-end; gap: 8px; max-width: 100%; }
     .widget-4x3-msg .chat-group.right .chat-row { flex-direction: row-reverse; }
     .widget-4x3-msg .chat-avatar { width: 36px; height: 36px; border-radius: 50%; background-color: #d1d1d6; flex-shrink: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); background-size: cover; background-position: center; }
-    .widget-4x3-msg .chat-bubble { padding: 8px 14px; font-size: 14px; line-height: 1.4; max-width: 65%; word-wrap: break-word; box-shadow: 0 2px 6px rgba(0,0,0,0.08); border-radius: 20px; outline: none; }
+    .widget-4x3-msg .chat-bubble { padding: 8px 14px; font-size: 14px; line-height: 1.4; max-width: 65%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 2px 6px rgba(0,0,0,0.08); border-radius: 20px; outline: none; }
     .widget-4x3-msg .chat-group.left .chat-bubble { background-color: #ffffff; color: #000; }
     .widget-4x3-msg .chat-group.right .chat-bubble { background-color: #007aff; color: #fff; }
     .widget-4x3-msg .chat-delivered { font-size: 10px; color: #999; padding-right: 44px; outline: none; line-height: 1; }
@@ -719,6 +789,73 @@
             <button class="captcha-skip-btn">SKIP</button>
         </div>
     </div>
+</div>`
+            },
+            {
+                name: '双层拍立得',
+                presetSize: '2x2',
+                preview: '#f8f8f8',
+                content: `<style>
+    .widget-2x2 { width: 100%; height: 100%; background-color: transparent; position: relative; display: flex; justify-content: center; align-items: center; font-family: "Times New Roman", Times, serif; }
+    .polaroid { position: absolute; background: #ffffff; padding: 5px 5px 8px 5px; box-shadow: 0 3px 12px rgba(0,0,0,0.08); width: 120px; height: 160px; box-sizing: border-box; border: 1px solid #f4f4f4; }
+    .card-back { transform: rotate(5deg) translate(8px, 3px); z-index: 1; background: #fdfdfd; }
+    .card-front { z-index: 2; display: flex; flex-direction: column; }
+    .image-placeholder { width: 100%; flex-grow: 1; background-color: #3a3a3a; border-radius: 1px; background-size: cover; background-position: center top; background-repeat: no-repeat; }
+    .caption { text-align: center; margin-top: 4px; font-size: 10px; color: #444; letter-spacing: 0.5px; line-height: 1.2; min-height: 12px; outline: none; }
+    .cross { position: absolute; top: 10px; left: 35px; z-index: 4; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.15)); pointer-events: none; }
+    .cross-vertical { width: 7px; height: 30px; background: linear-gradient(135deg, #ffffff 0%, #ececec 100%); border-radius: 1px; }
+    .cross-horizontal { width: 22px; height: 7px; background: linear-gradient(135deg, #ffffff 0%, #ececec 100%); position: absolute; top: 8px; left: -7.5px; border-radius: 1px; }
+    .speech-bubble { position: absolute; top: 25px; right: 5px; background: #fffafb; padding: 6px 10px; border-radius: 16px; font-size: 11px; color: #333; z-index: 4; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #f0f0f0; min-width: 24px; outline: none; }
+    .speech-bubble::after { content: ''; position: absolute; bottom: -7px; left: 14px; border-top: 10px solid #fffafb; border-left: 3px solid transparent; border-right: 10px solid transparent; transform: rotate(10deg); z-index: -1; }
+</style>
+<div class="widget-2x2">
+    <div class="polaroid card-back"></div>
+    <div class="polaroid card-front">
+        <div class="image-placeholder uploadable-img"></div>
+        <div class="caption" contenteditable="true" spellcheck="false">[Eio00s]</div>
+    </div>
+    <div class="cross">
+        <div class="cross-vertical"></div>
+        <div class="cross-horizontal"></div>
+    </div>
+    <div class="speech-bubble" contenteditable="true" spellcheck="false">I'm sorry...</div>
+</div>`
+            },
+            {
+                name: '甜美头像圈',
+                presetSize: '2x2',
+                preview: '#f2dce2',
+                content: `<style>
+    .widget-2x2-cute { width: 100%; height: 100%; background-color: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; position: relative; box-sizing: border-box; }
+    .avatar-section { position: relative; margin-bottom: 8px; margin-top: 4px; }
+    .avatar-ring { width: 80px; height: 80px; border-radius: 50%; border: 2.5px solid #f2dce2; padding: 2.5px; background-color: #ffffff; box-sizing: border-box; }
+    .main-avatar { width: 100%; height: 100%; border-radius: 50%; background-color: #dcdcdc; background-size: cover; background-position: center; }
+    .speech-bubble-wrapper { position: absolute; top: -10px; right: -14px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.08)); z-index: 3; }
+    .speech-bubble { background: #ffffff; border-radius: 12px; padding: 4px 8px; position: relative; display: flex; justify-content: center; align-items: center; }
+    .speech-bubble::after { content: ''; position: absolute; bottom: -3px; left: 50%; transform: translateX(-50%) rotate(45deg); width: 8px; height: 8px; background: #ffffff; border-radius: 2px; }
+    .bubble-emoji { font-size: 16px; line-height: 1; outline: none; text-align: center; min-width: 20px; }
+    .plus-badge { position: absolute; bottom: -2px; right: -2px; width: 22px; height: 22px; background-color: #f4b3c2; border-radius: 50%; border: 2.5px solid #ffffff; display: flex; justify-content: center; align-items: center; z-index: 3; }
+    .plus-badge::before, .plus-badge::after { content: ''; position: absolute; background-color: #ffffff; border-radius: 1px; }
+    .plus-badge::before { width: 10px; height: 2px; }
+    .plus-badge::after { width: 2px; height: 10px; }
+    .text-line-1 { font-size: 11px; color: #444444; font-weight: 600; margin-bottom: 6px; outline: none; text-align: center; letter-spacing: 0.5px; }
+    .text-line-1 i { font-family: "Times New Roman", Times, serif; font-style: italic; font-weight: 700; font-size: 13px; }
+    .text-line-2 { font-size: 9px; color: #666666; background-color: #e8e8e8; padding: 4px 12px; border-radius: 20px; outline: none; text-align: center; letter-spacing: 0.5px; }
+</style>
+<div class="widget-2x2-cute">
+    <div class="avatar-section">
+        <div class="avatar-ring">
+            <div class="main-avatar uploadable-img"></div>
+        </div>
+        <div class="speech-bubble-wrapper">
+            <div class="speech-bubble">
+                <div class="bubble-emoji" contenteditable="true" spellcheck="false">🎧</div>
+            </div>
+        </div>
+        <div class="plus-badge"></div>
+    </div>
+    <div class="text-line-1" contenteditable="true" spellcheck="false">* ₊ ˚ ⋆ ♡ <i>weekend</i> 🥛 :)</div>
+    <div class="text-line-2" contenteditable="true" spellcheck="false"> ੈ♡ 消えない記憶 ⊹ ｡ ﾟ</div>
 </div>`
             }
 
