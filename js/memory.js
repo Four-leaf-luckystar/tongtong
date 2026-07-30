@@ -6,6 +6,7 @@
     const PREFERENCES_KEY = 'memoryAppPreferencesV1';
     const MEMORY_ITEMS_KEY = 'memoryItemsV1';
     const MEMORY_OUTBOX_KEY = 'memoryOutboxV1';
+    const MEMORY_SUMMARIES_KEY = 'memorySummariesV1';
     const CONTACTS_KEY = 'wechatContactsData';
     const CHATS_KEY = 'wechatChatData';
     let root = null;
@@ -15,6 +16,8 @@
     let cachedConversations = {};
     let cachedMemoryItems = [];
     let cachedOutbox = [];
+    let cachedSummaries = [];
+    const invalidatedSourceIds = new Set();
 
     function readRecords(keys) {
         return new Promise((resolve) => {
@@ -72,7 +75,7 @@
         });
     }
 
-    function writeMemoryState(items, outbox) {
+    function writeMemoryState(items, outbox, summaries = null) {
         return new Promise((resolve) => {
             const request = indexedDB.open(DB_NAME);
             request.onerror = () => resolve(false);
@@ -87,6 +90,9 @@
                 const store = transaction.objectStore(STORE_NAME);
                 store.put({ id: MEMORY_ITEMS_KEY, schemaVersion: 1, items });
                 store.put({ id: MEMORY_OUTBOX_KEY, schemaVersion: 1, items: outbox });
+                if (Array.isArray(summaries)) {
+                    store.put({ id: MEMORY_SUMMARIES_KEY, schemaVersion: 1, items: summaries });
+                }
                 transaction.oncomplete = () => {
                     database.close();
                     resolve(true);
@@ -147,8 +153,8 @@
     function getEmptyCopy() {
         const copy = {
             memory: ['暂无记忆', '这里会收纳你们确认过的共同记忆。'],
-            relationship: ['关系尚未记录', '确认后的关系变化会在这里留下时间线。'],
-            fragment: ['暂无聊天片段', '重要的对话片段会在这里沉淀下来。'],
+            relationship: ['暂无近期摘要', '累计足够的新对话后，会在后台生成可核对的摘要。'],
+            fragment: ['暂无聊天片段', '非敏感的对话原话会在这里建立本地索引。'],
             archive: ['档案尚未建立', '档案只保存你主动留下的长期信息。']
         };
         return copy[activeTab] || copy.memory;
@@ -173,6 +179,173 @@
         return /(过敏|疾病|病史|诊断|药物|医院|怀孕|流产|住址|地址|身份证|银行卡|工资|收入|债务|欠债|性经历|创伤|自杀)/i.test(value);
     }
 
+    function getSourceIds(item) {
+        return Array.isArray(item && item.sourceRefs)
+            ? item.sourceRefs.map((source) => String(source && source.messageId || '')).filter(Boolean)
+            : [];
+    }
+
+    function createTextTerms(value) {
+        const text = normalizeMemoryText(value).toLowerCase();
+        const terms = new Set();
+        const stopTerms = new Set(['我们', '你们', '他们', '这个', '那个', '就是', '因为', '所以', '还是', '已经', '可以', '不是', '没有', '一个', '什么', '怎么', '现在', '今天', '真的', '感觉', '知道', '觉得', '然后']);
+        (text.match(/[a-z0-9]{2,}/g) || []).forEach((term) => terms.add(term));
+        (text.match(/[\u4e00-\u9fff]+/g) || []).forEach((block) => {
+            for (let index = 0; index < block.length - 1; index += 1) {
+                const term = block.slice(index, index + 2);
+                if (!stopTerms.has(term)) terms.add(term);
+            }
+        });
+        return Array.from(terms).slice(0, 40);
+    }
+
+    function getActiveSummary(bindingId) {
+        return cachedSummaries.find((summary) => summary && summary.bindingId === bindingId && summary.status === 'active') || null;
+    }
+
+    function getPromptSummary(bindingId) {
+        const summary = getActiveSummary(bindingId);
+        if (!summary || !Array.isArray(summary.sections)) return '';
+        return summary.sections
+            .map((section) => normalizeMemoryText(section && section.content))
+            .filter(Boolean)
+            .join('\n')
+            .slice(0, 900);
+    }
+
+    function getRelevantFragments(bindingId, query, limit = 3) {
+        const queryTerms = new Set(createTextTerms(query));
+        if (queryTerms.size === 0) return [];
+        const maxItems = Math.max(1, Math.min(Number(limit) || 3, 4));
+        return cachedMemoryItems
+            .filter((item) => item && item.bindingId === bindingId && item.tier === 'L3' && item.kind === 'fragment' && item.status === 'active')
+            .map((item) => {
+                const terms = Array.isArray(item.keywords) ? item.keywords : createTextTerms(item.content);
+                const score = terms.reduce((total, term) => total + (queryTerms.has(term) ? 1 : 0), 0);
+                return { item, score };
+            })
+            .filter(({ score }) => score > 0)
+            .sort((left, right) => right.score - left.score || String(right.item.createdAt || '').localeCompare(String(left.item.createdAt || '')))
+            .slice(0, maxItems)
+            .map(({ item }) => normalizeMemoryText(item.content))
+            .filter((content) => content && content.length <= 220);
+    }
+
+    function getSummaryJob(bindingId, messages) {
+        const sourceMessages = (Array.isArray(messages) ? messages : [])
+            .filter((message) => message && message.id && (message.type === 'sent' || message.type === 'received') && normalizeMemoryText(message.text))
+            .slice(-36)
+            .map((message) => ({ id: String(message.id), type: message.type, text: normalizeMemoryText(message.text).slice(0, 240) }));
+        if (sourceMessages.length < 8) return null;
+
+        const previous = getActiveSummary(bindingId);
+        const previousSourceIds = new Set(previous && Array.isArray(previous.sourceMessageIds) ? previous.sourceMessageIds.map(String) : []);
+        const unseenCount = sourceMessages.filter((message) => !previousSourceIds.has(message.id)).length;
+        if (previous && unseenCount < 8) return null;
+
+        return {
+            id: 'summary_job_' + bindingId + '_' + sourceMessages[sourceMessages.length - 1].id,
+            bindingId,
+            sourceMessages,
+            previousSummary: previous ? {
+                id: previous.id,
+                text: getPromptSummary(bindingId),
+                sourceMessageIds: previous.sourceMessageIds || []
+            } : null
+        };
+    }
+
+    function hasVerifiedMilestone(bindingId, value) {
+        const milestones = ['恋人', '分手', '复合', '同居', '订婚', '结婚', '怀孕', '患病', '创伤'];
+        const matched = milestones.filter((milestone) => value.includes(milestone));
+        if (matched.length === 0) return true;
+        const facts = getActiveItems(bindingId, 'memory')
+            .filter((item) => item.authority === 'user_confirmed' || item.authority === 'user_quote');
+        return matched.every((milestone) => facts.some((item) => String(item.content || '').includes(milestone)));
+    }
+
+    async function completeSummary(job, candidate) {
+        if (!job || !job.bindingId || !candidate || !Array.isArray(candidate.sections)) return false;
+        if (job.sourceMessages.some((message) => invalidatedSourceIds.has(String(message.id)))) return false;
+        const previous = getActiveSummary(job.bindingId);
+        const validSourceIds = new Set(job.sourceMessages.map((message) => String(message.id)));
+        if (previous && Array.isArray(previous.sourceMessageIds)) {
+            previous.sourceMessageIds.forEach((id) => validSourceIds.add(String(id)));
+        }
+        const sections = candidate.sections.slice(0, 4).map((section) => {
+            const content = normalizeMemoryText(section && section.content).slice(0, 360);
+            const sourceMessageIds = Array.from(new Set((Array.isArray(section && section.sourceMessageIds) ? section.sourceMessageIds : [])
+                .map(String)
+                .filter((id) => validSourceIds.has(id))));
+            if (!content || sourceMessageIds.length === 0 || isSensitiveAutomaticMemory(content) || !hasVerifiedMilestone(job.bindingId, content)) return null;
+            return { title: normalizeMemoryText(section && section.title).slice(0, 20) || '近况', content, sourceMessageIds };
+        }).filter(Boolean);
+        if (sections.length === 0) return false;
+
+        const now = new Date().toISOString();
+        const sourceMessageIds = Array.from(new Set(sections.flatMap((section) => section.sourceMessageIds)));
+        const priorHistory = previous ? [{
+            revision: previous.revision,
+            sections: previous.sections,
+            sourceMessageIds: previous.sourceMessageIds,
+            updatedAt: previous.updatedAt
+        }, ...(Array.isArray(previous.history) ? previous.history : [])] : [];
+        const nextSummary = {
+            id: previous ? previous.id : 'summary_' + job.bindingId,
+            schemaVersion: 1,
+            bindingId: job.bindingId,
+            tier: 'L2',
+            status: 'active',
+            revision: (previous && Number(previous.revision) || 0) + 1,
+            sourceMessageIds,
+            inputHash: sourceMessageIds.join('|'),
+            sections,
+            history: priorHistory.slice(0, 20),
+            createdAt: previous ? previous.createdAt : now,
+            updatedAt: now
+        };
+        const nextSummaries = [...cachedSummaries.filter((summary) => summary && summary.bindingId !== job.bindingId), nextSummary];
+        const saved = await writeRecord({ id: MEMORY_SUMMARIES_KEY, schemaVersion: 1, items: nextSummaries });
+        if (saved) cachedSummaries = nextSummaries;
+        return saved;
+    }
+
+    async function invalidateSources(bindingId, messageIds) {
+        const invalidIds = new Set((Array.isArray(messageIds) ? messageIds : []).map(String).filter(Boolean));
+        if (!bindingId || invalidIds.size === 0) return false;
+        invalidIds.forEach((id) => invalidatedSourceIds.add(id));
+        let changed = false;
+        const now = new Date().toISOString();
+        const nextItems = cachedMemoryItems.map((item) => {
+            if (!item || item.bindingId !== bindingId || item.status !== 'active') return item;
+            if (!getSourceIds(item).some((id) => invalidIds.has(id))) return item;
+            changed = true;
+            return { ...item, status: 'archived', updatedAt: now };
+        });
+        const nextSummaries = cachedSummaries.map((summary) => {
+            if (!summary || summary.bindingId !== bindingId || summary.status !== 'active') return summary;
+            if (!Array.isArray(summary.sourceMessageIds) || !summary.sourceMessageIds.some((id) => invalidIds.has(String(id)))) return summary;
+            changed = true;
+            return { ...summary, status: 'dirty', updatedAt: now };
+        });
+        const nextOutbox = cachedOutbox
+            .map((turn) => {
+                if (!turn || turn.bindingId !== bindingId) return turn;
+                const sourceMessages = turn.sourceMessages.filter((message) => !invalidIds.has(String(message && message.id || '')));
+                if (sourceMessages.length !== turn.sourceMessages.length) changed = true;
+                return sourceMessages.length ? { ...turn, sourceMessages } : null;
+            })
+            .filter(Boolean);
+        if (!changed) return false;
+        const saved = await writeMemoryState(nextItems, nextOutbox, nextSummaries);
+        if (saved) {
+            cachedMemoryItems = nextItems;
+            cachedSummaries = nextSummaries;
+            cachedOutbox = nextOutbox;
+        }
+        return saved;
+    }
+
     function getPromptMemories(contactId, limit = 6) {
         const maxItems = Math.max(1, Math.min(Number(limit) || 6, 8));
         return getActiveItems(contactId, 'memory')
@@ -187,12 +360,15 @@
     }
 
     async function preload() {
-        const records = await readRecords([MEMORY_ITEMS_KEY, MEMORY_OUTBOX_KEY]);
+        const records = await readRecords([MEMORY_ITEMS_KEY, MEMORY_OUTBOX_KEY, MEMORY_SUMMARIES_KEY]);
         cachedMemoryItems = Array.isArray(records[MEMORY_ITEMS_KEY] && records[MEMORY_ITEMS_KEY].items)
             ? records[MEMORY_ITEMS_KEY].items.filter((item) => item && item.id && item.bindingId && item.content)
             : [];
         cachedOutbox = Array.isArray(records[MEMORY_OUTBOX_KEY] && records[MEMORY_OUTBOX_KEY].items)
             ? records[MEMORY_OUTBOX_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sourceMessages))
+            : [];
+        cachedSummaries = Array.isArray(records[MEMORY_SUMMARIES_KEY] && records[MEMORY_SUMMARIES_KEY].items)
+            ? records[MEMORY_SUMMARIES_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sections))
             : [];
         return cachedMemoryItems;
     }
@@ -205,9 +381,9 @@
             id: turnId,
             bindingId,
             sourceMessages: sourceMessages
-                .filter((message) => message && message.id && message.type === 'sent' && normalizeMemoryText(message.text))
-                .map((message) => ({ id: String(message.id), type: 'sent', text: String(message.text) }))
-                .slice(-8),
+                .filter((message) => message && message.id && (message.type === 'sent' || message.type === 'received') && normalizeMemoryText(message.text))
+                .map((message) => ({ id: String(message.id), type: message.type, text: String(message.text) }))
+                .slice(-12),
             createdAt: new Date().toISOString()
         };
         if (item.sourceMessages.length === 0) return false;
@@ -235,13 +411,18 @@
                 .filter((item) => item.bindingId === queuedTurn.bindingId)
                 .map((item) => normalizeMemoryText(item.content).toLowerCase())
         );
+        const existingFragmentSources = new Set(
+            cachedMemoryItems
+                .filter((item) => item.bindingId === queuedTurn.bindingId && item.tier === 'L3')
+                .flatMap((item) => getSourceIds(item))
+        );
         const now = new Date().toISOString();
         const newItems = [];
 
         (Array.isArray(candidates) ? candidates : []).slice(0, 2).forEach((candidate) => {
             const message = sourceById.get(String(candidate && candidate.messageId || ''));
             const quote = normalizeMemoryText(candidate && candidate.quote);
-            if (!message || !quote || quote.length < 4 || quote.length > 180) return;
+            if (!message || message.type !== 'sent' || !quote || quote.length < 4 || quote.length > 180) return;
             if (!String(message.text).includes(quote) || isSensitiveAutomaticMemory(quote)) return;
             const normalizedQuote = quote.toLowerCase();
             if (existingContents.has(normalizedQuote)) return;
@@ -259,6 +440,28 @@
                 visibility: 'current_binding',
                 content: quote,
                 sourceRefs: [{ type: 'chat_quote', messageId: message.id, quote, createdAt: now }],
+                createdAt: now,
+                updatedAt: now
+            });
+        });
+
+        queuedTurn.sourceMessages.forEach((message) => {
+            const content = normalizeMemoryText(message && message.text);
+            if (!message || existingFragmentSources.has(String(message.id)) || content.length < 8 || content.length > 220 || isSensitiveAutomaticMemory(content)) return;
+            existingFragmentSources.add(String(message.id));
+            newItems.push({
+                id: 'fragment_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+                schemaVersion: 1,
+                bindingId: queuedTurn.bindingId,
+                kind: 'fragment',
+                tier: 'L3',
+                status: 'active',
+                authority: 'user_quote',
+                subjectType: 'user_persona',
+                visibility: 'current_binding',
+                content,
+                keywords: createTextTerms(content),
+                sourceRefs: [{ type: 'chat_fragment', messageId: message.id, quote: content, createdAt: now }],
                 createdAt: now,
                 updatedAt: now
             });
@@ -283,34 +486,54 @@
         const content = root.querySelector('[data-memory-content]');
         const title = root.querySelector('[data-memory-card-title]');
         const items = contact ? getActiveItems(contact.id, activeTab) : [];
+        const summary = contact && activeTab === 'relationship' ? getActiveSummary(contact.id) : null;
         const [emptyTitle, emptyText] = getEmptyCopy();
         title.textContent = '@ ' + getTabLabel();
         content.replaceChildren();
 
-        if (items.length === 0) {
+        if (summary || items.length > 0) {
+            const list = document.createElement('div');
+            list.className = 'memory-entry-list';
+
+            if (summary) {
+                summary.sections.forEach((section) => {
+                    const entry = document.createElement('article');
+                    entry.className = 'memory-entry';
+                    const meta = document.createElement('span');
+                    meta.className = 'memory-entry-meta';
+                    meta.textContent = 'L2 摘要 · ' + (section.title || '近况');
+                    const text = document.createElement('p');
+                    text.textContent = section.content || '';
+                    entry.append(meta, text);
+                    list.appendChild(entry);
+                });
+            }
+
+            items.forEach((item) => {
+                const entry = document.createElement('article');
+                entry.className = 'memory-entry';
+                const meta = document.createElement('span');
+                meta.className = 'memory-entry-meta';
+                meta.textContent = item.tier === 'L3'
+                    ? 'L3 片段 · ' + (formatMemoryDate(item.createdAt) || '聊天记录')
+                    : (formatMemoryDate(item.createdAt) || '手动记录');
+                const text = document.createElement('p');
+                text.textContent = item.content || '';
+                entry.append(meta, text);
+                list.appendChild(entry);
+            });
+            content.appendChild(list);
+            return;
+        }
+
+        {
             const empty = document.createElement('div');
             empty.className = 'memory-empty-state';
             empty.innerHTML = '<span class="memory-empty-mark">✦</span><h2></h2><p></p>';
             empty.querySelector('h2').textContent = emptyTitle;
             empty.querySelector('p').textContent = emptyText;
             content.appendChild(empty);
-            return;
         }
-
-        const list = document.createElement('div');
-        list.className = 'memory-entry-list';
-        items.forEach((item) => {
-            const entry = document.createElement('article');
-            entry.className = 'memory-entry';
-            const meta = document.createElement('span');
-            meta.className = 'memory-entry-meta';
-            meta.textContent = formatMemoryDate(item.createdAt) || '手动记录';
-            const text = document.createElement('p');
-            text.textContent = item.content || '';
-            entry.append(meta, text);
-            list.appendChild(entry);
-        });
-        content.appendChild(list);
     }
 
     function renderRolePicker() {
@@ -454,7 +677,7 @@
     }
 
     async function refresh() {
-        const records = await readRecords([PREFERENCES_KEY, MEMORY_ITEMS_KEY, MEMORY_OUTBOX_KEY, CONTACTS_KEY, CHATS_KEY]);
+        const records = await readRecords([PREFERENCES_KEY, MEMORY_ITEMS_KEY, MEMORY_OUTBOX_KEY, MEMORY_SUMMARIES_KEY, CONTACTS_KEY, CHATS_KEY]);
         const contactsData = records[CONTACTS_KEY];
         cachedContacts = Array.isArray(contactsData && contactsData.contacts)
             ? contactsData.contacts.filter((contact) => contact && contact.id)
@@ -467,6 +690,9 @@
             : [];
         cachedOutbox = Array.isArray(records[MEMORY_OUTBOX_KEY] && records[MEMORY_OUTBOX_KEY].items)
             ? records[MEMORY_OUTBOX_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sourceMessages))
+            : [];
+        cachedSummaries = Array.isArray(records[MEMORY_SUMMARIES_KEY] && records[MEMORY_SUMMARIES_KEY].items)
+            ? records[MEMORY_SUMMARIES_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sections))
             : [];
 
         const preferredId = records[PREFERENCES_KEY] && records[PREFERENCES_KEY].selectedContactId;
@@ -680,7 +906,12 @@
         getPromptMemories,
         enqueueChatTurn,
         getPendingChatTurns,
-        completeChatTurn
+        completeChatTurn,
+        getPromptSummary,
+        getRelevantFragments,
+        getSummaryJob,
+        completeSummary,
+        invalidateSources
     };
 
     // The chat path reads this in-memory cache only. IndexedDB is warmed in the background.
