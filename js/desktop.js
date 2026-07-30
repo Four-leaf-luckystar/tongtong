@@ -1199,7 +1199,7 @@
 
             const script = document.createElement('script');
             script.id = 'contactsAppScript';
-            script.src = 'js/contacts.js?v=20260730-qr-password-v1';
+            script.src = 'js/contacts.js?v=20260731-sillytavern-card-v1';
             script.onload = resolve;
             script.onerror = () => {
                 script.remove();
