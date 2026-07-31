@@ -207,4 +207,8 @@
         });
     }
 
-initDB();
+if (typeof window.startTonghuajiApp === 'function') {
+    window.startTonghuajiApp();
+} else {
+    initDB();
+}

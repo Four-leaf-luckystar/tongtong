@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="app-access-pending">
 <head>
     <meta charset="UTF-8">
     <title>童话机</title>
@@ -32,8 +32,164 @@
     <link rel="stylesheet" href="css/dark-mode.css">
     <link rel="stylesheet" href="css/music-app.css?v=20260730-home-lyrics-exit-v1">
 
+    <style id="appAccessGateStyles">
+        .app-access-pending .iphone {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        #appAccessGate {
+            position: fixed;
+            inset: 0;
+            z-index: 2147483000;
+            display: grid;
+            place-items: center;
+            box-sizing: border-box;
+            min-height: 100dvh;
+            padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+            overflow: auto;
+            color: #171717;
+            background: #edf3f8;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+
+        .app-access-ready #appAccessGate { display: none; }
+
+        .app-access-panel {
+            width: min(100%, 382px);
+            box-sizing: border-box;
+            padding: 28px 22px 20px;
+            border: 1px solid rgba(255, 255, 255, .76);
+            border-radius: 28px;
+            background: rgba(255, 255, 255, .54);
+            box-shadow: 0 20px 55px rgba(68, 93, 127, .18), inset 0 1px 0 rgba(255, 255, 255, .85);
+            backdrop-filter: blur(28px) saturate(150%);
+            -webkit-backdrop-filter: blur(28px) saturate(150%);
+        }
+
+        .app-access-brand { margin: 0 0 24px; text-align: center; }
+        .app-access-brand-mark {
+            display: grid;
+            place-items: center;
+            width: 54px;
+            height: 54px;
+            margin: 0 auto 13px;
+            border-radius: 17px;
+            color: #fff;
+            font-size: 23px;
+            font-weight: 700;
+            background: #4266d7;
+            box-shadow: 0 10px 23px rgba(66, 102, 215, .3), inset 0 1px 0 rgba(255, 255, 255, .38);
+        }
+        .app-access-brand h1 { margin: 0; font-size: 25px; line-height: 1.2; letter-spacing: 0; }
+        .app-access-brand p { margin: 7px 0 0; color: #6c7180; font-size: 14px; line-height: 1.5; }
+        .app-access-form[hidden] { display: none; }
+        .app-access-field { display: grid; gap: 7px; margin: 14px 0; }
+        .app-access-field span { color: #4f5564; font-size: 13px; font-weight: 600; }
+        .app-access-field input {
+            width: 100%;
+            min-height: 46px;
+            box-sizing: border-box;
+            border: 1px solid rgba(91, 103, 128, .2);
+            border-radius: 13px;
+            outline: 0;
+            padding: 0 13px;
+            color: #171717;
+            background: rgba(255, 255, 255, .68);
+            font: inherit;
+            transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+        .app-access-field input:focus {
+            border-color: rgba(66, 102, 215, .72);
+            background: rgba(255, 255, 255, .92);
+            box-shadow: 0 0 0 4px rgba(66, 102, 215, .14);
+        }
+        .app-access-primary, .app-access-secondary, .app-access-link {
+            width: 100%;
+            min-height: 45px;
+            border: 0;
+            border-radius: 13px;
+            font: inherit;
+            font-weight: 650;
+            cursor: pointer;
+        }
+        .app-access-primary {
+            color: #fff;
+            background: #4266d7;
+            box-shadow: 0 8px 18px rgba(66, 102, 215, .24);
+        }
+        .app-access-secondary { margin-top: 10px; color: #343a49; background: rgba(255, 255, 255, .58); }
+        .app-access-link { min-height: 34px; margin-top: 6px; color: #4266d7; background: transparent; font-size: 13px; }
+        .app-access-primary:active, .app-access-secondary:active, .app-access-link:active { transform: scale(.98); }
+        .app-access-primary:disabled, .app-access-secondary:disabled, .app-access-link:disabled { cursor: wait; opacity: .58; }
+        .app-access-notice { min-height: 20px; margin: 14px 0 0; color: #586071; font-size: 13px; line-height: 1.5; text-align: center; }
+        .app-access-notice.is-error { color: #b52635; }
+        .app-access-devices { display: grid; gap: 9px; margin: 4px 0 16px; }
+        .app-access-device {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 11px 12px;
+            border-radius: 13px;
+            background: rgba(255, 255, 255, .5);
+        }
+        .app-access-device strong, .app-access-device small { display: block; }
+        .app-access-device strong { font-size: 13px; }
+        .app-access-device small { margin-top: 3px; color: #737989; font-size: 12px; }
+        .app-access-device button { flex: 0 0 auto; min-height: 32px; padding: 0 10px; border: 0; border-radius: 10px; color: #a52535; background: rgba(255, 238, 240, .78); font: inherit; font-size: 12px; cursor: pointer; }
+        @media (prefers-reduced-motion: reduce) {
+            .app-access-field input, .app-access-primary, .app-access-secondary, .app-access-link { transition: none; }
+        }
+    </style>
+
 </head>
 <body>
+
+<main id="appAccessGate" aria-live="polite">
+    <section class="app-access-panel" aria-label="童话机账号登录">
+        <header class="app-access-brand">
+            <div class="app-access-brand-mark" aria-hidden="true">童</div>
+            <h1>童话机</h1>
+            <p>使用已开通的 QQ 账号继续</p>
+        </header>
+
+        <form class="app-access-form" data-access-view="login" novalidate>
+            <label class="app-access-field"><span>QQ 号</span><input name="qq" inputmode="numeric" autocomplete="username" maxlength="12" required></label>
+            <label class="app-access-field"><span>密码</span><input name="password" type="password" autocomplete="current-password" minlength="8" required></label>
+            <button class="app-access-primary" type="submit">登录</button>
+            <button class="app-access-link" type="button" data-access-action="show-setup">首次使用，设置密码</button>
+            <button class="app-access-link" type="button" data-access-action="show-recovery">忘记密码</button>
+        </form>
+
+        <form class="app-access-form" data-access-view="setup" hidden novalidate>
+            <label class="app-access-field"><span>已开通的 QQ 号</span><input name="qq" inputmode="numeric" autocomplete="username" maxlength="12" required></label>
+            <label class="app-access-field"><span>设置密码</span><input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+            <label class="app-access-field"><span>确认密码</span><input name="passwordConfirm" type="password" autocomplete="new-password" minlength="8" required></label>
+            <button class="app-access-primary" type="submit">设置密码</button>
+            <button class="app-access-link" type="button" data-access-action="show-login">返回登录</button>
+        </form>
+
+        <form class="app-access-form" data-access-view="recovery" hidden novalidate>
+            <label class="app-access-field"><span>QQ 号</span><input name="qq" inputmode="numeric" autocomplete="username" maxlength="12" required></label>
+            <button class="app-access-primary" type="submit">发送重置邮件</button>
+            <button class="app-access-link" type="button" data-access-action="show-login">返回登录</button>
+        </form>
+
+        <form class="app-access-form" data-access-view="reset" hidden novalidate>
+            <label class="app-access-field"><span>新密码</span><input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+            <label class="app-access-field"><span>确认新密码</span><input name="passwordConfirm" type="password" autocomplete="new-password" minlength="8" required></label>
+            <button class="app-access-primary" type="submit">更新密码</button>
+        </form>
+
+        <section class="app-access-form" data-access-view="devices" hidden>
+            <div class="app-access-devices" data-access-device-list></div>
+            <button class="app-access-primary" type="button" data-access-action="retry-device">重新校验此浏览器</button>
+            <button class="app-access-link" type="button" data-access-action="show-login">返回登录</button>
+        </section>
+        <p class="app-access-notice" data-access-notice role="status"></p>
+    </section>
+</main>
 
 <div class="iphone">
     <!-- 全局亮度遮罩 -->
@@ -3469,6 +3625,7 @@ fill="currentColor" viewBox="0 0 24 24" >
     </div>
 </div>
 
+<script src="js/access-auth.js?v=20260731-access-lock-v1"></script>
 <script src="js/utils.js"></script>
 <script src="js/db.js?v=20260731-time-awareness-switch-v1"></script>
 <script src="js/desktop.js?v=20260729-continuous-drag-v1"></script>
@@ -3501,7 +3658,7 @@ fill="currentColor" viewBox="0 0 24 24" >
    <script src="js/memory.js?v=20260731-memory-editor-v1"></script>
    <script src="js/wechat.js?v=20260731-time-awareness-switch-v1"></script>
 <script src="js/search.js"></script>
-<script src="js/universal-select.js"></script>
+<script src="js/universal-select.js?v=20260731-access-lock-v1"></script>
     <!-- Widget Picker Modal -->
     <div id="widgetPickerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 9999; flex-direction: column;">
         <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-top: 50px;">
