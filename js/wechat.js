@@ -857,12 +857,13 @@
                 lastMsgTime = wcFormatChatTime(lastMsg.createdAt);
             }
 
+            const displayName = contact.remark || contact.name;
             html += `
                 <div class="chat-item" data-session-id="${contact.id}" onclick="wcOpenChatRoom('${contact.id}')" style="display: flex; padding: 12px 16px; align-items: center; border-bottom: none; cursor: pointer;">
                     <div class="avatar" style="width: 48px; height: 48px; border-radius: 50%; background-color: transparent; background-size: cover; background-position: center; flex-shrink: 0; margin-right: 12px; ${avatarStyle}">${avatarContent}</div>
                     <div class="chat-info" style="flex: 1; overflow: hidden;">
                         <div class="chat-name-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                            <div class="name" style="font-size: 16px; font-weight: 500; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${contact.name}</div>
+                            <div class="name" style="font-size: 16px; font-weight: 500; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayName}</div>
                             <div class="time" style="font-size: 12px; color: #8e8e93;">${lastMsgTime}</div>
                         </div>
                         <div class="chat-msg-row">
@@ -1455,7 +1456,7 @@
         const nameEl = chatRoom.querySelector('.room-info-text .name');
         const avatarEl = chatRoom.querySelector('.room-info-capsule .avatar');
         
-        if (nameEl) nameEl.innerText = contact.name;
+        if (nameEl) nameEl.innerText = contact.remark || contact.name;
         if (avatarEl) {
             if (contact.avatar) {
                 avatarEl.style.backgroundImage = `url('${contact.avatar}')`;
@@ -1488,6 +1489,7 @@
         const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
         if (bottomNav) bottomNav.style.display = 'block';
         document.getElementById('wc-dropdown-menu').classList.remove('show');
+        wcRenderChatList(); // 修复：返回列表时重新渲染以同步最新消息
     }
 
     function wcToggleMenu(event) {
@@ -2108,15 +2110,20 @@
         const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
         if (contact) {
             if (charNameEl) charNameEl.innerText = contact.name || '未知';
+            
+            const remarkInput = document.getElementById('wc-contact-remark-input');
+            if (remarkInput) remarkInput.value = contact.remark || '';
+
             if (charCircle) {
                 if (contact.avatar) {
                     charCircle.style.backgroundImage = `url('${contact.avatar}')`;
+                    charCircle.style.backgroundColor = 'transparent';
                     charCircle.innerHTML = '';
                 } else {
                     charCircle.style.backgroundImage = 'none';
-                    charCircle.style.backgroundColor = '#E5E5EA';
+                    charCircle.style.backgroundColor = 'transparent';
                     charCircle.style.border = 'none';
-                    charCircle.innerHTML = '';
+                    charCircle.innerHTML = getWcDefaultAvatarSvg();
                 }
             }
         }
@@ -2127,12 +2134,13 @@
             if (userCircle) {
                 if (appSettings.wc_current_user_avatar) {
                     userCircle.style.backgroundImage = `url('${appSettings.wc_current_user_avatar}')`;
+                    userCircle.style.backgroundColor = 'transparent';
                     userCircle.innerHTML = '';
                 } else {
                     userCircle.style.backgroundImage = 'none';
-                    userCircle.style.backgroundColor = '#E5E5EA';
+                    userCircle.style.backgroundColor = 'transparent';
                     userCircle.style.border = 'none';
-                    userCircle.innerHTML = '';
+                    userCircle.innerHTML = getWcDefaultAvatarSvg();
                 }
             }
         }
@@ -2141,6 +2149,21 @@
     function wcCloseSettingsModal() {
         document.getElementById('wc-settings-modal').classList.remove('show');
     }
+
+    function wcSaveContactRemark() {
+        const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
+        if (!contact) return;
+        const input = document.getElementById('wc-contact-remark-input');
+        if (input) {
+            contact.remark = input.value.trim();
+            wcSaveContactsDataAsync();
+            
+            // 更新聊天室顶部的名字 (优先显示备注)
+            const chatRoomNameEl = document.querySelector('#page-chat-room .room-info-text .name');
+            if (chatRoomNameEl) chatRoomNameEl.innerText = contact.remark || contact.name;
+        }
+    }
+    window.wcSaveContactRemark = wcSaveContactRemark;
 
     function wcToggleSwitch(element) {
         element.classList.toggle('active');
