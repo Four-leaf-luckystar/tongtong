@@ -162,6 +162,16 @@
     function showView(name) {
         const { forms } = getElements();
         forms.forEach(form => { form.hidden = form.dataset.accessView !== name; });
+        const panel = document.querySelector('.app-access-panel');
+        if (panel) panel.dataset.accessActiveView = name;
+        const tabs = Array.from(document.querySelectorAll('[data-access-tab]'));
+        tabs.forEach(tab => {
+            const active = tab.dataset.accessTab === name;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-selected', String(active));
+        });
+        const tabList = document.querySelector('[data-access-tabs]');
+        if (tabList) tabList.hidden = name !== 'login' && name !== 'setup';
         setNotice('');
     }
 
@@ -651,6 +661,16 @@
                 if (action === 'show-login') showView('login');
                 if (action === 'show-setup') showView('setup');
                 if (action === 'show-recovery') showView('recovery');
+                if (action === 'toggle-access-password') {
+                    const input = document.getElementById(button.dataset.passwordTarget);
+                    if (!input) return;
+                    const visible = input.type === 'password';
+                    input.type = visible ? 'text' : 'password';
+                    button.classList.toggle('is-visible', visible);
+                    button.setAttribute('aria-pressed', String(visible));
+                    button.setAttribute('aria-label', visible ? '隐藏密码' : '显示密码');
+                    button.title = visible ? '隐藏密码' : '显示密码';
+                }
                 if (action === 'retry-device') {
                     button.disabled = true;
                     try { await completeAccess(currentSession); } catch (error) {

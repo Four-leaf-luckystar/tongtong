@@ -141,53 +141,178 @@
         @media (prefers-reduced-motion: reduce) {
             .app-access-field input, .app-access-primary, .app-access-secondary, .app-access-link { transition: none; }
         }
+
+        /* Login surface based on the supplied account UI reference. */
+        #appAccessGate {
+            padding: 20px;
+            background: #e8e9ec;
+        }
+        .app-access-panel {
+            width: min(100%, 420px);
+            padding: 32px 24px 24px;
+            border: 0;
+            border-radius: 32px;
+            background: #f2f3f5;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, .04), inset 0 2px 0 rgba(255, 255, 255, .8);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+        .app-access-brand { margin: 0 0 28px; }
+        .app-access-brand-mark { display: none; }
+        .app-access-brand h1 { font-size: 24px; font-weight: 600; letter-spacing: 0; }
+        .app-access-brand p { margin-top: 6px; color: #8e8e93; font-size: 14px; }
+        .app-access-tabs { display: flex; position: relative; z-index: 1; margin-bottom: -1px; }
+        .app-access-tab {
+            flex: 1;
+            min-height: 52px;
+            border: 0;
+            border-radius: 24px 24px 0 0;
+            color: #8e8e93;
+            background: transparent;
+            font: inherit;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color .2s ease, background-color .2s ease;
+        }
+        .app-access-tab.is-active { color: #1a1a1a; background: #fff; }
+        .app-access-content {
+            position: relative;
+            z-index: 2;
+            min-height: 340px;
+            padding: 32px 24px 24px;
+            border-radius: 24px;
+            background: #fff;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, .02);
+        }
+        .app-access-panel[data-access-active-view="login"] .app-access-content { border-radius: 0 24px 24px 24px; }
+        .app-access-panel[data-access-active-view="setup"] .app-access-content { border-radius: 24px 0 24px 24px; }
+        .app-access-form { animation: app-access-form-in .24s ease both; }
+        .app-access-form[hidden] { display: none; }
+        @keyframes app-access-form-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .app-access-field { display: block; position: relative; margin: 0 0 16px; }
+        .app-access-field input {
+            height: 52px;
+            min-height: 52px;
+            padding: 0 20px;
+            border: 1px solid #eaecef;
+            border-radius: 100px;
+            color: #1a1a1a;
+            background: #f7f7f9;
+            font-size: 15px;
+        }
+        .app-access-field input::placeholder { color: #a3a3a8; }
+        .app-access-field input:focus {
+            border-color: #d0d0d5;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, .03);
+        }
+        .app-access-hint { margin: 0 0 20px; color: #8e8e93; font-size: 13px; line-height: 1.5; text-align: center; }
+        .app-access-field.has-password input { padding-right: 54px; }
+        .app-access-password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            display: grid;
+            place-items: center;
+            width: 36px;
+            height: 36px;
+            border: 0;
+            color: #a3a3a8;
+            background: transparent;
+            cursor: pointer;
+            transform: translateY(-50%);
+        }
+        .app-access-password-toggle .app-access-eye-slash { display: block; }
+        .app-access-password-toggle.is-visible .app-access-eye-slash { display: none; }
+        .app-access-primary {
+            height: 52px;
+            min-height: 52px;
+            margin-top: 12px;
+            border-radius: 100px;
+            color: #fff;
+            background: #1a1a1a;
+            box-shadow: none;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .app-access-primary:active { transform: scale(.97); opacity: .9; }
+        .app-access-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; padding: 0 8px; }
+        .app-access-actions.is-centered { justify-content: center; }
+        .app-access-link {
+            width: auto;
+            min-height: 24px;
+            margin: 0;
+            padding: 0;
+            color: #8e8e93;
+            font-size: 13px;
+            font-weight: 400;
+            text-align: left;
+        }
+        .app-access-link:hover { color: #1a1a1a; }
+        .app-access-notice { min-height: 20px; margin: 18px 0 0; color: #8e8e93; font-size: 13px; }
+        .app-access-notice.is-error { color: #d4142a; }
+        .app-access-devices { margin: 0 0 16px; }
+        .app-access-device { padding: 11px 12px; border-radius: 16px; background: #f7f7f9; }
+        .app-access-device button { border-radius: 100px; }
+        @media (max-width: 380px) {
+            .app-access-panel { padding: 28px 18px 18px; }
+            .app-access-content { padding: 28px 18px 20px; }
+        }
     </style>
 
 </head>
 <body>
 
 <main id="appAccessGate" aria-live="polite">
-    <section class="app-access-panel" aria-label="童话机账号登录">
+    <section class="app-access-panel" data-access-active-view="login" aria-label="童话机账号登录">
         <header class="app-access-brand">
-            <div class="app-access-brand-mark" aria-hidden="true">童</div>
             <h1>童话机</h1>
             <p>使用已开通的 QQ 账号继续</p>
         </header>
 
-        <form class="app-access-form" data-access-view="login" novalidate>
-            <label class="app-access-field"><span>QQ 号</span><input name="qq" inputmode="numeric" autocomplete="username" maxlength="12" required></label>
-            <label class="app-access-field"><span>密码</span><input name="password" type="password" autocomplete="current-password" minlength="8" required></label>
-            <button class="app-access-primary" type="submit">登录</button>
-            <button class="app-access-link" type="button" data-access-action="show-setup">首次使用，设置密码</button>
-            <button class="app-access-link" type="button" data-access-action="show-recovery">忘记密码</button>
-        </form>
+        <div class="app-access-tabs" data-access-tabs role="tablist" aria-label="账号操作">
+            <button class="app-access-tab is-active" type="button" data-access-tab="login" data-access-action="show-login" role="tab" aria-selected="true">登录</button>
+            <button class="app-access-tab" type="button" data-access-tab="setup" data-access-action="show-setup" role="tab" aria-selected="false">设置密码</button>
+        </div>
 
-        <form class="app-access-form" data-access-view="setup" hidden novalidate>
-            <label class="app-access-field"><span>已开通的 QQ 号</span><input name="qq" inputmode="numeric" autocomplete="username" maxlength="12" required></label>
-            <label class="app-access-field"><span>设置密码</span><input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
-            <label class="app-access-field"><span>确认密码</span><input name="passwordConfirm" type="password" autocomplete="new-password" minlength="8" required></label>
-            <button class="app-access-primary" type="submit">设置密码</button>
-            <button class="app-access-link" type="button" data-access-action="show-login">返回登录</button>
-        </form>
+        <div class="app-access-content">
+            <form class="app-access-form" data-access-view="login" novalidate>
+                <label class="app-access-field"><input name="qq" inputmode="numeric" autocomplete="username" maxlength="12" placeholder="QQ 号" required></label>
+                <label class="app-access-field has-password"><input id="appAccessLoginPassword" name="password" type="password" autocomplete="current-password" minlength="8" placeholder="密码" required><button class="app-access-password-toggle" type="button" data-access-action="toggle-access-password" data-password-target="appAccessLoginPassword" aria-label="显示密码" aria-pressed="false" title="显示密码"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle><path class="app-access-eye-slash" d="m4 4 16 16"></path></svg></button></label>
+                <button class="app-access-primary" type="submit">登录</button>
+                <div class="app-access-actions"><button class="app-access-link" type="button" data-access-action="show-setup">首次登录？去设置密码</button><button class="app-access-link" type="button" data-access-action="show-recovery">忘记密码？</button></div>
+            </form>
 
-        <form class="app-access-form" data-access-view="recovery" hidden novalidate>
-            <label class="app-access-field"><span>QQ 号</span><input name="qq" inputmode="numeric" autocomplete="username" maxlength="12" required></label>
-            <button class="app-access-primary" type="submit">发送重置邮件</button>
-            <button class="app-access-link" type="button" data-access-action="show-login">返回登录</button>
-        </form>
+            <form class="app-access-form" data-access-view="setup" hidden novalidate>
+                <p class="app-access-hint">首次登录需要设置密码<br>请妥善保管您的专属密码</p>
+                <label class="app-access-field"><input name="qq" inputmode="numeric" autocomplete="username" maxlength="12" placeholder="已开通的 QQ 号" required></label>
+                <label class="app-access-field has-password"><input id="appAccessSetupPassword" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="设置新密码" required><button class="app-access-password-toggle" type="button" data-access-action="toggle-access-password" data-password-target="appAccessSetupPassword" aria-label="显示密码" aria-pressed="false" title="显示密码"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle><path class="app-access-eye-slash" d="m4 4 16 16"></path></svg></button></label>
+                <label class="app-access-field has-password"><input id="appAccessSetupPasswordConfirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="8" placeholder="确认密码" required><button class="app-access-password-toggle" type="button" data-access-action="toggle-access-password" data-password-target="appAccessSetupPasswordConfirm" aria-label="显示密码" aria-pressed="false" title="显示密码"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle><path class="app-access-eye-slash" d="m4 4 16 16"></path></svg></button></label>
+                <button class="app-access-primary" type="submit">确认设置</button>
+            </form>
 
-        <form class="app-access-form" data-access-view="reset" hidden novalidate>
-            <label class="app-access-field"><span>新密码</span><input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
-            <label class="app-access-field"><span>确认新密码</span><input name="passwordConfirm" type="password" autocomplete="new-password" minlength="8" required></label>
-            <button class="app-access-primary" type="submit">更新密码</button>
-        </form>
+            <form class="app-access-form" data-access-view="recovery" hidden novalidate>
+                <p class="app-access-hint">请输入您绑定的 QQ 号<br>我们将向您发送重置密码的邮件</p>
+                <label class="app-access-field"><input name="qq" inputmode="numeric" autocomplete="username" maxlength="12" placeholder="绑定的 QQ 号" required></label>
+                <button class="app-access-primary" type="submit">发送重置邮件</button>
+                <div class="app-access-actions is-centered"><button class="app-access-link" type="button" data-access-action="show-login">返回登录</button></div>
+            </form>
 
-        <section class="app-access-form" data-access-view="devices" hidden>
-            <div class="app-access-devices" data-access-device-list></div>
-            <button class="app-access-primary" type="button" data-access-action="retry-device">重新校验此浏览器</button>
-            <button class="app-access-link" type="button" data-access-action="show-login">返回登录</button>
-        </section>
-        <p class="app-access-notice" data-access-notice role="status"></p>
+            <form class="app-access-form" data-access-view="reset" hidden novalidate>
+                <p class="app-access-hint">请设置新的登录密码</p>
+                <label class="app-access-field has-password"><input id="appAccessResetPassword" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="新密码" required><button class="app-access-password-toggle" type="button" data-access-action="toggle-access-password" data-password-target="appAccessResetPassword" aria-label="显示密码" aria-pressed="false" title="显示密码"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle><path class="app-access-eye-slash" d="m4 4 16 16"></path></svg></button></label>
+                <label class="app-access-field has-password"><input id="appAccessResetPasswordConfirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="8" placeholder="确认新密码" required><button class="app-access-password-toggle" type="button" data-access-action="toggle-access-password" data-password-target="appAccessResetPasswordConfirm" aria-label="显示密码" aria-pressed="false" title="显示密码"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle><path class="app-access-eye-slash" d="m4 4 16 16"></path></svg></button></label>
+                <button class="app-access-primary" type="submit">更新密码</button>
+            </form>
+
+            <section class="app-access-form" data-access-view="devices" hidden>
+                <div class="app-access-devices" data-access-device-list></div>
+                <button class="app-access-primary" type="button" data-access-action="retry-device">重新校验此浏览器</button>
+                <div class="app-access-actions is-centered"><button class="app-access-link" type="button" data-access-action="show-login">返回登录</button></div>
+            </section>
+            <p class="app-access-notice" data-access-notice role="status"></p>
+        </div>
     </section>
 </main>
 
@@ -3835,7 +3960,7 @@ fill="currentColor" viewBox="0 0 24 24" >
     </div>
 </div>
 
-<script src="js/access-auth.js?v=20260801-device-session-logout-v2"></script>
+<script src="js/access-auth.js?v=20260801-login-ui-v1"></script>
 <script src="js/utils.js"></script>
 <script src="js/db.js?v=20260731-time-awareness-switch-v1"></script>
 <script src="js/desktop.js?v=20260729-continuous-drag-v1"></script>
