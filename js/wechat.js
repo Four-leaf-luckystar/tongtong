@@ -2107,32 +2107,32 @@
         // 获取当前 Char 数据
         const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
         if (contact) {
-            if (charNameEl) charNameEl.innerText = contact.name || 'Char';
+            if (charNameEl) charNameEl.innerText = contact.name || '未知';
             if (charCircle) {
                 if (contact.avatar) {
                     charCircle.style.backgroundImage = `url('${contact.avatar}')`;
                     charCircle.innerHTML = '';
                 } else {
                     charCircle.style.backgroundImage = 'none';
-                    charCircle.style.backgroundColor = 'transparent';
+                    charCircle.style.backgroundColor = '#E5E5EA';
                     charCircle.style.border = 'none';
-                    charCircle.innerHTML = getWcDefaultAvatarSvg();
+                    charCircle.innerHTML = '';
                 }
             }
         }
         
         // 获取当前 User 数据
         if (typeof appSettings !== 'undefined') {
-            if (userNameEl) userNameEl.innerText = appSettings.wc_current_user_name || 'User';
+            if (userNameEl) userNameEl.innerText = appSettings.wc_current_user_name || 'Me';
             if (userCircle) {
                 if (appSettings.wc_current_user_avatar) {
                     userCircle.style.backgroundImage = `url('${appSettings.wc_current_user_avatar}')`;
                     userCircle.innerHTML = '';
                 } else {
                     userCircle.style.backgroundImage = 'none';
-                    userCircle.style.backgroundColor = 'transparent';
+                    userCircle.style.backgroundColor = '#E5E5EA';
                     userCircle.style.border = 'none';
-                    userCircle.innerHTML = getWcDefaultAvatarSvg();
+                    userCircle.innerHTML = '';
                 }
             }
         }
@@ -2148,70 +2148,10 @@
 
     function wcShowMainSettings() {
         const mainView = document.getElementById('wc-main-settings-view');
-        if (mainView) mainView.style.display = 'flex';
-        
-        const avatarsHeader = document.getElementById('wc-settings-avatars-header');
-        if (avatarsHeader) avatarsHeader.style.display = 'flex';
+        if (mainView) mainView.style.display = 'block';
         
         const title = document.getElementById('wc-settings-modal-title');
         if (title) title.innerText = 'WeSettings';
-    }
-
-    function wcShowCharSettings() {
-        document.getElementById('wc-main-settings-view').style.display = 'none';
-        document.getElementById('wc-char-settings-view').style.display = 'flex';
-        document.getElementById('wc-user-settings-view').style.display = 'none';
-        
-        // 隐藏双头像容器，显示单悬浮头像
-        document.getElementById('wc-settings-avatars-header').style.display = 'none';
-        const floatingAvatar = document.getElementById('wc-settings-avatar-floating');
-        floatingAvatar.style.display = 'block';
-        
-        // 设置为 Char 的头像样式
-        wcCurrentSettingsAvatarType = 'char';
-        const preview = document.getElementById('wc-floating-avatar-preview');
-        
-        const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
-        if (contact && contact.avatar) {
-            preview.style.backgroundImage = `url('${contact.avatar}')`;
-            preview.style.backgroundColor = 'transparent';
-            preview.innerHTML = '';
-        } else {
-            preview.style.backgroundImage = 'none';
-            preview.style.backgroundColor = 'transparent';
-            preview.style.border = 'none';
-            preview.innerHTML = getWcDefaultAvatarSvg();
-        }
-        
-        document.getElementById('wc-settings-modal-title').innerText = 'Char 设定';
-    }
-
-    function wcShowUserSettings() {
-        document.getElementById('wc-main-settings-view').style.display = 'none';
-        document.getElementById('wc-char-settings-view').style.display = 'none';
-        document.getElementById('wc-user-settings-view').style.display = 'flex';
-        
-        // 隐藏双头像容器，显示单悬浮头像
-        document.getElementById('wc-settings-avatars-header').style.display = 'none';
-        const floatingAvatar = document.getElementById('wc-settings-avatar-floating');
-        floatingAvatar.style.display = 'block';
-        
-        // 设置为 User 的头像样式
-        wcCurrentSettingsAvatarType = 'user';
-        const preview = document.getElementById('wc-floating-avatar-preview');
-        
-        if (typeof appSettings !== 'undefined' && appSettings.wc_current_user_avatar) {
-            preview.style.backgroundImage = `url('${appSettings.wc_current_user_avatar}')`;
-            preview.style.backgroundColor = 'transparent';
-            preview.innerHTML = '';
-        } else {
-            preview.style.backgroundImage = 'none';
-            preview.style.backgroundColor = 'transparent';
-            preview.style.border = 'none';
-            preview.innerHTML = getWcDefaultAvatarSvg();
-        }
-        
-        document.getElementById('wc-settings-modal-title').innerText = 'User 设定';
     }
 
     function wcHandleSettingsBack() {
@@ -2222,7 +2162,6 @@
             wcCloseEditPrompt();
         } else if (listView && listView.style.display === 'flex') {
             listView.style.display = 'none';
-            document.querySelector('#wechatAppUI .theme-capsule').style.display = 'none';
             wcShowMainSettings();
         } else {
             wcCloseSettingsModal();
@@ -2256,16 +2195,7 @@
         document.getElementById('wc-main-settings-view').style.display = 'none';
         document.getElementById('wc-prompt-list-view').style.display = 'flex';
         document.getElementById('wc-prompt-edit-view').style.display = 'none';
-        document.getElementById('wc-settings-avatars-header').style.display = 'none';
         document.getElementById('wc-settings-modal-title').innerText = '聊天提示词';
-        
-        // 显示悬浮胶囊
-        const capsule = document.querySelector('#wechatAppUI .theme-capsule');
-        if (capsule) {
-            capsule.style.display = 'flex';
-            document.getElementById('wc-capsule-title').innerText = '聊天提示词';
-            document.getElementById('wc-capsule-icon-svg').innerHTML = '<path d="M18 3a3 3 0 1 0 0 6 3 3 0 1 0 0-6"></path><path d="M18 11c-2.76 0-5-2.24-5-5a5 5 0 0 1 .9-2.85C13.28 3.05 12.65 3 12 3 6.49 3 2 6.59 2 11c0 2.91 1.9 5.51 5 6.93V21c0 .38.21.73.55.89.14.07.29.11.45.11.21 0 .42-.07.6-.2l3.74-2.8c5.36-.14 9.66-3.68 9.66-8 0-.6-.09-1.18-.24-1.74C20.84 10.31 19.51 11 18 11"></path>';
-        }
         
         wcRenderPromptList();
     }
