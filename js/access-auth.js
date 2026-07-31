@@ -160,6 +160,7 @@
         if (error && error.message === 'DEVICE_LIMIT') return '已达到两个浏览器上限，请先移除一个旧浏览器。';
         if (error && /资格|paid|开通|entitlement/i.test(error.message)) return '该 QQ 尚未开通登录资格。';
         if (error && /Invalid login credentials/i.test(error.message)) return 'QQ 号或密码不正确。';
+        if (error && /New password should be different from the old password/i.test(error.message)) return '新密码不能与当前密码相同。';
         if (error && /Email not confirmed/i.test(error.message)) return '请先到 QQ 邮箱完成验证，再登录。';
         return (error && error.message) || '操作失败，请稍后重试。';
     }
