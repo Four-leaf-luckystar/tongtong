@@ -711,108 +711,43 @@
         #wechatAppUI .wc-chat-search-text { font-size: 14px; color: #8e8e93; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         #wechatAppUI .wc-chat-search-highlight { color: var(--tg-blue); font-weight: 600; }
 
-        /* 聊天设置双头像容器 */
-        #wechatAppUI .wc-settings-avatars-header {
-            position: absolute;
-            top: 90px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 40px;
-            z-index: 10;
-            transition: all 0.3s;
-        }
-        #wechatAppUI .wc-settings-avatar-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        #wechatAppUI .wc-settings-avatar-btn:active {
-            transform: scale(0.95);
-        }
-        #wechatAppUI .wc-settings-avatar-btn .avatar-circle {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            border: 3px solid #fff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: #fff;
-            background-size: cover;
-            background-position: center;
-        }
-        #wechatAppUI .wc-settings-avatar-btn .avatar-label {
-            font-size: 13px;
-            font-weight: 700;
-            color: #333;
-            background: rgba(255,255,255,0.9);
-            padding: 4px 12px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        
-        /* 悬浮在外部的单头像（进入设定时显示） */
-        #wechatAppUI .wc-settings-avatar-floating {
-            position: absolute;
-            top: 95px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 84px;
-            height: 84px;
-            z-index: 10;
-            display: none;
-            cursor: pointer;
-        }
-        #wechatAppUI .wc-settings-avatar-floating .settings-avatar-preview {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 4px solid #fff;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 32px;
-            font-weight: bold;
-            color: #fff;
-            transition: transform 0.2s;
-        }
-        #wechatAppUI .wc-settings-avatar-floating:active .settings-avatar-preview {
-            transform: scale(0.95);
-        }
-        #wechatAppUI .wc-settings-avatar-floating .settings-cam-icon {
-            position: absolute;
-            bottom: 0;
-            right: -4px;
-            width: 28px;
-            height: 28px;
-            background: #007aff;
-            border-radius: 50%;
-            border: 2px solid #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        #wechatAppUI .wc-settings-avatar-floating .settings-cam-icon svg {
-            width: 14px;
-            height: 14px;
-            stroke: currentColor;
-            stroke-width: 2;
-            fill: none;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
+        /* 聊天设置全新 iOS 风格页面 */
+        #wechatAppUI .wc-settings-page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #FFFFFF; z-index: 2000; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); display: flex; flex-direction: column; }
+        #wechatAppUI .wc-settings-page.show { transform: translateY(0); }
+        #wechatAppUI .wc-settings-navbar { display: flex; align-items: center; justify-content: space-between; height: 89px; padding: 45px 16px 0 16px; background-color: #FFFFFF; position: sticky; top: 0; z-index: 100; }
+        #wechatAppUI .wc-settings-nav-btn-left { width: 60px; cursor: pointer; display: flex; align-items: center; color: #000; }
+        #wechatAppUI .wc-settings-nav-btn-left svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+        #wechatAppUI .wc-settings-nav-title { font-size: 17px; font-weight: 600; text-align: center; flex: 1; }
+        #wechatAppUI .wc-settings-nav-save { width: 60px; display: flex; justify-content: flex-end; }
+        #wechatAppUI .wc-settings-save-btn { background-color: #F2F2F7; color: #000; font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 16px; cursor: pointer; }
+        #wechatAppUI .wc-settings-content { flex: 1; overflow-y: auto; padding-bottom: 40px; }
+        #wechatAppUI .wc-settings-avatar-showcase { display: flex; flex-direction: column; align-items: center; padding: 20px 0 30px; }
+        #wechatAppUI .wc-settings-avatars-row { display: flex; align-items: center; justify-content: center; gap: 32px; margin-bottom: 20px; }
+        #wechatAppUI .wc-settings-avatar-item { display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer; }
+        #wechatAppUI .wc-settings-avatar-circle { width: 76px; height: 76px; border-radius: 50%; background-color: #E5E5EA; display: flex; justify-content: center; align-items: center; background-size: cover; background-position: center; }
+        #wechatAppUI .wc-settings-avatar-name { font-size: 16px; font-weight: 600; color: #000; }
+        #wechatAppUI .wc-settings-status-banner { background-color: #F8F8F9; padding: 10px 24px; border-radius: 20px; font-size: 13px; color: #8E8E93; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+        #wechatAppUI .wc-settings-list { padding: 0 20px; }
+        #wechatAppUI .wc-settings-group-header { font-size: 18px; font-weight: 700; color: #000; padding: 24px 20px 8px; display: flex; align-items: center; gap: 8px; }
+        #wechatAppUI .wc-settings-group-header::before { content: ''; display: block; width: 4px; height: 14px; background-color: #000; border-radius: 2px; }
+        #wechatAppUI .wc-settings-list-item { display: flex; align-items: center; padding: 16px 0; border-bottom: 0.5px solid #E5E5EA; background-color: #FFFFFF; cursor: pointer; }
+        #wechatAppUI .wc-settings-list-item:last-child { border-bottom: none; }
+        #wechatAppUI .wc-settings-item-icon { width: 28px; height: 28px; display: flex; justify-content: center; align-items: center; margin-right: 16px; flex-shrink: 0; background-color: #000; border-radius: 8px; color: #FFF; }
+        #wechatAppUI .wc-settings-item-icon svg { width: 18px; height: 18px; }
+        #wechatAppUI .wc-settings-item-icon svg.fill-icon { fill: currentColor; stroke: none; }
+        #wechatAppUI .wc-settings-item-icon svg.stroke-icon { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        #wechatAppUI .wc-settings-item-content { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        #wechatAppUI .wc-settings-item-title { font-size: 16px; font-weight: 500; color: #000; }
+        #wechatAppUI .wc-settings-item-subtitle { font-size: 12px; color: #8E8E93; }
+        #wechatAppUI .wc-settings-item-right { display: flex; align-items: center; gap: 8px; padding-left: 16px; }
+        #wechatAppUI .wc-ios-switch { width: 51px; height: 31px; background-color: #E5E5EA; border-radius: 15.5px; position: relative; transition: background-color 0.3s; cursor: pointer; }
+        #wechatAppUI .wc-ios-switch.active { background-color: #34C759; }
+        #wechatAppUI .wc-ios-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; background-color: #FFF; border-radius: 50%; box-shadow: 0 3px 8px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.16), 0 3px 1px rgba(0,0,0,0.1); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        #wechatAppUI .wc-ios-switch.active::after { transform: translateX(20px); }
+        #wechatAppUI .wc-settings-soft-input { background-color: #F2F2F7; border: none; border-radius: 8px; padding: 6px 8px; font-size: 15px; color: #007AFF; font-weight: 600; text-align: center; width: 60px; outline: none; font-family: inherit; }
+        #wechatAppUI .wc-settings-input-group { display: flex; align-items: center; gap: 6px; }
+        #wechatAppUI .wc-settings-input-separator { color: #8E8E93; font-size: 14px; }
+        #wechatAppUI .wc-settings-chevron { width: 8px; height: 13px; stroke: #C7C7CC; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
 
         /* 微信气泡长按菜单与高亮特写 */
         #wechatAppUI .wc-bubble-menu-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; display: none; background: rgba(0,0,0,0.25); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); transition: opacity 0.2s; opacity: 0; }
