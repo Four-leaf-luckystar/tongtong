@@ -2181,7 +2181,7 @@
         const listView = document.getElementById('wc-prompt-list-view');
         const editView = document.getElementById('wc-prompt-edit-view');
         
-        if (editView && editView.style.display === 'flex') {
+        if (editView && editView.classList.contains('show')) {
             wcCloseEditPrompt();
         } else if (listView && listView.style.display === 'flex') {
             listView.style.display = 'none';
@@ -2217,7 +2217,6 @@
         wcLoadPromptSettings();
         document.getElementById('wc-main-settings-view').style.display = 'none';
         document.getElementById('wc-prompt-list-view').style.display = 'flex';
-        document.getElementById('wc-prompt-edit-view').style.display = 'none';
         document.getElementById('wc-settings-modal-title').innerText = '聊天提示词';
         
         wcRenderPromptList();
@@ -2321,33 +2320,72 @@
     function wcOpenEditPrompt(id = null) {
         wcResetAllSwipes();
         wcCurrentEditPromptId = id;
-        document.getElementById('wc-prompt-list-view').style.display = 'none';
-        document.getElementById('wc-prompt-edit-view').style.display = 'flex';
-        document.querySelector('#wechatAppUI .theme-capsule').style.display = 'none';
+        
+        const overlay = document.getElementById('wc-prompt-edit-view');
+        if (overlay) {
+            overlay.style.display = 'flex';
+            setTimeout(() => overlay.classList.add('show'), 10);
+        }
         
         const nameInput = document.getElementById('wc-edit-prompt-name');
         const contentInput = document.getElementById('wc-edit-prompt-content');
+        const titleEl = document.getElementById('wcPromptDrawerTitle');
+        const saveBtnEl = document.getElementById('wcPromptSaveBtn');
         
         if (id) {
-            document.getElementById('wc-theme-modal-title').innerText = '编辑提示词';
+            if (titleEl) titleEl.innerText = '编辑提示词';
+            if (saveBtnEl) saveBtnEl.innerText = '保存';
             const prompt = wcCustomPromptsList.find(p => p.id === id);
             if (prompt) {
                 nameInput.value = prompt.name;
                 contentInput.value = prompt.content;
             }
         } else {
-            document.getElementById('wc-theme-modal-title').innerText = '添加提示词';
+            if (titleEl) titleEl.innerText = 'New Prompt';
+            if (saveBtnEl) saveBtnEl.innerText = '创建';
             nameInput.value = '';
             contentInput.value = '';
         }
     }
 
-    function wcCloseEditPrompt() {
-        document.getElementById('wc-prompt-edit-view').style.display = 'none';
-        document.getElementById('wc-prompt-list-view').style.display = 'flex';
-        document.querySelector('#wechatAppUI .theme-capsule').style.display = 'flex';
-        document.getElementById('wc-theme-modal-title').innerText = '聊天提示词';
+    function wcCloseEditPrompt(event) {
+        if (event && event.target !== document.getElementById('wc-prompt-edit-view')) return;
+        const overlay = document.getElementById('wc-prompt-edit-view');
+        if (!overlay) return;
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.style.display = 'none', 300);
         wcCurrentEditPromptId = null;
+    }
+
+    function wcInsertPromptVariable(variableText) {
+        const textarea = document.getElementById('wc-edit-prompt-content');
+        if (!textarea) return;
+        const startPos = textarea.selectionStart;
+        const endPos = textarea.selectionEnd;
+        const text = textarea.value;
+        
+        textarea.value = text.substring(0, startPos) + variableText + text.substring(endPos);
+        
+        const newPos = startPos + variableText.length;
+        textarea.selectionStart = newPos;
+        textarea.selectionEnd = newPos;
+        textarea.focus();
+    }
+
+    function wcOpenPromptTutorial() {
+        const overlay = document.getElementById('wcPromptTutorialOverlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+            setTimeout(() => overlay.classList.add('show'), 10);
+        }
+    }
+
+    function wcClosePromptTutorial(event) {
+        const overlay = document.getElementById('wcPromptTutorialOverlay');
+        if (!overlay) return;
+        if (event && event.target !== overlay) return;
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.style.display = 'none', 300);
     }
 
     function wcSavePrompt() {
@@ -5383,7 +5421,17 @@
             } else if (activePromptId) {
                 const cp = customPromptsList.find(p => p.id === activePromptId);
                 if (cp && cp.content) {
-                    finalPromptText = cp.content + '\n\n';
+                    // 获取当前时间用于变量替换
+                    const nowForVar = new Date();
+                    const timeStrForVar = `${nowForVar.getFullYear()}-${String(nowForVar.getMonth() + 1).padStart(2, '0')}-${String(nowForVar.getDate()).padStart(2, '0')} ${String(nowForVar.getHours()).padStart(2, '0')}:${String(nowForVar.getMinutes()).padStart(2, '0')}`;
+                    
+                    // 替换自定义提示词中的变量占位符
+                    let processedContent = cp.content
+                        .replace(/\$\{charname\}/gi, charName)
+                        .replace(/\$\{username\}/gi, username)
+                        .replace(/\$\{time\}/gi, timeStrForVar);
+                        
+                    finalPromptText = processedContent + '\n\n';
                 }
             }
 
