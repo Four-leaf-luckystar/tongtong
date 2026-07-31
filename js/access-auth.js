@@ -198,6 +198,27 @@
         startApplicationIfReady();
     }
 
+    function storedSessionQq(session) {
+        const email = session && session.user && session.user.email;
+        const match = /^([1-9]\d{4,11})@qq\.com$/i.exec(String(email || ''));
+        return match ? match[1] : '';
+    }
+
+    function enterApplicationWithStoredSession(session) {
+        const qq = storedSessionQq(session);
+        if (!isQq(qq)) throw new Error('登录状态已失效，请重新登录。');
+        setNamespace(qq);
+        saveSession(session);
+        document.documentElement.classList.remove('app-access-pending');
+        document.documentElement.classList.add('app-access-ready');
+        startApplicationIfReady();
+    }
+
+    function logoutAfterStoredSessionValidationFailure() {
+        clearSession();
+        location.reload();
+    }
+
     async function submitLogin(form) {
         const qq = formQq(form);
         const password = formPassword(form);
@@ -586,10 +607,10 @@
         if (await bootstrapRecovery()) return;
         const storedSession = readStoredSession();
         if (!storedSession) return;
-        setNotice('正在校验登录状态…');
         try {
             const session = await refreshSession(storedSession);
-            await completeAccess(session);
+            enterApplicationWithStoredSession(session);
+            completeAccess(session).catch(logoutAfterStoredSessionValidationFailure);
         } catch (error) {
             clearSession();
             if (error && error.message === 'DEVICE_LIMIT') await showDeviceLimit();
