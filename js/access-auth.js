@@ -40,6 +40,14 @@
         return String(platform).slice(0, 64) || '浏览器';
     }
 
+    function getBrowserLabel() {
+        const userAgent = navigator.userAgent || '';
+        const match = userAgent.match(/(Edg|OPR|Chrome|CriOS|Firefox|FxiOS|Version)\/([\d.]+)/);
+        if (!match) return '未知浏览器';
+        const names = { Edg: 'Microsoft Edge', OPR: 'Opera', Chrome: 'Chrome', CriOS: 'Chrome', Firefox: 'Firefox', FxiOS: 'Firefox', Version: 'Safari' };
+        return `${names[match[1]] || match[1]} ${match[2]}`.slice(0, 96);
+    }
+
     function dataDatabaseName(name) {
         if (!activeQq || typeof name !== 'string' || name.startsWith(DATA_PREFIX)) return name;
         return `${DATA_PREFIX}${activeQq}:${name}`;
@@ -178,9 +186,10 @@
         if (!isQq(qq)) throw new Error('资格校验失败，请重新登录。');
         setNamespace(qq);
         saveSession(session);
-        await rpc('claim_my_access_device', {
+        await rpc('claim_my_access_device_with_details', {
             p_device_id: getDeviceId(),
-            p_device_label: getDeviceLabel()
+            p_device_label: getDeviceLabel(),
+            p_device_browser: getBrowserLabel()
         }, session.access_token);
         await copyLegacyDataForAdministrator(qq, Boolean(bound.is_admin));
         document.documentElement.classList.remove('app-access-pending');
@@ -274,6 +283,105 @@
             container.append(item);
         });
     }
+
+    function setLoginSecurityNotice(message, isError) {
+        const notice = document.getElementById('loginSecurityNotice');
+        if (!notice) return;
+        notice.textContent = message || '';
+        notice.classList.toggle('is-error', Boolean(isError));
+    }
+
+    function formatDeviceTime(value) {
+        const timestamp = new Date(value);
+        return Number.isNaN(timestamp.getTime()) ? '未记录' : timestamp.toLocaleString('zh-CN');
+    }
+
+    function renderLoginSecurityDevices(devices) {
+        const container = document.getElementById('loginSecurityDeviceList');
+        if (!container) return;
+        container.replaceChildren();
+        if (!devices.length) {
+            const empty = document.createElement('p');
+            empty.className = 'login-security-device-empty';
+            empty.textContent = '暂无已登录设备';
+            container.append(empty);
+            return;
+        }
+        devices.forEach(device => {
+            const item = document.createElement('article');
+            item.className = 'login-security-device';
+            const title = document.createElement('div');
+            title.className = 'login-security-device-title';
+            const name = document.createElement('span');
+            name.textContent = device.device_label || '未知设备';
+            title.append(name);
+            if (device.is_current) {
+                const current = document.createElement('span');
+                current.className = 'login-security-device-current';
+                current.textContent = '当前设备';
+                title.append(current);
+            }
+            const browser = document.createElement('div');
+            browser.className = 'login-security-device-meta';
+            browser.textContent = `浏览器：${device.device_browser || '未记录'}`;
+            const ip = document.createElement('div');
+            ip.className = 'login-security-device-meta';
+            ip.textContent = `IP：${device.ip_address || '未记录'}`;
+            const lastSeen = document.createElement('div');
+            lastSeen.className = 'login-security-device-meta';
+            lastSeen.textContent = `最近使用：${formatDeviceTime(device.last_seen_at)}`;
+            item.append(title, browser, ip, lastSeen);
+            container.append(item);
+        });
+    }
+
+    async function loadLoginSecurityDevices() {
+        if (!currentSession || !currentSession.access_token) throw new Error('登录状态已失效，请重新登录。');
+        const devices = await rpc('list_my_access_devices_with_details', {
+            p_current_device_id: getDeviceId()
+        }, currentSession.access_token);
+        renderLoginSecurityDevices(Array.isArray(devices) ? devices : []);
+    }
+
+    async function submitLoginSecurityPassword(form) {
+        const data = new FormData(form);
+        const currentPassword = String(data.get('currentPassword') || '');
+        const newPassword = String(data.get('newPassword') || '');
+        const confirmedPassword = String(data.get('newPasswordConfirm') || '');
+        if (!activeQq || !isQq(activeQq)) throw new Error('当前账号信息不可用，请重新登录。');
+        if (currentPassword.length < 8) throw new Error('请输入当前密码。');
+        if (newPassword.length < 8) throw new Error('新密码至少需要 8 位。');
+        if (newPassword !== confirmedPassword) throw new Error('两次输入的新密码不一致。');
+        const verified = await authRequest('/token?grant_type=password', 'POST', {
+            email: `${activeQq}@qq.com`,
+            password: currentPassword
+        });
+        const verifiedSession = sessionFromPayload(verified);
+        await authRequest('/user', 'PUT', { password: newPassword }, verifiedSession.access_token);
+        saveSession(verifiedSession);
+        form.reset();
+        setLoginSecurityNotice('密码已更新。');
+    }
+
+    window.openLoginSecurityApp = function () {
+        const page = document.getElementById('loginSecurityUI');
+        if (!page) return;
+        const qq = document.getElementById('loginSecurityBoundQq');
+        if (qq) qq.textContent = activeQq || '--';
+        setLoginSecurityNotice('');
+        page.style.display = 'flex';
+        page.setAttribute('aria-hidden', 'false');
+        requestAnimationFrame(() => page.classList.add('show'));
+        loadLoginSecurityDevices().catch(error => setLoginSecurityNotice(friendlyError(error), true));
+    };
+
+    window.closeLoginSecurityApp = function () {
+        const page = document.getElementById('loginSecurityUI');
+        if (!page) return;
+        page.classList.remove('show');
+        page.setAttribute('aria-hidden', 'true');
+        window.setTimeout(() => { page.style.display = 'none'; }, 300);
+    };
 
     async function showDeviceLimit() {
         showView('devices');
@@ -401,6 +509,22 @@
 
     function bindUi() {
         document.querySelectorAll('[data-access-view]').forEach(form => form.addEventListener('submit', handleFormSubmit));
+        const passwordForm = document.querySelector('[data-login-security-password-form]');
+        if (passwordForm) {
+            passwordForm.addEventListener('submit', async event => {
+                event.preventDefault();
+                const submit = passwordForm.querySelector('button[type="submit"]');
+                if (submit) submit.disabled = true;
+                setLoginSecurityNotice('');
+                try {
+                    await submitLoginSecurityPassword(passwordForm);
+                } catch (error) {
+                    setLoginSecurityNotice(friendlyError(error), true);
+                } finally {
+                    if (submit) submit.disabled = false;
+                }
+            });
+        }
         document.querySelectorAll('[data-access-action]').forEach(button => {
             button.addEventListener('click', async () => {
                 const action = button.dataset.accessAction;
@@ -413,6 +537,19 @@
                         if (error && error.message === 'DEVICE_LIMIT') await showDeviceLimit();
                         else setNotice(friendlyError(error), true);
                     } finally { button.disabled = false; }
+                }
+            });
+        });
+        document.querySelectorAll('[data-login-security-action="refresh-devices"]').forEach(button => {
+            button.addEventListener('click', async () => {
+                button.disabled = true;
+                setLoginSecurityNotice('');
+                try {
+                    await loadLoginSecurityDevices();
+                } catch (error) {
+                    setLoginSecurityNotice(friendlyError(error), true);
+                } finally {
+                    button.disabled = false;
                 }
             });
         });

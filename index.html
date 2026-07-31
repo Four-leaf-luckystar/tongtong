@@ -887,7 +887,7 @@
                         <div class="apple-id-item-right"><svg class="apple-id-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                     </div>
                 </div>
-                <div class="apple-id-list-item">
+                <div class="apple-id-list-item" onclick="openLoginSecurityApp()" style="cursor: pointer;">
                     <div class="apple-id-item-icon apple-id-icon-gray-3d">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M20.8722 5.04995C20.5241 4.569 20.0333 4.20994 19.4695 4.02385L14.6686 2.42353C12.9278 1.85882 11.0531 1.85882 9.31231 2.42353L4.51141 4.02385C3.95109 4.21168 3.46377 4.57058 3.11817 5.04995C2.76924 5.5319 2.5815 6.11169 2.58165 6.70669V11.8654C2.57456 13.3075 2.93567 14.7275 3.63085 15.991C4.32602 17.2545 5.33222 18.3196 6.55414 19.0856L10.5079 21.5707C10.9567 21.8513 11.4753 22 12.0046 22C12.5339 22 13.0525 21.8513 13.5014 21.5707L17.4551 19.0856C18.6685 18.3227 19.6685 17.2646 20.3616 16.0101C21.0548 14.7555 21.4182 13.3457 21.4181 11.9124V6.75381C21.4256 6.14169 21.234 5.54372 20.8722 5.04995ZM12.9366 12.336V14.6047C12.9366 14.8543 12.8374 15.0938 12.6608 15.2703C12.4843 15.4469 12.2449 15.546 11.9952 15.546C11.7455 15.546 11.5061 15.4469 11.3295 15.2703C11.153 15.0938 11.0539 14.8543 11.0539 14.6047V12.336C10.3813 12.1125 9.81017 11.6567 9.44291 11.0505C9.07565 10.4443 8.9362 9.72718 9.04945 9.02751C9.1627 8.32783 9.52127 7.6913 10.061 7.2319C10.6008 6.77249 11.2864 6.52019 11.9952 6.52019C12.704 6.52019 13.3896 6.77249 13.9293 7.2319C14.4691 7.6913 14.8277 8.32783 14.941 9.02751C15.0542 9.72718 14.9147 10.4443 14.5475 11.0505C14.1802 11.6567 13.6092 12.1125 12.9366 12.336Z" fill="currentColor"/>
@@ -961,6 +961,39 @@
     </div>
 
     <!-- iCloud 页面容器 -->
+    <div class="login-security-container" id="loginSecurityUI" aria-hidden="true">
+        <div class="login-security-nav-bar">
+            <button class="login-security-back-btn" type="button" onclick="closeLoginSecurityApp()" aria-label="返回账户">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <div class="login-security-nav-title">登录与安全</div>
+        </div>
+        <div class="login-security-content">
+            <p class="login-security-section-title">账号</p>
+            <section class="login-security-card" aria-label="当前绑定账号">
+                <div class="login-security-row">
+                    <span>已绑定 QQ</span>
+                    <strong id="loginSecurityBoundQq">--</strong>
+                </div>
+            </section>
+
+            <p class="login-security-section-title">修改密码</p>
+            <form class="login-security-card login-security-password-form" data-login-security-password-form novalidate>
+                <label class="login-security-field"><span>当前密码</span><input name="currentPassword" type="password" autocomplete="current-password" minlength="8" required></label>
+                <label class="login-security-field"><span>新密码</span><input name="newPassword" type="password" autocomplete="new-password" minlength="8" required></label>
+                <label class="login-security-field"><span>确认新密码</span><input name="newPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required></label>
+                <button class="login-security-submit" type="submit">更新密码</button>
+            </form>
+
+            <div class="login-security-devices-heading">
+                <p class="login-security-section-title">已登录设备</p>
+                <button type="button" class="login-security-refresh" data-login-security-action="refresh-devices">刷新</button>
+            </div>
+            <section class="login-security-card login-security-devices" id="loginSecurityDeviceList" aria-live="polite"></section>
+            <p class="login-security-notice" id="loginSecurityNotice" role="status"></p>
+        </div>
+    </div>
+
     <div class="icloud-app-container" id="icloudAppUI">
         <!-- 主页面 -->
         <div class="ic-page active" id="ic-main-page">
@@ -3751,7 +3784,7 @@ fill="currentColor" viewBox="0 0 24 24" >
     </div>
 </div>
 
-<script src="js/access-auth.js?v=20260731-access-lock-v3"></script>
+<script src="js/access-auth.js?v=20260801-login-security-v1"></script>
 <script src="js/utils.js"></script>
 <script src="js/db.js?v=20260731-time-awareness-switch-v1"></script>
 <script src="js/desktop.js?v=20260729-continuous-drag-v1"></script>
