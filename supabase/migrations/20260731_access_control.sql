@@ -34,7 +34,11 @@ alter table public.access_devices enable row level security;
 
 revoke all on public.access_entitlements, public.access_profiles, public.access_devices from anon, authenticated;
 
-create or replace function public.bind_my_paid_qq()
+-- A manually applied administrator version may already return extra columns.
+-- Drop only this function so the ordered follow-up migration can recreate it.
+drop function if exists public.bind_my_paid_qq();
+
+create function public.bind_my_paid_qq()
 returns table(qq text)
 language plpgsql
 security definer
