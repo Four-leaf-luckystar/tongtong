@@ -375,11 +375,19 @@
             top: 99px;
         }
         #themeAppUI.is-widget-tab > .theme-content-area {
-            padding-top: 104px;
+            box-sizing: border-box;
+            overflow: hidden;
+            padding: 104px 0 calc(136px + env(safe-area-inset-bottom, 0px));
         }
         #themeAppUI.is-widget-tab .widget-app-container {
-            height: calc(100% - 88px - env(safe-area-inset-bottom, 0px));
-            max-height: calc(100% - 88px - env(safe-area-inset-bottom, 0px));
+            flex: 1 1 auto;
+            height: auto;
+            min-height: 0;
+            max-height: none;
+        }
+        #themeAppUI.is-widget-tab .widget-list-container {
+            padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+            scroll-padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
         }
 
         .theme-grid-container {
