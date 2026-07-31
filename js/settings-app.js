@@ -15,6 +15,77 @@
         }, 300);
     }
 
+    let backgroundKeepAliveWakeLock = null;
+    let backgroundKeepAliveLifecycleBound = false;
+
+    async function requestBackgroundKeepAliveWakeLock() {
+        if (!appSettings?.background_keep_alive_enabled || document.visibilityState !== 'visible') return;
+        if (!('wakeLock' in navigator)) return;
+        if (backgroundKeepAliveWakeLock && !backgroundKeepAliveWakeLock.released) return;
+
+        try {
+            const wakeLock = await navigator.wakeLock.request('screen');
+            if (!appSettings?.background_keep_alive_enabled || document.visibilityState !== 'visible') {
+                await wakeLock.release();
+                return;
+            }
+            backgroundKeepAliveWakeLock = wakeLock;
+            wakeLock.addEventListener('release', () => {
+                backgroundKeepAliveWakeLock = null;
+            }, { once: true });
+        } catch (error) {
+            backgroundKeepAliveWakeLock = null;
+            console.debug('Background keep-alive wake lock unavailable:', error);
+        }
+    }
+
+    async function releaseBackgroundKeepAliveWakeLock() {
+        if (!backgroundKeepAliveWakeLock) return;
+        const wakeLock = backgroundKeepAliveWakeLock;
+        backgroundKeepAliveWakeLock = null;
+        try {
+            await wakeLock.release();
+        } catch (error) {
+            console.debug('Background keep-alive wake lock release failed:', error);
+        }
+    }
+
+    function applyBackgroundKeepAlive() {
+        const toggle = document.getElementById('backgroundKeepAliveToggle');
+        const enabled = appSettings?.background_keep_alive_enabled === true;
+        if (toggle) {
+            toggle.classList.toggle('on', enabled);
+            toggle.setAttribute('aria-checked', String(enabled));
+        }
+        if (enabled) {
+            void requestBackgroundKeepAliveWakeLock();
+        } else {
+            void releaseBackgroundKeepAliveWakeLock();
+        }
+    }
+
+    function initBackgroundKeepAlive() {
+        if (!backgroundKeepAliveLifecycleBound) {
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') applyBackgroundKeepAlive();
+                else void releaseBackgroundKeepAliveWakeLock();
+            });
+            window.addEventListener('pageshow', applyBackgroundKeepAlive);
+            backgroundKeepAliveLifecycleBound = true;
+        }
+        applyBackgroundKeepAlive();
+    }
+
+    function toggleBackgroundKeepAlive() {
+        if (typeof appSettings === 'undefined') return;
+        appSettings.background_keep_alive_enabled = appSettings.background_keep_alive_enabled !== true;
+        applyBackgroundKeepAlive();
+        if (typeof saveAppSettings === 'function') saveAppSettings();
+        if (typeof showToast === 'function') {
+            showToast(appSettings.background_keep_alive_enabled ? '后台保活已开启' : '后台保活已关闭');
+        }
+    }
+
     // ==========================================
     function openDisplaySettingsApp() {
         const displayUI = document.getElementById('displaySettingsUI');

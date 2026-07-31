@@ -1,5 +1,6 @@
     let appSettings = {
         simulatedStatusBarVisible: true,
+        background_keep_alive_enabled: false,
         ios_theme_mode: 'light',
         ios_brightness: 100,
         wc_presets: [],
@@ -523,6 +524,7 @@
             // 在数据加载完成后执行初始化
             applyStatusBarVisibility();
             initThemeAndBrightness();
+            initBackgroundKeepAlive();
             
             wcPresets = appSettings.wc_presets || [];
             wcCurrentPresetId = appSettings.wc_current_preset_id;
