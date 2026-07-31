@@ -5467,6 +5467,16 @@
                 systemPrompt += `</recent_memory_summary>\n\n`;
             }
 
+            const now = new Date();
+            const systemTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '用户设备本地时区';
+            const paddedMonth = String(now.getMonth() + 1).padStart(2, '0');
+            const paddedDay = String(now.getDate()).padStart(2, '0');
+            const paddedHour = String(now.getHours()).padStart(2, '0');
+            const paddedMinute = String(now.getMinutes()).padStart(2, '0');
+            const paddedSecond = String(now.getSeconds()).padStart(2, '0');
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            systemPrompt += `<current_system_time>\n当前用户设备本地时间：${now.getFullYear()}-${paddedMonth}-${paddedDay} ${paddedHour}:${paddedMinute}:${paddedSecond}（${weekdays[now.getDay()]}，${systemTimeZone}）。这是本次回复时的真实系统时间；涉及现在、今天、昨天、明天、早晚、工作日或节日等时间表达时，请以它为准，自然地保持时间感知。\n</current_system_time>\n\n`;
+
             const latestUserMessage = (wcChatMessagesByContact[chatContactId] || [])
                 .slice().reverse().find((message) => message && message.type === 'sent' && typeof message.text === 'string');
             const relevantFragments = latestUserMessage && typeof window.MemoryApp?.getRelevantFragments === 'function'
