@@ -1384,146 +1384,10 @@
         return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
     }
 
-    function bytesToAscii(bytes) {
-        let text = '';
-        for (let index = 0; index < bytes.length; index += 1) text += String.fromCharCode(bytes[index]);
-        return text;
-    }
-
-    function bytesToLatin1(bytes) {
-        const chunks = [];
-        for (let index = 0; index < bytes.length; index += 8192) {
-            chunks.push(String.fromCharCode(...bytes.subarray(index, index + 8192)));
-        }
-        return chunks.join('');
-    }
-
-    function decodeBase64Json(text) {
-        const normalized = String(text || '').replace(/\s/g, '');
-        if (!normalized) throw new Error('角色卡数据为空');
-        const binary = atob(normalized);
-        const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
-        return JSON.parse(new TextDecoder('utf-8').decode(bytes));
-    }
-
-    function parseCardChunkJson(text) {
-        const trimmed = String(text || '').trim();
-        if (!trimmed) throw new Error('角色卡数据为空');
-        try {
-            return JSON.parse(trimmed);
-        } catch (jsonError) {
-            return decodeBase64Json(trimmed);
-        }
-    }
-
-    function readPngTextChunks(buffer) {
-        const bytes = new Uint8Array(buffer);
-        const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
-        if (signature.some((value, index) => bytes[index] !== value)) throw new Error('PNG 文件结构无效');
-        const view = new DataView(buffer);
-        const chunks = {};
-        let offset = 8;
-        while (offset + 12 <= bytes.length) {
-            const length = view.getUint32(offset, false);
-            const typeStart = offset + 4;
-            const dataStart = offset + 8;
-            const dataEnd = dataStart + length;
-            if (dataEnd + 4 > bytes.length) throw new Error('PNG 文件结构无效');
-            const type = bytesToAscii(bytes.subarray(typeStart, typeStart + 4));
-            if (type === 'tEXt') {
-                const data = bytes.subarray(dataStart, dataEnd);
-                const separator = data.indexOf(0);
-                if (separator > 0) {
-                    const key = bytesToLatin1(data.subarray(0, separator));
-                    chunks[key.toLowerCase()] = bytesToLatin1(data.subarray(separator + 1));
-                }
-            }
-            offset = dataEnd + 4;
-            if (type === 'IEND') break;
-        }
-        return chunks;
-    }
-
-    function parseCardJsonPayload(payload) {
-        if (!payload || typeof payload !== 'object') throw new Error('角色卡数据无效');
-        if (payload.data && typeof payload.data === 'object') return { raw: payload, data: payload.data };
-        return { raw: payload, data: payload };
-    }
-
-    function pickCardValue(source, keys) {
-        for (const key of keys) {
-            const value = source?.[key];
-            if (value == null) continue;
-            if (Array.isArray(value) && value.some(item => String(item || '').trim())) return value;
-            if (!Array.isArray(value) && typeof value === 'object' && Object.keys(value).length) return value;
-            if (String(value).trim()) return value;
-        }
-        return '';
-    }
-
-    function formatCardValue(value) {
-        if (Array.isArray(value)) return value.map(item => String(item || '').trim()).filter(Boolean).join('\n');
-        if (value && typeof value === 'object') return JSON.stringify(value, null, 2);
-        return String(value || '').trim();
-    }
-
-    function normalizeSillyTavernCard(payload, fileName) {
-        const { data } = parseCardJsonPayload(payload);
-        const name = String(pickCardValue(data, ['name', 'char_name', 'character_name']) || '').trim();
-        const characterBook = data.character_book && typeof data.character_book === 'object' ? data.character_book : null;
-        const sections = [
-            ['角色设定', pickCardValue(data, ['description', 'persona', 'char_persona'])],
-            ['性格', pickCardValue(data, ['personality'])],
-            ['场景', pickCardValue(data, ['scenario'])],
-            ['开场白', pickCardValue(data, ['first_mes', 'first_message', 'greeting'])],
-            ['对话示例', pickCardValue(data, ['mes_example', 'example_dialogue'])],
-            ['系统提示', pickCardValue(data, ['system_prompt'])],
-            ['补充指令', pickCardValue(data, ['post_history_instructions'])],
-            ['作者备注', pickCardValue(data, ['creator_notes'])]
-        ];
-        const persona = sections
-            .map(([label, value]) => {
-                const text = formatCardValue(value);
-                return text ? `【${label}】\n${text}` : '';
-            })
-            .filter(Boolean)
-            .join('\n\n');
-        if (!name && !persona) throw new Error('未找到可导入的角色数据');
-        return { name: name || inferImportedName('', fileName), persona: persona || name, characterBook };
-    }
-
-    function importCardWorldbook(importedCard) {
-        if (!importedCard?.characterBook || !contactDraft) return 0;
-        if (typeof window.importCharacterWorldbook !== 'function') {
-            console.warn('Character card worldbook importer is unavailable.');
-            return 0;
-        }
-        const result = window.importCharacterWorldbook(importedCard.name, importedCard.characterBook);
-        const entryIds = Array.isArray(result?.entryIds) ? result.entryIds.filter(Boolean) : [];
-        if (!entryIds.length) return 0;
-        const existing = Array.isArray(contactDraft.worldbookIds) ? contactDraft.worldbookIds : [];
-        contactDraft.worldbookIds = Array.from(new Set(existing.concat(entryIds)));
-        updateWorldbookStatus();
-        return entryIds.length;
-    }
-
-    function readSillyTavernPng(buffer, fileName) {
-        const chunks = readPngTextChunks(buffer);
-        const encoded = chunks.ccv3 || chunks.chara;
-        if (!encoded) throw new Error('未找到角色卡数据');
-        return normalizeSillyTavernCard(parseCardChunkJson(encoded), fileName);
-    }
-
-    function readSillyTavernJson(buffer, fileName) {
-        const text = decodePlainText(buffer).trim();
-        if (!text) throw new Error('角色卡数据为空');
-        return normalizeSillyTavernCard(JSON.parse(text), fileName);
-    }
-
     function inferImportedName(text, fileName) {
         const labeledName = text.match(/^(?:角色名|角色名称|姓名|名字|名称)\s*[：:]\s*([^\r\n]{1,40})/m)?.[1]?.trim();
         if (labeledName) return labeledName.slice(0, 40);
-        return fileName.replace(/\.(?:txt|docx|png|json)$/i, '').trim().slice(0, 40);
+        return fileName.replace(/\.(?:txt|docx)$/i, '').trim().slice(0, 40);
     }
 
     async function handlePersonaImport(input) {
@@ -1536,42 +1400,14 @@
         }
 
         const extension = file.name.split('.').pop()?.toLowerCase();
-        if (!['txt', 'docx', 'png', 'json'].includes(extension)) {
-            showToast('请选择 TXT、DOCX、PNG 或 JSON 文件');
+        if (extension !== 'txt' && extension !== 'docx') {
+            showToast('请选择 TXT 或 DOCX 文件');
             return;
         }
 
         try {
             showToast('正在解析文档…');
             const buffer = await file.arrayBuffer();
-            if (extension === 'png' || extension === 'json') {
-                const importedCard = extension === 'png'
-                    ? readSillyTavernPng(buffer, file.name)
-                    : readSillyTavernJson(buffer, file.name);
-                const persona = importedCard.persona.slice(0, 10000);
-                setValue('#ctContactPersona', persona);
-                contactDraft.persona = persona;
-                if (!getValue('#ctContactName').trim()) {
-                    const importedName = importedCard.name.slice(0, 40);
-                    setValue('#ctContactName', importedName);
-                    contactDraft.name = importedName;
-                }
-                if (extension === 'png' && !contactDraft.avatar) {
-                    try {
-                        contactDraft.avatar = await fileToImage(file, 420);
-                        fillAvatar(el('#ctContactAvatarPreview'), contactDraft.avatar, '角色');
-                    } catch (avatarError) {
-                        console.warn('Character card avatar could not be loaded:', avatarError);
-                    }
-                }
-                const importedWorldbookCount = importCardWorldbook(importedCard);
-                const clipped = importedCard.persona.length > persona.length;
-                showToast(importedWorldbookCount
-                    ? (clipped ? '已导入角色卡与世界书，人设已截断' : '已导入角色卡与世界书')
-                    : (clipped ? '已导入，超出 10000 字的内容已截断' : '已导入角色卡'));
-                return;
-            }
-
             const importedText = extension === 'docx' ? docxXmlToText(await readDocxXml(buffer)) : decodePlainText(buffer).trim();
             if (!importedText) throw new Error('文档中没有可导入的文字');
 
