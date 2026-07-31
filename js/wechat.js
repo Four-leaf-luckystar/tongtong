@@ -2100,6 +2100,9 @@
             if (contextLimitEl) contextLimitEl.value = appSettings.wc_context_memory_limit || '';
         }
 
+        wcApplyTimeAwarenessSettings();
+        wcApplyWeatherAwarenessSettings();
+
         // 注入 Char 和 User 的头像与名称
         const charCircle = document.getElementById('wc-settings-char-circle');
         const charNameEl = document.getElementById('wc-settings-char-name');
@@ -2922,8 +2925,65 @@
         saveAppSettings();
         wcApplyTimeAwarenessSettings();
     }
-    
 
+    function wcApplyWeatherAwarenessSettings() {
+        const toggle = document.getElementById('wc-weather-awareness-toggle');
+        const enabled = appSettings?.wc_weather_awareness_enabled !== false;
+        if (!toggle) return;
+        toggle.classList.toggle('active', enabled);
+        toggle.setAttribute('aria-checked', String(enabled));
+    }
+
+    function wcToggleWeatherAwareness() {
+        const enabled = appSettings?.wc_weather_awareness_enabled === false;
+        appSettings.wc_weather_awareness_enabled = enabled;
+        saveAppSettings();
+        wcApplyWeatherAwarenessSettings();
+    }
+
+    let wcCachedWeather = null;
+    let wcLastWeatherFetchTime = 0;
+
+    async function wcGetRealWeather() {
+        if (wcCachedWeather && (Date.now() - wcLastWeatherFetchTime < 3600000)) {
+            return wcCachedWeather; // 缓存1小时，避免频繁请求
+        }
+        return new Promise((resolve) => {
+            if (!navigator.geolocation) {
+                resolve(null);
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                try {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+                    const data = await res.json();
+                    if (data && data.current_weather) {
+                        const weatherCode = data.current_weather.weathercode;
+                        const temp = data.current_weather.temperature;
+                        let weatherDesc = '晴';
+                        if (weatherCode === 1 || weatherCode === 2 || weatherCode === 3) weatherDesc = '多云';
+                        else if (weatherCode >= 45 && weatherCode <= 55) weatherDesc = '雾';
+                        else if (weatherCode >= 61 && weatherCode <= 67) weatherDesc = '雨';
+                        else if (weatherCode >= 71 && weatherCode <= 77) weatherDesc = '雪';
+                        else if (weatherCode >= 80 && weatherCode <= 82) weatherDesc = '阵雨';
+                        else if (weatherCode >= 95 && weatherCode <= 99) weatherDesc = '雷雨';
+                        
+                        wcCachedWeather = `${weatherDesc}，${temp}°C`;
+                        wcLastWeatherFetchTime = Date.now();
+                        resolve(wcCachedWeather);
+                    } else {
+                        resolve(null);
+                    }
+                } catch (e) {
+                    resolve(null);
+                }
+            }, () => {
+                resolve(null);
+            }, { timeout: 3000 });
+        });
+    }
 
     function wcApplyTimestampSettings() {
         let styleTag = document.getElementById('wc-dynamic-timestamp-style');
@@ -5492,9 +5552,27 @@
                 const paddedMinute = String(now.getMinutes()).padStart(2, '0');
                 const paddedSecond = String(now.getSeconds()).padStart(2, '0');
                 const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-                systemPrompt += `<current_system_time>\n当前用户设备本地时间：${now.getFullYear()}-${paddedMonth}-${paddedDay} ${paddedHour}:${paddedMinute}:${paddedSecond}（${weekdays[now.getDay()]}，${systemTimeZone}）。\n时间感知规则：这是真实且唯一的当前本地时间。请据此精确理解和回应“现在、今天、昨天、明天、后天、刚刚、稍后、早上、中午、下午、晚上、工作日、周末、节日”等表达；当用户询问当前日期、星期或时间时，直接以此作答。不要把聊天记录中的旧时间当作现在，也不要与此时间矛盾。\n</current_system_time>\n\n`;
+                
+                const hour = now.getHours();
+                let timePhase = '深夜';
+                if (hour >= 5 && hour < 9) timePhase = '早晨';
+                else if (hour >= 9 && hour < 12) timePhase = '上午';
+                else if (hour >= 12 && hour < 14) timePhase = '中午';
+                else if (hour >= 14 && hour < 18) timePhase = '下午';
+                else if (hour >= 18 && hour < 20) timePhase = '傍晚';
+                else if (hour >= 20 && hour < 24) timePhase = '晚上';
+                else if (hour >= 0 && hour < 5) timePhase = '凌晨/深夜';
+
+                systemPrompt += `【当前现实时间】：${now.getFullYear()}年${paddedMonth}月${paddedDay}日 ${paddedHour}:${paddedMinute}:${paddedSecond}（${weekdays[now.getDay()]}，${systemTimeZone}）。\n【时间锚定与行为逻辑】：请务必在潜意识里深刻认知到现在是${timePhase}，你的作息、行为和回复状态必须与当前时间点进行合理推演，必须符合当前时间点。\n\n`;
             } else {
-                systemPrompt += `<time_awareness_disabled>\n时间感知功能已关闭。未向你提供当前日期、时间或时区；不得臆测、编造或主动提及当前系统时间。用户询问现在几点、今天日期、星期或相对时间时，应说明无法确认当前时间，并请对方告知。\n</time_awareness_disabled>\n\n`;
+                systemPrompt += `【模糊时间】：当前不存在现实时间流逝，现实中过去多久，你完全感知不到，也不会在意。你没有时间任何观念，不需要知道现在几点。\n\n`;
+            }
+
+            if (appSettings?.wc_weather_awareness_enabled !== false) {
+                const weatherInfo = await wcGetRealWeather();
+                if (weatherInfo) {
+                    systemPrompt += `【环境感知】：你能够感知到 ${username} 所在地的真实天气是：【${weatherInfo}】。你可以自然地在对话中提及天气，比如提醒加衣、带伞、或者表达关心。\n\n`;
+                }
             }
 
             const latestUserMessage = (wcChatMessagesByContact[chatContactId] || [])
