@@ -158,10 +158,4 @@ grant execute on function public.claim_my_access_device(uuid, text) to authentic
 grant execute on function public.list_my_access_devices(uuid) to authenticated;
 grant execute on function public.revoke_my_access_device(uuid) to authenticated;
 
--- 首批管理员：永久资格。后续付款审核通过后，新增同样的 active 记录即可。
-insert into public.access_entitlements (qq, status, source, note)
-values
-    ('1509048968', 'active', 'manual-admin-bootstrap', '管理员'),
-    ('3292315195', 'active', 'manual-admin-bootstrap', '管理员')
-on conflict (qq) do update
-set status = 'active', source = excluded.source, note = excluded.note;
+-- 不在迁移中写入真实 QQ。付款资格和管理员账号仅在 Supabase 私有表中维护。

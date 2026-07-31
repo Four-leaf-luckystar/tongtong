@@ -6,7 +6,6 @@
     const SESSION_KEY = 'tonghuajiAccessSessionV1';
     const DEVICE_KEY = 'tonghuajiAccessDeviceV1';
     const DATA_PREFIX = 'tonghuaji-access-v1:';
-    const ADMIN_QQS = new Set(['1509048968', '3292315195']);
     const nativeIndexedDbOpen = indexedDB.open.bind(indexedDB);
     let activeQq = '';
     let appStartRequested = false;
@@ -183,7 +182,7 @@
             p_device_id: getDeviceId(),
             p_device_label: getDeviceLabel()
         }, session.access_token);
-        await copyLegacyDataForAdministrator(qq);
+        await copyLegacyDataForAdministrator(qq, Boolean(bound.is_admin));
         document.documentElement.classList.remove('app-access-pending');
         document.documentElement.classList.add('app-access-ready');
         startApplicationIfReady();
@@ -374,15 +373,12 @@
         }
     }
 
-    async function copyLegacyDataForAdministrator(qq) {
-        if (!ADMIN_QQS.has(qq)) return;
-        for (const administratorQq of ADMIN_QQS) {
-            const marker = `${DATA_PREFIX}legacy-copy:${administratorQq}`;
-            if (localStorage.getItem(marker)) continue;
-            const targetName = `${DATA_PREFIX}${administratorQq}:iOSDesktopDB`;
-            await cloneDatabase('iOSDesktopDB', targetName);
-            localStorage.setItem(marker, '1');
-        }
+    async function copyLegacyDataForAdministrator(qq, isAdministrator) {
+        if (!isAdministrator) return;
+        const marker = `${DATA_PREFIX}legacy-copy:${qq}`;
+        if (localStorage.getItem(marker)) return;
+        await cloneDatabase('iOSDesktopDB', `${DATA_PREFIX}${qq}:iOSDesktopDB`);
+        localStorage.setItem(marker, '1');
     }
 
     async function handleFormSubmit(event) {
