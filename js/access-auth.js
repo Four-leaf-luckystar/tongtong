@@ -11,6 +11,9 @@
     let appStartRequested = false;
     let appStarted = false;
     let currentSession = null;
+    let accessDeviceCheckInFlight = false;
+    let accessDeviceMonitorStarted = false;
+    let accessDeviceSessionRpcAvailable = true;
 
     function getRedirectUrl() {
         return `${location.origin}${location.pathname}`;
@@ -93,6 +96,23 @@
         };
     }
 
+    function getAuthSessionId(accessToken) {
+        try {
+            const payloadPart = String(accessToken || '').split('.')[1];
+            if (!payloadPart) return '';
+            const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+            const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+            const sessionId = JSON.parse(atob(padded)).session_id;
+            return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(sessionId || '')) ? sessionId : '';
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function isMissingSessionDeviceRpc(error) {
+        return /could not find the function|function .* does not exist/i.test(String(error && error.message || ''));
+    }
+
     async function request(path, options) {
         const response = await fetch(`${SUPABASE_URL}${path}`, {
             ...options,
@@ -172,6 +192,61 @@
         return sessionFromPayload(payload);
     }
 
+    async function claimCurrentAccessDevice(session) {
+        const details = {
+            p_device_id: getDeviceId(),
+            p_device_label: getDeviceLabel(),
+            p_device_browser: getBrowserLabel()
+        };
+        const sessionId = getAuthSessionId(session.access_token);
+        if (sessionId && accessDeviceSessionRpcAvailable) {
+            try {
+                await rpc('claim_my_access_device_with_session', {
+                    ...details,
+                    p_auth_session_id: sessionId
+                }, session.access_token);
+                return;
+            } catch (error) {
+                if (!isMissingSessionDeviceRpc(error)) throw error;
+                accessDeviceSessionRpcAvailable = false;
+            }
+        }
+        await rpc('claim_my_access_device_with_details', details, session.access_token);
+    }
+
+    async function verifyCurrentAccessDevice() {
+        if (accessDeviceCheckInFlight || !currentSession || !currentSession.access_token || !accessDeviceSessionRpcAvailable) return;
+        accessDeviceCheckInFlight = true;
+        try {
+            const session = await refreshSession(currentSession);
+            if (!session) return;
+            if (session !== currentSession) saveSession(session);
+            await rpc('assert_my_access_device', { p_device_id: getDeviceId() }, session.access_token);
+        } catch (error) {
+            if (isMissingSessionDeviceRpc(error)) {
+                accessDeviceSessionRpcAvailable = false;
+            } else if (error && error.message === 'DEVICE_REVOKED') {
+                logoutAfterStoredSessionValidationFailure();
+            } else {
+                console.debug('Access-device verification unavailable:', error);
+            }
+        } finally {
+            accessDeviceCheckInFlight = false;
+        }
+    }
+
+    function startAccessDeviceMonitor() {
+        if (accessDeviceMonitorStarted) return;
+        accessDeviceMonitorStarted = true;
+        const verifyWhenVisible = () => {
+            if (document.visibilityState === 'visible') void verifyCurrentAccessDevice();
+        };
+        window.addEventListener('focus', verifyWhenVisible);
+        document.addEventListener('visibilitychange', verifyWhenVisible);
+        window.setInterval(verifyWhenVisible, 30000);
+        void verifyCurrentAccessDevice();
+    }
+
     function formQq(form) {
         return normalizeQq(new FormData(form).get('qq'));
     }
@@ -187,11 +262,8 @@
         if (!isQq(qq)) throw new Error('资格校验失败，请重新登录。');
         setNamespace(qq);
         saveSession(session);
-        await rpc('claim_my_access_device_with_details', {
-            p_device_id: getDeviceId(),
-            p_device_label: getDeviceLabel(),
-            p_device_browser: getBrowserLabel()
-        }, session.access_token);
+        await claimCurrentAccessDevice(session);
+        startAccessDeviceMonitor();
         await copyLegacyDataForAdministrator(qq, Boolean(bound.is_admin));
         document.documentElement.classList.remove('app-access-pending');
         document.documentElement.classList.add('app-access-ready');
@@ -325,6 +397,24 @@
         return Number.isNaN(timestamp.getTime()) ? '未记录' : timestamp.toLocaleString('zh-CN');
     }
 
+    async function revokeLoginSecurityDevice(device, button) {
+        const message = `确定要退出“${device.device_label || '此设备'}”吗？该设备将返回登录页。`;
+        const confirmed = typeof showCustomConfirm === 'function'
+            ? await showCustomConfirm('退出设备登录', message, '退出登录', true)
+            : window.confirm(message);
+        if (!confirmed) return;
+        button.disabled = true;
+        setLoginSecurityNotice('');
+        try {
+            await rpc('revoke_my_access_device', { p_device_id: device.device_id }, currentSession.access_token);
+            await loadLoginSecurityDevices();
+            setLoginSecurityNotice('已退出该设备登录。');
+        } catch (error) {
+            setLoginSecurityNotice(friendlyError(error), true);
+            button.disabled = false;
+        }
+    }
+
     function renderLoginSecurityDevices(devices) {
         const container = document.getElementById('loginSecurityDeviceList');
         if (!container) return;
@@ -360,6 +450,14 @@
             lastSeen.className = 'login-security-device-meta';
             lastSeen.textContent = `最近使用：${formatDeviceTime(device.last_seen_at)}`;
             item.append(title, browser, ip, lastSeen);
+            if (!device.is_current) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = '退出登录';
+                button.style.cssText = 'margin-top: 10px; min-height: 32px; padding: 0 8px; border: 0; background: transparent; color: #d70015; font-size: 14px; font-weight: 600; cursor: pointer;';
+                button.addEventListener('click', () => { revokeLoginSecurityDevice(device, button); });
+                item.append(button);
+            }
             container.append(item);
         });
     }

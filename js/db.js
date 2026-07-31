@@ -80,6 +80,12 @@
     const storeName = "layoutStore";
     let db;
 
+    function initializeGithubBackupSchedule() {
+        if (typeof window.initializeGithubBackupSchedule === 'function') {
+            window.initializeGithubBackupSchedule();
+        }
+    }
+
     function initDB() {
             // show three-dots button; click to expand vertical capsule menu
         const request = indexedDB.open(dbName); 
@@ -107,6 +113,7 @@
                 upgradeRequest.onsuccess = (e2) => {
                     db = e2.target.result;
                     loadLayout();
+                    initializeGithubBackupSchedule();
                 };
                 upgradeRequest.onerror = (e2) => {
                     console.error("IndexedDB upgrade error:", e2);
@@ -115,6 +122,7 @@
                 return;
             }
             loadLayout();
+            initializeGithubBackupSchedule();
         };
 
         request.onerror = (e) => {

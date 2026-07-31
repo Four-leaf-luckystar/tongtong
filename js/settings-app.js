@@ -545,6 +545,7 @@
     }
 
     const githubBackupSettingsId = 'githubBackupSettings';
+    let githubBackupTimerId = null;
 
     function openCloudBackupPage() {
         document.getElementById('ic-main-page').classList.remove('active');
@@ -568,7 +569,9 @@
             token: document.getElementById('githubBackupToken'),
             owner: document.getElementById('githubBackupOwner'),
             repo: document.getElementById('githubBackupRepo'),
-            fileName: document.getElementById('githubBackupFileName')
+            fileName: document.getElementById('githubBackupFileName'),
+            scheduledTime: document.getElementById('githubBackupScheduledTime'),
+            scheduleToggle: document.getElementById('githubBackupScheduleToggle')
         };
     }
 
@@ -593,7 +596,14 @@
         }
         if (!fileName.toLowerCase().endsWith('.json')) fileName += '.json';
         inputs.fileName.value = fileName;
-        return { token, owner, repo, fileName };
+        return {
+            token,
+            owner,
+            repo,
+            fileName,
+            scheduledEnabled: inputs.scheduleToggle.classList.contains('on'),
+            scheduledTime: inputs.scheduledTime.value || '02:00'
+        };
     }
 
     function readGithubBackupSettings() {
@@ -625,7 +635,11 @@
         inputs.owner.value = config?.owner || '';
         inputs.repo.value = config?.repo || '';
         inputs.fileName.value = config?.fileName || 'tonghuaji-backup.json';
+        inputs.scheduledTime.value = config?.scheduledTime || '02:00';
+        inputs.scheduleToggle.classList.toggle('off', config?.scheduledEnabled !== true);
+        inputs.scheduleToggle.classList.toggle('on', config?.scheduledEnabled === true);
         updateCloudBackupStatus(config);
+        scheduleGithubBackup(config);
     }
 
     function updateCloudBackupStatus(config) {
@@ -634,19 +648,80 @@
         status.textContent = config?.owner && config?.repo ? `${config.owner}/${config.repo}` : '未设置';
     }
 
-    async function saveGithubBackupSettings() {
+    async function saveGithubBackupSettings(options = {}) {
+        const { silent = false, reschedule = true } = options;
         const config = getGithubBackupConfigFromForm();
         if (!config) return null;
         try {
             await persistGithubBackupSettings(config);
             updateCloudBackupStatus(config);
-            showToast('GitHub 备份配置已保存');
+            if (reschedule) scheduleGithubBackup(config);
+            if (!silent) showToast('GitHub 备份配置已保存');
             return config;
         } catch (error) {
             showCustomAlert('错误', '保存 GitHub 配置失败。');
             return null;
         }
     }
+
+    function stopGithubBackupSchedule() {
+        if (githubBackupTimerId !== null) {
+            clearTimeout(githubBackupTimerId);
+            githubBackupTimerId = null;
+        }
+    }
+
+    function scheduleGithubBackup(config) {
+        stopGithubBackupSchedule();
+        if (!config?.scheduledEnabled) return;
+        const match = /^(\d{2}):(\d{2})$/.exec(config.scheduledTime || '');
+        if (!match) return;
+        const hour = Number(match[1]);
+        const minute = Number(match[2]);
+        if (hour > 23 || minute > 59) return;
+
+        const nextRun = new Date();
+        nextRun.setHours(hour, minute, 0, 0);
+        if (nextRun.getTime() <= Date.now()) nextRun.setDate(nextRun.getDate() + 1);
+        githubBackupTimerId = window.setTimeout(() => {
+            uploadGithubBackup(true);
+        }, Math.max(1000, nextRun.getTime() - Date.now()));
+    }
+
+    async function toggleGithubBackupSchedule() {
+        const inputs = getGithubBackupInputs();
+        const enabled = !inputs.scheduleToggle.classList.contains('on');
+        inputs.scheduleToggle.classList.toggle('on', enabled);
+        inputs.scheduleToggle.classList.toggle('off', !enabled);
+        const config = getGithubBackupConfigFromForm();
+        if (!config) {
+            inputs.scheduleToggle.classList.toggle('on', !enabled);
+            inputs.scheduleToggle.classList.toggle('off', enabled);
+            return;
+        }
+        try {
+            await persistGithubBackupSettings(config);
+            scheduleGithubBackup(config);
+            showToast(enabled ? `已设置每天 ${config.scheduledTime} 定时备份` : '定时 GitHub 备份已关闭');
+        } catch (error) {
+            showCustomAlert('错误', '保存定时备份设置失败。');
+        }
+    }
+
+    async function updateGithubBackupSchedule() {
+        const config = getGithubBackupConfigFromForm();
+        if (!config) return;
+        try {
+            await persistGithubBackupSettings(config);
+            scheduleGithubBackup(config);
+        } catch (error) {
+            showCustomAlert('错误', '保存定时备份时间失败。');
+        }
+    }
+
+    window.initializeGithubBackupSchedule = function () {
+        loadGithubBackupSettings();
+    };
 
     function getGithubBackupApiUrl(config) {
         const path = config.fileName.split('/').map(encodeURIComponent).join('/');
@@ -663,12 +738,6 @@
         return btoa(binary);
     }
 
-    function decodeBackupText(base64Content) {
-        const binary = atob(base64Content.replace(/\s/g, ''));
-        const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
-        return new TextDecoder().decode(bytes);
-    }
-
     async function githubBackupRequest(config, options) {
         const response = await fetch(getGithubBackupApiUrl(config), {
             ...options,
@@ -682,11 +751,11 @@
         return response;
     }
 
-    async function uploadGithubBackup() {
-        const config = await saveGithubBackupSettings();
+    async function uploadGithubBackup(isScheduled = false) {
+        const config = await saveGithubBackupSettings({ silent: isScheduled, reschedule: !isScheduled });
         if (!config) return;
         try {
-            showToast('正在准备 GitHub 备份...');
+            if (!isScheduled) showToast('正在准备 GitHub 备份...');
             const existing = await githubBackupRequest(config, { method: 'GET' });
             let sha = null;
             if (existing.ok) {
@@ -712,10 +781,12 @@
                 showCustomAlert('错误', `GitHub 备份失败（${response.status}）。请检查 Token 是否具备 Contents 读写权限。`);
                 return;
             }
-            showToast('已备份到 GitHub');
+            showToast(isScheduled ? '定时 GitHub 备份完成' : '已备份到 GitHub');
         } catch (error) {
             console.error('GitHub backup failed:', error);
-            showCustomAlert('错误', '无法连接 GitHub，请检查网络后重试。');
+            if (!isScheduled) showCustomAlert('错误', '无法连接 GitHub，请检查网络后重试。');
+        } finally {
+            if (isScheduled) scheduleGithubBackup(config);
         }
     }
 
@@ -741,47 +812,6 @@
         } catch (error) {
             console.error('GitHub restore failed:', error);
             showCustomAlert('错误', 'GitHub 备份文件无效或无法读取。');
-        }
-    }
-
-    async function exportIcloudDriveBackup() {
-        try {
-            const data = await getAllDataFromDB();
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            const now = new Date();
-            const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
-            link.href = url;
-            link.download = `童话机备份-${stamp}.json`;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(url);
-            showToast('备份文件已生成，请在“文件”中保存到 iCloud Drive');
-        } catch (error) {
-            console.error('iCloud Drive export failed:', error);
-            showCustomAlert('错误', '生成备份文件失败。');
-        }
-    }
-
-    function importIcloudDriveBackup() {
-        document.getElementById('icloudDriveBackupInput').click();
-    }
-
-    async function handleIcloudDriveBackupImport(event) {
-        const file = event.target.files[0];
-        event.target.value = '';
-        if (!file) return;
-        const confirmed = await showCustomConfirm('从 iCloud Drive 恢复', `将使用“${file.name}”覆盖当前应用数据，GitHub Token 配置将保留在本机。确定继续吗？`, '恢复', true);
-        if (!confirmed) return;
-        try {
-            const text = await file.text();
-            const data = JSON.parse(text);
-            if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('备份内容无效');
-            processJsonImport(text);
-        } catch (error) {
-            showCustomAlert('错误', '备份文件格式无效。');
         }
     }
 
