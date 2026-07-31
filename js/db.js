@@ -707,6 +707,7 @@
                 const allRecords = e.target.result;
                 const dataObj = {};
                 allRecords.forEach(record => {
+                    if (record.id === 'githubBackupSettings') return;
                     dataObj[record.id] = record;
                 });
                 resolve(dataObj);

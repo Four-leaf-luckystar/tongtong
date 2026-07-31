@@ -1062,13 +1062,13 @@
                     </div>
                 </div>
             </div>
-            <div class="ic-card" style="padding: 16px;">
+            <div class="ic-card" style="padding: 16px; cursor: pointer;" onclick="openCloudBackupPage()">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <div class="ic-card-title"><div class="ic-dot"></div> 云备份 </div>
-                        <div class="ic-item-desc" style="margin-left: 16px; margin-top: 4px;">当前设备</div>
+                        <div class="ic-item-desc" id="ic-cloud-backup-status" style="margin-left: 16px; margin-top: 4px;">未设置</div>
                     </div>
-                    <div class="ic-card-action">23分钟前 <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                    <div class="ic-card-action">管理 <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                 </div>
             </div>
             <div class="ic-card" style="padding: 16px 16px 8px;">
@@ -1354,6 +1354,65 @@
                     恢复数据
                 </div>
             </div>
+        </div>
+
+        <!-- 云备份页 -->
+        <div class="ic-page slide-right" id="ic-cloud-backup-page">
+            <div class="ic-nav-bar-detail" style="padding-top: 45px;">
+                <div class="ic-back-btn" onclick="closeCloudBackupPage()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </div>
+                <div class="ic-nav-title-detail">云备份</div>
+                <div style="width: 36px;"></div>
+            </div>
+
+            <div class="ic-card" style="padding: 16px 16px 8px;">
+                <div class="ic-card-title" style="margin-bottom: 12px;">GitHub 备份</div>
+                <div class="ic-list-item" style="padding: 12px 0; min-height: auto; border: none;">
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93; width: 72px;">Token</div>
+                    <input id="githubBackupToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_..." style="flex: 1; min-width: 0; border: none; background: transparent; text-align: right; font-size: 15px; color: #000; outline: none;">
+                </div>
+                <div class="ic-list-item" style="padding: 12px 0; min-height: auto; border-top: 1px solid #f2f2f7;">
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93; width: 72px;">用户名</div>
+                    <input id="githubBackupOwner" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="GitHub 用户名" style="flex: 1; min-width: 0; border: none; background: transparent; text-align: right; font-size: 15px; color: #000; outline: none;">
+                </div>
+                <div class="ic-list-item" style="padding: 12px 0; min-height: auto; border-top: 1px solid #f2f2f7;">
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93; width: 72px;">仓库名</div>
+                    <input id="githubBackupRepo" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="备份仓库" style="flex: 1; min-width: 0; border: none; background: transparent; text-align: right; font-size: 15px; color: #000; outline: none;">
+                </div>
+                <div class="ic-list-item" style="padding: 12px 0; min-height: auto; border-top: 1px solid #f2f2f7;">
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93; width: 72px;">文件名</div>
+                    <input id="githubBackupFileName" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="tonghuaji-backup.json" style="flex: 1; min-width: 0; border: none; background: transparent; text-align: right; font-size: 15px; color: #000; outline: none;">
+                </div>
+            </div>
+            <div class="ic-item-desc" style="padding: 0 22px 12px; line-height: 1.45;">Token 仅保存在本机，导出的备份不会包含 Token。</div>
+
+            <div style="display: flex; gap: 12px; padding: 0 16px 18px;">
+                <button type="button" onclick="saveGithubBackupSettings()" style="flex: 1; border: none; background: #f2f2f7; color: #007aff; border-radius: 10px; padding: 12px 8px; font-size: 15px; font-weight: 600;">保存配置</button>
+                <button type="button" onclick="uploadGithubBackup()" style="flex: 1; border: none; background: #007aff; color: #fff; border-radius: 10px; padding: 12px 8px; font-size: 15px; font-weight: 600;">备份到 GitHub</button>
+            </div>
+            <div style="padding: 0 16px 18px;">
+                <button type="button" onclick="restoreGithubBackup()" style="width: 100%; border: none; background: #34c759; color: #fff; border-radius: 10px; padding: 12px 8px; font-size: 15px; font-weight: 600;">从 GitHub 恢复</button>
+            </div>
+
+            <div class="ic-card" style="padding: 0;">
+                <div class="ic-list-item" style="padding: 14px 16px;">
+                    <div class="ic-list-item-left">
+                        <div class="ic-list-item-title">iCloud Drive</div>
+                        <div class="ic-item-desc" style="margin-top: 3px;">通过“文件”导入导出备份</div>
+                    </div>
+                </div>
+                <div class="ic-list-item" onclick="exportIcloudDriveBackup()" style="padding: 14px 16px; cursor: pointer; border-top: 1px solid #f2f2f7;">
+                    <div class="ic-list-item-title" style="color: #007aff;">导出到 iCloud Drive</div>
+                    <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                </div>
+                <div class="ic-list-item" onclick="importIcloudDriveBackup()" style="padding: 14px 16px; cursor: pointer; border-top: 1px solid #f2f2f7;">
+                    <div class="ic-list-item-title" style="color: #007aff;">从 iCloud Drive 恢复</div>
+                    <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                </div>
+            </div>
+            <input type="file" id="icloudDriveBackupInput" accept="application/json,.json" style="display: none;" onchange="handleIcloudDriveBackupImport(event)">
+            <div style="height: 40px;"></div>
         </div>
     </div>
 
@@ -3809,7 +3868,7 @@ fill="currentColor" viewBox="0 0 24 24" >
     }
 </script>
 <script src="js/widget.js?v=20260726-ios-widget-actions3"></script>
-   <script src="js/settings-app.js?v=20260731-background-keepalive-v1"></script>
+   <script src="js/settings-app.js?v=20260801-cloud-backup-v1"></script>
    <script src="js/worldbook.js"></script>
    <script src="js/vendor/jsQR.min.js"></script>
     <script src="js/vendor/pako_inflate.min.js"></script>

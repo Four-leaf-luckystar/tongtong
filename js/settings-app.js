@@ -512,6 +512,7 @@
         const icloudUI = document.getElementById('icloudAppUI');
         icloudUI.style.display = 'flex';
         updateRealStorage(); // 触发真实储存计算与持久化检测
+        loadGithubBackupSettings();
         setTimeout(() => {
             icloudUI.classList.add('show');
         }, 10);
@@ -525,6 +526,7 @@
             // show three-dots button; click to expand vertical capsule menu
             closeIcStoragePage();
             if (typeof closeLocalDrivePage === 'function') closeLocalDrivePage();
+            if (typeof closeCloudBackupPage === 'function') closeCloudBackupPage();
         }, 300);
     }
 
@@ -540,6 +542,247 @@
         document.getElementById('ic-storage-page').classList.add('slide-right');
         document.getElementById('ic-main-page').classList.remove('slide-left');
         document.getElementById('ic-main-page').classList.add('active');
+    }
+
+    const githubBackupSettingsId = 'githubBackupSettings';
+
+    function openCloudBackupPage() {
+        document.getElementById('ic-main-page').classList.remove('active');
+        document.getElementById('ic-main-page').classList.add('slide-left');
+        document.getElementById('ic-cloud-backup-page').classList.remove('slide-right');
+        document.getElementById('ic-cloud-backup-page').classList.add('active');
+        loadGithubBackupSettings();
+    }
+
+    function closeCloudBackupPage() {
+        const page = document.getElementById('ic-cloud-backup-page');
+        if (!page) return;
+        page.classList.remove('active');
+        page.classList.add('slide-right');
+        document.getElementById('ic-main-page').classList.remove('slide-left');
+        document.getElementById('ic-main-page').classList.add('active');
+    }
+
+    function getGithubBackupInputs() {
+        return {
+            token: document.getElementById('githubBackupToken'),
+            owner: document.getElementById('githubBackupOwner'),
+            repo: document.getElementById('githubBackupRepo'),
+            fileName: document.getElementById('githubBackupFileName')
+        };
+    }
+
+    function getGithubBackupConfigFromForm() {
+        const inputs = getGithubBackupInputs();
+        const token = inputs.token.value.trim();
+        const owner = inputs.owner.value.trim();
+        const repo = inputs.repo.value.trim();
+        let fileName = inputs.fileName.value.trim().replace(/^\/+|\/+$/g, '');
+
+        if (!token || !owner || !repo || !fileName) {
+            showCustomAlert('提示', '请填写 Token、用户名、仓库名和文件名。');
+            return null;
+        }
+        if (!/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/.test(owner) || !/^[A-Za-z0-9._-]+$/.test(repo)) {
+            showCustomAlert('提示', 'GitHub 用户名或仓库名格式不正确。');
+            return null;
+        }
+        if (fileName.split('/').some(part => !part || part === '.' || part === '..')) {
+            showCustomAlert('提示', '文件名不能包含 . 或 .. 路径。');
+            return null;
+        }
+        if (!fileName.toLowerCase().endsWith('.json')) fileName += '.json';
+        inputs.fileName.value = fileName;
+        return { token, owner, repo, fileName };
+    }
+
+    function readGithubBackupSettings() {
+        return new Promise((resolve) => {
+            if (!db) return resolve(null);
+            const request = db.transaction([storeName], 'readonly').objectStore(storeName).get(githubBackupSettingsId);
+            request.onsuccess = () => resolve(request.result || null);
+            request.onerror = () => resolve(null);
+        });
+    }
+
+    function persistGithubBackupSettings(config) {
+        return new Promise((resolve, reject) => {
+            if (!db) {
+                reject(new Error('数据库尚未就绪'));
+                return;
+            }
+            const transaction = db.transaction([storeName], 'readwrite');
+            transaction.objectStore(storeName).put({ id: githubBackupSettingsId, ...config });
+            transaction.oncomplete = resolve;
+            transaction.onerror = () => reject(transaction.error || new Error('保存配置失败'));
+        });
+    }
+
+    async function loadGithubBackupSettings() {
+        const config = await readGithubBackupSettings();
+        const inputs = getGithubBackupInputs();
+        inputs.token.value = config?.token || '';
+        inputs.owner.value = config?.owner || '';
+        inputs.repo.value = config?.repo || '';
+        inputs.fileName.value = config?.fileName || 'tonghuaji-backup.json';
+        updateCloudBackupStatus(config);
+    }
+
+    function updateCloudBackupStatus(config) {
+        const status = document.getElementById('ic-cloud-backup-status');
+        if (!status) return;
+        status.textContent = config?.owner && config?.repo ? `${config.owner}/${config.repo}` : '未设置';
+    }
+
+    async function saveGithubBackupSettings() {
+        const config = getGithubBackupConfigFromForm();
+        if (!config) return null;
+        try {
+            await persistGithubBackupSettings(config);
+            updateCloudBackupStatus(config);
+            showToast('GitHub 备份配置已保存');
+            return config;
+        } catch (error) {
+            showCustomAlert('错误', '保存 GitHub 配置失败。');
+            return null;
+        }
+    }
+
+    function getGithubBackupApiUrl(config) {
+        const path = config.fileName.split('/').map(encodeURIComponent).join('/');
+        return `https://api.github.com/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}/contents/${path}`;
+    }
+
+    function encodeBackupText(text) {
+        const bytes = new TextEncoder().encode(text);
+        let binary = '';
+        const chunkSize = 0x8000;
+        for (let index = 0; index < bytes.length; index += chunkSize) {
+            binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+        }
+        return btoa(binary);
+    }
+
+    function decodeBackupText(base64Content) {
+        const binary = atob(base64Content.replace(/\s/g, ''));
+        const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+        return new TextDecoder().decode(bytes);
+    }
+
+    async function githubBackupRequest(config, options) {
+        const response = await fetch(getGithubBackupApiUrl(config), {
+            ...options,
+            headers: {
+                Accept: 'application/vnd.github+json',
+                Authorization: `Bearer ${config.token}`,
+                'X-GitHub-Api-Version': '2022-11-28',
+                ...(options.headers || {})
+            }
+        });
+        return response;
+    }
+
+    async function uploadGithubBackup() {
+        const config = await saveGithubBackupSettings();
+        if (!config) return;
+        try {
+            showToast('正在准备 GitHub 备份...');
+            const existing = await githubBackupRequest(config, { method: 'GET' });
+            let sha = null;
+            if (existing.ok) {
+                const existingFile = await existing.json();
+                sha = existingFile.sha;
+            } else if (existing.status !== 404) {
+                showCustomAlert('错误', `无法读取 GitHub 文件（${existing.status}）。请检查 Token 和仓库权限。`);
+                return;
+            }
+
+            const data = await getAllDataFromDB();
+            const content = encodeBackupText(JSON.stringify(data, null, 2));
+            const response = await githubBackupRequest(config, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: 'backup: update Tonghuaji data',
+                    content,
+                    ...(sha ? { sha } : {})
+                })
+            });
+            if (!response.ok) {
+                showCustomAlert('错误', `GitHub 备份失败（${response.status}）。请检查 Token 是否具备 Contents 读写权限。`);
+                return;
+            }
+            showToast('已备份到 GitHub');
+        } catch (error) {
+            console.error('GitHub backup failed:', error);
+            showCustomAlert('错误', '无法连接 GitHub，请检查网络后重试。');
+        }
+    }
+
+    async function restoreGithubBackup() {
+        const config = getGithubBackupConfigFromForm();
+        if (!config) return;
+        const confirmed = await showCustomConfirm('从 GitHub 恢复', '恢复会覆盖当前应用数据，GitHub Token 配置将保留在本机。确定继续吗？', '恢复', true);
+        if (!confirmed) return;
+        try {
+            showToast('正在读取 GitHub 备份...');
+            const response = await githubBackupRequest(config, {
+                method: 'GET',
+                headers: { Accept: 'application/vnd.github.raw' }
+            });
+            if (!response.ok) {
+                showCustomAlert('错误', `无法读取 GitHub 备份（${response.status}）。请检查文件名和仓库权限。`);
+                return;
+            }
+            const text = await response.text();
+            const data = JSON.parse(text);
+            if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('备份内容无效');
+            processJsonImport(text);
+        } catch (error) {
+            console.error('GitHub restore failed:', error);
+            showCustomAlert('错误', 'GitHub 备份文件无效或无法读取。');
+        }
+    }
+
+    async function exportIcloudDriveBackup() {
+        try {
+            const data = await getAllDataFromDB();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const now = new Date();
+            const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+            link.href = url;
+            link.download = `童话机备份-${stamp}.json`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+            showToast('备份文件已生成，请在“文件”中保存到 iCloud Drive');
+        } catch (error) {
+            console.error('iCloud Drive export failed:', error);
+            showCustomAlert('错误', '生成备份文件失败。');
+        }
+    }
+
+    function importIcloudDriveBackup() {
+        document.getElementById('icloudDriveBackupInput').click();
+    }
+
+    async function handleIcloudDriveBackupImport(event) {
+        const file = event.target.files[0];
+        event.target.value = '';
+        if (!file) return;
+        const confirmed = await showCustomConfirm('从 iCloud Drive 恢复', `将使用“${file.name}”覆盖当前应用数据，GitHub Token 配置将保留在本机。确定继续吗？`, '恢复', true);
+        if (!confirmed) return;
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('备份内容无效');
+            processJsonImport(text);
+        } catch (error) {
+            showCustomAlert('错误', '备份文件格式无效。');
+        }
     }
 
             // show three-dots button; click to expand vertical capsule menu
@@ -824,7 +1067,7 @@
             // show three-dots button; click to expand vertical capsule menu
             Object.values(data).forEach(record => {
             // show three-dots button; click to expand vertical capsule menu
-                if (record.id === 'localDriveSettings') return;
+                if (record.id === 'localDriveSettings' || record.id === githubBackupSettingsId) return;
                 store.put(record);
             });
             
