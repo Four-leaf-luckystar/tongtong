@@ -2204,8 +2204,11 @@
             widgetContentArea.style.display = 'flex';
 
             currentWidgets.forEach((widget, i) => {
+                const widgetContent = typeof window.normalizeStoredWidgetContent === 'function'
+                    ? window.normalizeStoredWidgetContent(widget.content)
+                    : (widget.content || '');
                 const card = document.createElement('div'); card.className = 'widget-card';
-                card.innerHTML = '<div class="widget-card-more-btn" onclick="openWidgetContextMenu(' + i + ', event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></div><div class="widget-card-preview">' + makeWidgetFrameHTML(widget.content) + '</div><div class="widget-card-name">' + widget.name + '</div><div class="widget-card-size">' + formatWidgetSizeLabel(widget) + '</div>';
+                card.innerHTML = '<div class="widget-card-more-btn" onclick="openWidgetContextMenu(' + i + ', event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></div><div class="widget-card-preview">' + makeWidgetFrameHTML(widgetContent) + '</div><div class="widget-card-name">' + widget.name + '</div><div class="widget-card-size">' + formatWidgetSizeLabel(widget) + '</div>';
                 widgetTrack.appendChild(card);
 
                 const dot = document.createElement('div'); dot.className = 'widget-dot'; widgetPagination.appendChild(dot);
@@ -2234,8 +2237,8 @@
                     }
                 });
                 listPreviewFrame.srcdoc = window.buildWidgetFrameSrcdoc
-                    ? window.buildWidgetFrameSrcdoc(widget.content || '')
-                    : widget.content || '';
+                    ? window.buildWidgetFrameSrcdoc(widgetContent)
+                    : widgetContent;
                 listPreviewHost.appendChild(listPreviewFrame);
                 widgetListContainer.appendChild(listItem);
             });

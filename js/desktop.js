@@ -99,6 +99,7 @@
 
             return /<[^>]+>/.test(decoded) ? decoded : original;
         }
+        window.normalizeStoredWidgetContent = normalizeStoredWidgetContent;
 
         function buildDesktopWidgetFrameContent(content) {
             const normalizedContent = normalizeStoredWidgetContent(content);
