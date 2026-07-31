@@ -145,7 +145,7 @@
     }
 
     function setBusy(form, busy) {
-        form.querySelectorAll('button, input').forEach(element => { element.disabled = busy; });
+        form.querySelectorAll('button').forEach(element => { element.disabled = busy; });
     }
 
     function friendlyError(error) {
