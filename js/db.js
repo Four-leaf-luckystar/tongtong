@@ -6,6 +6,7 @@
         wc_presets: [],
         wc_current_preset_id: null,
         wc_custom_css: '',
+        wc_time_awareness_enabled: true,
         wc_timestamp_enabled: true,
         wc_bubble_theme: 'image',
         wc_bubble_color: 'default',
@@ -537,6 +538,7 @@
 
             wcTimestampEnabled = appSettings.wc_timestamp_enabled;
             wcApplyTimestampSettings();
+            wcApplyTimeAwarenessSettings();
             
             wcCurrentBubbleTheme = appSettings.wc_bubble_theme || 'image';
             wcCurrentColorScheme = appSettings.wc_bubble_color || 'default';

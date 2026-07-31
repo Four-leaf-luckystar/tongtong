@@ -2396,14 +2396,14 @@
                     <!-- 主设置列表视图 -->
                     <div class="view-container" id="wc-main-settings-view">
                         <!-- 1. 时间感知开关 -->
-                        <div class="modal-item" onclick="wcToggleSwitch(this.querySelector('.custom-toggle'))">
+                        <div class="modal-item" onclick="wcToggleTimeAwareness()">
                             <div class="modal-item-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" id="Calendar-Clock-Fill--Streamline-Rounded-Fill-Material" style="width: 22px; height: 22px; stroke: none;">
                                   <path fill="currentColor" d="M4.5 22c-0.4 0 -0.75 -0.15 -1.05 -0.45 -0.3 -0.3 -0.45 -0.65 -0.45 -1.05V5c0 -0.4 0.15 -0.75 0.45 -1.05C3.75 3.65 4.1 3.5 4.5 3.5h1.625V2.8c0 -0.226665 0.079 -0.416665 0.237 -0.57 0.158 -0.153335 0.35385 -0.23 0.5875 -0.23 0.23365 0 0.4255 0.076665 0.5755 0.23 0.15 0.153335 0.225 0.343335 0.225 0.57V3.5h8.5V2.8c0 -0.226665 0.079 -0.416665 0.237 -0.57 0.158 -0.153335 0.35385 -0.23 0.5875 -0.23 0.23365 0 0.4255 0.076665 0.5755 0.23 0.15 0.153335 0.225 0.343335 0.225 0.57V3.5H19.5c0.4 0 0.75 0.15 1.05 0.45 0.3 0.3 0.45 0.65 0.45 1.05v6.925c0 0.2125 -0.07235 0.3906 -0.217 0.53425 -0.1445 0.14385 -0.32365 0.21575 -0.5375 0.21575 -0.21365 0 -0.39135 -0.0719 -0.533 -0.21575 -0.14165 -0.14365 -0.2125 -0.32175 -0.2125 -0.53425V9.75H4.5V20.5h7.65c0.2125 0 0.39065 0.07235 0.5345 0.217 0.14365 0.1445 0.2155 0.32365 0.2155 0.5375 0 0.21365 -0.07185 0.39135 -0.2155 0.533 -0.14385 0.14165 -0.322 0.2125 -0.5345 0.2125H4.5Zm13.775 1c-1.30715 0 -2.4215 -0.46065 -3.343 -1.382 -0.92135 -0.9215 -1.382 -2.03585 -1.382 -3.343s0.46065 -2.4215 1.382 -3.343c0.9215 -0.92135 2.03585 -1.382 3.343 -1.382s2.4215 0.46065 3.343 1.382C22.53935 15.8535 23 16.96785 23 18.275s-0.46065 2.4215 -1.382 3.343C20.6965 22.53935 19.58215 23 18.275 23Zm0.275 -4.775v-2.323c0 -0.13465 -0.0475 -0.24785 -0.1425 -0.3395 -0.095 -0.09165 -0.20585 -0.1375 -0.3325 -0.1375 -0.13335 0 -0.25 0.0475 -0.35 0.1425 -0.1 0.095 -0.15 0.20585 -0.15 0.3325v2.375c0 0.09285 0.01665 0.18265 0.05 0.2695 0.03335 0.087 0.08335 0.17215 0.15 0.2555l1.6 1.65c0.1 0.1 0.21665 0.15 0.35 0.15 0.13335 0 0.25 -0.05 0.35 -0.15 0.1 -0.1 0.15 -0.21665 0.15 -0.35 0 -0.13335 -0.05 -0.25 -0.15 -0.35l-1.525 -1.525Z" stroke-width="0.5"></path>
                                 </svg>
                             </div>
                             <div class="modal-item-text">时间感知</div>
-                            <div class="custom-toggle active"><div class="thumb"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div></div>
+                            <div class="custom-toggle active" id="wc-time-awareness-toggle" role="switch" aria-checked="true"><div class="thumb"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div></div>
                         </div>
 
                         <!-- 2. 天气感知开关 -->
@@ -3470,7 +3470,7 @@ fill="currentColor" viewBox="0 0 24 24" >
 </div>
 
 <script src="js/utils.js"></script>
-<script src="js/db.js?v=20260731-background-keepalive-v1"></script>
+<script src="js/db.js?v=20260731-time-awareness-switch-v1"></script>
 <script src="js/desktop.js?v=20260729-continuous-drag-v1"></script>
 <script src="js/music-app.js?v=20260730-player-layout-v5"></script>
 <script src="js/theme-app.js?v=20260727-adaptive-desktop-rows"></script>
@@ -3499,7 +3499,7 @@ fill="currentColor" viewBox="0 0 24 24" >
     <script src="js/vendor/pako_inflate.min.js"></script>
     <script src="js/voice-imggen.js"></script>
    <script src="js/memory.js?v=20260731-memory-editor-v1"></script>
-   <script src="js/wechat.js?v=20260731-emoji-docx-import-v1"></script>
+   <script src="js/wechat.js?v=20260731-time-awareness-switch-v1"></script>
 <script src="js/search.js"></script>
 <script src="js/universal-select.js"></script>
     <!-- Widget Picker Modal -->

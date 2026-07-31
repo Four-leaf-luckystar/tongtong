@@ -2916,6 +2916,21 @@
     }
 
     function wcToggleSwitch(element) { element.classList.toggle('active'); }
+
+    function wcApplyTimeAwarenessSettings() {
+        const toggle = document.getElementById('wc-time-awareness-toggle');
+        const enabled = appSettings?.wc_time_awareness_enabled !== false;
+        if (!toggle) return;
+        toggle.classList.toggle('active', enabled);
+        toggle.setAttribute('aria-checked', String(enabled));
+    }
+
+    function wcToggleTimeAwareness() {
+        const enabled = appSettings?.wc_time_awareness_enabled === false;
+        appSettings.wc_time_awareness_enabled = enabled;
+        saveAppSettings();
+        wcApplyTimeAwarenessSettings();
+    }
     
 
 
@@ -5467,15 +5482,19 @@
                 systemPrompt += `</recent_memory_summary>\n\n`;
             }
 
-            const now = new Date();
-            const systemTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '用户设备本地时区';
-            const paddedMonth = String(now.getMonth() + 1).padStart(2, '0');
-            const paddedDay = String(now.getDate()).padStart(2, '0');
-            const paddedHour = String(now.getHours()).padStart(2, '0');
-            const paddedMinute = String(now.getMinutes()).padStart(2, '0');
-            const paddedSecond = String(now.getSeconds()).padStart(2, '0');
-            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-            systemPrompt += `<current_system_time>\n当前用户设备本地时间：${now.getFullYear()}-${paddedMonth}-${paddedDay} ${paddedHour}:${paddedMinute}:${paddedSecond}（${weekdays[now.getDay()]}，${systemTimeZone}）。这是本次回复时的真实系统时间；涉及现在、今天、昨天、明天、早晚、工作日或节日等时间表达时，请以它为准，自然地保持时间感知。\n</current_system_time>\n\n`;
+            if (appSettings?.wc_time_awareness_enabled !== false) {
+                const now = new Date();
+                const systemTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '用户设备本地时区';
+                const paddedMonth = String(now.getMonth() + 1).padStart(2, '0');
+                const paddedDay = String(now.getDate()).padStart(2, '0');
+                const paddedHour = String(now.getHours()).padStart(2, '0');
+                const paddedMinute = String(now.getMinutes()).padStart(2, '0');
+                const paddedSecond = String(now.getSeconds()).padStart(2, '0');
+                const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+                systemPrompt += `<current_system_time>\n当前用户设备本地时间：${now.getFullYear()}-${paddedMonth}-${paddedDay} ${paddedHour}:${paddedMinute}:${paddedSecond}（${weekdays[now.getDay()]}，${systemTimeZone}）。\n时间感知规则：这是真实且唯一的当前本地时间。请据此精确理解和回应“现在、今天、昨天、明天、后天、刚刚、稍后、早上、中午、下午、晚上、工作日、周末、节日”等表达；当用户询问当前日期、星期或时间时，直接以此作答。不要把聊天记录中的旧时间当作现在，也不要与此时间矛盾。\n</current_system_time>\n\n`;
+            } else {
+                systemPrompt += `<time_awareness_disabled>\n时间感知功能已关闭。未向你提供当前日期、时间或时区；不得臆测、编造或主动提及当前系统时间。用户询问现在几点、今天日期、星期或相对时间时，应说明无法确认当前时间，并请对方告知。\n</time_awareness_disabled>\n\n`;
+            }
 
             const latestUserMessage = (wcChatMessagesByContact[chatContactId] || [])
                 .slice().reverse().find((message) => message && message.type === 'sent' && typeof message.text === 'string');
