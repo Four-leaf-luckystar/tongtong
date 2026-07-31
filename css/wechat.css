@@ -1322,3 +1322,46 @@
     overflow-y: auto;
     width: 100%;
 }
+        /* 提示词编辑抽屉 */
+        #wechatAppUI .wc-prompt-drawer-overlay { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); display: none; align-items: flex-end; z-index: 2500; opacity: 0; transition: opacity 0.3s; }
+        #wechatAppUI .wc-prompt-drawer-overlay.show { opacity: 1; }
+        #wechatAppUI .wc-prompt-drawer-container { width: 100%; display: flex; flex-direction: column; align-items: center; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); }
+        #wechatAppUI .wc-prompt-drawer-overlay.show .wc-prompt-drawer-container { transform: translateY(0); }
+        #wechatAppUI .wc-prompt-drawer-bg-card { width: 90%; height: 12px; background: #E5E5EA; border-radius: 16px 16px 0 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        #wechatAppUI .wc-prompt-drawer-content { width: 100%; height: 75vh; background: #F2F2F7; border-radius: 16px 16px 0 0; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom, 20px); box-sizing: border-box; box-shadow: 0 -4px 20px rgba(0,0,0,0.1); }
+        #wechatAppUI .wc-prompt-drawer-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #F2F2F7; border-radius: 16px 16px 0 0; flex-shrink: 0; }
+        #wechatAppUI .wc-prompt-header-left, #wechatAppUI .wc-prompt-header-right { display: flex; align-items: center; gap: 8px; flex: 1; }
+        #wechatAppUI .wc-prompt-header-right { justify-content: flex-end; }
+        #wechatAppUI .wc-prompt-header-center { flex: 1; text-align: center; }
+        #wechatAppUI .wc-prompt-pill-btn { font-size: 16px; font-weight: 700; padding: 5px 12px; border-radius: 20px; background: #E5E5EA; cursor: pointer; user-select: none; transition: background-color 0.2s; }
+        #wechatAppUI .wc-prompt-pill-btn:active { background: #D1D1D6; }
+        #wechatAppUI .wc-prompt-pill-btn.cancel { color: #8E8E93; }
+        #wechatAppUI .wc-prompt-pill-btn.create { color: #8E8E93; }
+        #wechatAppUI .wc-prompt-circle-btn { width: 30px; height: 30px; border-radius: 50%; background: #E5E5EA; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: background-color 0.2s; }
+        #wechatAppUI .wc-prompt-circle-btn:active { background: #D1D1D6; }
+        #wechatAppUI .wc-prompt-circle-btn svg { width: 18px; height: 18px; fill: #8E8E93; }
+        #wechatAppUI .wc-prompt-drawer-title { font-size: 18px; font-weight: 800; color: #000; }
+        #wechatAppUI .wc-prompt-drawer-body { flex: 1; padding: 0 16px 16px 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+        #wechatAppUI .wc-prompt-input-group { background: #fff; border-radius: 16px; overflow: hidden; }
+        #wechatAppUI .wc-prompt-input-row { padding: 16px; }
+        #wechatAppUI .wc-prompt-input-row input { width: 100%; border: none; outline: none; font-size: 17px; font-weight: 600; color: #000; background: transparent; }
+        #wechatAppUI .wc-prompt-variables-container { display: flex; justify-content: center; gap: 10px; margin-top: 4px; margin-bottom: 4px; }
+        #wechatAppUI .wc-prompt-var-pill { padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 700; background: #7A7A7D; color: #fff; cursor: pointer; transition: transform 0.1s, background 0.2s; }
+        #wechatAppUI .wc-prompt-var-pill:active { background: #636366; transform: scale(0.95); }
+        #wechatAppUI .wc-prompt-textarea-row { padding: 16px; height: 250px; display: flex; }
+        #wechatAppUI .wc-prompt-textarea-row textarea { width: 100%; height: 100%; border: none; outline: none; font-size: 16px; color: #000; background: transparent; resize: none; font-family: inherit; line-height: 1.5; }
+        #wechatAppUI .wc-prompt-input-row input::placeholder, #wechatAppUI .wc-prompt-textarea-row textarea::placeholder { color: #C7C7CC; font-weight: 500; }
+
+        /* 提示词教程弹窗 */
+        #wechatAppUI .wc-prompt-tutorial-overlay { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 3000; opacity: 0; transition: opacity 0.3s; }
+        #wechatAppUI .wc-prompt-tutorial-overlay.show { opacity: 1; }
+        #wechatAppUI .wc-prompt-tutorial-card { background: #fff; width: 85%; max-width: 340px; max-height: 80vh; overflow-y: auto; border-radius: 20px; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); display: flex; flex-direction: column; gap: 16px; }
+        #wechatAppUI .wc-prompt-tutorial-overlay.show .wc-prompt-tutorial-card { transform: scale(1); }
+        #wechatAppUI .wc-prompt-tutorial-title { font-size: 20px; font-weight: 800; text-align: center; color: #000; margin-bottom: 8px; }
+        #wechatAppUI .wc-prompt-tutorial-content { font-size: 14px; color: #333; line-height: 1.6; }
+        #wechatAppUI .wc-prompt-tutorial-content h4 { margin: 16px 0 8px 0; color: #000; font-size: 15px; }
+        #wechatAppUI .wc-prompt-tutorial-content h4:first-child { margin-top: 0; }
+        #wechatAppUI .wc-prompt-tutorial-content p { margin-top: 0; margin-bottom: 12px; }
+        #wechatAppUI .wc-prompt-tutorial-content code { background: #F2F2F7; padding: 2px 6px; border-radius: 6px; color: #007aff; font-weight: 600; font-family: monospace; }
+        #wechatAppUI .wc-prompt-tutorial-btn { background: #007aff; color: #fff; border: none; border-radius: 14px; padding: 14px; font-size: 16px; font-weight: 700; cursor: pointer; text-align: center; margin-top: 8px; }
+        #wechatAppUI .wc-prompt-tutorial-btn:active { opacity: 0.8; }
