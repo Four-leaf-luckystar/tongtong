@@ -281,8 +281,8 @@
         .login-security-field input { min-width: 0; flex: 1; border: 0; outline: 0; color: #111; background: transparent; font: inherit; text-align: right; }
         .login-security-password-toggle { display: grid; width: 32px; height: 32px; margin-left: 6px; padding: 0; place-items: center; border: 0; color: #6d6d72; background: transparent; }
         .login-security-password-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-        .login-security-password-toggle .login-security-eye-slash { display: none; }
-        .login-security-password-toggle.is-visible .login-security-eye-slash { display: block; }
+        .login-security-password-toggle .login-security-eye-slash { display: block; }
+        .login-security-password-toggle.is-visible .login-security-eye-slash { display: none; }
         .login-security-submit {
             width: calc(100% - 32px);
             min-height: 42px;

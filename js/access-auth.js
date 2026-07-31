@@ -352,22 +352,14 @@
 
     async function submitLoginSecurityPassword(form) {
         const data = new FormData(form);
-        const currentPassword = String(data.get('currentPassword') || '');
         const newPassword = String(data.get('newPassword') || '');
         const confirmedPassword = String(data.get('newPasswordConfirm') || '');
-        if (!activeQq || !isQq(activeQq)) throw new Error('当前账号信息不可用，请重新登录。');
-        if (currentPassword.length < 8) throw new Error('请输入当前密码。');
+        if (!currentSession || !currentSession.access_token) throw new Error('登录状态已失效，请重新登录。');
         if (newPassword.length < 8) throw new Error('新密码至少需要 8 位。');
         if (newPassword !== confirmedPassword) throw new Error('两次输入的新密码不一致。');
-        const verified = await authRequest('/token?grant_type=password', 'POST', {
-            email: `${activeQq}@qq.com`,
-            password: currentPassword
-        });
-        const verifiedSession = sessionFromPayload(verified);
-        await authRequest('/user', 'PUT', { password: newPassword }, verifiedSession.access_token);
-        saveSession(verifiedSession);
+        await authRequest('/user', 'PUT', { password: newPassword }, currentSession.access_token);
         form.reset();
-        setLoginSecurityPasswordNotice('密码已更新，请使用新密码登录。');
+        setLoginSecurityPasswordNotice('密码已更新成功。');
     }
 
     window.openLoginSecurityApp = function () {
