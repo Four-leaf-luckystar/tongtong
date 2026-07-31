@@ -6667,18 +6667,33 @@
         document.getElementById('wcBatchImportOverlay').classList.remove('show');
     }
 
-    function wcHandleBatchImportFile(event) {
-        const file = event.target.files[0];
+    async function wcHandleBatchImportFile(event) {
+        const input = event.target;
+        const file = input?.files?.[0];
+        if (input) input.value = '';
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const text = e.target.result;
+
+        const extension = file.name.split('.').pop()?.toLowerCase();
+        if (!['txt', 'json', 'docx'].includes(extension)) {
+            showCustomAlert('导入失败', '请选择 TXT、JSON 或 DOCX 文件');
+            return;
+        }
+
+        try {
+            if (typeof showToast === 'function') showToast('正在读取文件...');
+            const buffer = await file.arrayBuffer();
+            const text = extension === 'docx'
+                ? wcDocxXmlToChatText(await wcReadChatDocxXml(buffer))
+                : wcDecodeChatText(buffer).trim();
+            if (!text) throw new Error('文件中没有可读取的文字');
+
             const textarea = document.getElementById('wcBatchImportTextarea');
             textarea.value = textarea.value ? textarea.value + '\n' + text : text;
             if (typeof showToast === 'function') showToast('文件读取成功');
-        };
-        reader.readAsText(file);
-        event.target.value = '';
+        } catch (error) {
+            console.error('Emoji batch import failed:', error);
+            showCustomAlert('导入失败', error?.message || '文件读取失败，请检查文件格式');
+        }
     }
 
     function wcSaveBatchImport() {
