@@ -275,9 +275,14 @@
         }
         .login-security-row { justify-content: space-between; }
         .login-security-row strong { color: #3a3a3c; font-size: 16px; font-weight: 500; }
-        .login-security-field { gap: 14px; border-bottom: 1px solid #ececf0; }
-        .login-security-field span { flex: 0 0 68px; color: #111; }
+        .login-security-field { gap: 12px; border-bottom: 1px solid #ececf0; }
+        .login-security-field > span:first-child { flex: 0 0 84px; color: #111; white-space: nowrap; }
+        .login-security-password-control { display: flex; min-width: 0; flex: 1; align-items: center; }
         .login-security-field input { min-width: 0; flex: 1; border: 0; outline: 0; color: #111; background: transparent; font: inherit; text-align: right; }
+        .login-security-password-toggle { display: grid; width: 32px; height: 32px; margin-left: 6px; padding: 0; place-items: center; border: 0; color: #6d6d72; background: transparent; }
+        .login-security-password-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+        .login-security-password-toggle .login-security-eye-slash { display: none; }
+        .login-security-password-toggle.is-visible .login-security-eye-slash { display: block; }
         .login-security-submit {
             width: calc(100% - 32px);
             min-height: 42px;
@@ -289,6 +294,7 @@
             font: inherit;
             font-size: 16px;
             font-weight: 600;
+            white-space: nowrap;
         }
         .login-security-submit:disabled, .login-security-refresh:disabled { opacity: .55; }
         .login-security-devices-heading { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; }
@@ -302,6 +308,8 @@
         .login-security-device-empty { padding: 18px 16px; color: #6d6d72; font-size: 14px; text-align: center; }
         .login-security-notice { min-height: 20px; margin: 12px 16px 0; color: #6d6d72; font-size: 13px; line-height: 1.45; }
         .login-security-notice.is-error { color: #d70015; }
+        .login-security-password-notice { min-height: 20px; margin: 0 16px 14px; color: #248a3d; font-size: 13px; line-height: 1.45; text-align: center; }
+        .login-security-password-notice.is-error { color: #d70015; }
 
         /* --- API 连接页面 UI 样式 --- */
         .api-app-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f2f2f7; z-index: 160; display: none; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden; }

@@ -979,10 +979,11 @@
 
             <p class="login-security-section-title">修改密码</p>
             <form class="login-security-card login-security-password-form" data-login-security-password-form novalidate>
-                <label class="login-security-field"><span>当前密码</span><input name="currentPassword" type="password" autocomplete="current-password" minlength="8" required></label>
-                <label class="login-security-field"><span>新密码</span><input name="newPassword" type="password" autocomplete="new-password" minlength="8" required></label>
-                <label class="login-security-field"><span>确认新密码</span><input name="newPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required></label>
+                <label class="login-security-field"><span>当前密码</span><span class="login-security-password-control"><input id="loginSecurityCurrentPassword" name="currentPassword" type="password" autocomplete="current-password" minlength="8" required><button class="login-security-password-toggle" type="button" data-login-security-action="toggle-password" data-password-target="loginSecurityCurrentPassword" aria-label="显示当前密码" aria-pressed="false" title="显示密码"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-5.5 9.5-5.5S21.5 12 21.5 12s-3.4 5.5-9.5 5.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/><path class="login-security-eye-slash" d="m4 4 16 16"/></svg></button></span></label>
+                <label class="login-security-field"><span>新密码</span><span class="login-security-password-control"><input id="loginSecurityNewPassword" name="newPassword" type="password" autocomplete="new-password" minlength="8" required><button class="login-security-password-toggle" type="button" data-login-security-action="toggle-password" data-password-target="loginSecurityNewPassword" aria-label="显示新密码" aria-pressed="false" title="显示密码"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-5.5 9.5-5.5S21.5 12 21.5 12s-3.4 5.5-9.5 5.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/><path class="login-security-eye-slash" d="m4 4 16 16"/></svg></button></span></label>
+                <label class="login-security-field"><span>确认新密码</span><span class="login-security-password-control"><input id="loginSecurityConfirmPassword" name="newPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required><button class="login-security-password-toggle" type="button" data-login-security-action="toggle-password" data-password-target="loginSecurityConfirmPassword" aria-label="显示确认新密码" aria-pressed="false" title="显示密码"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-5.5 9.5-5.5S21.5 12 21.5 12s-3.4 5.5-9.5 5.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/><path class="login-security-eye-slash" d="m4 4 16 16"/></svg></button></span></label>
                 <button class="login-security-submit" type="submit">更新密码</button>
+                <p class="login-security-password-notice" id="loginSecurityPasswordNotice" role="status"></p>
             </form>
 
             <div class="login-security-devices-heading">
@@ -3784,7 +3785,7 @@ fill="currentColor" viewBox="0 0 24 24" >
     </div>
 </div>
 
-<script src="js/access-auth.js?v=20260801-login-security-v1"></script>
+<script src="js/access-auth.js?v=20260801-login-security-v2"></script>
 <script src="js/utils.js"></script>
 <script src="js/db.js?v=20260731-time-awareness-switch-v1"></script>
 <script src="js/desktop.js?v=20260729-continuous-drag-v1"></script>

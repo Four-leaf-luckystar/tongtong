@@ -291,6 +291,13 @@
         notice.classList.toggle('is-error', Boolean(isError));
     }
 
+    function setLoginSecurityPasswordNotice(message, isError) {
+        const notice = document.getElementById('loginSecurityPasswordNotice');
+        if (!notice) return;
+        notice.textContent = message || '';
+        notice.classList.toggle('is-error', Boolean(isError));
+    }
+
     function formatDeviceTime(value) {
         const timestamp = new Date(value);
         return Number.isNaN(timestamp.getTime()) ? '未记录' : timestamp.toLocaleString('zh-CN');
@@ -360,7 +367,7 @@
         await authRequest('/user', 'PUT', { password: newPassword }, verifiedSession.access_token);
         saveSession(verifiedSession);
         form.reset();
-        setLoginSecurityNotice('密码已更新。');
+        setLoginSecurityPasswordNotice('密码已更新，请使用新密码登录。');
     }
 
     window.openLoginSecurityApp = function () {
@@ -369,6 +376,7 @@
         const qq = document.getElementById('loginSecurityBoundQq');
         if (qq) qq.textContent = activeQq || '--';
         setLoginSecurityNotice('');
+        setLoginSecurityPasswordNotice('');
         page.style.display = 'flex';
         page.setAttribute('aria-hidden', 'false');
         requestAnimationFrame(() => page.classList.add('show'));
@@ -515,11 +523,11 @@
                 event.preventDefault();
                 const submit = passwordForm.querySelector('button[type="submit"]');
                 if (submit) submit.disabled = true;
-                setLoginSecurityNotice('');
+                setLoginSecurityPasswordNotice('');
                 try {
                     await submitLoginSecurityPassword(passwordForm);
                 } catch (error) {
-                    setLoginSecurityNotice(friendlyError(error), true);
+                    setLoginSecurityPasswordNotice(friendlyError(error), true);
                 } finally {
                     if (submit) submit.disabled = false;
                 }
@@ -551,6 +559,18 @@
                 } finally {
                     button.disabled = false;
                 }
+            });
+        });
+        document.querySelectorAll('[data-login-security-action="toggle-password"]').forEach(button => {
+            button.addEventListener('click', () => {
+                const input = document.getElementById(button.dataset.passwordTarget);
+                if (!input) return;
+                const visible = input.type === 'password';
+                input.type = visible ? 'text' : 'password';
+                button.classList.toggle('is-visible', visible);
+                button.setAttribute('aria-pressed', String(visible));
+                button.setAttribute('aria-label', visible ? '隐藏密码' : '显示密码');
+                button.title = visible ? '隐藏密码' : '显示密码';
             });
         });
     }
