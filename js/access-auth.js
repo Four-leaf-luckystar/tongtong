@@ -17,8 +17,14 @@
         return `${location.origin}${location.pathname}`;
     }
 
+    function normalizeQq(value) {
+        return String(value || '')
+            .replace(/[０-９]/g, character => String.fromCharCode(character.charCodeAt(0) - 0xFEE0))
+            .replace(/[\s\u200B-\u200D\uFEFF]/g, '');
+    }
+
     function isQq(value) {
-        return /^[1-9]\d{4,11}$/.test(String(value || '').trim());
+        return /^[1-9]\d{4,11}$/.test(normalizeQq(value));
     }
 
     function getDeviceId() {
@@ -159,7 +165,7 @@
     }
 
     function formQq(form) {
-        return String(new FormData(form).get('qq') || '').trim();
+        return normalizeQq(new FormData(form).get('qq'));
     }
 
     function formPassword(form, field) {
