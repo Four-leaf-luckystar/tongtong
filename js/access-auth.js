@@ -370,11 +370,13 @@
 
     async function copyLegacyDataForAdministrator(qq) {
         if (!ADMIN_QQS.has(qq)) return;
-        const marker = `${DATA_PREFIX}legacy-copy:${qq}`;
-        if (localStorage.getItem(marker)) return;
-        const targetName = `${DATA_PREFIX}${qq}:iOSDesktopDB`;
-        await cloneDatabase('iOSDesktopDB', targetName);
-        localStorage.setItem(marker, '1');
+        for (const administratorQq of ADMIN_QQS) {
+            const marker = `${DATA_PREFIX}legacy-copy:${administratorQq}`;
+            if (localStorage.getItem(marker)) continue;
+            const targetName = `${DATA_PREFIX}${administratorQq}:iOSDesktopDB`;
+            await cloneDatabase('iOSDesktopDB', targetName);
+            localStorage.setItem(marker, '1');
+        }
     }
 
     async function handleFormSubmit(event) {
