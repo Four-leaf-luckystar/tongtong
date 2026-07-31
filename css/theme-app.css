@@ -376,11 +376,15 @@
         }
         #themeAppUI.is-widget-tab > .theme-content-area {
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
             padding: 104px 0 calc(136px + env(safe-area-inset-bottom, 0px));
         }
         #themeAppUI.is-widget-tab .widget-app-container {
             flex: 1 1 auto;
+            flex-direction: column;
+            width: 100%;
             height: auto;
             min-height: 0;
             max-height: none;
