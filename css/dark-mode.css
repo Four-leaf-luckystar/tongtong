@@ -260,9 +260,9 @@
 
         /* 微信功能面板深色模式 */
         .iphone.dark-mode #wechatAppUI .wc-function-panel { background-color: rgba(28, 28, 30, 0.95); border-top-color: rgba(255,255,255,0.1); }
-        .iphone.dark-mode #wechatAppUI .wc-function-icon { background-color: #2c2c2e; }
+        .iphone.dark-mode #wechatAppUI .wc-function-icon { background-color: transparent !important; }
         .iphone.dark-mode #wechatAppUI .wc-function-icon svg { stroke: #ffffff; }
-        .iphone.dark-mode #wechatAppUI .wc-function-item:active .wc-function-icon { background-color: #3a3a3c; }
+        .iphone.dark-mode #wechatAppUI .wc-function-item:active .wc-function-icon { background-color: rgba(255, 255, 255, 0.1) !important; border-radius: 16px; }
         /* --- 语音与生图专属深色模式适配 --- */
         .iphone.dark-mode .api-segment, 
         .iphone.dark-mode .api-textarea-wrapper, 
@@ -361,3 +361,55 @@
         .iphone.dark-mode #wechatAppUI .wc-td-info-list { border-top-color: #38383a; }
         .iphone.dark-mode #wechatAppUI .wc-td-info-value { color: #ffffff; }
         .iphone.dark-mode #wechatAppUI .wc-td-btn.reject { background-color: #2c2c2e; }
+
+        /* 微信聊天设置深色模式 */
+        .iphone.dark-mode #wechatAppUI .wc-settings-page { background-color: #000000 !important; }
+        .iphone.dark-mode #wechatAppUI .wc-settings-navbar { background-color: #000000 !important; }
+        .iphone.dark-mode #wechatAppUI .wc-settings-nav-btn-left { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-settings-nav-btn-left svg { stroke: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-settings-nav-title { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-settings-save-btn { background-color: #1c1c1e; color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-settings-avatar-name { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-settings-status-banner { background-color: #1c1c1e; color: #8e8e93; }
+        .iphone.dark-mode #wechatAppUI .wc-settings-group-header { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-settings-group-header::before { background-color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-settings-list-item { background-color: #000000 !important; border-bottom-color: #000000 !important; }
+        .iphone.dark-mode #wechatAppUI .wc-settings-item-title { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-settings-soft-input { background-color: #2c2c2e; color: #0a84ff; }
+        .iphone.dark-mode #wechatAppUI #wc-contact-remark-input { color: #ffffff; border-bottom-color: #000000 !important; }
+        .iphone.dark-mode #wechatAppUI .wc-prompt-drawer-content { background-color: #1c1c1e; }
+        .iphone.dark-mode #wechatAppUI .wc-prompt-drawer-header { background-color: #1c1c1e; }
+        .iphone.dark-mode #wechatAppUI .wc-prompt-drawer-title { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-prompt-input-group { background-color: #2c2c2e; }
+        .iphone.dark-mode #wechatAppUI .wc-prompt-input-row input { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-prompt-textarea-row textarea { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-prompt-tutorial-card { background-color: #1c1c1e; }
+        .iphone.dark-mode #wechatAppUI .wc-prompt-tutorial-title { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-prompt-tutorial-content { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-prompt-tutorial-content h4 { color: #ffffff; }
+        .iphone.dark-mode #wechatAppUI .wc-prompt-tutorial-content code { background-color: #2c2c2e; }
+
+        /* 登录与安全深色模式 */
+        .iphone.dark-mode .login-security-main { background-color: #000000; }
+        .iphone.dark-mode .login-security-nav-bar { background-color: #000000; }
+        .iphone.dark-mode .ls-nav-btn-circle { background: rgba(44, 44, 46, 0.85); }
+        .iphone.dark-mode .ls-nav-btn-circle svg { stroke: #ffffff; }
+        .iphone.dark-mode .login-security-nav-title { color: #ffffff; }
+        .iphone.dark-mode .ls-hero-device-name { color: #ffffff; }
+        .iphone.dark-mode .login-security-card { background-color: #1c1c1e; }
+        .iphone.dark-mode .login-security-row { background-color: #1c1c1e; color: #ffffff; }
+        .iphone.dark-mode .ls-row-value { color: #ffffff; }
+        .iphone.dark-mode .login-security-row:not(:last-child)::after { background-color: #38383a; }
+        .iphone.dark-mode .ls-clickable:active { background-color: #2c2c2e; }
+        .iphone.dark-mode .ls-logout-btn { background-color: #1c1c1e; }
+        .iphone.dark-mode .login-security-device { border-bottom-color: #38383a; }
+        .iphone.dark-mode .login-security-device-title { color: #ffffff; }
+        .iphone.dark-mode .ls-sheet-bg-card { background-color: #38383a; }
+        .iphone.dark-mode .ls-sheet-main { background-color: #1c1c1e; }
+        .iphone.dark-mode .ls-sheet-title { color: #ffffff; }
+        .iphone.dark-mode .ls-sheet-subtitle { color: #ffffff; }
+        .iphone.dark-mode .ls-sheet-input-group { background-color: #2c2c2e; }
+        .iphone.dark-mode .ls-sheet-input-group input { color: #ffffff; }
+        .iphone.dark-mode .ls-divider { background-color: #38383a; }
+        .iphone.dark-mode .ls-sheet-btn { background-color: #2c2c2e; color: #8e8e93; }
+        .iphone.dark-mode .ls-sheet-btn.active { background-color: #0a84ff; color: #ffffff; }

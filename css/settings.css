@@ -225,17 +225,37 @@
             background-color: #e5e5ea;
         }
 
+        /* 登录与安全 - 容器与动画 */
         .login-security-container {
             position: absolute;
             inset: 0;
             z-index: 170;
             display: none;
-            flex-direction: column;
-            background: #f2f2f7;
+            background: #000; /* 底色改为黑色，配合缩放动画 */
             transform: translateX(100%);
             transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         .login-security-container.show { transform: translateX(0); }
+
+        .login-security-main {
+            position: absolute;
+            inset: 0;
+            background: #f2f2f7;
+            display: flex;
+            flex-direction: column;
+            border-radius: 0;
+            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), border-radius 0.4s cubic-bezier(0.32, 0.72, 0, 1), filter 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+            transform-origin: top center;
+            z-index: 10;
+        }
+        .login-security-main.scaled {
+            transform: scale(0.93) translateY(16px);
+            border-radius: 32px;
+            filter: brightness(0.65);
+            pointer-events: none;
+        }
+
+        /* 导航栏与磨砂返回键 */
         .login-security-nav-bar {
             position: relative;
             display: flex;
@@ -245,69 +265,153 @@
             height: 90px;
             padding: 45px 20px 10px;
             background: #f2f2f7;
+            flex-shrink: 0;
         }
-        .login-security-nav-title { font-size: 17px; font-weight: 600; line-height: 30px; }
-        .login-security-back-btn {
+        .ls-nav-btn-circle {
             position: absolute;
-            bottom: 10px;
             left: 16px;
-            display: grid;
-            width: 30px;
-            height: 30px;
-            padding: 0;
-            place-items: center;
-            border: 0;
+            bottom: 6px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            color: #000;
-            background: #fff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
         }
-        .login-security-content { flex: 1; overflow-y: auto; padding: 4px 16px calc(40px + env(safe-area-inset-bottom)); }
+        .ls-nav-btn-circle svg {
+            width: 18px;
+            height: 18px;
+            stroke: #000;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+        .login-security-nav-title { font-size: 17px; font-weight: 600; line-height: 30px; color: #000; }
+
+        /* 内容区与设备展示 */
+        .login-security-content { flex: 1; overflow-y: auto; padding: 0 16px calc(40px + env(safe-area-inset-bottom)); }
         .login-security-content::-webkit-scrollbar { display: none; }
-        .login-security-section-title { margin: 20px 16px 8px; color: #6d6d72; font-size: 13px; }
-        .login-security-card { overflow: hidden; border-radius: 10px; background: #fff; }
-        .login-security-row, .login-security-field {
+        
+        .ls-hero-device { display: flex; flex-direction: column; align-items: center; padding: 16px 0 10px; }
+        .ls-hero-device-icon { height: 120px; display: flex; justify-content: center; align-items: center; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.12)); }
+        .ls-hero-device-icon svg { height: 100%; width: auto; }
+        .ls-hero-device-name { font-size: 20px; font-weight: 600; color: #000; margin-top: 12px; letter-spacing: 0.3px; }
+        .ls-hero-device-badge { font-size: 13px; color: #8e8e93; margin-top: 4px; }
+
+        /* 卡片与列表通用样式 */
+        .login-security-section-title { margin: 20px 16px 6px; color: #6d6d72; font-size: 13px; text-transform: uppercase; }
+        .login-security-card { background-color: #ffffff; border-radius: 20px; overflow: hidden; margin-bottom: 20px; }
+        
+        .login-security-row {
             display: flex;
             align-items: center;
-            min-height: 50px;
-            padding: 0 16px;
-            font-size: 16px;
+            justify-content: space-between;
+            min-height: 38px; 
+            padding: 8px 16px; 
+            font-size: 16px; 
+            background-color: #ffffff;
+            position: relative;
+            box-sizing: content-box; /* 修复挤压问题：确保高度不受全局 border-box 影响 */
         }
-        .login-security-row { justify-content: space-between; }
-        .login-security-row strong { color: #3a3a3c; font-size: 16px; font-weight: 500; }
-        .login-security-field { gap: 12px; border-bottom: 1px solid #ececf0; }
-        .login-security-field > span:first-child { flex: 0 0 84px; color: #111; white-space: nowrap; }
-        .login-security-password-control { display: flex; min-width: 0; flex: 1; align-items: center; }
-        .login-security-field input { min-width: 0; flex: 1; border: 0; outline: 0; color: #111; background: transparent; font: inherit; text-align: right; }
-        .login-security-password-toggle { display: grid; width: 32px; height: 32px; margin-left: 6px; padding: 0; place-items: center; border: 0; color: #6d6d72; background: transparent; }
-        .login-security-password-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-        .login-security-password-toggle .login-security-eye-slash { display: block; }
-        .login-security-password-toggle.is-visible .login-security-eye-slash { display: none; }
-        .login-security-submit {
-            width: calc(100% - 32px);
-            min-height: 42px;
-            margin: 14px 16px;
-            border: 0;
-            border-radius: 9px;
-            color: #fff;
-            background: #007aff;
-            font: inherit;
-            font-size: 16px;
-            font-weight: 600;
-            white-space: nowrap;
+        /* 紧凑型卡片 (严格增加 2px 高度，min-height 设为 34px) */
+        .login-security-card.ls-compact .login-security-row {
+            min-height: 34px; 
+            padding: 6px 16px; 
+            box-sizing: content-box; /* 修复挤压问题 */
         }
-        .login-security-submit:disabled, .login-security-refresh:disabled { opacity: .55; }
+        .login-security-row:not(:last-child)::after {
+            content: ''; position: absolute; bottom: 0; left: 16px; right: 0; height: 1px; background-color: #c6c6c8; transform: scaleY(0.5);
+        }
+        .ls-clickable { cursor: pointer; }
+        .ls-clickable:active { background-color: #e5e5ea; }
+        .ls-row-value { color: #8e8e93; display: flex; align-items: center; }
+        .ls-text-blue { color: #007aff; }
+        .ls-chevron { width: 8px; height: 13px; stroke: #c5c5c7; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none; margin-left: 8px; }
+
+        /* 退出登录卡片专属样式 (完美居中、红色字样) */
+        .ls-logout-btn { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 46px; 
+            color: #ff3b30; 
+            font-size: 16px; 
+            font-weight: 400; 
+            background-color: #ffffff;
+        }
+
+        /* 设备列表样式 */
         .login-security-devices-heading { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; }
         .login-security-devices-heading .login-security-section-title { margin-top: 0; }
-        .login-security-refresh { min-height: 32px; margin-right: 12px; padding: 0 8px; border: 0; color: #007aff; background: transparent; font: inherit; font-size: 15px; }
-        .login-security-device { padding: 13px 16px; border-bottom: 1px solid #ececf0; }
+        .login-security-refresh { min-height: 32px; margin-right: 12px; padding: 0 8px; border: 0; color: #007aff; background: transparent; font: inherit; font-size: 15px; cursor: pointer; }
+        .login-security-refresh:active { opacity: 0.7; }
+        .login-security-device { padding: 8px 16px; border-bottom: 1px solid #ececf0; min-height: 44px; display: flex; flex-direction: column; justify-content: center; box-sizing: content-box; }
         .login-security-device:last-child { border-bottom: 0; }
-        .login-security-device-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #111; font-size: 16px; font-weight: 500; }
-        .login-security-device-current { flex: 0 0 auto; color: #34a853; font-size: 12px; font-weight: 500; }
-        .login-security-device-meta { margin-top: 5px; color: #6d6d72; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+        .login-security-device-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #111; font-size: 16px; font-weight: 500; margin-bottom: 2px; }
+        .login-security-device-current { flex: 0 0 auto; color: #8e8e93; font-size: 12px; font-weight: 400; }
+        .login-security-device-meta { color: #8e8e93; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
         .login-security-device-empty { padding: 18px 16px; color: #6d6d72; font-size: 14px; text-align: center; }
         .login-security-notice { min-height: 20px; margin: 12px 16px 0; color: #6d6d72; font-size: 13px; line-height: 1.45; }
         .login-security-notice.is-error { color: #d70015; }
+
+        /* =========================================
+           半屏层叠卡片 (Sheet) 样式 - 更改密码
+           ========================================= */
+        .ls-sheet-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); z-index: 20; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .ls-sheet-overlay.show { opacity: 1; pointer-events: auto; }
+
+        .ls-sheet-container {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 90%; z-index: 30;
+            transform: translateY(calc(100% + 20px)); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .ls-sheet-container.show { transform: translateY(0); }
+
+        .ls-sheet-bg-card {
+            position: absolute; top: -14px; left: 4%; width: 92%; height: 40px;
+            background-color: #d1d1d6; border-radius: 20px 20px 0 0; z-index: 1;
+        }
+
+        .ls-sheet-main {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff; border-radius: 24px 24px 0 0; z-index: 2;
+            display: flex; flex-direction: column; box-shadow: 0 -2px 20px rgba(0,0,0,0.1);
+        }
+
+        .ls-sheet-header { display: flex; align-items: center; padding: 16px; }
+        .ls-sheet-cancel { color: #007aff; font-size: 17px; cursor: pointer; }
+        .ls-sheet-content { padding: 0 24px; display: flex; flex-direction: column; align-items: center; }
+        .ls-sheet-icon { margin-top: 10px; margin-bottom: 16px; }
+        .ls-sheet-title { font-size: 26px; font-weight: 700; color: #000; margin: 0 0 8px 0; }
+        .ls-sheet-subtitle { font-size: 15px; color: #000; margin: 0 0 24px 0; }
+
+        /* 输入框组：圆角 20px */
+        .ls-sheet-input-group { width: 100%; background-color: #f2f2f7; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; }
+        .ls-pwd-wrapper { position: relative; display: flex; align-items: center; width: 100%; }
+        .ls-sheet-input-group input { width: 100%; box-sizing: border-box; border: none; background: transparent; padding: 16px 44px 16px 16px; font-size: 17px; outline: none; color: #000; }
+        .ls-sheet-input-group input::placeholder { color: #c7c7cc; }
+        .ls-pwd-toggle { position: absolute; right: 12px; width: 32px; height: 32px; border: none; background: transparent; color: #a3a3a8; display: flex; justify-content: center; align-items: center; cursor: pointer; padding: 0; }
+        .ls-pwd-toggle .ls-eye-slash { display: block; }
+        .ls-pwd-toggle.is-visible .ls-eye-slash { display: none; }
+        .ls-divider { height: 1px; background-color: #c6c6c8; margin-left: 16px; transform: scaleY(0.5); }
+        .ls-sheet-hint { width: 100%; font-size: 13px; color: #8e8e93; margin: 8px 0 32px 16px; text-align: left; }
+
+        /* 继续按钮：圆角 20px */
+        .ls-sheet-btn {
+            width: 100%; padding: 16px; border-radius: 20px; border: none;
+            background-color: #f2f2f7; color: #c7c7cc; font-size: 17px; font-weight: 600;
+            cursor: pointer; transition: background-color 0.2s, color 0.2s; margin-top: 16px;
+        }
+        .ls-sheet-btn.active { background-color: #007aff; color: #ffffff; }
+        
         .login-security-password-notice { min-height: 20px; margin: 0 16px 14px; color: #248a3d; font-size: 13px; line-height: 1.45; text-align: center; }
         .login-security-password-notice.is-error { color: #d70015; }
 
