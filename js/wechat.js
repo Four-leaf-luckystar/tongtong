@@ -3048,9 +3048,33 @@
         const isEnabled = element.classList.contains('active');
         if (typeof appSettings !== 'undefined') {
             appSettings.wc_imessage_bar_enabled = isEnabled;
+            // 互斥逻辑：如果开启了 iMessage，则强制关闭古早微信
+            if (isEnabled) {
+                appSettings.wc_retro_bar_enabled = false;
+                const retroToggle = document.getElementById('wc-retro-bar-toggle');
+                if (retroToggle) retroToggle.classList.remove('active');
+                if (typeof wcApplyRetroBarSettings === 'function') wcApplyRetroBarSettings();
+            }
             if (typeof saveAppSettings === 'function') saveAppSettings();
         }
         wcApplyIMessageBarSettings();
+    }
+
+    function wcToggleRetroBar(element) {
+        element.classList.toggle('active');
+        const isEnabled = element.classList.contains('active');
+        if (typeof appSettings !== 'undefined') {
+            appSettings.wc_retro_bar_enabled = isEnabled;
+            // 互斥逻辑：如果开启了古早微信，则强制关闭 iMessage
+            if (isEnabled) {
+                appSettings.wc_imessage_bar_enabled = false;
+                const imessageToggle = document.getElementById('wc-imessage-bar-toggle');
+                if (imessageToggle) imessageToggle.classList.remove('active');
+                if (typeof wcApplyIMessageBarSettings === 'function') wcApplyIMessageBarSettings();
+            }
+            if (typeof saveAppSettings === 'function') saveAppSettings();
+        }
+        wcApplyRetroBarSettings();
     }
 
     function wcApplyIMessageBarSettings() {
@@ -3108,6 +3132,298 @@
                 /* 4. 右侧发送按钮 (安全 URL 编码) */
                 #wechatAppUI .footer-capsule .room-send-btn { order: 4 !important; width: 36px !important; height: 36px !important; border-radius: 50% !important; background-color: #007aff !important; box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3) !important; margin: 0 !important; display: flex !important; justify-content: center !important; align-items: center !important; flex-shrink: 0 !important; position: relative !important; }
                 #wechatAppUI .footer-capsule .room-send-btn svg { display: block !important; width: 22px !important; height: 22px !important; background: transparent url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='12' y1='20' x2='12' y2='4'%3E%3C/line%3E%3Cpolyline points='6 10 12 4 18 10'%3E%3C/polyline%3E%3C/svg%3E") center/contain no-repeat !important; margin-top: 1px !important; }
+            `;
+        } else {
+            styleTag.textContent = '';
+        }
+    }
+
+    function wcApplyRetroBarSettings() {
+        let styleTag = document.getElementById('wc-dynamic-retro-bar-style');
+        if (!styleTag) {
+            styleTag = document.createElement('style');
+            styleTag.id = 'wc-dynamic-retro-bar-style';
+            document.head.appendChild(styleTag);
+        }
+
+        const isEnabled = typeof appSettings !== 'undefined' && appSettings.wc_retro_bar_enabled === true;
+
+        if (isEnabled) {
+            styleTag.textContent = `
+                /* ---------------- 1. 顶栏 (Top Bar) ---------------- */
+                #wechatAppUI .chat-header-container {
+                    background-color: #393a3f !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    backdrop-filter: none !important;
+                    -webkit-backdrop-filter: none !important;
+                    border-radius: 0 !important;
+                    left: 0 !important;
+                    right: 0 !important;
+                    width: 100% !important;
+                    padding: 0 16px 0 8px !important;
+                    height: auto !important;
+                    min-height: 30px !important;
+                    margin-top: 0 !important;
+                    top: 0 !important;
+                    padding-top: max(45px, env(safe-area-inset-top)) !important; 
+                    padding-bottom: 4px !important; 
+                    align-items: center !important;
+                    position: relative !important; 
+                    z-index: 100 !important;
+                }
+
+                #wechatAppUI .chat-area {
+                    padding-top: 16px !important; 
+                }
+
+                #wechatAppUI .dropdown-menu {
+                    top: 60px !important;
+                }
+
+                #wechatAppUI .chat-header-container .frosted-glass {
+                    background: transparent !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    backdrop-filter: none !important;
+                    -webkit-backdrop-filter: none !important;
+                }
+
+                /* 左侧返回按钮 */
+                #wechatAppUI .chat-header-container .room-icon-btn:first-child {
+                    width: auto !important;
+                    height: 100% !important;
+                    border-radius: 0 !important;
+                    justify-content: flex-start !important;
+                    gap: 0 !important; 
+                    padding-left: 0 !important;
+                    white-space: nowrap !important; 
+                    overflow: visible !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    z-index: 2 !important; 
+                    flex-shrink: 0 !important; 
+                }
+                #wechatAppUI .chat-header-container .room-icon-btn:first-child svg {
+                    display: none !important; 
+                }
+                #wechatAppUI .chat-header-container .room-icon-btn:first-child::before {
+                    content: '';
+                    display: block;
+                    width: 34px !important; 
+                    height: 54px !important; 
+                    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='15 18 9 12 15 6'%3E%3C/polyline%3E%3C/svg%3E") left center/contain no-repeat;
+                    margin-right: -8px !important; 
+                }
+                #wechatAppUI .chat-header-container .room-icon-btn:first-child::after {
+                    content: 'WeChat';
+                    color: #ffffff !important;
+                    font-size: 17px !important;
+                    font-weight: 500 !important;
+                    letter-spacing: 0.5px !important;
+                }
+
+                /* 中间名字 */
+                #wechatAppUI .chat-header-container .room-info-capsule {
+                    position: absolute !important;
+                    left: 50% !important;
+                    transform: translateX(-50%) !important; 
+                    flex-direction: row !important;
+                    justify-content: center !important;
+                    margin: 0 !important;
+                    z-index: 1 !important;
+                    width: auto !important;
+                    max-width: 45% !important; 
+                }
+                #wechatAppUI .chat-header-container .room-info-capsule .avatar {
+                    display: none !important; 
+                }
+                #wechatAppUI .chat-header-container .room-info-text {
+                    background: transparent !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    text-align: center !important;
+                }
+                #wechatAppUI .chat-header-container .room-info-text .name {
+                    color: #ffffff !important;
+                    font-size: 18px !important;
+                    font-weight: 600 !important;
+                    white-space: nowrap !important;
+                    overflow: hidden !important;
+                    text-overflow: ellipsis !important;
+                }
+                #wechatAppUI .chat-header-container .room-info-text::after {
+                    display: none !important;
+                }
+
+                /* 右侧菜单按钮 */
+                #wechatAppUI .chat-header-container .room-icon-btn:last-child {
+                    width: auto !important;
+                    height: 100% !important;
+                    justify-content: flex-end !important;
+                    z-index: 2 !important;
+                }
+                #wechatAppUI .chat-header-container .room-icon-btn:last-child svg {
+                    display: none !important; 
+                }
+                #wechatAppUI .chat-header-container .room-icon-btn:last-child::after {
+                    content: '';
+                    display: block;
+                    width: 24px;
+                    height: 24px;
+                    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='5' cy='12' r='2'/%3E%3Ccircle cx='12' cy='12' r='2'/%3E%3Ccircle cx='19' cy='12' r='2'/%3E%3C/svg%3E") center/contain no-repeat;
+                }
+
+                /* ---------------- 2. 底栏 (Bottom Bar) ---------------- */
+                #wechatAppUI .footer-capsule {
+                    background-color: #f5f5f5 !important; 
+                    border: none !important;
+                    border-top: 1px solid #e5e5e5 !important;
+                    box-shadow: none !important;
+                    backdrop-filter: none !important;
+                    -webkit-backdrop-filter: none !important;
+                    border-radius: 0 !important;
+                    padding-left: 12px !important;
+                    padding-right: 12px !important;
+                    padding-top: 8px !important; 
+                    padding-bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+                    height: auto !important;
+                    min-height: 62px !important;
+                    bottom: 0 !important;
+                    left: 0 !important;
+                    right: 0 !important;
+                    gap: 10px !important;
+                    align-items: center !important;
+                }
+
+                /* 彻底隐藏底栏内原有的所有 SVG 路径 */
+                #wechatAppUI .footer-capsule > svg path, 
+                #wechatAppUI .footer-capsule > svg circle, 
+                #wechatAppUI .footer-capsule > svg line, 
+                #wechatAppUI .footer-capsule > svg polyline, 
+                #wechatAppUI .footer-capsule > svg rect, 
+                #wechatAppUI .footer-capsule .room-send-btn svg { 
+                    display: none !important; 
+                }
+
+                /* 左下角：语音按钮 */
+                #wechatAppUI .footer-capsule .room-send-btn {
+                    order: 1 !important;
+                    width: 32px !important;
+                    height: 32px !important;
+                    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='11' fill='none' stroke='%23888888' stroke-width='1.2'/%3E%3Cg transform='rotate(90 12 12) translate(12 12) scale(0.65) translate(-12 -12)'%3E%3Cpath fill='%23888888' d='M5.8 15.075 4.225 13.5c1.05 -1.05 2.2375 -1.89585 3.5625 -2.5375C9.1125 10.32085 10.51665 10 12 10c1.48335 0 2.8875 0.32085 4.2125 0.9625C17.5375 11.60415 18.725 12.45 19.775 13.5l-1.575 1.575c-0.85 -0.85 -1.8 -1.53335 -2.85 -2.05 -1.05 -0.51665 -2.16665 -0.775 -3.35 -0.775s-2.3 0.25835 -3.35 0.775c-1.05 0.51665 -2 1.2 -2.85 2.05ZM1.575 10.85 0 9.275c1.6 -1.63335 3.429165 -2.92085 5.4875 -3.8625C7.54585 4.470835 9.71665 4 12 4c2.28335 0 4.45415 0.470835 6.5125 1.4125C20.57085 6.35415 22.4 7.64165 24 9.275l-1.575 1.575c-1.43335 -1.36665 -3.0375 -2.475 -4.8125 -3.325 -1.775 -0.85 -3.64585 -1.275 -5.6125 -1.275s-3.8375 0.425 -5.6125 1.275c-1.775 0.85 -3.379165 1.95835 -4.8125 3.325ZM12 21.275l-3.7 -3.725c0.48335 -0.48335 1.04585 -0.8625 1.6875 -1.1375C10.62915 16.1375 11.3 16 12 16c0.7 0 1.37085 0.1375 2.0125 0.4125 0.64165 0.275 1.20415 0.65415 1.6875 1.1375L12 21.275Z'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat !important;
+                    border-radius: 0 !important;
+                    box-shadow: none !important;
+                    flex-shrink: 0 !important;
+                }
+
+                /* 中间：输入框 */
+                #wechatAppUI .footer-capsule input {
+                    order: 2 !important;
+                    background-color: #ffffff !important;
+                    border-radius: 4px !important;
+                    height: 36px !important;
+                    padding: 0 10px !important;
+                    font-size: 16px !important;
+                    color: #000 !important;
+                    border: 1px solid #e0e0e0 !important;
+                    box-shadow: none !important;
+                    margin: 0 !important;
+                }
+                #wechatAppUI .footer-capsule input::placeholder { color: transparent !important; }
+                #wechatAppUI .footer-capsule input:placeholder-shown { background-image: none !important; }
+
+                /* 右侧 1：表情按钮 */
+                #wechatAppUI .footer-capsule > svg[onclick*="wcToggleEmojiPanel"] {
+                    order: 3 !important;
+                    width: 32px !important;
+                    height: 32px !important;
+                    position: static !important;
+                    transform: none !important;
+                    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='11' fill='none' stroke='%23888888' stroke-width='1.2'/%3E%3Ccircle cx='8' cy='9' r='1.5' fill='%23888888'/%3E%3Ccircle cx='16' cy='9' r='1.5' fill='%23888888'/%3E%3Cpath d='M 7 14 A 5 5 0 0 0 17 14 Z' fill='%23888888'/%3E%3C/svg%3E") center/contain no-repeat !important;
+                    border: none !important;
+                    flex-shrink: 0 !important;
+                }
+
+                /* 右侧 2：更多功能按钮 */
+                #wechatAppUI .footer-capsule > svg[onclick*="wcToggleFunctionPanel"] {
+                    order: 4 !important;
+                    width: 32px !important;
+                    height: 32px !important;
+                    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='11' fill='none' stroke='%23888888' stroke-width='1.2'/%3E%3Cline x1='12' y1='7' x2='12' y2='17' stroke='%23888888' stroke-width='1.5' stroke-linecap='round'/%3E%3Cline x1='7' y1='12' x2='17' y2='12' stroke='%23888888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat !important;
+                    border: none !important;
+                    position: static !important;
+                    transform: none !important;
+                    flex-shrink: 0 !important;
+                }
+
+                /* ---------------- 3. 更多功能面板 (Function Panel) ---------------- */
+                #wechatAppUI .wc-function-panel {
+                    background-color: #f5f5f5 !important; 
+                    backdrop-filter: none !important;
+                    -webkit-backdrop-filter: none !important;
+                    border-top: 1px solid #e5e5e5 !important;
+                    border-radius: 0 !important; 
+                    box-shadow: none !important;
+                }
+
+                /* 图标容器：白底大圆角矩形 */
+                #wechatAppUI .wc-function-icon {
+                    width: 60px !important;
+                    height: 60px !important;
+                    background-color: #ffffff !important;
+                    border-radius: 16px !important;
+                    border: 1px solid #eaeaea !important;
+                    box-shadow: none !important;
+                }
+
+                /* 强制内部图标为深灰色 */
+                #wechatAppUI .wc-function-icon svg {
+                    width: 28px !important;
+                    height: 28px !important;
+                    stroke: #666666 !important;
+                }
+                #wechatAppUI .wc-function-icon svg path,
+                #wechatAppUI .wc-function-icon svg circle,
+                #wechatAppUI .wc-function-icon svg rect,
+                #wechatAppUI .wc-function-icon svg polyline,
+                #wechatAppUI .wc-function-icon svg line {
+                    stroke: #666666 !important;
+                }
+                #wechatAppUI .wc-function-icon svg[fill="currentColor"] path,
+                #wechatAppUI .wc-function-icon svg[fill="currentColor"] circle {
+                    fill: #666666 !important;
+                    stroke: none !important;
+                }
+
+                /* 文字样式 */
+                #wechatAppUI .wc-function-text {
+                    color: #888888 !important;
+                    font-size: 12px !important;
+                    margin-top: 4px !important;
+                    font-weight: 400 !important;
+                }
+
+                /* ---------------- 4. 表情面板 (Emoji Panel) ---------------- */
+                #wechatAppUI .wc-emoji-panel {
+                    background-color: #f5f5f5 !important; 
+                    backdrop-filter: none !important;
+                    -webkit-backdrop-filter: none !important;
+                    border-top: 1px solid #e5e5e5 !important;
+                    border-radius: 0 !important; 
+                    box-shadow: none !important;
+                }
+
+                #wechatAppUI .wc-emoji-panel-header {
+                    background-color: #f5f5f5 !important;
+                }
+
+                /* ---------------- 5. 聊天背景颜色 ---------------- */
+                #wechatAppUI #page-chat-room {
+                    background-color: #ebebeb !important;
+                }
             `;
         } else {
             styleTag.textContent = '';
@@ -3296,7 +3612,7 @@
 
     const wcColorSchemes = [
         { id: 'default', name: '默认 (黑白)', leftBg: '#F2F2F7', leftText: '#000000', rightBg: '#000000', rightText: '#ffffff' },
-        { id: 'wechat-green', name: '微信绿', leftBg: '#95ec69', leftText: '#000000', rightBg: '#95ec69', rightText: '#000000' },
+        { id: 'wechat-green', name: '深灰微信绿', leftBg: '#333333', leftText: '#ffffff', rightBg: '#95ec69', rightText: '#000000' },
         { id: 'imessage-blue', name: 'iMessage蓝', leftBg: '#E5E5EA', leftText: '#000000', rightBg: '#007AFF', rightText: '#ffffff' },
         { id: 'gray-black', name: '灰黑', leftBg: '#E5E5EA', leftText: '#000000', rightBg: '#333333', rightText: '#ffffff' },
         { id: 'white-pink', name: '白粉', leftBg: '#FFFFFF', leftText: '#000000', rightBg: '#F8E8EE', rightText: '#000000' },
@@ -3330,6 +3646,16 @@
                 imessageToggle.classList.remove('active');
             }
         }
+
+        // 同步 古早微信 顶底栏开关状态
+        const retroToggle = document.getElementById('wc-retro-bar-toggle');
+        if (retroToggle) {
+            if (typeof appSettings !== 'undefined' && appSettings.wc_retro_bar_enabled) {
+                retroToggle.classList.add('active');
+            } else {
+                retroToggle.classList.remove('active');
+            }
+        }
         
         // 修复色系球被压缩显示不全的问题
         const colorCirclesContainer = document.getElementById('wc-bubble-color-circles');
@@ -3356,7 +3682,8 @@
             { id: 'image', name: '默认气泡' },
             { id: 'telegram', name: '仿Telegram 气泡' },
             { id: 'capsule', name: '仿line气泡' },
-            { id: 'imessage', name: '仿iMessage气泡' }
+            { id: 'imessage', name: '仿iMessage气泡' },
+            { id: 'retro', name: '古早微信气泡' }
         ];
 
         if (container) {
@@ -3523,6 +3850,25 @@
                 
                 #wechatAppUI .msg-meta.sent { color: #8E8E93 !important; }
                 #wechatAppUI .msg-meta.received { color: #8E8E93 !important; }
+            `;
+        } else if (wcCurrentBubbleTheme === 'retro') {
+            css += `
+                /* 减小连续消息的间距 */
+                #wechatAppUI .message-row.group-top, #wechatAppUI .message-row.group-mid { margin-bottom: 4px !important; }
+                /* 减小独立气泡的基础间距，并保持原有样式 */
+                #wechatAppUI .message-bubble { margin-bottom: 12px !important; padding: 7px 12px !important; line-height: 1.4 !important; border-radius: 4px !important; border: 1px solid rgba(0,0,0,0.15) !important; min-height: 36px !important; overflow: visible !important; box-shadow: none !important; }
+                
+                /* 隐藏古早微信气泡内的时间戳 */
+                #wechatAppUI .msg-meta { display: none !important; }
+                
+                #wechatAppUI .message-bubble.received { border-color: #D5D5D5 !important; }
+                #wechatAppUI .message-bubble.sent { border-color: rgba(0,0,0,0.15) !important; }
+                
+                #wechatAppUI .message-bubble.received::before { display: block !important; content: '' !important; position: absolute !important; top: 12px !important; left: -6px !important; width: 0 !important; height: 0 !important; border-style: solid !important; border-width: 5px 6px 5px 0 !important; border-color: transparent #D5D5D5 transparent transparent !important; background: transparent !important; z-index: 1 !important; }
+                #wechatAppUI .message-bubble.received::after { display: block !important; content: '' !important; position: absolute !important; top: 12px !important; left: -5px !important; width: 0 !important; height: 0 !important; border-style: solid !important; border-width: 5px 6px 5px 0 !important; border-color: transparent ${scheme.leftBg} transparent transparent !important; background: transparent !important; z-index: 2 !important; }
+                
+                #wechatAppUI .message-bubble.sent::before { display: block !important; content: '' !important; position: absolute !important; top: 12px !important; right: -6px !important; width: 0 !important; height: 0 !important; border-style: solid !important; border-width: 5px 0 5px 6px !important; border-color: transparent transparent transparent rgba(0,0,0,0.15) !important; background: transparent !important; z-index: 1 !important; }
+                #wechatAppUI .message-bubble.sent::after { display: block !important; content: '' !important; position: absolute !important; top: 12px !important; right: -5px !important; width: 0 !important; height: 0 !important; border-style: solid !important; border-width: 5px 0 5px 6px !important; border-color: transparent transparent transparent ${scheme.rightBg} !important; background: transparent !important; z-index: 2 !important; }
             `;
         } else {
             // Default bubble dark mode removed
@@ -3837,16 +4183,29 @@
             } catch(e){}
         }
         
-        // 【修复】在此处统一初始化 iMessage 顶底栏，确保在配置加载完成后执行
+        // 【修复】在此处统一初始化 iMessage 和 古早微信 顶底栏，确保在配置加载完成后执行
         if (typeof wcApplyIMessageBarSettings === 'function') {
             wcApplyIMessageBarSettings();
         }
+        if (typeof wcApplyRetroBarSettings === 'function') {
+            wcApplyRetroBarSettings();
+        }
+        
         const toggle = document.getElementById('wc-imessage-bar-toggle');
         if (toggle) {
             if (appSettings.wc_imessage_bar_enabled) {
                 toggle.classList.add('active');
             } else {
                 toggle.classList.remove('active');
+            }
+        }
+        
+        const retroToggle = document.getElementById('wc-retro-bar-toggle');
+        if (retroToggle) {
+            if (appSettings.wc_retro_bar_enabled) {
+                retroToggle.classList.add('active');
+            } else {
+                retroToggle.classList.remove('active');
             }
         }
     }
@@ -4695,6 +5054,34 @@
         return row;
     }
 
+    function wcFormatCenterTimestamp(timestamp) {
+        if (!timestamp) return '';
+        const date = new Date(Number(timestamp));
+        if (isNaN(date.getTime())) return '';
+        
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        
+        const diffTime = today.getTime() - targetDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const timeStr = `${hours}:${minutes}`;
+        
+        if (diffDays === 0) {
+            return `今天 ${timeStr}`;
+        } else if (diffDays === 1) {
+            return `昨天 ${timeStr}`;
+        } else if (diffDays > 1 && diffDays <= 7) {
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            return `${weekdays[date.getDay()]} ${timeStr}`;
+        } else {
+            return `${date.getMonth() + 1}月${date.getDate()}日 ${timeStr}`;
+        }
+    }
+
     function wcRenderChatMessages(contactId) {
         const chatArea = document.getElementById('wc-chat-area');
         if (!chatArea) return;
@@ -4702,7 +5089,18 @@
         const messages = Array.isArray(wcChatMessagesByContact[contactId])
             ? wcChatMessagesByContact[contactId]
             : [];
-        messages.forEach(message => chatArea.appendChild(wcCreateChatMessageElement(message)));
+        let lastMsgTime = 0;
+        messages.forEach(message => {
+            const currentMsgTime = Number(message.createdAt);
+            if (currentMsgTime - lastMsgTime > 300000) {
+                const timeStampEl = document.createElement('div');
+                timeStampEl.className = 'wc-center-timestamp';
+                timeStampEl.textContent = wcFormatCenterTimestamp(currentMsgTime);
+                chatArea.appendChild(timeStampEl);
+            }
+            lastMsgTime = currentMsgTime;
+            chatArea.appendChild(wcCreateChatMessageElement(message));
+        });
         wcUpdateMessageGroupings();
         wcScrollToBottom();
     }
@@ -4729,6 +5127,20 @@
         if (contactId !== wcCurrentChatContactId) return message;
         const chatArea = document.getElementById('wc-chat-area');
         if (!chatArea) return message;
+        
+        const messages = wcChatMessagesByContact[contactId];
+        let lastMsgTime = 0;
+        if (messages.length > 1) {
+            lastMsgTime = Number(messages[messages.length - 2].createdAt);
+        }
+        const currentMsgTime = Number(message.createdAt);
+        if (currentMsgTime - lastMsgTime > 300000) {
+            const timeStampEl = document.createElement('div');
+            timeStampEl.className = 'wc-center-timestamp';
+            timeStampEl.textContent = wcFormatCenterTimestamp(currentMsgTime);
+            chatArea.appendChild(timeStampEl);
+        }
+        
         chatArea.appendChild(wcCreateChatMessageElement(message));
         wcUpdateMessageGroupings();
         wcScrollToBottom();
