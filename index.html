@@ -1169,7 +1169,7 @@
                             </div>
                             <div class="ls-divider"></div>
                             <div class="ls-pwd-wrapper">
-                                <input id="loginSecurityConfirmPassword" name="newPasswordConfirm" type="password" autocomplete="new-password" minlength="8" placeholder="重新键入密码" required oninput="checkLsPwdInput()">
+                                <input id="loginSecurityConfirmPassword" name="newPasswordConfirm" type="password" autocomplete="new-password" minlength="8" placeholder="重新输入密码" required oninput="checkLsPwdInput()">
                                 <button class="ls-pwd-toggle" type="button" data-login-security-action="toggle-password" data-password-target="loginSecurityConfirmPassword" aria-label="显示密码">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle><path class="ls-eye-slash" d="m4 4 16 16"></path></svg>
                                 </button>
@@ -3173,11 +3173,22 @@
                     
                     <!-- 视图 7：官方主题库 -->
                     <div class="view-container" id="wc-theme-bubble-view" style="display: none;">
-                        <div id="wc-bubble-color-circles" style="display: flex; gap: 14px; padding: 16px 16px 4px 16px; overflow-x: auto; scrollbar-width: none;">
+                        <div id="wc-bubble-color-circles" style="display: flex; gap: 14px; padding: 16px; align-items: center; overflow-x: auto; scrollbar-width: none;">
                             <!-- 动态渲染色系圆形 -->
                         </div>
                         <div id="wc-bubble-list-container" style="display: flex; flex-direction: column; gap: 12px; padding: 10px 16px;">
                             <!-- 动态渲染气泡样式卡片 -->
+                        </div>
+                        
+                        <!-- 仿 iMessage 顶底栏独立开关 (移到气泡列表下方) -->
+                        <div class="modal-item" onclick="wcToggleIMessageBar(this.querySelector('.custom-toggle'))" style="margin: 0 16px 16px 16px; flex-shrink: 0;">
+                            <div class="modal-item-icon" style="background: linear-gradient(135deg, #34c759, #28a745); border: 1px solid rgba(255,255,255,0.3);">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24" height="20" width="20">
+                                  <path stroke="white" stroke-linejoin="round" d="M12 20.5c5.799 0 10.5 -4.03 10.5 -9s-4.701 -9 -10.5 -9 -10.5 4.03 -10.5 9c0 3.13 1.865 5.888 4.694 7.5 0 1.412 -1.694 3 -1.694 3 1.211 0.136 3.87 -0.034 4.817 -1.797 0.856 0.194 1.756 0.297 2.683 0.297Z" stroke-width="1"></path>
+                                </svg>
+                            </div>
+                            <div class="modal-item-text">仿 iMessage 主题</div>
+                            <div class="custom-toggle" id="wc-imessage-bar-toggle"><div class="thumb"></div></div>
                         </div>
                     </div>
 
