@@ -1085,37 +1085,102 @@
         </div>
     </div>
 
-    <!-- iCloud 页面容器 -->
+    <!-- 登录与安全 页面容器 -->
     <div class="login-security-container" id="loginSecurityUI" aria-hidden="true">
-        <div class="login-security-nav-bar">
-            <button class="login-security-back-btn" type="button" onclick="closeLoginSecurityApp()" aria-label="返回账户">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            </button>
-            <div class="login-security-nav-title">登录与安全</div>
-        </div>
-        <div class="login-security-content">
-            <p class="login-security-section-title">账号</p>
-            <section class="login-security-card" aria-label="当前绑定账号">
-                <div class="login-security-row">
-                    <span>已绑定 QQ</span>
-                    <strong id="loginSecurityBoundQq">--</strong>
+        <!-- 主页面内容 (增加一层包裹用于缩放动画) -->
+        <div class="login-security-main" id="lsMainPage">
+            <div class="login-security-nav-bar">
+                <div class="ls-nav-btn-circle" onclick="closeLoginSecurityApp()">
+                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </div>
-            </section>
-
-            <p class="login-security-section-title">修改密码</p>
-            <form class="login-security-card login-security-password-form" data-login-security-password-form novalidate>
-                <label class="login-security-field"><span>新密码</span><span class="login-security-password-control"><input id="loginSecurityNewPassword" name="newPassword" type="password" autocomplete="new-password" minlength="8" required><button class="login-security-password-toggle" type="button" data-login-security-action="toggle-password" data-password-target="loginSecurityNewPassword" aria-label="显示新密码" aria-pressed="false" title="显示密码"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-5.5 9.5-5.5S21.5 12 21.5 12s-3.4 5.5-9.5 5.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/><path class="login-security-eye-slash" d="m4 4 16 16"/></svg></button></span></label>
-                <label class="login-security-field"><span>确认新密码</span><span class="login-security-password-control"><input id="loginSecurityConfirmPassword" name="newPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required><button class="login-security-password-toggle" type="button" data-login-security-action="toggle-password" data-password-target="loginSecurityConfirmPassword" aria-label="显示确认新密码" aria-pressed="false" title="显示密码"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-5.5 9.5-5.5S21.5 12 21.5 12s-3.4 5.5-9.5 5.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.75"/><path class="login-security-eye-slash" d="m4 4 16 16"/></svg></button></span></label>
-                <button class="login-security-submit" type="submit">更新密码</button>
-                <p class="login-security-password-notice" id="loginSecurityPasswordNotice" role="status"></p>
-            </form>
-
-            <div class="login-security-devices-heading">
-                <p class="login-security-section-title">已登录设备</p>
-                <button type="button" class="login-security-refresh" data-login-security-action="refresh-devices">刷新</button>
+                <div class="login-security-nav-title">登录与安全</div>
             </div>
-            <section class="login-security-card login-security-devices" id="loginSecurityDeviceList" aria-live="polite"></section>
-            <p class="login-security-notice" id="loginSecurityNotice" role="status"></p>
+            
+            <div class="login-security-content">
+                <!-- 顶部真实手机设备展示区 (由 JS 自动检测渲染，已移除点击切换) -->
+                <div class="ls-hero-device">
+                    <div class="ls-hero-device-icon" id="lsDeviceIconContainer"></div>
+                    <div class="ls-hero-device-name" id="lsDeviceNameLabel">--</div>
+                    <div class="ls-hero-device-badge">此设备</div>
+                </div>
+
+                <p class="login-security-section-title">账号</p>
+                <section class="login-security-card" aria-label="当前绑定账号">
+                    <div class="login-security-row">
+                        <span>已绑定 QQ</span>
+                        <span class="ls-row-value" id="loginSecurityBoundQq">--</span>
+                    </div>
+                </section>
+
+                <p class="login-security-section-title">安全</p>
+                <section class="login-security-card">
+                    <div class="login-security-row ls-clickable" onclick="openLsChangePwdSheet()">
+                        <span class="ls-text-blue">更改密码</span>
+                        <svg class="ls-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                    </div>
+                </section>
+
+                <div class="login-security-devices-heading">
+                    <p class="login-security-section-title">已登录设备</p>
+                    <button type="button" class="login-security-refresh" data-login-security-action="refresh-devices">刷新</button>
+                </div>
+                <section class="login-security-card login-security-devices" id="loginSecurityDeviceList" aria-live="polite"></section>
+                <p class="login-security-notice" id="loginSecurityNotice" role="status"></p>
+
+                <!-- 退出登录卡片 -->
+                <section class="login-security-card">
+                    <div class="ls-logout-btn ls-clickable" onclick="lsPerformLogout()">
+                        退出登录
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- 遮罩层 -->
+        <div class="ls-sheet-overlay" id="lsSheetOverlay" onclick="closeLsChangePwdSheet()"></div>
+
+        <!-- 全新层叠卡片容器：更改密码 -->
+        <div class="ls-sheet-container" id="lsChangePwdSheet">
+            <!-- 背后露出的小卡片边边 -->
+            <div class="ls-sheet-bg-card"></div>
+            
+            <!-- 主卡片内容 -->
+            <div class="ls-sheet-main">
+                <div class="ls-sheet-header">
+                    <div class="ls-sheet-cancel" onclick="closeLsChangePwdSheet()">取消</div>
+                </div>
+                <div class="ls-sheet-content">
+                    <div class="ls-sheet-icon">
+                        <!-- 蓝色的钥匙 SVG (左右翻转) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height="54" width="54" style="transform: scaleX(-1);">
+                            <path fill="#007aff" d="M10.8 7c0 -0.46665 0.16665 -0.86665 0.5 -1.2 0.33335 -0.33335 0.73335 -0.5 1.2 -0.5s0.86665 0.16665 1.2 0.5c0.33335 0.33335 0.5 0.73335 0.5 1.2s-0.16665 0.86665 -0.5 1.2c-0.33335 0.33335 -0.73335 0.5 -1.2 0.5s-0.86665 -0.16665 -1.2 -0.5c-0.33335 -0.33335 -0.5 -0.73335 -0.5 -1.2Zm1.45 17 -3.825 -4.175 1.6 -2.2 -1.6 -2.2 1.5 -1.875v-1.125c-1 -0.53335 -1.82085 -1.24165 -2.4625 -2.125C6.82085 9.41665 6.5 8.31665 6.5 7c0 -1.66665 0.58335 -3.083335 1.75 -4.25S10.83335 1 12.5 1c1.66665 0 3.08335 0.583335 4.25 1.75C17.91665 3.916665 18.5 5.33335 18.5 7c0 1.2 -0.28335 2.2375 -0.85 3.1125s-1.425 1.64585 -2.575 2.3125v8.75L12.25 24ZM8 7c0 0.96665 0.32085 1.88335 0.9625 2.75 0.64165 0.86665 1.4625 1.41665 2.4625 1.65v2.7l-1.125 1.35 1.575 2.2 -1.55 2.05 1.975 2.125 1.275 -1.275V11.4c1.1 -0.31665 1.94585 -0.87085 2.5375 -1.6625C16.70415 8.94585 17 8.03335 17 7c0 -1.25 -0.4375 -2.3125 -1.3125 -3.1875S13.75 2.5 12.5 2.5s-2.3125 0.4375 -3.1875 1.3125S8 5.75 8 7Z" stroke-width="0.5"></path>
+                        </svg>
+                    </div>
+                    <h1 class="ls-sheet-title">新密码</h1>
+                    <p class="ls-sheet-subtitle">选取一个你可以记住的安全密码。</p>
+                    
+                    <form data-login-security-password-form novalidate style="width: 100%;">
+                        <div class="ls-sheet-input-group">
+                            <div class="ls-pwd-wrapper">
+                                <input id="loginSecurityNewPassword" name="newPassword" type="password" autocomplete="new-password" minlength="8" placeholder="新密码" required oninput="checkLsPwdInput()">
+                                <button class="ls-pwd-toggle" type="button" data-login-security-action="toggle-password" data-password-target="loginSecurityNewPassword" aria-label="显示密码">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle><path class="ls-eye-slash" d="m4 4 16 16"></path></svg>
+                                </button>
+                            </div>
+                            <div class="ls-divider"></div>
+                            <div class="ls-pwd-wrapper">
+                                <input id="loginSecurityConfirmPassword" name="newPasswordConfirm" type="password" autocomplete="new-password" minlength="8" placeholder="重新键入密码" required oninput="checkLsPwdInput()">
+                                <button class="ls-pwd-toggle" type="button" data-login-security-action="toggle-password" data-password-target="loginSecurityConfirmPassword" aria-label="显示密码">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle><path class="ls-eye-slash" d="m4 4 16 16"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="ls-sheet-btn" id="lsContinueBtn" type="submit">继续</button>
+                    </form>
+                    <p class="ls-sheet-hint">注意保管好自己的密码！</p>
+                    <p class="login-security-password-notice" id="loginSecurityPasswordNotice" role="status"></p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2482,7 +2547,7 @@
                 <svg class="tool-icon" onclick="wcToggleEmojiPanel(event)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="stroke: none;"><path d="M10.5199 19.8634C10.5955 18.6615 10.8833 17.5172 11.3463 16.4676C9.81124 16.3252 8.41864 15.6867 7.33309 14.7151L8.66691 13.2248C9.55217 14.0172 10.7188 14.4978 12 14.4978C12.1763 14.4978 12.3501 14.4887 12.5211 14.471C14.227 12.2169 16.8661 10.7083 19.8634 10.5199C19.1692 6.80877 15.9126 4 12 4C7.58172 4 4 7.58172 4 12C4 15.9126 6.80877 19.1692 10.5199 19.8634ZM19.0233 12.636C15.7891 13.2396 13.2396 15.7891 12.636 19.0233L19.0233 12.636ZM22 12C22 12.1677 21.9959 12.3344 21.9877 12.5L12.5 21.9877C12.3344 21.9959 12.1677 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM10 10C10 10.8284 9.32843 11.5 8.5 11.5C7.67157 11.5 7 10.8284 7 10C7 9.17157 7.67157 8.5 8.5 8.5C9.32843 8.5 10 9.17157 10 10ZM17 10C17 10.8284 16.3284 11.5 15.5 11.5C14.6716 11.5 14 10.8284 14 10C14 9.17157 14.6716 8.5 15.5 8.5C16.3284 8.5 17 9.17157 17 10Z"></path></svg>
                 <input type="text" id="wc-chat-input" placeholder="广播" enterkeyhint="send" onclick="wcCloseEmojiPanel()">
                 <svg class="tool-icon" onclick="wcToggleFunctionPanel(event)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-                <div class="room-send-btn" id="wc-api-reply-btn" onclick="wcRequestApiReply()" title="获取 API 回复"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.38 2.49946C21.7685 2.89783 22.0386 3.39641 22.16 3.93946C22.2806 4.48282 22.2389 5.04963 22.04 5.56947L16.87 20.4895C16.7165 20.8646 16.4886 21.2048 16.2 21.4895C16.0617 21.6264 15.9111 21.7502 15.75 21.8595C15.2538 22.1908 14.6664 22.3586 14.07 22.3395C13.4715 22.3235 12.8926 22.1227 12.4127 21.7646C11.9329 21.4065 11.5756 20.9087 11.39 20.3395C11.39 20.3395 11.39 20.2495 11.39 20.2195L10.77 16.4495C10.7311 16.2026 10.7467 15.9502 10.8158 15.7101C10.8849 15.4699 11.0058 15.2479 11.17 15.0595L11.93 14.1895L16.14 9.34947C16.2332 9.25623 16.3072 9.14554 16.3577 9.02372C16.4081 8.9019 16.4341 8.77133 16.4341 8.63947C16.4341 8.50762 16.4081 8.37703 16.3577 8.25521C16.3072 8.13339 16.2332 8.02271 16.14 7.92947C16.0468 7.83623 15.9361 7.76226 15.8143 7.7118C15.6924 7.66134 15.5619 7.63537 15.43 7.63537C15.2982 7.63537 15.1676 7.66134 15.0457 7.7118C14.9239 7.76226 14.8132 7.83623 14.72 7.92947L9.96001 12.0795L9.13 12.7995C8.94034 12.9645 8.71624 13.0852 8.47405 13.1526C8.23186 13.2201 7.97767 13.2327 7.73 13.1895L3.99001 12.5195C3.37752 12.3591 2.83146 12.0091 2.43001 11.5195C2.04824 11.0377 1.82819 10.4478 1.80126 9.83375C1.77433 9.21968 1.94185 8.61277 2.27999 8.09947C2.61551 7.58257 3.11059 7.18933 3.68999 6.97947L18.35 1.78947C18.8712 1.60015 19.4354 1.56261 19.977 1.68121C20.5187 1.79981 21.0156 2.06968 21.41 2.45947L21.38 2.49946Z" fill="currentColor"/></svg></div>
+                <div class="room-send-btn" id="wc-api-reply-btn" onclick="wcRequestApiReply()" title="获取 API 回复"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14" id="Send-Email--Streamline-Core" height="20" width="20"><g id="send-email--mail-send-email-paper-airplane"><path id="Subtract" fill="currentColor" fill-rule="evenodd" d="M11.8214 0.0977331c0.2883 -0.1052509 0.6005 -0.1264465 0.9005 -0.0610159 0.3029 0.0660858 0.5805 0.2177638 0.7997 0.4370018 0.2192 0.219238 0.3709 0.496818 0.437 0.799741 0.0654 0.29992 0.0442 0.6122 -0.061 0.90043l-3.574 10.71201 -0.0002 0.0007c-0.0871 0.2634 -0.2404 0.5001 -0.4453 0.6873 -0.2043 0.1867 -0.45301 0.3178 -0.72238 0.381 -0.26942 0.0657 -0.55131 0.0601 -0.81798 -0.0161 -0.26643 -0.0761 -0.50848 -0.2201 -0.70245 -0.4179l-1.91734 -1.9086 -2.01406 1.0415c-0.15705 0.0812 -0.34532 0.0734 -0.49515 -0.0205 -0.14982 -0.0938 -0.23893 -0.2599 -0.23434 -0.4366l0.08257 -3.18376 7.04493 -5.11741c0.2793 -0.20286 0.3413 -0.59371 0.1384 -0.87298 -0.2029 -0.27928 -0.59371 -0.34122 -0.87299 -0.13836L2.20283 8.0884 0.473125 6.35869l-0.000058 -0.00005 -0.000126 -0.00013c-0.187323 -0.18719 -0.325225 -0.41797 -0.4013217 -0.67163 -0.07555546 -0.25185 -0.0878308 -0.51841 -0.0357814 -0.77609 0.0521166 -0.28151 0.1779581 -0.54421 0.3647391 -0.76128 0.18806 -0.21856 0.431073 -0.38293 0.703923 -0.47612l0.00337 -0.00115 0 0.00001L11.8214 0.0977331Z" clip-rule="evenodd" stroke-width="1"></path></g></svg></div>
             </form>
             
             <!-- 悬浮功能面板 -->
@@ -2922,6 +2987,42 @@
                         </div>
                         <div class="wc-settings-item-right">
                             <svg class="wc-settings-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                        </div>
+                    </div>
+
+                    <div class="wc-settings-group-header" style="margin-top: 10px;">好友管理</div>
+                    
+                    <!-- 10. 拉黑好友 -->
+                    <div class="wc-settings-list-item" onclick="if(typeof showToast === 'function') showToast('拉黑好友功能开发中')">
+                        <div class="wc-settings-item-icon" style="background-color: #FF9500;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14" id="Inbox-Block--Streamline-Core" height="14" width="14">
+                              <g id="inbox-block--mail-envelope-email-message-block-spam-remove">
+                                <path id="Vector" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" d="M10.25 13.5c1.7949 0 3.25 -1.4551 3.25 -3.25C13.5 8.45507 12.0449 7 10.25 7 8.45507 7 7 8.45507 7 10.25c0 1.7949 1.45507 3.25 3.25 3.25Z" stroke-width="1"></path>
+                                <path id="Vector_2" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" d="M12.55 12.55 7.95005 7.94995" stroke-width="1"></path>
+                                <path id="Vector_3" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" d="M4.5 9.5h-3c-0.26522 0 -0.51957 -0.10536 -0.707107 -0.29289C0.605357 9.01957 0.5 8.76522 0.5 8.5v-7c0 -0.26522 0.105357 -0.51957 0.292893 -0.707107C0.98043 0.605357 1.23478 0.5 1.5 0.5h10c0.2652 0 0.5196 0.105357 0.7071 0.292893 0.1875 0.187537 0.2929 0.441887 0.2929 0.707107V5" stroke-width="1"></path>
+                                <path id="Vector_4" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" d="m0.5 1.76001 6 4.24 6 -4.24" stroke-width="1"></path>
+                              </g>
+                            </svg>
+                        </div>
+                        <div class="wc-settings-item-content">
+                            <div class="wc-settings-item-title" style="color: #FF9500;">拉黑好友</div>
+                        </div>
+                    </div>
+
+                    <!-- 11. 删除好友 -->
+                    <div class="wc-settings-list-item" onclick="wcDeleteCurrentFriend()">
+                        <div class="wc-settings-item-icon" style="background-color: #FF3B30;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 48 48" id="Recycle-Bin-2--Streamline-Plump">
+                              <g id="recycle-bin-2--remove-delete-empty-bin-trash-garbage">
+                                <path id="Subtract" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" d="M6.182 15.842c0.887 13.815 1.736 21.002 2.24 24.423 0.256 1.73 1.392 3.14 3.093 3.548C13.83 44.37 17.817 45 24.002 45c6.185 0 10.171 -0.63 12.487 -1.186 1.7 -0.408 2.836 -1.818 3.092 -3.548 0.505 -3.422 1.353 -10.609 2.24 -24.427" stroke-width="3"></path>
+                                <path id="Union" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" d="M31.036 7.176c3.56 0.066 6.334 0.174 8.322 0.275 2.39 0.12 4.61 1.393 5.278 3.691 0.1 0.345 0.194 0.71 0.276 1.097 0.394 1.84 -0.983 3.421 -2.858 3.58 -3.02 0.255 -8.547 0.545 -18.077 0.545 -9.529 0 -15.057 -0.29 -18.076 -0.545 -1.876 -0.158 -3.261 -1.75 -2.776 -3.568 0.175 -0.655 0.39 -1.253 0.616 -1.784 0.813 -1.903 2.77 -2.885 4.836 -2.999 1.908 -0.104 4.685 -0.222 8.387 -0.292A7 7 0 0 1 23.37 3h1.262a7 7 0 0 1 6.405 4.176Z" stroke-width="3"></path>
+                                <path id="Vector 831" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" d="m18 25 1 10" stroke-width="3"></path>
+                                <path id="Vector 832" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" d="m30 25 -1 10" stroke-width="3"></path>
+                              </g>
+                            </svg>
+                        </div>
+                        <div class="wc-settings-item-content">
+                            <div class="wc-settings-item-title" style="color: #FF3B30;">删除好友</div>
                         </div>
                     </div>
                 </div>
