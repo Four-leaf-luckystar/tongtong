@@ -2168,6 +2168,36 @@
     }
     window.wcSaveContactRemark = wcSaveContactRemark;
 
+    function wcDeleteCurrentFriend() {
+        if (!wcCurrentChatContactId) return;
+        
+        const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
+        const name = contact ? (contact.remark || contact.name) : '该好友';
+        
+        showCustomConfirm('删除好友', `将联系人“${name}”删除，将同时删除与该联系人的聊天记录。`, '删除', true).then(confirmed => {
+            if (confirmed) {
+                // 1. 从联系人列表中移除
+                wcContactsList = wcContactsList.filter(c => c.id !== wcCurrentChatContactId);
+                wcSaveContactsDataAsync();
+                
+                // 2. 删除聊天记录
+                delete wcChatMessagesByContact[wcCurrentChatContactId];
+                if (typeof wcSaveChatData === 'function') wcSaveChatData();
+                
+                // 3. 关闭设置弹窗和聊天室
+                wcCloseSettingsModal();
+                wcCloseChat();
+                
+                // 4. 重新渲染列表
+                wcRenderContactList();
+                wcRenderChatList();
+                
+                if (typeof showToast === 'function') showToast('已删除好友');
+            }
+        });
+    }
+    window.wcDeleteCurrentFriend = wcDeleteCurrentFriend;
+
     function wcToggleSwitch(element) {
         element.classList.toggle('active');
     }

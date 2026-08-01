@@ -460,14 +460,6 @@
             lastSeen.className = 'login-security-device-meta';
             lastSeen.textContent = `最近使用：${formatDeviceTime(device.last_seen_at)}`;
             item.append(title, browser, ip, lastSeen);
-            if (!device.is_current) {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.textContent = '退出登录';
-                button.style.cssText = 'margin-top: 10px; min-height: 32px; padding: 0 8px; border: 0; background: transparent; color: #d70015; font-size: 14px; font-weight: 600; cursor: pointer;';
-                button.addEventListener('click', () => { revokeLoginSecurityDevice(device, button); });
-                item.append(button);
-            }
             container.append(item);
         });
     }
@@ -490,6 +482,14 @@
         await authRequest('/user', 'PUT', { password: newPassword }, currentSession.access_token);
         form.reset();
         setLoginSecurityPasswordNotice('密码已更新成功。');
+        
+        // 密码修改成功后，延迟 1.5 秒自动收起层叠卡片
+        setTimeout(() => {
+            if (typeof window.closeLsChangePwdSheet === 'function') {
+                window.closeLsChangePwdSheet();
+            }
+            setLoginSecurityPasswordNotice(''); // 清空提示，为下次打开做准备
+        }, 1500);
     }
 
     window.openLoginSecurityApp = function () {
@@ -499,6 +499,12 @@
         if (qq) qq.textContent = activeQq || '--';
         setLoginSecurityNotice('');
         setLoginSecurityPasswordNotice('');
+        
+        // 每次打开页面时，自动检测并渲染真实设备模型
+        if (typeof window.lsRenderCurrentDevice === 'function') {
+            window.lsRenderCurrentDevice();
+        }
+
         page.style.display = 'flex';
         page.setAttribute('aria-hidden', 'false');
         requestAnimationFrame(() => page.classList.add('show'));
@@ -511,6 +517,83 @@
         page.classList.remove('show');
         page.setAttribute('aria-hidden', 'true');
         window.setTimeout(() => { page.style.display = 'none'; }, 300);
+    };
+
+    // 全局真实的退出登录逻辑
+    window.lsPerformLogout = async function () {
+        const confirmed = typeof showCustomConfirm === 'function'
+            ? await showCustomConfirm('退出登录', '确定要退出当前账号吗？', '退出', true)
+            : window.confirm('确定要退出当前账号吗？');
+        if (!confirmed) return;
+        
+        // 清除本地 Session 凭证并刷新页面，彻底退回登录大门
+        clearSession();
+        location.reload();
+    };
+
+    // --- 登录与安全页面专属 UI 交互与真实设备检测逻辑 ---
+    window.openLsChangePwdSheet = function () {
+        const mainPage = document.getElementById('lsMainPage');
+        const overlay = document.getElementById('lsSheetOverlay');
+        const sheet = document.getElementById('lsChangePwdSheet');
+        if (mainPage) mainPage.classList.add('scaled');
+        if (overlay) overlay.classList.add('show');
+        if (sheet) sheet.classList.add('show');
+    };
+
+    window.closeLsChangePwdSheet = function () {
+        const mainPage = document.getElementById('lsMainPage');
+        const overlay = document.getElementById('lsSheetOverlay');
+        const sheet = document.getElementById('lsChangePwdSheet');
+        if (mainPage) mainPage.classList.remove('scaled');
+        if (overlay) overlay.classList.remove('show');
+        if (sheet) sheet.classList.remove('show');
+    };
+
+    window.checkLsPwdInput = function () {
+        const inputs = document.querySelectorAll('.ls-sheet-input-group input');
+        const btn = document.getElementById('lsContinueBtn');
+        if (!inputs.length || !btn) return;
+        if (inputs[0].value.length > 0 || (inputs[1] && inputs[1].value.length > 0)) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    };
+
+    window.lsRenderCurrentDevice = function () {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        let deviceType = 'pc';
+        let deviceName = '电脑设备';
+
+        if (/iPad|Macintosh/i.test(ua) && 'ontouchend' in document) {
+            deviceType = 'ipad';
+            deviceName = 'iPad';
+        } else if (/iPhone|iPod/i.test(ua)) {
+            deviceType = 'ios';
+            deviceName = 'iPhone';
+        } else if (/Android/i.test(ua)) {
+            deviceType = 'android';
+            deviceName = 'Android 设备';
+        } else if (/Macintosh/i.test(ua)) {
+            deviceType = 'pc';
+            deviceName = 'MacBook';
+        } else if (/Windows/i.test(ua)) {
+            deviceType = 'pc';
+            deviceName = 'Windows PC';
+        }
+
+        const svgs = {
+            ios: `<svg viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="5" width="90" height="190" rx="18" fill="#d1d1d6" stroke="#b0b0b5" stroke-width="2"/><rect x="8" y="8" width="84" height="184" rx="14" fill="#000"/><rect x="10" y="10" width="80" height="180" rx="12" fill="url(#lsIosGrad)"/><rect x="35" y="16" width="30" height="8" rx="4" fill="#000"/><rect x="3" y="50" width="2" height="10" rx="1" fill="#b0b0b5"/><rect x="3" y="70" width="2" height="20" rx="1" fill="#b0b0b5"/><rect x="3" y="100" width="2" height="20" rx="1" fill="#b0b0b5"/><rect x="95" y="75" width="2" height="30" rx="1" fill="#b0b0b5"/><rect x="20" y="40" width="60" height="20" rx="4" fill="rgba(255,255,255,0.3)"/><rect x="20" y="70" width="60" height="60" rx="8" fill="rgba(255,255,255,0.2)"/><defs><linearGradient id="lsIosGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4facfe" /><stop offset="100%" stop-color="#00f2fe" /></linearGradient></defs></svg>`,
+            android: `<svg viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="5" width="90" height="190" rx="10" fill="#2c2c2e" stroke="#888" stroke-width="1.5"/><rect x="6.5" y="6.5" width="87" height="187" rx="8" fill="#000"/><rect x="8" y="8" width="84" height="184" rx="6" fill="url(#lsAndroidGrad)"/><circle cx="50" cy="15" r="2.5" fill="#000"/><rect x="95" y="45" width="2" height="25" rx="1" fill="#888"/><rect x="95" y="80" width="2" height="12" rx="1" fill="#888"/><rect x="16" y="30" width="40" height="16" rx="8" fill="rgba(255,255,255,0.25)"/><rect x="16" y="170" width="68" height="12" rx="6" fill="rgba(255,255,255,0.3)"/><circle cx="24" cy="150" r="6" fill="rgba(255,255,255,0.2)"/><circle cx="41" cy="150" r="6" fill="rgba(255,255,255,0.2)"/><circle cx="58" cy="150" r="6" fill="rgba(255,255,255,0.2)"/><circle cx="75" cy="150" r="6" fill="rgba(255,255,255,0.2)"/><defs><linearGradient id="lsAndroidGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#8E2DE2" /><stop offset="100%" stop-color="#4A00E0" /></linearGradient></defs></svg>`,
+            pc: `<svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="20" width="200" height="120" rx="8" fill="#d1d1d6" stroke="#b0b0b5" stroke-width="2"/><rect x="22" y="22" width="196" height="116" rx="6" fill="#000"/><rect x="24" y="24" width="192" height="106" rx="4" fill="url(#lsMacGrad)"/><path d="M 5 140 L 235 140 L 240 148 L 0 148 Z" fill="#b0b0b5"/><rect x="100" y="140" width="40" height="4" rx="2" fill="#8e8e93"/><rect x="80" y="60" width="80" height="40" rx="4" fill="rgba(255,255,255,0.2)"/><defs><linearGradient id="lsMacGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff9a9e" /><stop offset="100%" stop-color="#fecfef" /></linearGradient></defs></svg>`,
+            ipad: `<svg viewBox="0 0 150 200" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="10" width="140" height="180" rx="12" fill="#d1d1d6" stroke="#b0b0b5" stroke-width="2"/><rect x="10" y="15" width="130" height="170" rx="8" fill="#000"/><rect x="12" y="17" width="126" height="166" rx="6" fill="url(#lsIpadGrad)"/><circle cx="75" cy="13.5" r="1.5" fill="#333"/><rect x="30" y="40" width="90" height="30" rx="6" fill="rgba(255,255,255,0.3)"/><rect x="30" y="80" width="40" height="40" rx="6" fill="rgba(255,255,255,0.2)"/><rect x="80" y="80" width="40" height="40" rx="6" fill="rgba(255,255,255,0.2)"/><defs><linearGradient id="lsIpadGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a18cd1" /><stop offset="100%" stop-color="#fbc2eb" /></linearGradient></defs></svg>`
+        };
+
+        const iconContainer = document.getElementById('lsDeviceIconContainer');
+        const nameLabel = document.getElementById('lsDeviceNameLabel');
+        if(iconContainer) iconContainer.innerHTML = svgs[deviceType];
+        if(nameLabel) nameLabel.innerText = deviceName;
     };
 
     async function showDeviceLimit() {
