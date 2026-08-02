@@ -851,8 +851,17 @@
     }
 
     function availableWorldbooks() {
-        if (typeof window.getWorldbookGroups !== 'function') return [];
-        return window.getWorldbookGroups().map(group => ({ id: group.id, name: group.name || '未命名世界书' }));
+        if (typeof wbGroups === 'undefined' || typeof wbEntries === 'undefined') return [];
+        return wbGroups.map(group => {
+            return {
+                id: group.id,
+                name: group.name || '未命名分组',
+                entries: wbEntries.filter(e => e.groupId === group.id && !e.isDeleted).map(e => ({
+                    id: e.id,
+                    name: e.title || '未命名条目'
+                }))
+            };
+        }).filter(g => g.entries.length > 0);
     }
 
     function updateWorldbookStatus() {
@@ -888,38 +897,93 @@
         if (!list || !overlay || !contactDraft) return;
         list.replaceChildren();
 
-        let choices = [];
         if (mode === 'group') {
             setText('#ctPickerTitle', '选择分组');
             pickerSelection = [contactDraft.groupId || 'all'];
-            choices = [{ id: 'all', name: '所有联系人' }, ...data.groups];
+            const choices = [{ id: 'all', name: '所有联系人' }, ...data.groups];
+            
+            if (!choices.length) {
+                const empty = document.createElement('div');
+                empty.className = 'ct-picker-empty';
+                empty.textContent = '暂无可选择的分组';
+                list.appendChild(empty);
+            } else {
+                const groupCard = document.createElement('div');
+                groupCard.className = 'ct-picker-group-card';
+                
+                choices.forEach(choice => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'ct-picker-item ct-picker-sub-item';
+                    item.style.paddingLeft = '16px';
+                    item.dataset.action = 'picker-item';
+                    item.dataset.id = choice.id;
+                    item.classList.toggle('is-selected', pickerSelection.includes(choice.id));
+                    const name = document.createElement('span');
+                    name.textContent = choice.name;
+                    const check = document.createElement('span');
+                    check.className = 'ct-picker-check';
+                    check.textContent = '✓';
+                    item.append(name, check);
+                    groupCard.appendChild(item);
+                });
+                list.appendChild(groupCard);
+            }
         } else {
             setText('#ctPickerTitle', '选择世界书');
             pickerSelection = contactDraft.worldbookIds.slice();
-            choices = availableWorldbooks();
-        }
+            const groups = availableWorldbooks();
 
-        if (!choices.length) {
-            const empty = document.createElement('div');
-            empty.className = 'ct-picker-empty';
-            empty.textContent = '暂无可选择的世界书';
-            list.appendChild(empty);
-        } else {
-            choices.forEach(choice => {
-                const item = document.createElement('button');
-                item.type = 'button';
-                item.className = 'ct-picker-item';
-                item.dataset.action = 'picker-item';
-                item.dataset.id = choice.id;
-                item.classList.toggle('is-selected', pickerSelection.includes(choice.id));
-                const name = document.createElement('span');
-                name.textContent = choice.name;
-                const check = document.createElement('span');
-                check.className = 'ct-picker-check';
-                check.textContent = '✓';
-                item.append(name, check);
-                list.appendChild(item);
-            });
+            if (!groups.length) {
+                const empty = document.createElement('div');
+                empty.className = 'ct-picker-empty';
+                empty.textContent = '暂无可选择的世界书条目';
+                list.appendChild(empty);
+            } else {
+                groups.forEach(group => {
+                    const groupCard = document.createElement('div');
+                    groupCard.className = 'ct-picker-group-card';
+                    
+                    const groupHeader = document.createElement('button');
+                    groupHeader.type = 'button';
+                    groupHeader.className = 'ct-picker-group-header';
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = group.name;
+                    
+                    const chevron = document.createElement('span');
+                    chevron.className = 'ct-chevron';
+                    chevron.textContent = '›';
+                    
+                    groupHeader.append(nameSpan, chevron);
+                    
+                    const entriesContainer = document.createElement('div');
+                    entriesContainer.className = 'ct-picker-group-entries';
+                    
+                    groupHeader.onclick = () => {
+                        groupCard.classList.toggle('is-expanded');
+                    };
+                    
+                    group.entries.forEach(entry => {
+                        const item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'ct-picker-item ct-picker-sub-item';
+                        item.dataset.action = 'picker-item';
+                        item.dataset.id = entry.id;
+                        item.classList.toggle('is-selected', pickerSelection.includes(entry.id));
+                        const name = document.createElement('span');
+                        name.textContent = entry.name;
+                        const check = document.createElement('span');
+                        check.className = 'ct-picker-check';
+                        check.textContent = '✓';
+                        item.append(name, check);
+                        entriesContainer.appendChild(item);
+                    });
+                    
+                    groupCard.append(groupHeader, entriesContainer);
+                    list.appendChild(groupCard);
+                });
+            }
         }
         overlay.classList.add('is-active');
         overlay.setAttribute('aria-hidden', 'false');

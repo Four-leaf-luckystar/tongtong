@@ -4085,6 +4085,19 @@
         saveAppSettings();
     }
 
+    function wcResetFontColor(type) {
+        // 获取当前气泡主题的默认颜色
+        const scheme = wcColorSchemes.find(s => s.id === wcCurrentColorScheme) || wcColorSchemes[0];
+        if (type === 'received') {
+            document.getElementById('wc-font-color-received').value = scheme.leftText;
+        } else if (type === 'sent') {
+            document.getElementById('wc-font-color-sent').value = scheme.rightText;
+        }
+        wcApplyFontSettings();
+        if (typeof showToast === 'function') showToast('已恢复默认颜色');
+    }
+    window.wcResetFontColor = wcResetFontColor;
+
     function wcRenderFontList() {
         const container = document.getElementById('wc-font-list-container');
         if (!container) return;
