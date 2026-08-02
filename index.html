@@ -2885,6 +2885,16 @@
                         </div>
                     </div>
 
+                    <div class="wc-settings-list-item" style="cursor: default; align-items: flex-start;">
+                        <div class="wc-settings-item-icon" style="margin-top: 8px;"><svg class="stroke-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s7-5.1 7-12A7 7 0 0 0 5 9c0 6.9 7 12 7 12Z"/><circle cx="12" cy="9" r="2.3"/></svg></div>
+                        <div class="wc-settings-item-content" style="padding: 3px 0;">
+                            <div class="wc-settings-item-title">真实地点</div>
+                            <div class="wc-settings-item-subtitle">用于分别感知 Char 与 User 所在地天气</div>
+                            <input id="wc-char-weather-location" type="text" placeholder="Char 所在城市或地区" onchange="wcSaveWeatherLocations()" style="width: 100%; box-sizing: border-box; margin-top: 9px; padding: 8px 10px; border: 0; border-radius: 8px; background: rgba(118,118,128,.12); color: inherit; font-size: 14px; outline: none;">
+                            <input id="wc-user-weather-location" type="text" placeholder="User 所在城市或地区" onchange="wcSaveWeatherLocations()" style="width: 100%; box-sizing: border-box; margin-top: 7px; padding: 8px 10px; border: 0; border-radius: 8px; background: rgba(118,118,128,.12); color: inherit; font-size: 14px; outline: none;">
+                        </div>
+                    </div>
+
                     <!-- 3. 关联表情包 -->
                     <div class="wc-settings-list-item" onclick="wcOpenBindEmojiGroups()">
                         <div class="wc-settings-item-icon">
