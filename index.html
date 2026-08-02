@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="css/worldbook.css">
     <link rel="stylesheet" href="css/wechat.css?v=20260730-file-attachments1">
     <link rel="stylesheet" href="css/contacts.css?v=20260730-qr-password-v1" id="contactsAppStyles">
+    <link rel="stylesheet" href="css/icity.css?v=20260802-v1" id="icityAppStyles">
     <link rel="stylesheet" href="css/dialogs.css">
     <link rel="stylesheet" href="css/dark-mode.css">
     <link rel="stylesheet" href="css/music-app.css?v=20260730-home-lyrics-exit-v1">
@@ -4101,6 +4102,16 @@ fill="currentColor" viewBox="0 0 24 24" >
     </div>
 </div>
 
+<div class="icity-app-container" id="icityAppUI" aria-hidden="true">
+  <section class="icity-app" aria-label="iCity 日记">
+    <header class="icity-header"><button class="icity-icon-button" type="button" data-icity-action="close" aria-label="返回桌面">‹</button><div class="icity-brand"><strong>iCity</strong><span>日记星球</span></div><button class="icity-compose-button" type="button" data-icity-action="open-compose" aria-label="发布日记">＋</button></header>
+    <nav class="icity-tabs"><button class="is-active" type="button" data-icity-filter="all">发现</button><button type="button" data-icity-filter="mine">我的</button></nav>
+    <main class="icity-feed" id="icityFeed"></main>
+    <div class="icity-empty" id="icityEmpty" hidden><div>✦</div><strong>还没有日记</strong><span>写下今天的片刻，让它留在 iCity。</span></div>
+    <section class="icity-compose-sheet" id="icityComposeSheet" aria-hidden="true"><div class="icity-compose-backdrop" data-icity-action="close-compose"></div><form class="icity-compose-panel" id="icityComposeForm"><div class="icity-sheet-handle"></div><div class="icity-sheet-header"><strong>写日记</strong><button type="button" data-icity-action="close-compose" aria-label="关闭">×</button></div><label for="icityAuthorSelect">以谁的名义</label><select id="icityAuthorSelect" required></select><input id="icityDiaryTitle" type="text" maxlength="60" placeholder="给今天起个标题"><textarea id="icityDiaryContent" maxlength="2000" placeholder="这一刻，想留下些什么？" required></textarea><div class="icity-compose-footer"><span id="icityCharCount">0 / 2000</span><button class="icity-publish-button" type="submit">发布</button></div></form></section>
+  </section>
+</div>
+
 <script src="js/access-auth.js?v=20260801-login-ui-v1"></script>
 <script src="js/utils.js"></script>
 <script src="js/db.js?v=20260731-time-awareness-switch-v1"></script>
@@ -4133,6 +4144,7 @@ fill="currentColor" viewBox="0 0 24 24" >
     <script src="js/voice-imggen.js"></script>
    <script src="js/memory.js?v=20260731-memory-editor-v1"></script>
    <script src="js/wechat.js?v=20260731-time-awareness-switch-v1"></script>
+<script src="js/icity.js?v=20260802-v1"></script>
 <script src="js/search.js"></script>
 <script src="js/universal-select.js?v=20260731-access-lock-v1"></script>
     <!-- Widget Picker Modal -->

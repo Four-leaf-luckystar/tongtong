@@ -1600,6 +1600,8 @@
                     openContactsApp();
                 } else if (appId === 'memory' || appId === 'placeholder-bedtime-book') {
                     openMemoryApp();
+                } else if (appId === 'placeholder-icity') {
+                    openICityApp();
                 } else if (appId === 'placeholder-music') {
                     openMusicApp();
                 }
