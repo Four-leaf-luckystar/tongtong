@@ -1078,7 +1078,7 @@
             id: linkedId,
             linkedContactId: contact.id,
             name: contact.name || '未命名角色',
-            desc: contact.persona ? contact.persona.replace(/\s+/g, ' ').slice(0, 80) : '角色联系人',
+            desc: contact.persona ? contact.persona.replace(/\s+/g, ' ') : '角色联系人',
             avatar: contact.avatar || '',
             groupId,
             account: contact.security?.account || '',
@@ -1262,7 +1262,7 @@
                 id: linkedId,
                 linkedContactId: contact.id,
                 name: contact.name || payload.name || '未命名角色',
-                desc: contact.persona ? contact.persona.replace(/\s+/g, ' ').slice(0, 80) : '角色联系人',
+                desc: contact.persona ? contact.persona.replace(/\s+/g, ' ') : '角色联系人',
                 avatar: contact.avatar || '',
                 groupId,
                 account: contact.security?.account || '',
@@ -2098,6 +2098,16 @@
             if (maxLimitEl) maxLimitEl.value = appSettings.wc_max_bubble_limit || '';
             if (minLimitEl) minLimitEl.value = appSettings.wc_min_bubble_limit || '';
             if (contextLimitEl) contextLimitEl.value = appSettings.wc_context_memory_limit || '';
+            const speedEl = document.getElementById('wc-reply-speed-slider');
+            const speedValueEl = document.getElementById('wc-reply-speed-value');
+            const speed = Number(appSettings.wc_reply_speed || 100);
+            if (speedEl) speedEl.value = String(Math.min(300, Math.max(25, speed)));
+            if (speedValueEl) speedValueEl.textContent = `${(speed / 100).toFixed(2).replace(/\.00$/, '')}x`;
+            const emojiEl = document.getElementById('wc-emoji-probability-slider');
+            const emojiValueEl = document.getElementById('wc-emoji-probability-value');
+            const emojiProbability = Number.isFinite(Number(appSettings.wc_emoji_probability)) ? Number(appSettings.wc_emoji_probability) : 100;
+            if (emojiEl) emojiEl.value = String(Math.min(100, Math.max(0, emojiProbability)));
+            if (emojiValueEl) emojiValueEl.textContent = `${emojiProbability}%`;
         }
 
         wcApplyTimeAwarenessSettings();
@@ -2577,6 +2587,28 @@
         }
     }
     window.wcSaveContextMemoryLimit = wcSaveContextMemoryLimit;
+
+    function wcSaveReplySpeed() {
+        const slider = document.getElementById('wc-reply-speed-slider');
+        if (!slider || typeof appSettings === 'undefined') return;
+        const value = Math.min(300, Math.max(25, Number(slider.value) || 100));
+        appSettings.wc_reply_speed = value;
+        const label = document.getElementById('wc-reply-speed-value');
+        if (label) label.textContent = `${(value / 100).toFixed(2).replace(/\.00$/, '')}x`;
+        if (typeof saveAppSettings === 'function') saveAppSettings();
+    }
+    window.wcSaveReplySpeed = wcSaveReplySpeed;
+
+    function wcSaveEmojiProbability() {
+        const slider = document.getElementById('wc-emoji-probability-slider');
+        if (!slider || typeof appSettings === 'undefined') return;
+        const value = Math.min(100, Math.max(0, Number(slider.value) || 0));
+        appSettings.wc_emoji_probability = value;
+        const label = document.getElementById('wc-emoji-probability-value');
+        if (label) label.textContent = `${value}%`;
+        if (typeof saveAppSettings === 'function') saveAppSettings();
+    }
+    window.wcSaveEmojiProbability = wcSaveEmojiProbability;
 
     function wcOpenBindEmojiGroups() {
         const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
@@ -4490,6 +4522,20 @@
         return card;
     }
 
+    function wcSanitizeChatHtml(value) {
+        const template = document.createElement('template');
+        template.innerHTML = String(value || '');
+        template.content.querySelectorAll('script,style,iframe,object,embed,form').forEach(node => node.remove());
+        template.content.querySelectorAll('*').forEach(node => {
+            Array.from(node.attributes).forEach(attribute => {
+                const name = attribute.name.toLowerCase();
+                const attrValue = String(attribute.value || '').trim().toLowerCase();
+                if (name.startsWith('on') || (name === 'href' || name === 'src') && attrValue.startsWith('javascript:')) node.removeAttribute(attribute.name);
+            });
+        });
+        return template.innerHTML;
+    }
+
     function wcCreateChatMessageElement(message) {
         const text = message.text;
         const type = message.type;
@@ -5031,7 +5077,11 @@
         } else {
             const messageText = document.createElement('div');
             messageText.className = 'msg-text';
-            messageText.textContent = text;
+            if (/<[a-z][\s\S]*>/i.test(text)) {
+                messageText.innerHTML = wcSanitizeChatHtml(text);
+            } else {
+                messageText.textContent = text;
+            }
             bubble.appendChild(messageText);
         }
         
@@ -6217,7 +6267,8 @@
 
             if (availableEmojis.length > 0) {
                 systemPrompt += `【你可以使用的表情包】\n`;
-                systemPrompt += `你可以使用以下表情包来表达情绪，在 JSON 中使用 "type":"emoji" 并将描述填入 "content"。\n`;
+                const emojiProbability = Number.isFinite(Number(appSettings?.wc_emoji_probability)) ? Number(appSettings.wc_emoji_probability) : 100;
+                systemPrompt += `你可以使用以下表情包来表达情绪，在 JSON 中使用 "type":"emoji" 并将描述填入 "content"。主动发送概率约为 ${emojiProbability}%，不要为了凑数强行发送。\n`;
                 systemPrompt += `可用表情包描述列表：${availableEmojis.join(', ')}\n\n`;
             } else {
                 systemPrompt += `【注意】\n`;
@@ -6241,6 +6292,7 @@
             systemPrompt += `- 发消息: {"type":"text", "content":"完整的一句话", "replyTo":"引用原话(可选)"}\n`;
             systemPrompt += `- 发语音: {"type":"voice", "content":"语音文本"}\n`;
             systemPrompt += `- 发图片: {"type":"image", "content":"图片描述"}\n`;
+            systemPrompt += `- 发 HTML: {"type":"html", "content":"可直接显示的安全 HTML 片段"}\n`;
             if (availableEmojis.length > 0) {
                 systemPrompt += `- 发表情: {"type":"emoji", "content":"表情包描述"}\n`;
             }
@@ -6535,10 +6587,22 @@
             });
             if (hasAvatarUpdate) {
                 wcOpenChatRoom(chatContactId); // 刷新聊天室头部和消息
+                wcRenderChatList();
+                wcRenderContactList();
+                const settingsAvatar = document.getElementById('wc-settings-char-circle');
+                if (settingsAvatar) {
+                    settingsAvatar.style.backgroundImage = `url('${contact.avatar}')`;
+                    settingsAvatar.style.backgroundColor = 'transparent';
+                    settingsAvatar.innerHTML = '';
+                }
             }
             
             // 过滤掉 reaction, transfer_action, change_avatar，只保留要发送的文本/表情包/转账
             messages = messages.filter(m => m.type !== 'reaction' && m.type !== 'transfer_action' && m.type !== 'change_avatar');
+            const emojiProbability = Number.isFinite(Number(appSettings?.wc_emoji_probability)) ? Number(appSettings.wc_emoji_probability) : 100;
+            if (emojiProbability < 100) {
+                messages = messages.filter(message => message.type !== 'emoji' || Math.random() * 100 < emojiProbability);
+            }
 
             // 处理 replyTo 转换为 ID
             messages.forEach(msgObj => {
@@ -6605,7 +6669,7 @@
                     while ((match = emojiRegex.exec(msgContent)) !== null) {
                         const textBefore = msgContent.substring(lastIndex, match.index).trim();
                         if (textBefore) {
-                            finalMessages.push({ text: textBefore, imageUrl: null, replyToId: replyToId, isVoice: false });
+                        finalMessages.push({ text: textBefore, imageUrl: null, replyToId: replyToId, isVoice: false });
                         }
                         
                         const desc = match[1].trim().replace(/^\[|\]$/g, '').trim(); // 去除可能存在的首尾中括号
@@ -6657,7 +6721,8 @@
                 wcAppendChatMessage(finalMessages[i].text, 'received', chatContactId, finalMessages[i].imageUrl, finalMessages[i].replyToId, finalMessages[i].isVoice, audioBlob);
                 if (i < finalMessages.length - 1) {
                     wcSetApiTypingStatus(true);
-                    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+                    const speed = Math.min(300, Math.max(25, Number(appSettings?.wc_reply_speed) || 100)) / 100;
+                    await new Promise(resolve => setTimeout(resolve, (1000 + Math.random() * 1000) * speed));
                 }
             }
 

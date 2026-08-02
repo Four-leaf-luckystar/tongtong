@@ -1475,7 +1475,7 @@
             const importedText = extension === 'docx' ? docxXmlToText(await readDocxXml(buffer)) : decodePlainText(buffer).trim();
             if (!importedText) throw new Error('文档中没有可导入的文字');
 
-            const persona = importedText.slice(0, 10000);
+            const persona = importedText;
             setValue('#ctContactPersona', persona);
             contactDraft.persona = persona;
             if (!getValue('#ctContactName').trim()) {
@@ -1483,7 +1483,7 @@
                 setValue('#ctContactName', importedName);
                 contactDraft.name = importedName;
             }
-            showToast(importedText.length > persona.length ? '已导入，超出 10000 字的内容已截断' : '已导入人设文档');
+            showToast('已导入人设文档');
         } catch (error) {
             console.warn('Persona document could not be imported:', error);
             showToast(error?.message || '文档解析失败');

@@ -594,7 +594,7 @@
             showCustomAlert('提示', '文件名不能包含 . 或 .. 路径。');
             return null;
         }
-        if (!fileName.toLowerCase().endsWith('.json')) fileName += '.json';
+        fileName = fileName.replace(/\.json$/i, '');
         inputs.fileName.value = fileName;
         return {
             token,
@@ -634,7 +634,7 @@
         inputs.token.value = config?.token || '';
         inputs.owner.value = config?.owner || '';
         inputs.repo.value = config?.repo || '';
-        inputs.fileName.value = config?.fileName || 'tonghuaji-backup.json';
+        inputs.fileName.value = config?.fileName || 'tonghuaji-backup';
         inputs.scheduledTime.value = config?.scheduledTime || '02:00';
         inputs.scheduleToggle.classList.toggle('off', config?.scheduledEnabled !== true);
         inputs.scheduleToggle.classList.toggle('on', config?.scheduledEnabled === true);
@@ -723,8 +723,8 @@
         loadGithubBackupSettings();
     };
 
-    function getGithubBackupApiUrl(config) {
-        const path = config.fileName.split('/').map(encodeURIComponent).join('/');
+    function getGithubBackupApiUrl(config, fileName = config.fileName) {
+        const path = fileName.split('/').map(encodeURIComponent).join('/');
         return `https://api.github.com/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}/contents/${path}`;
     }
 
@@ -738,8 +738,8 @@
         return btoa(binary);
     }
 
-    async function githubBackupRequest(config, options) {
-        const response = await fetch(getGithubBackupApiUrl(config), {
+    async function githubBackupRequest(config, options, fileName = config.fileName) {
+        const response = await fetch(getGithubBackupApiUrl(config, fileName), {
             ...options,
             headers: {
                 Accept: 'application/vnd.github+json',
@@ -751,36 +751,29 @@
         return response;
     }
 
+    async function uploadGithubBackupFile(config, fileName, text, message) {
+        const existing = await githubBackupRequest(config, { method: 'GET' }, fileName);
+        let sha = null;
+        if (existing.ok) sha = (await existing.json()).sha;
+        else if (existing.status !== 404) throw new Error(`无法读取 GitHub 文件（${existing.status}）`);
+        const response = await githubBackupRequest(config, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message, content: encodeBackupText(text), ...(sha ? { sha } : {}) })
+        }, fileName);
+        if (!response.ok) throw new Error(`GitHub 文件上传失败（${response.status}）`);
+    }
+
     async function uploadGithubBackup(isScheduled = false) {
         const config = await saveGithubBackupSettings({ silent: isScheduled, reschedule: !isScheduled });
         if (!config) return;
         try {
             if (!isScheduled) showToast('正在准备 GitHub 备份...');
-            const existing = await githubBackupRequest(config, { method: 'GET' });
-            let sha = null;
-            if (existing.ok) {
-                const existingFile = await existing.json();
-                sha = existingFile.sha;
-            } else if (existing.status !== 404) {
-                showCustomAlert('错误', `无法读取 GitHub 文件（${existing.status}）。请检查 Token 和仓库权限。`);
-                return;
-            }
-
             const data = await getAllDataFromDB();
-            const content = encodeBackupText(JSON.stringify(data, null, 2));
-            const response = await githubBackupRequest(config, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    message: 'backup: update Tonghuaji data',
-                    content,
-                    ...(sha ? { sha } : {})
-                })
-            });
-            if (!response.ok) {
-                showCustomAlert('错误', `GitHub 备份失败（${response.status}）。请检查 Token 是否具备 Contents 读写权限。`);
-                return;
-            }
+            const prefix = config.fileName.replace(/\/+$/g, '');
+            const files = Object.keys(data).map(id => `${prefix}/${id}.json`);
+            await Promise.all(Object.entries(data).map(([id, record]) => uploadGithubBackupFile(config, `${prefix}/${id}.json`, JSON.stringify(record, null, 2), `backup: update ${id}`)));
+            await uploadGithubBackupFile(config, `${prefix}/manifest.json`, JSON.stringify({ version: 2, files }, null, 2), 'backup: update manifest');
             showToast(isScheduled ? '定时 GitHub 备份完成' : '已备份到 GitHub');
         } catch (error) {
             console.error('GitHub backup failed:', error);
@@ -797,18 +790,29 @@
         if (!confirmed) return;
         try {
             showToast('正在读取 GitHub 备份...');
-            const response = await githubBackupRequest(config, {
+            const manifestResponse = await githubBackupRequest(config, {
                 method: 'GET',
                 headers: { Accept: 'application/vnd.github.raw' }
-            });
-            if (!response.ok) {
-                showCustomAlert('错误', `无法读取 GitHub 备份（${response.status}）。请检查文件名和仓库权限。`);
+            }, `${config.fileName.replace(/\/+$/g, '')}/manifest.json`);
+            if (!manifestResponse.ok) {
+                const legacyResponse = await githubBackupRequest(config, { method: 'GET', headers: { Accept: 'application/vnd.github.raw' } }, `${config.fileName}.json`);
+                if (legacyResponse.ok) {
+                    processJsonImport(await legacyResponse.text());
+                    return;
+                }
+                showCustomAlert('错误', `无法读取 GitHub 备份（${manifestResponse.status}）。请检查备份前缀和仓库权限。`);
                 return;
             }
-            const text = await response.text();
-            const data = JSON.parse(text);
-            if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('备份内容无效');
-            processJsonImport(text);
+            const manifest = JSON.parse(await manifestResponse.text());
+            if (!Array.isArray(manifest.files)) throw new Error('备份清单无效');
+            const records = {};
+            for (const fileName of manifest.files) {
+                const response = await githubBackupRequest(config, { method: 'GET', headers: { Accept: 'application/vnd.github.raw' } }, fileName);
+                if (!response.ok) throw new Error(`无法读取 ${fileName}`);
+                const record = JSON.parse(await response.text());
+                if (record?.id) records[record.id] = record;
+            }
+            processJsonImport(JSON.stringify(records));
         } catch (error) {
             console.error('GitHub restore failed:', error);
             showCustomAlert('错误', 'GitHub 备份文件无效或无法读取。');

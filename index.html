@@ -1571,11 +1571,11 @@
                     <input id="githubBackupRepo" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="备份仓库" style="flex: 1; min-width: 0; border: none; background: transparent; text-align: right; font-size: 15px; color: #000; outline: none;">
                 </div>
                 <div class="ic-list-item" style="padding: 12px 0; min-height: auto; border-top: 1px solid #f2f2f7;">
-                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93; width: 72px;">文件名</div>
-                    <input id="githubBackupFileName" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="tonghuaji-backup.json" style="flex: 1; min-width: 0; border: none; background: transparent; text-align: right; font-size: 15px; color: #000; outline: none;">
+                    <div class="ic-list-item-title" style="font-size: 14px; color: #8e8e93; width: 72px;">备份前缀</div>
+                    <input id="githubBackupFileName" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="tonghuaji-backup" style="flex: 1; min-width: 0; border: none; background: transparent; text-align: right; font-size: 15px; color: #000; outline: none;">
                 </div>
             </div>
-            <div class="ic-item-desc" style="padding: 0 22px 12px; line-height: 1.45;">Token 仅保存在本机，导出的备份不会包含 Token。</div>
+            <div class="ic-item-desc" style="padding: 0 22px 12px; line-height: 1.45;">Token 仅保存在本机；备份会拆分为多个 JSON 文件，避免单文件过大。</div>
 
             <div style="display: flex; gap: 12px; padding: 0 16px 18px;">
                 <button type="button" onclick="saveGithubBackupSettings()" style="flex: 1; border: none; background: #f2f2f7; color: #007aff; border-radius: 10px; padding: 12px 8px; font-size: 15px; font-weight: 600;">保存配置</button>
@@ -2857,6 +2857,18 @@
                         </div>
                     </div>
 
+                    <div class="wc-settings-list-item" style="cursor: default;">
+                        <div class="wc-settings-item-icon"><svg class="stroke-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12h16M7 8h10M10 16h4"/></svg></div>
+                        <div class="wc-settings-item-content"><div class="wc-settings-item-title">聊天流速</div><div class="wc-settings-item-subtitle">控制连续气泡之间的发送间隔</div></div>
+                        <div class="wc-settings-item-right" style="gap: 8px;"><input type="range" id="wc-reply-speed-slider" min="25" max="300" step="25" value="100" style="width: 90px; accent-color: #007aff;" onchange="wcSaveReplySpeed()"><span id="wc-reply-speed-value" style="min-width: 42px; text-align: right; font-size: 14px; color: #8e8e93;">1x</span></div>
+                    </div>
+
+                    <div class="wc-settings-list-item" style="cursor: default;">
+                        <div class="wc-settings-item-icon"><svg class="fill-icon" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-3.2 8.1a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4Zm6.4 0a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4ZM7.6 13h8.8a4.6 4.6 0 0 1-8.8 0Z"/></svg></div>
+                        <div class="wc-settings-item-content"><div class="wc-settings-item-title">表情包发送概率</div><div class="wc-settings-item-subtitle">控制 AI 主动发送关联表情包的概率</div></div>
+                        <div class="wc-settings-item-right" style="gap: 8px;"><input type="range" id="wc-emoji-probability-slider" min="0" max="100" step="5" value="100" style="width: 90px; accent-color: #007aff;" onchange="wcSaveEmojiProbability()"><span id="wc-emoji-probability-value" style="min-width: 42px; text-align: right; font-size: 14px; color: #8e8e93;">100%</span></div>
+                    </div>
+
                     <!-- 2. 天气感知 -->
                     <div class="wc-settings-list-item" onclick="this.querySelector('.wc-ios-switch').classList.toggle('active')">
                         <div class="wc-settings-item-icon">
@@ -3921,7 +3933,7 @@ fill="currentColor" viewBox="0 0 24 24" >
                         <span>所属分组</span><span class="ct-row-value"><span id="ctSelectedGroup">所有联系人</span><span class="ct-chevron">›</span></span>
                     </button>
                     <div class="ct-settings-card ct-textarea-card ct-persona-textarea">
-                        <textarea id="ctContactPersona" maxlength="10000" placeholder="点击此处输入角色人设、背景故事或性格设定..."></textarea>
+                        <textarea id="ctContactPersona" placeholder="点击此处输入角色人设、背景故事或性格设定..."></textarea>
                     </div>
                 </section>
 
@@ -4028,7 +4040,7 @@ fill="currentColor" viewBox="0 0 24 24" >
                 </div>
                 <div class="ct-section-label">NPC 人设描述</div>
                 <div class="ct-settings-card ct-textarea-card ct-tall-textarea">
-                    <textarea id="ctNpcPersona" maxlength="10000" placeholder="输入该 NPC 的性格、背景、行为逻辑等..."></textarea>
+                    <textarea id="ctNpcPersona" placeholder="输入该 NPC 的性格、背景、行为逻辑等..."></textarea>
                 </div>
                 <button class="ct-danger-card" id="ctDeleteNpcButton" type="button" data-action="delete-npc">删除 NPC</button>
             </main>
@@ -4049,7 +4061,7 @@ fill="currentColor" viewBox="0 0 24 24" >
                 </div>
                 <div class="ct-section-label">User 人设描述</div>
                 <div class="ct-settings-card ct-textarea-card ct-tall-textarea">
-                    <textarea id="ctUserPersona" maxlength="10000" placeholder="输入该身份的背景、性格与表达习惯..."></textarea>
+                    <textarea id="ctUserPersona" placeholder="输入该身份的背景、性格与表达习惯..."></textarea>
                 </div>
                 <button class="ct-danger-card" id="ctDeleteUserButton" type="button" data-action="delete-user">删除 User</button>
             </main>
