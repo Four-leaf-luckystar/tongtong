@@ -2106,11 +2106,6 @@
             const speed = Number(appSettings.wc_reply_speed || 100);
             if (speedEl) speedEl.value = String(Math.min(300, Math.max(25, speed)));
             if (speedValueEl) speedValueEl.textContent = `${(speed / 100).toFixed(2).replace(/\.00$/, '')}x`;
-            const emojiEl = document.getElementById('wc-emoji-probability-slider');
-            const emojiValueEl = document.getElementById('wc-emoji-probability-value');
-            const emojiProbability = Number.isFinite(Number(appSettings.wc_emoji_probability)) ? Number(appSettings.wc_emoji_probability) : 100;
-            if (emojiEl) emojiEl.value = String(Math.min(100, Math.max(0, emojiProbability)));
-            if (emojiValueEl) emojiValueEl.textContent = `${emojiProbability}%`;
         }
 
         wcApplyTimeAwarenessSettings();
@@ -2623,17 +2618,6 @@
         if (typeof saveAppSettings === 'function') saveAppSettings();
     }
     window.wcSaveReplySpeed = wcSaveReplySpeed;
-
-    function wcSaveEmojiProbability() {
-        const slider = document.getElementById('wc-emoji-probability-slider');
-        if (!slider || typeof appSettings === 'undefined') return;
-        const value = Math.min(100, Math.max(0, Number(slider.value) || 0));
-        appSettings.wc_emoji_probability = value;
-        const label = document.getElementById('wc-emoji-probability-value');
-        if (label) label.textContent = `${value}%`;
-        if (typeof saveAppSettings === 'function') saveAppSettings();
-    }
-    window.wcSaveEmojiProbability = wcSaveEmojiProbability;
 
     function wcOpenBindEmojiGroups() {
         const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
@@ -6319,8 +6303,7 @@
 
             if (availableEmojis.length > 0) {
                 systemPrompt += `【你可以使用的表情包】\n`;
-                const emojiProbability = Number.isFinite(Number(appSettings?.wc_emoji_probability)) ? Number(appSettings.wc_emoji_probability) : 100;
-                systemPrompt += `你可以使用以下表情包来表达情绪，在 JSON 中使用 "type":"emoji" 并将描述填入 "content"。主动发送概率约为 ${emojiProbability}%，不要为了凑数强行发送。\n`;
+                systemPrompt += `你可以使用以下表情包来表达情绪，在 JSON 中使用 "type":"emoji" 并将描述填入 "content"。\n`;
                 systemPrompt += `可用表情包描述列表：${availableEmojis.join(', ')}\n\n`;
             } else {
                 systemPrompt += `【注意】\n`;
@@ -6651,10 +6634,6 @@
             
             // 过滤掉 reaction, transfer_action, change_avatar，只保留要发送的文本/表情包/转账
             messages = messages.filter(m => m.type !== 'reaction' && m.type !== 'transfer_action' && m.type !== 'change_avatar');
-            const emojiProbability = Number.isFinite(Number(appSettings?.wc_emoji_probability)) ? Number(appSettings.wc_emoji_probability) : 100;
-            if (emojiProbability < 100) {
-                messages = messages.filter(message => message.type !== 'emoji' || Math.random() * 100 < emojiProbability);
-            }
 
             // 处理 replyTo 转换为 ID
             messages.forEach(msgObj => {
