@@ -3081,20 +3081,37 @@
 
     async function wcGetRealWeather(location = '') {
         const place = String(location || '').trim();
-        const cacheKey = place.toLowerCase() || '__device_location__';
+        const cacheKey = `v2:${place.toLowerCase() || '__device_location__'}`;
         const cached = wcWeatherCache.get(cacheKey);
         if (cached && Date.now() - cached.updatedAt < 3600000) return cached.value;
 
         if (place) {
             try {
-                const geocodeResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(place)}&count=1&language=zh&format=json`);
+                const geocodeResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(place)}&count=10&language=zh&format=json`);
                 const geocodeData = await geocodeResponse.json();
-                const result = geocodeData?.results?.[0];
+                const candidates = Array.isArray(geocodeData?.results) ? geocodeData.results : [];
+                const normalizedPlace = place.replace(/(省|市|自治区|特别行政区)$/u, '').trim().toLowerCase();
+                const result = candidates
+                    .filter(item => String(item.country_code || '').toUpperCase() === 'CN')
+                    .sort((a, b) => {
+                        const score = item => {
+                            const names = [item.name, item.admin1, item.admin2, item.admin3]
+                                .filter(Boolean)
+                                .map(value => String(value).replace(/(省|市|自治区|特别行政区)$/u, '').trim().toLowerCase());
+                            let value = names.includes(normalizedPlace) ? 100 : 0;
+                            if (String(item.feature_code || '').toUpperCase() === 'ADM1') value += 30;
+                            if (String(item.name || '').replace(/(省|市|自治区|特别行政区)$/u, '').trim().toLowerCase() === normalizedPlace) value += 20;
+                            return value;
+                        };
+                        return score(b) - score(a);
+                    })[0] || candidates[0];
                 if (!result) return null;
                 const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${result.latitude}&longitude=${result.longitude}&current_weather=true`);
                 const weatherData = await weatherResponse.json();
                 if (!weatherData?.current_weather) return null;
-                const value = `${result.name}${result.admin1 ? '，' + result.admin1 : ''}：${wcDescribeWeather(weatherData.current_weather)}`;
+                const resolvedName = result.name || place;
+                const region = result.admin1 && result.admin1 !== resolvedName ? `，${result.admin1}` : '';
+                const value = `${place}（${resolvedName}${region}）：${wcDescribeWeather(weatherData.current_weather)}`;
                 wcWeatherCache.set(cacheKey, { value, updatedAt: Date.now() });
                 return value;
             } catch (error) {
