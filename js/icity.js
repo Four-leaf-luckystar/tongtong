@@ -1,6 +1,6 @@
 (() => {
   const DB = 'iOSDesktopDB', STORE = 'layoutStore', KEY = 'icityData', CONTACTS = 'contactsAppData';
-  let state = { entries: [], messages: [] }, authors = [], npcs = [], currentView = 'home', currentNpc = null;
+  let state = { entries: [], messages: [], books: [], likes: [], qa: {} }, authors = [], npcs = [], currentView = 'home', currentNpc = null;
   const $ = selector => document.querySelector(selector);
   const esc = value => String(value || '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
 
@@ -27,7 +27,7 @@
 
   async function save() {
     const connection = await dbStore('readwrite');
-    connection.store.put({ id: KEY, entries: state.entries, messages: state.messages });
+    connection.store.put({ id: KEY, entries: state.entries, messages: state.messages, books: state.books, likes: state.likes, qa: state.qa });
     return new Promise((resolve, reject) => {
       connection.transaction.oncomplete = () => { connection.database.close(); resolve(); };
       connection.transaction.onerror = () => { connection.database.close(); reject(connection.transaction.error); };
@@ -36,7 +36,7 @@
 
   async function load() {
     const [record, contactsRecord] = await Promise.all([read(KEY), read(CONTACTS)]);
-    state = { entries: Array.isArray(record?.entries) ? record.entries : [], messages: Array.isArray(record?.messages) ? record.messages : [] };
+    state = { entries: Array.isArray(record?.entries) ? record.entries : [], messages: Array.isArray(record?.messages) ? record.messages : [], books: Array.isArray(record?.books) ? record.books : [], likes: Array.isArray(record?.likes) ? record.likes : [], qa: record?.qa && typeof record.qa === 'object' ? record.qa : {} };
     const data = contactsRecord?.data || {};
     const users = Array.isArray(data.users) ? data.users : [];
     const contacts = Array.isArray(data.contacts) ? data.contacts : [];
@@ -107,7 +107,7 @@
     currentView = view;
     document.querySelectorAll('[data-icity-view]').forEach(element => element.classList.toggle('is-active', element.dataset.icityView === view));
     document.querySelectorAll('[data-icity-nav]').forEach(element => element.classList.toggle('is-active', element.dataset.icityNav === view));
-    const title = view === 'home' ? 'icity · 我的日记' : view === 'world' ? 'iCity · 世界' : view === 'profile' ? '我的日记' : currentNpc.name;
+    const title = view === 'home' ? 'icity · 我的日记' : view === 'world' ? 'iCity · 世界' : view === 'profile' ? '我的日记' : currentNpc?.name || 'iCity';
     $('#icityPageTitle').textContent = title;
     $('#icityTopbar').querySelector('[data-icity-action]').dataset.icityAction = view === 'home' ? 'close' : 'go-home';
     if (view === 'chat') renderMessages();
