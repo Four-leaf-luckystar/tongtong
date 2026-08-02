@@ -103,6 +103,13 @@
     const messages = $('#icityMessages'); messages.scrollTop = messages.scrollHeight;
   }
 
+  function renderInboxView() {
+    const container = $('#icityInboxContent');
+    if (!container) return;
+    const books = state.books.map(book => '<button class="icity-book-card" type="button"><b>' + esc(String(book.title || '').slice(0, 1)) + '</b><strong>' + esc(book.title || '日记本') + '</strong><small>' + (book.count || 0) + ' 篇</small></button>').join('');
+    container.innerHTML = '<div class="icity-books"><button class="icity-new-book" type="button" data-icity-action="add-book"><span>+</span>新建<br>日记本</button>' + books + '</div><button class="icity-qa-preview" type="button" data-icity-action="open-qa"><strong>我的 Q&A 问答</strong><span>' + Object.keys(state.qa || {}).length + '%</span><div>🎬　📚　🎵　🍣　🌍</div><small>找到与你兴趣相投的人</small><b>继续答题 ›</b></button><button class="icity-inbox-row" type="button"><strong>🛰　相同爱好的人</strong><i>›</i></button>';
+  }
+
   function show(view) {
     currentView = view;
     document.querySelectorAll('[data-icity-view]').forEach(element => element.classList.toggle('is-active', element.dataset.icityView === view));
@@ -111,6 +118,7 @@
     $('#icityPageTitle').textContent = title;
     $('#icityTopbar').querySelector('[data-icity-action]').dataset.icityAction = view === 'home' ? 'close' : 'go-home';
     if (view === 'chat') renderMessages();
+    if (view === 'inbox') renderInboxView();
   }
 
   function compose(isOpen) {
@@ -148,6 +156,13 @@
       if (action === 'go-home') show('home');
       if (action === 'open-compose') compose(true);
       if (action === 'close-compose') compose(false);
+      if (action === 'add-book') {
+        const title = window.prompt('日记本名称');
+        if (title && title.trim()) {
+          state.books.push({ id: 'book_' + Date.now(), title: title.trim().slice(0, 24), count: 0 });
+          save().then(renderInboxView);
+        }
+      }
       if (action === 'open-chat') { currentNpc = chooseNpc(); show('chat'); }
       const id = event.target.closest('[data-icity-delete]')?.dataset.icityDelete;
       if (id) { state.entries = state.entries.filter(entry => entry.id !== id); save().then(renderFeeds); }
