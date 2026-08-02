@@ -3212,11 +3212,17 @@
                             </div>
                             <div style="display: flex; align-items: center; justify-content: space-between;">
                                 <span style="font-size: 16px; font-weight: 600;">对方字体颜色</span>
-                                <input type="color" id="wc-font-color-received" value="#000000" oninput="wcApplyFontSettings()" style="width: 44px; height: 32px; border: none; border-radius: 6px; background: transparent; cursor: pointer;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 13px; color: var(--tg-blue); cursor: pointer; font-weight: 500;" onclick="wcResetFontColor('received')">恢复默认</span>
+                                    <input type="color" id="wc-font-color-received" value="#000000" oninput="wcApplyFontSettings()" style="width: 44px; height: 32px; border: none; border-radius: 6px; background: transparent; cursor: pointer;">
+                                </div>
                             </div>
                             <div style="display: flex; align-items: center; justify-content: space-between;">
                                 <span style="font-size: 16px; font-weight: 600;">自己字体颜色</span>
-                                <input type="color" id="wc-font-color-sent" value="#ffffff" oninput="wcApplyFontSettings()" style="width: 44px; height: 32px; border: none; border-radius: 6px; background: transparent; cursor: pointer;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 13px; color: var(--tg-blue); cursor: pointer; font-weight: 500;" onclick="wcResetFontColor('sent')">恢复默认</span>
+                                    <input type="color" id="wc-font-color-sent" value="#ffffff" oninput="wcApplyFontSettings()" style="width: 44px; height: 32px; border: none; border-radius: 6px; background: transparent; cursor: pointer;">
+                                </div>
                             </div>
                         </div>
                         <div class="custom-actions" style="flex-direction: row; margin-top: 0;">
