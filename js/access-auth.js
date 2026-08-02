@@ -187,6 +187,26 @@
     }
 
     function friendlyError(error) {
+        const message = String(error && error.message || '');
+        const code = String(error && error.code || '');
+
+        if (/[\u4e00-\u9fff]/.test(message)) return message;
+        if (message === 'DEVICE_LIMIT') return '当前账号最多可登录两台设备，请先退出或移除一台旧设备。';
+        if (message === 'DEVICE_REVOKED') return '当前设备已被退出，请重新登录。';
+        if (message === 'DEVICE_NOT_FOUND') return '未找到该设备记录，请刷新后重试。';
+        if (/ACCESS_NOT_GRANTED|paid|entitlement/i.test(message)) return '该 QQ 账号尚未获得登录授权，请联系管理员。';
+        if (/AUTH_REQUIRED|JWT|token.*(expired|invalid)|session.*(expired|invalid)/i.test(message)) return '登录状态已失效，请重新登录。';
+        if (/Invalid login credentials|invalid_credentials/i.test(message)) return 'QQ 号或密码不正确。';
+        if (/Email not confirmed/i.test(message)) return '请先到 QQ 邮箱完成验证，再登录。';
+        if (/User already registered|already.*(registered|exists)/i.test(message)) return '该 QQ 账号已注册，请直接登录。';
+        if (/Password should be at least|weak password/i.test(message)) return '密码至少需要 8 位，请重新设置。';
+        if (/New password should be different/i.test(message)) return '新密码不能与当前密码相同。';
+        if (/rate limit|too many requests|over_request_rate_limit/i.test(message) || code === 'over_request_rate_limit') return '操作过于频繁，请稍后再试。';
+        if (/network|networkerror|failed to fetch|load failed|timeout|timed out|ECONN|ENOTFOUND/i.test(message)) return '网络连接失败，请检查网络后重试。';
+        if (/duplicate key|unique constraint|postgres|database|internal server error|PGRST|42P|23P/i.test(message) || /^5\d\d$/.test(code)) return '服务暂时繁忙，请稍后重试。';
+        if (/not found|does not exist|could not find the function/i.test(message)) return '服务正在更新，请稍后刷新页面重试。';
+        if (/forbidden|permission denied|not authorized/i.test(message) || code === '403') return '当前账号没有执行此操作的权限。';
+        if (message) return '操作失败，请稍后重试。';
         if (error && error.message === 'DEVICE_LIMIT') return '已达到两个浏览器上限，请先移除一个旧浏览器。';
         if (error && /资格|paid|开通|entitlement/i.test(error.message)) return '该 QQ 尚未开通登录资格。';
         if (error && /Invalid login credentials/i.test(error.message)) return 'QQ 号或密码不正确。';
