@@ -2886,6 +2886,8 @@
                             <div class="wc-settings-item-subtitle">用于分别感知 Char 与 User 所在地天气</div>
                             <input id="wc-char-weather-location" type="text" placeholder="Char 所在城市或地区" onchange="wcSaveWeatherLocations()" style="width: 100%; box-sizing: border-box; margin-top: 9px; padding: 8px 10px; border: 0; border-radius: 8px; background: rgba(118,118,128,.12); color: inherit; font-size: 14px; outline: none;">
                             <input id="wc-user-weather-location" type="text" placeholder="User 所在城市或地区" onchange="wcSaveWeatherLocations()" style="width: 100%; box-sizing: border-box; margin-top: 7px; padding: 8px 10px; border: 0; border-radius: 8px; background: rgba(118,118,128,.12); color: inherit; font-size: 14px; outline: none;">
+                            <button type="button" onclick="wcTestWeatherConnection()" style="width: 100%; margin-top: 9px; padding: 8px 10px; border: 0; border-radius: 8px; background: #007aff; color: #fff; font-size: 14px; font-weight: 600;">测试连接</button>
+                            <div id="wc-weather-test-result" style="display: none; margin-top: 7px; font-size: 12px; line-height: 1.4; color: #8e8e93;"></div>
                         </div>
                     </div>
 

@@ -2195,6 +2195,58 @@
     }
     window.wcSaveWeatherLocations = wcSaveWeatherLocations;
 
+    async function wcTestWeatherConnection() {
+        const button = document.querySelector('button[onclick="wcTestWeatherConnection()"]');
+        const resultEl = document.getElementById('wc-weather-test-result');
+        const charLocation = document.getElementById('wc-char-weather-location')?.value.trim() || '';
+        const userLocation = document.getElementById('wc-user-weather-location')?.value.trim() || '';
+        const locations = [
+            ['Char', charLocation],
+            ['User', userLocation]
+        ];
+        if (!charLocation && !userLocation) {
+            if (resultEl) {
+                resultEl.style.display = 'block';
+                resultEl.style.color = '#ff9500';
+                resultEl.textContent = '请至少填写一个地点后再测试。';
+            }
+            return;
+        }
+        if (button) {
+            button.disabled = true;
+            button.textContent = '测试中…';
+            button.style.opacity = '0.65';
+        }
+        if (resultEl) {
+            resultEl.style.display = 'block';
+            resultEl.style.color = '#8e8e93';
+            resultEl.textContent = '正在连接地理编码与天气服务…';
+        }
+        try {
+            const results = await Promise.all(locations.filter(([, location]) => location).map(async ([label, location]) => {
+                const weather = await wcGetRealWeather(location);
+                return weather ? `${label}：${weather}` : `${label}：连接失败或未找到地点`;
+            }));
+            const success = results.some(item => !item.includes('连接失败'));
+            if (resultEl) {
+                resultEl.style.color = success ? '#34c759' : '#ff3b30';
+                resultEl.textContent = results.join('；');
+            }
+        } catch (error) {
+            if (resultEl) {
+                resultEl.style.color = '#ff3b30';
+                resultEl.textContent = '连接失败，请检查网络后重试。';
+            }
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = '测试连接';
+                button.style.opacity = '';
+            }
+        }
+    }
+    window.wcTestWeatherConnection = wcTestWeatherConnection;
+
     function wcDeleteCurrentFriend() {
         if (!wcCurrentChatContactId) return;
         
