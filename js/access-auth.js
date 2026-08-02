@@ -5,6 +5,7 @@
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_QDshTa2vNl6LeAMAZV-Cpw_BGIbxgfd';
     const SESSION_KEY = 'tonghuajiAccessSessionV1';
     const DEVICE_KEY = 'tonghuajiAccessDeviceV1';
+    const LOGIN_NOTICE_KEY = 'tonghuajiAccessLoginNoticeV1';
     const DATA_PREFIX = 'tonghuaji-access-v1:';
     const nativeIndexedDbOpen = indexedDB.open.bind(indexedDB);
     let activeQq = '';
@@ -316,9 +317,36 @@
         startApplicationIfReady();
     }
 
-    function logoutAfterStoredSessionValidationFailure() {
+    function logoutAfterStoredSessionValidationFailure(error) {
+        sessionStorage.setItem(LOGIN_NOTICE_KEY, friendlyError(error));
         clearSession();
         location.reload();
+    }
+
+    function requiresStoredSessionLogin(error) {
+        const message = String(error && error.message || '');
+        const code = String(error && error.code || '');
+        return message === 'DEVICE_LIMIT'
+            || message === 'DEVICE_REVOKED'
+            || /ACCESS_NOT_GRANTED|AUTH_REQUIRED|invalid.*refresh|refresh.*(expired|invalid)|session.*(expired|invalid)|JWT/i.test(message)
+            || code === '401'
+            || code === 'invalid_grant';
+    }
+
+    async function validateStoredSessionInBackground(storedSession) {
+        try {
+            const session = await refreshSession(storedSession);
+            await completeAccess(session);
+        } catch (error) {
+            if (requiresStoredSessionLogin(error)) {
+                logoutAfterStoredSessionValidationFailure(error);
+                return;
+            }
+            console.debug('Stored-session validation unavailable:', error);
+            window.setTimeout(() => {
+                void validateStoredSessionInBackground(storedSession);
+            }, 30000);
+        }
     }
 
     async function submitLogin(form) {
@@ -825,18 +853,16 @@
 
     async function bootstrap() {
         bindUi();
+        const loginNotice = sessionStorage.getItem(LOGIN_NOTICE_KEY);
+        if (loginNotice) {
+            sessionStorage.removeItem(LOGIN_NOTICE_KEY);
+            setNotice(loginNotice, true);
+        }
         if (await bootstrapRecovery()) return;
         const storedSession = readStoredSession();
         if (!storedSession) return;
-        try {
-            const session = await refreshSession(storedSession);
-            enterApplicationWithStoredSession(session);
-            completeAccess(session).catch(logoutAfterStoredSessionValidationFailure);
-        } catch (error) {
-            clearSession();
-            if (error && error.message === 'DEVICE_LIMIT') await showDeviceLimit();
-            else setNotice('登录状态已失效，请重新登录。', true);
-        }
+        enterApplicationWithStoredSession(storedSession);
+        void validateStoredSessionInBackground(storedSession);
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootstrap, { once: true });
