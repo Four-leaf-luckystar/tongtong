@@ -18,10 +18,43 @@
         return /\/chat\/completions$/i.test(base) ? base : base + '/chat/completions';
     }
 
-    window.requestMeetingApiReply = async function requestMeetingApiReply({ messages, systemPrompt, signal }) {
-        const api = apiDataList.find(item => item.id === apiConnectedId);
+    const meetingApiRequestLogs = [];
+
+    function getMeetingApiPresets() {
+        return apiDataList
+            .filter(item => item && item.id)
+            .map(item => ({
+                id: item.id,
+                name: item.name || item.model || '未命名预设',
+                model: item.model || '',
+                selected: item.id === apiConnectedId,
+                ready: Boolean(item.url && item.key && item.model)
+            }));
+    }
+
+    function addMeetingApiLog(entry) {
+        meetingApiRequestLogs.unshift({
+            time: new Date().toLocaleString('zh-CN', { hour12: false }),
+            ...entry
+        });
+        if (meetingApiRequestLogs.length > 50) meetingApiRequestLogs.length = 50;
+    }
+
+    window.getMeetingApiPresets = getMeetingApiPresets;
+    window.getMeetingApiRequestLogs = () => meetingApiRequestLogs.map(entry => ({ ...entry }));
+
+    window.selectMeetingApiPreset = function selectMeetingApiPreset(presetId) {
+        const api = apiDataList.find(item => item.id === presetId);
+        if (!api) throw new Error('未找到该 API 预设');
+        apiConnectedId = api.id;
+        if (typeof saveApiData === 'function') saveApiData();
+        return getMeetingApiPresets();
+    };
+
+    window.requestMeetingApiReply = async function requestMeetingApiReply({ messages, systemPrompt, presetId, signal }) {
+        const api = apiDataList.find(item => item.id === (presetId || apiConnectedId));
         if (!api?.url || !api?.key || !api?.model) {
-            throw new Error('请先在设置中连接一个 API 预设');
+            throw new Error('请先在设置中保存并连接一个可用的 API 预设');
         }
 
         const response = await fetch(getApiCompletionUrl(api.url), {
@@ -41,10 +74,19 @@
             signal
         });
 
-        if (!response.ok) throw new Error('API 请求失败：HTTP ' + response.status);
+        if (!response.ok) {
+            addMeetingApiLog({ presetName: api.name || api.model, model: api.model, status: '失败', detail: 'HTTP ' + response.status });
+            throw new Error('API 请求失败：HTTP ' + response.status);
+        }
         const result = await response.json();
         const content = result?.choices?.[0]?.message?.content ?? result?.choices?.[0]?.text ?? result?.output_text;
         if (!String(content || '').trim()) throw new Error('API 没有返回可显示的内容');
+        addMeetingApiLog({
+            presetName: api.name || api.model,
+            model: api.model,
+            status: '成功',
+            detail: result?.usage ? 'Token: ' + (result.usage.total_tokens ?? '未提供') : '未提供 Token 用量'
+        });
         return String(content).trim();
     };
 
