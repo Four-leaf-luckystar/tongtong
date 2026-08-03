@@ -382,19 +382,9 @@
         <iframe class="music-app-frame" id="musicAppFrame" title="Music" allow="autoplay"></iframe>
     </div>
 
-    <section class="meeting-app-container" id="meetingAppUI" aria-hidden="true" aria-label="见面">
-        <header class="meeting-header">
-            <button class="meeting-person" type="button" data-meeting-action="close" aria-label="返回桌面">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-                <img class="meeting-avatar" id="meetingHeaderAvatar" alt="">
-                <span class="meeting-person-copy"><strong id="meetingHeaderName">见面</strong><small id="meetingHeaderMeta">选择联系人开始一段见面</small></span>
-            </button>
-            <button class="meeting-round-button" type="button" data-meeting-action="open-history" aria-label="见面记录"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg></button>
-        </header>
-        <main class="meeting-records" id="meetingRecords"></main>
-        <form class="meeting-compose" id="meetingCompose"><textarea id="meetingInput" rows="1" maxlength="4000" placeholder="写下此刻想说的话" aria-label="见面内容"></textarea><button class="meeting-send" id="meetingSend" type="submit" aria-label="发送"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 16-8-6 16-2-6zM12 14l8-10"/></svg></button></form>
-        <div class="meeting-sheet" id="meetingSheet" aria-hidden="true"><div class="meeting-sheet-panel"><div class="meeting-sheet-handle"></div><div class="meeting-sheet-title"><strong id="meetingSheetTitle">选择联系人</strong><button class="meeting-sheet-close" type="button" data-meeting-action="close-sheet">取消</button></div><div id="meetingSheetContent"></div></div></div>
-    </section>
+    <div class="meeting-app-container" id="meetingAppUI" aria-hidden="true">
+        <iframe class="meeting-app-frame" id="meetingAppFrame" title="见面"></iframe>
+    </div>
 
     <!-- 主题 APP UI 容器 -->
     <div class="theme-app-container" id="themeAppUI">
@@ -4152,7 +4142,8 @@ fill="currentColor" viewBox="0 0 24 24" >
 <script src="js/db.js?v=20260731-time-awareness-switch-v1"></script>
 <script src="js/desktop.js?v=20260729-continuous-drag-v1"></script>
 <script src="js/music-app.js?v=20260730-player-layout-v5"></script>
-<script src="js/meeting-app.js?v=20260804-v1"></script>
+<script src="js/meeting-document.js?v=20260804-v2"></script>
+<script src="js/meeting-app.js?v=20260804-v2"></script>
 <script src="js/theme-app.js?v=20260727-adaptive-desktop-rows"></script>
 
 <script src="fullscreen.js"></script>
