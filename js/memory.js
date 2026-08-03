@@ -18,6 +18,7 @@
     const OUTBOX_MAX_ATTEMPTS = 8;
     const OUTBOX_MAX_RETRY_DELAY_MS = 60 * 60 * 1000;
     const RETRIEVAL_COOLDOWN_MS = 8 * 60 * 1000;
+    const RETRIEVAL_PRIORITY = Object.freeze({ low: -3, normal: 0, pinned: 6 });
     let root = null;
     let selectedContactId = '';
     let activeTab = 'memory';
@@ -232,12 +233,26 @@
         return Math.max(0, Number(item && item.retrievalStats && item.retrievalStats.injectedCount) || 0);
     }
 
+    function getRetrievalPriority(item) {
+        const priority = Number(item && item.retrievalPriority);
+        if (priority === RETRIEVAL_PRIORITY.pinned || priority === RETRIEVAL_PRIORITY.low) return priority;
+        return item && item.pinned ? RETRIEVAL_PRIORITY.pinned : RETRIEVAL_PRIORITY.normal;
+    }
+
+    function getRetrievalPriorityLabel(item) {
+        const priority = getRetrievalPriority(item);
+        if (priority === RETRIEVAL_PRIORITY.pinned) return '置顶';
+        if (priority === RETRIEVAL_PRIORITY.low) return '降低优先级';
+        return '普通';
+    }
+
     function hydrateMemoryItem(item) {
         if (!item || !item.id || !item.bindingId || !item.content) return null;
         return {
             ...item,
             schemaVersion: Math.max(Number(item.schemaVersion) || 1, MEMORY_SCHEMA_VERSION),
             revision: Math.max(1, Number(item.revision) || 1),
+            retrievalPriority: getRetrievalPriority(item),
             sourceRefs: Array.isArray(item.sourceRefs) ? item.sourceRefs : [],
             retrievalStats: item.retrievalStats && typeof item.retrievalStats === 'object'
                 ? item.retrievalStats
@@ -301,14 +316,15 @@
                 const ageDays = Math.max(0, (now - Date.parse(item.updatedAt || item.createdAt || now)) / 86400000);
                 const recencyScore = Math.max(0, 3 - Math.floor(ageDays / 21));
                 const authorityScore = item.authority === 'user_confirmed' ? 4 : 1;
-                const pinScore = item.pinned ? 5 : 0;
+                const priorityScore = getRetrievalPriority(item);
                 const repeatPenalty = Math.min(4, Math.floor(getRetrievalCount(item) / 3));
                 const inCooldown = Number.isFinite(lastInjectedAt) && now - lastInjectedAt < RETRIEVAL_COOLDOWN_MS;
-                const score = matchedTerms.length * 8 + recencyScore + authorityScore + pinScore - repeatPenalty;
+                const score = matchedTerms.length * 8 + recencyScore + authorityScore + priorityScore - repeatPenalty;
                 const reasons = [
                     matchedTerms.length ? '命中 ' + matchedTerms.slice(0, 3).join('、') : '',
                     recencyScore ? '近期记录' : '',
-                    item.pinned ? '已置顶' : '',
+                    priorityScore === RETRIEVAL_PRIORITY.pinned ? '已置顶' : '',
+                    priorityScore === RETRIEVAL_PRIORITY.low ? '降低优先级' : '',
                     inCooldown ? '冷却中' : ''
                 ].filter(Boolean);
                 return { item, score, reasons, inCooldown };
@@ -351,6 +367,54 @@
         const matches = getRelevantFragmentMatches(bindingId, query, limit, turnId);
         if (matches.length) recordFragmentInjection(matches, turnId);
         return matches.map((match) => match.content);
+    }
+
+    async function setMemoryRetrievalPriority(itemId, priority) {
+        const item = cachedMemoryItems.find((memory) => memory && memory.id === itemId && memory.bindingId === selectedContactId && memory.status === 'active' && memory.tier === 'L3');
+        if (!item || !Object.values(RETRIEVAL_PRIORITY).includes(priority)) return false;
+        const now = new Date().toISOString();
+        const nextItems = cachedMemoryItems.map((memory) => memory.id === itemId ? {
+            ...memory,
+            retrievalPriority: priority,
+            pinned: priority === RETRIEVAL_PRIORITY.pinned,
+            revision: Math.max(1, Number(memory.revision) || 1) + 1,
+            updatedAt: now
+        } : memory);
+        const saved = await writeRecord({ id: MEMORY_ITEMS_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items: nextItems });
+        if (saved) {
+            cachedMemoryItems = nextItems;
+            render();
+        }
+        return saved;
+    }
+
+    function runRetrievalEvaluation() {
+        const originalItems = cachedMemoryItems;
+        const now = new Date().toISOString();
+        const fixture = (id, bindingId, content, extras = {}) => hydrateMemoryItem({
+            id, bindingId, content, kind: 'fragment', tier: 'L3', status: 'active', authority: 'user_quote',
+            keywords: ['coffee'], createdAt: now, updatedAt: now, sourceRefs: [], ...extras
+        });
+        cachedMemoryItems = [
+            fixture('plain', 'role-a', 'coffee at the corner shop'),
+            fixture('pinned', 'role-a', 'coffee from the usual cafe', { retrievalPriority: RETRIEVAL_PRIORITY.pinned }),
+            fixture('other-role', 'role-b', 'coffee for another role', { retrievalPriority: RETRIEVAL_PRIORITY.pinned }),
+            fixture('archived', 'role-a', 'archived coffee', { status: 'archived', retrievalPriority: RETRIEVAL_PRIORITY.pinned }),
+            fixture('cooling', 'role-a', 'coffee just used', { retrievalStats: { injectedCount: 1, lastInjectedAt: now } })
+        ];
+        try {
+            const matches = getRelevantFragmentMatches('role-a', 'coffee', 4);
+            const ids = matches.map((match) => match.id);
+            const cases = [
+                { name: '角色隔离', pass: !ids.includes('other-role') },
+                { name: '归档不召回', pass: !ids.includes('archived') },
+                { name: '冷却不重复', pass: !ids.includes('cooling') },
+                { name: '置顶优先', pass: ids[0] === 'pinned' }
+            ];
+            return { passed: cases.every((entry) => entry.pass), cases };
+        } finally {
+            cachedMemoryItems = originalItems;
+        }
     }
 
     function getSummaryJob(bindingId, messages) {
@@ -669,6 +733,24 @@
             restoreButton.addEventListener('click', () => void restoreMemory(item.id));
             actions.append(restoreButton);
         } else {
+            if (item.tier === 'L3') {
+                const prioritySelect = document.createElement('select');
+                prioritySelect.className = 'memory-priority-action';
+                prioritySelect.setAttribute('aria-label', '片段召回优先级');
+                [
+                    [RETRIEVAL_PRIORITY.pinned, '置顶'],
+                    [RETRIEVAL_PRIORITY.normal, '普通'],
+                    [RETRIEVAL_PRIORITY.low, '降低']
+                ].forEach(([value, label]) => {
+                    const option = document.createElement('option');
+                    option.value = String(value);
+                    option.textContent = label;
+                    option.selected = value === getRetrievalPriority(item);
+                    prioritySelect.appendChild(option);
+                });
+                prioritySelect.addEventListener('change', () => void setMemoryRetrievalPriority(item.id, Number(prioritySelect.value)));
+                actions.append(prioritySelect);
+            }
             const editButton = document.createElement('button');
             editButton.type = 'button';
             editButton.textContent = '编辑';
@@ -686,12 +768,13 @@
         const provenance = document.createElement('p');
         provenance.className = 'memory-entry-provenance';
         const recallReasons = Array.isArray(item.retrievalStats && item.retrievalStats.lastReasons) ? item.retrievalStats.lastReasons : [];
+        const priorityCopy = item.tier === 'L3' ? '优先级：' + getRetrievalPriorityLabel(item) : '';
         const recallCopy = getRetrievalCount(item) > 0
             ? ' · 召回 ' + getRetrievalCount(item) + ' 次' + (recallReasons.length ? '（' + recallReasons.join('、') + '）' : '')
             : '';
         provenance.textContent = (item.status === 'archived' || item.status === 'superseded')
             ? ('状态：' + (getArchiveReason(item) || '已归档'))
-            : getSourceLabel(item) + recallCopy;
+            : [getSourceLabel(item), priorityCopy].filter(Boolean).join(' · ') + recallCopy;
         entry.append(entryHeader, text, provenance);
         list.appendChild(entry);
     }
@@ -1187,6 +1270,7 @@
             .memory-entry-actions { display: flex; flex: 0 0 auto; gap: 6px; }
             .memory-entry-actions button { border: 0; padding: 3px 0; background: transparent; color: var(--memory-secondary); font: 12px/1 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
             .memory-entry-actions .memory-delete-action { color: #ff3b30; }
+            .memory-entry-actions .memory-priority-action { max-width: 58px; border: 0; padding: 2px 0; background: transparent; color: var(--memory-blue); font: 12px/1 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
             .memory-entry p { margin: 7px 0 0; color: #1c1c1e; font-size: 15px; line-height: 1.62; white-space: pre-wrap; }
             .memory-entry .memory-entry-provenance { margin-top: 9px; color: var(--memory-secondary); font-size: 11px; line-height: 1.45; }
             .memory-tabs { position: sticky; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); width: 100%; margin: 8px 0 0; padding: 5px; border-radius: 24px; box-sizing: border-box; background: rgba(255,255,255,.94); box-shadow: 0 7px 20px rgba(60,60,67,.08); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
@@ -1271,6 +1355,7 @@
         markChatTurnFailed,
         getPromptSummary,
         getRelevantFragments,
+        runRetrievalEvaluation,
         getSummaryJob,
         completeSummary,
         invalidateSources
