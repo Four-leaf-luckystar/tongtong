@@ -340,18 +340,20 @@
             calendar.push(`<span class="ra-calendar-day" data-level="${level}">${day}</span>`);
         }
         const finished = data.books.filter(book => Number(book.progress) >= 99.5).length;
+        const started = data.books.filter(book => Number(book.progress) > 0).length;
         const reading = data.books.filter(book => Number(book.progress) > 0 && Number(book.progress) < 99.5).length;
         const daysRead = Object.values(data.readingMsByDay).filter(value => Number(value) > 0).length;
         const words = data.books.reduce((total, book) => total + (book.content || '').replace(/\s/g, '').length * (Number(book.progress) || 0) / 100, 0);
-        root.querySelector('#raStats').innerHTML = `<div class="ra-stat-period">日　 周　 月　 年　 总</div><section class="ra-stat-card ra-stat-grid"><b>${totalMinutes} 分钟<small>阅读时间</small></b><b>${daysRead} 天<small>阅读天数</small></b><b>${data.books.length} 本<small>累计读过</small></b><b>${finished} 本<small>读完书籍</small></b><b>${reading} 本<small>在读书籍</small></b><b>0 条<small>记录笔记</small></b><b>${Math.floor(words)} 字<small>阅读字数</small></b><b>${totalMinutes ? Math.floor(words / totalMinutes) : 0} 字/分钟<small>阅读速度</small></b></section><section class="ra-stat-card"><div class="ra-stat-top"><strong>阅读时间趋势</strong><span class="ra-stat-note">${year}年${month + 1}月</span></div><div class="ra-calendar">${calendar.join('')}</div></section>`;
+        root.querySelector('#raStats').innerHTML = `<div class="ra-stat-period">日　 周　 月　 年　 总</div><section class="ra-stat-card ra-stat-grid"><b>${totalMinutes} 分钟<small>阅读时间</small></b><b>${daysRead} 天<small>阅读天数</small></b><b>${started} 本<small>累计读过</small></b><b>${finished} 本<small>读完书籍</small></b><b>${reading} 本<small>在读书籍</small></b><b>0 条<small>记录笔记</small></b><b>${Math.floor(words)} 字<small>阅读字数</small></b><b>${totalMinutes ? Math.floor(words / totalMinutes) : 0} 字/分钟<small>阅读速度</small></b></section><section class="ra-stat-card"><div class="ra-stat-top"><strong>阅读时间趋势</strong><span class="ra-stat-note">${year}年${month + 1}月</span></div><div class="ra-calendar">${calendar.join('')}</div></section>`;
     }
 
     function renderDashboard() {
         const totalMs = Object.values(data.readingMsByDay).reduce((total, value) => total + Number(value || 0), 0);
         const totalMinutes = Math.floor(totalMs / 60000);
         const finished = data.books.filter(book => Number(book.progress) >= 99.5).length;
+        const started = data.books.filter(book => Number(book.progress) > 0).length;
         const current = data.books.filter(book => Number(book.progress) > 0 && Number(book.progress) < 99.5).sort((a, b) => (b.lastReadAt || 0) - (a.lastReadAt || 0))[0];
-        root.querySelector('#raDashboard').innerHTML = `<button class="ra-summary" type="button" data-reader-view-button="stats"><b>累计阅读</b><span>${totalMinutes} 分钟　·　${finished} 本　›</span></button><section class="ra-home-section"><h2>继续阅读　›</h2>${current ? `<button class="ra-continue" type="button" data-reader-book="${escapeHtml(current.id)}">${escapeHtml(current.title)}<small>已读 ${Math.floor(current.progress || 0)}%</small></button>` : '<p>还没有阅读记录哦</p>'}</section><section class="ra-home-section"><h2>阅读目标　⌘</h2><p>找到你喜欢的书，开始阅读吧！</p><div class="ra-goal"><b>今日目标</b><strong>${Math.floor((data.readingMsByDay[getDayKey(new Date())] || 0) / 60000)} 分钟</strong><button type="button" data-reader-view-button="home">开始阅读</button></div></section>`;
+        root.querySelector('#raDashboard').innerHTML = `<button class="ra-summary" type="button" data-reader-view-button="stats"><b>累计阅读</b><span>${totalMinutes} 分钟　·　${started} 本　›</span></button><section class="ra-home-section"><h2>继续阅读　›</h2>${current ? `<button class="ra-continue" type="button" data-reader-book="${escapeHtml(current.id)}">${escapeHtml(current.title)}<small>已读 ${Math.floor(current.progress || 0)}%</small></button>` : '<p>还没有阅读记录哦</p>'}</section><section class="ra-home-section"><h2>阅读目标　⌘</h2><p>找到你喜欢的书，开始阅读吧！</p><div class="ra-goal"><b>今日目标</b><strong>${Math.floor((data.readingMsByDay[getDayKey(new Date())] || 0) / 60000)} 分钟</strong><button type="button" data-reader-view-button="home">开始阅读</button></div></section>`;
     }
 
     function renderProfile() {
