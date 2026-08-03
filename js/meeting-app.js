@@ -13,6 +13,41 @@
         return new TextDecoder().decode(bytes);
     }
 
+    function getApiCompletionUrl(url) {
+        const base = String(url || '').trim().replace(/\/+$/, '');
+        return /\/chat\/completions$/i.test(base) ? base : base + '/chat/completions';
+    }
+
+    window.requestMeetingApiReply = async function requestMeetingApiReply({ messages, systemPrompt, signal }) {
+        const api = apiDataList.find(item => item.id === apiConnectedId);
+        if (!api?.url || !api?.key || !api?.model) {
+            throw new Error('请先在设置中连接一个 API 预设');
+        }
+
+        const response = await fetch(getApiCompletionUrl(api.url), {
+            method: 'POST',
+            headers: {
+                Authorization: 'Bearer ' + api.key,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: api.model,
+                temperature: api.temperature !== undefined ? api.temperature : 0.8,
+                messages: [
+                    ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+                    ...messages
+                ]
+            }),
+            signal
+        });
+
+        if (!response.ok) throw new Error('API 请求失败：HTTP ' + response.status);
+        const result = await response.json();
+        const content = result?.choices?.[0]?.message?.content ?? result?.choices?.[0]?.text ?? result?.output_text;
+        if (!String(content || '').trim()) throw new Error('API 没有返回可显示的内容');
+        return String(content).trim();
+    };
+
     function bindReturnToDesktop(frame) {
         const documentInFrame = frame.contentDocument;
         const backControl = documentInFrame?.querySelector('.header-left-capsule');
