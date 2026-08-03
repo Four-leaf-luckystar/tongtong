@@ -14,6 +14,10 @@
     const MAX_SUMMARY_INTERVAL = 500;
     const SUMMARY_PREFERENCES_VERSION = 2;
     const MAX_SUMMARY_SOURCE_MESSAGES = 160;
+    const MEMORY_SCHEMA_VERSION = 2;
+    const OUTBOX_MAX_ATTEMPTS = 8;
+    const OUTBOX_MAX_RETRY_DELAY_MS = 60 * 60 * 1000;
+    const RETRIEVAL_COOLDOWN_MS = 8 * 60 * 1000;
     let root = null;
     let selectedContactId = '';
     let activeTab = 'memory';
@@ -95,10 +99,10 @@
                 }
                 const transaction = database.transaction(STORE_NAME, 'readwrite');
                 const store = transaction.objectStore(STORE_NAME);
-                store.put({ id: MEMORY_ITEMS_KEY, schemaVersion: 1, items });
-                store.put({ id: MEMORY_OUTBOX_KEY, schemaVersion: 1, items: outbox });
+                store.put({ id: MEMORY_ITEMS_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items });
+                store.put({ id: MEMORY_OUTBOX_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items: outbox });
                 if (Array.isArray(summaries)) {
-                    store.put({ id: MEMORY_SUMMARIES_KEY, schemaVersion: 1, items: summaries });
+                    store.put({ id: MEMORY_SUMMARIES_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items: summaries });
                 }
                 transaction.oncomplete = () => {
                     database.close();
@@ -210,6 +214,50 @@
             : [];
     }
 
+    function getArchiveReason(item) {
+        const reason = String(item && item.archiveReason || '').trim();
+        return ({ user_deleted: '用户归档', source_removed: '来源已删除', superseded: '已被新记忆替代' })[reason] || reason;
+    }
+
+    function getSourceLabel(item) {
+        const source = Array.isArray(item && item.sourceRefs) ? item.sourceRefs[0] : null;
+        if (!source) return '来源：未标注';
+        if (source.type === 'manual') return '来源：手动添加';
+        if (source.type === 'manual_edit') return '来源：手动修订';
+        if (source.messageId) return '来源：聊天记录';
+        return '来源：已记录';
+    }
+
+    function getRetrievalCount(item) {
+        return Math.max(0, Number(item && item.retrievalStats && item.retrievalStats.injectedCount) || 0);
+    }
+
+    function hydrateMemoryItem(item) {
+        if (!item || !item.id || !item.bindingId || !item.content) return null;
+        return {
+            ...item,
+            schemaVersion: Math.max(Number(item.schemaVersion) || 1, MEMORY_SCHEMA_VERSION),
+            revision: Math.max(1, Number(item.revision) || 1),
+            sourceRefs: Array.isArray(item.sourceRefs) ? item.sourceRefs : [],
+            retrievalStats: item.retrievalStats && typeof item.retrievalStats === 'object'
+                ? item.retrievalStats
+                : { injectedCount: 0, lastInjectedAt: '', lastInjectedTurn: '', lastScore: 0, lastReasons: [] }
+        };
+    }
+
+    function hydrateOutboxItem(item) {
+        if (!item || !item.id || !item.bindingId || !Array.isArray(item.sourceMessages)) return null;
+        return {
+            ...item,
+            schemaVersion: Math.max(Number(item.schemaVersion) || 1, MEMORY_SCHEMA_VERSION),
+            status: item.status === 'failed' ? 'failed' : 'pending',
+            attempts: Math.max(0, Number(item.attempts) || 0),
+            nextAttemptAt: item.nextAttemptAt || '',
+            lastError: item.lastError || '',
+            updatedAt: item.updatedAt || item.createdAt || new Date().toISOString()
+        };
+    }
+
     function createTextTerms(value) {
         const text = normalizeMemoryText(value).toLowerCase();
         const terms = new Set();
@@ -238,22 +286,71 @@
             .slice(0, 900);
     }
 
-    function getRelevantFragments(bindingId, query, limit = 3) {
+    function getRelevantFragmentMatches(bindingId, query, limit = 3, turnId = '') {
         const queryTerms = new Set(createTextTerms(query));
         if (queryTerms.size === 0) return [];
         const maxItems = Math.max(1, Math.min(Number(limit) || 3, 4));
+        const now = Date.now();
         return cachedMemoryItems
             .filter((item) => item && item.bindingId === bindingId && item.tier === 'L3' && item.kind === 'fragment' && item.status === 'active')
             .map((item) => {
                 const terms = Array.isArray(item.keywords) ? item.keywords : createTextTerms(item.content);
-                const score = terms.reduce((total, term) => total + (queryTerms.has(term) ? 1 : 0), 0);
-                return { item, score };
+                const matchedTerms = terms.filter((term) => queryTerms.has(term));
+                const stats = item.retrievalStats || {};
+                const lastInjectedAt = Date.parse(stats.lastInjectedAt || '');
+                const ageDays = Math.max(0, (now - Date.parse(item.updatedAt || item.createdAt || now)) / 86400000);
+                const recencyScore = Math.max(0, 3 - Math.floor(ageDays / 21));
+                const authorityScore = item.authority === 'user_confirmed' ? 4 : 1;
+                const pinScore = item.pinned ? 5 : 0;
+                const repeatPenalty = Math.min(4, Math.floor(getRetrievalCount(item) / 3));
+                const inCooldown = Number.isFinite(lastInjectedAt) && now - lastInjectedAt < RETRIEVAL_COOLDOWN_MS;
+                const score = matchedTerms.length * 8 + recencyScore + authorityScore + pinScore - repeatPenalty;
+                const reasons = [
+                    matchedTerms.length ? '命中 ' + matchedTerms.slice(0, 3).join('、') : '',
+                    recencyScore ? '近期记录' : '',
+                    item.pinned ? '已置顶' : '',
+                    inCooldown ? '冷却中' : ''
+                ].filter(Boolean);
+                return { item, score, reasons, inCooldown };
             })
-            .filter(({ score }) => score > 0)
+            .filter(({ score, inCooldown }) => score > 0 && !inCooldown)
             .sort((left, right) => right.score - left.score || String(right.item.createdAt || '').localeCompare(String(left.item.createdAt || '')))
             .slice(0, maxItems)
-            .map(({ item }) => normalizeMemoryText(item.content))
-            .filter((content) => content && content.length <= 220);
+            .filter(({ item }) => normalizeMemoryText(item.content).length <= 220)
+            .map(({ item, score, reasons }) => ({ id: item.id, content: normalizeMemoryText(item.content), score, reasons }));
+    }
+
+    function recordFragmentInjection(matches, turnId = '') {
+        const matchById = new Map((Array.isArray(matches) ? matches : []).map((match) => [match && match.id, match]).filter(([id]) => Boolean(id)));
+        if (matchById.size === 0) return;
+        const now = new Date().toISOString();
+        const nextItems = cachedMemoryItems.map((item) => {
+            const match = matchById.get(item && item.id);
+            if (!match) return item;
+            const previousStats = item.retrievalStats || {};
+            return {
+                ...item,
+                revision: Math.max(1, Number(item.revision) || 1) + 1,
+                updatedAt: now,
+                retrievalStats: {
+                    ...previousStats,
+                    injectedCount: getRetrievalCount(item) + 1,
+                    lastInjectedAt: now,
+                    lastInjectedTurn: String(turnId || ''),
+                    lastScore: match.score,
+                    lastReasons: Array.isArray(match.reasons) ? match.reasons.slice(0, 4) : []
+                }
+            };
+        });
+        cachedMemoryItems = nextItems;
+        // The prompt is already assembled. Persist observability without delaying the chat request.
+        void writeRecord({ id: MEMORY_ITEMS_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items: nextItems });
+    }
+
+    function getRelevantFragments(bindingId, query, limit = 3, turnId = '') {
+        const matches = getRelevantFragmentMatches(bindingId, query, limit, turnId);
+        if (matches.length) recordFragmentInjection(matches, turnId);
+        return matches.map((match) => match.content);
     }
 
     function getSummaryJob(bindingId, messages) {
@@ -294,7 +391,7 @@
         const milestones = ['恋人', '分手', '复合', '同居', '订婚', '结婚', '怀孕', '患病', '创伤'];
         const matched = milestones.filter((milestone) => value.includes(milestone));
         if (matched.length === 0) return true;
-        const facts = getActiveItems(bindingId, 'memory')
+        const facts = cachedMemoryItems.filter((item) => item && item.bindingId === bindingId && item.tier === 'L1' && item.status === 'active')
             .filter((item) => item.authority === 'user_confirmed' || item.authority === 'user_quote');
         return matched.every((milestone) => facts.some((item) => String(item.content || '').includes(milestone)));
     }
@@ -303,15 +400,14 @@
         if (!job || !job.bindingId || !candidate || !Array.isArray(candidate.sections)) return false;
         if (job.sourceMessages.some((message) => invalidatedSourceIds.has(String(message.id)))) return false;
         const previous = getActiveSummary(job.bindingId);
+        // A section may only cite messages present in this generation input.
+        // Previous summaries provide context, but are never evidence for a new revision.
         const validSourceIds = new Set(job.sourceMessages.map((message) => String(message.id)));
-        if (previous && Array.isArray(previous.sourceMessageIds)) {
-            previous.sourceMessageIds.forEach((id) => validSourceIds.add(String(id)));
-        }
         const sections = candidate.sections.slice(0, 1).map((section) => {
             const content = normalizeMemoryText(section && section.content);
-            const sourceMessageIds = Array.from(new Set((Array.isArray(section && section.sourceMessageIds) ? section.sourceMessageIds : [])
-                .map(String)
-                .filter((id) => validSourceIds.has(id))));
+            const reportedSourceIds = (Array.isArray(section && section.sourceMessageIds) ? section.sourceMessageIds : []).map(String);
+            if (reportedSourceIds.length === 0 || reportedSourceIds.some((id) => !validSourceIds.has(id))) return null;
+            const sourceMessageIds = Array.from(new Set(reportedSourceIds));
             if (!content || content.length > 30 || sourceMessageIds.length === 0 || isSensitiveAutomaticMemory(content) || !hasVerifiedMilestone(job.bindingId, content)) return null;
             return { title: normalizeMemoryText(section && section.title).slice(0, 20) || '近况', content, sourceMessageIds };
         }).filter(Boolean);
@@ -327,7 +423,7 @@
         }, ...(Array.isArray(previous.history) ? previous.history : [])] : [];
         const nextSummary = {
             id: previous ? previous.id : 'summary_' + job.bindingId,
-            schemaVersion: 1,
+            schemaVersion: MEMORY_SCHEMA_VERSION,
             bindingId: job.bindingId,
             tier: 'L2',
             status: 'active',
@@ -356,7 +452,7 @@
             if (!item || item.bindingId !== bindingId || item.status !== 'active') return item;
             if (!getSourceIds(item).some((id) => invalidIds.has(id))) return item;
             changed = true;
-            return { ...item, status: 'archived', updatedAt: now };
+            return { ...item, status: 'archived', archiveReason: 'source_removed', updatedAt: now, revision: Math.max(1, Number(item.revision) || 1) + 1 };
         });
         const nextSummaries = cachedSummaries.map((summary) => {
             if (!summary || summary.bindingId !== bindingId || summary.status !== 'active') return summary;
@@ -384,7 +480,8 @@
 
     function getPromptMemories(contactId, limit = 6) {
         const maxItems = Math.max(1, Math.min(Number(limit) || 6, 8));
-        return getActiveItems(contactId, 'memory')
+        return cachedMemoryItems
+            .filter((item) => item && item.bindingId === contactId && item.tier === 'L1' && item.status === 'active')
             .filter((item) => item.authority === 'user_confirmed' || item.authority === 'user_quote')
             .sort((left, right) => {
                 const authorityWeight = (item) => item.authority === 'user_confirmed' ? 1 : 0;
@@ -398,10 +495,10 @@
     async function preload() {
         const records = await readRecords([PREFERENCES_KEY, MEMORY_ITEMS_KEY, MEMORY_OUTBOX_KEY, MEMORY_SUMMARIES_KEY]);
         cachedMemoryItems = Array.isArray(records[MEMORY_ITEMS_KEY] && records[MEMORY_ITEMS_KEY].items)
-            ? records[MEMORY_ITEMS_KEY].items.filter((item) => item && item.id && item.bindingId && item.content)
+            ? records[MEMORY_ITEMS_KEY].items.map(hydrateMemoryItem).filter(Boolean)
             : [];
         cachedOutbox = Array.isArray(records[MEMORY_OUTBOX_KEY] && records[MEMORY_OUTBOX_KEY].items)
-            ? records[MEMORY_OUTBOX_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sourceMessages))
+            ? records[MEMORY_OUTBOX_KEY].items.map(hydrateOutboxItem).filter(Boolean)
             : [];
         cachedSummaries = Array.isArray(records[MEMORY_SUMMARIES_KEY] && records[MEMORY_SUMMARIES_KEY].items)
             ? records[MEMORY_SUMMARIES_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sections))
@@ -416,26 +513,56 @@
 
         const item = {
             id: turnId,
+            schemaVersion: MEMORY_SCHEMA_VERSION,
             bindingId,
+            status: 'pending',
+            attempts: 0,
+            nextAttemptAt: '',
+            lastError: '',
             sourceMessages: sourceMessages
                 .filter((message) => message && message.id && (message.type === 'sent' || message.type === 'received') && normalizeMemoryText(message.text))
                 .map((message) => ({ id: String(message.id), type: message.type, text: String(message.text) }))
                 .slice(-12),
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
         };
         if (item.sourceMessages.length === 0) return false;
 
         const nextOutbox = [...cachedOutbox, item].slice(-60);
-        const saved = await writeRecord({ id: MEMORY_OUTBOX_KEY, schemaVersion: 1, items: nextOutbox });
+        const saved = await writeRecord({ id: MEMORY_OUTBOX_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items: nextOutbox });
         if (saved) cachedOutbox = nextOutbox;
         return saved;
     }
 
     function getPendingChatTurns(bindingId, limit = 1) {
+        const now = Date.now();
         return cachedOutbox
+            .filter((item) => item && item.status === 'pending' && Number(item.attempts || 0) < OUTBOX_MAX_ATTEMPTS)
             .filter((item) => !bindingId || item.bindingId === bindingId)
+            .filter((item) => !item.nextAttemptAt || Date.parse(item.nextAttemptAt) <= now)
+            .sort((left, right) => String(left.createdAt || '').localeCompare(String(right.createdAt || '')))
             .slice(0, Math.max(1, Number(limit) || 1))
             .map((item) => ({ ...item, sourceMessages: item.sourceMessages.map((message) => ({ ...message })) }));
+    }
+
+    async function markChatTurnFailed(turnId, error) {
+        const queuedTurn = cachedOutbox.find((item) => item && item.id === turnId);
+        if (!queuedTurn) return false;
+        const attempts = Math.max(0, Number(queuedTurn.attempts) || 0) + 1;
+        const delayMs = Math.min(OUTBOX_MAX_RETRY_DELAY_MS, Math.pow(2, Math.min(attempts, 7)) * 15000);
+        const now = new Date().toISOString();
+        const nextStatus = attempts >= OUTBOX_MAX_ATTEMPTS ? 'failed' : 'pending';
+        const nextOutbox = cachedOutbox.map((item) => item.id === turnId ? {
+            ...item,
+            status: nextStatus,
+            attempts,
+            lastError: String(error && error.message || error || 'unknown error').slice(0, 240),
+            nextAttemptAt: nextStatus === 'pending' ? new Date(Date.now() + delayMs).toISOString() : '',
+            updatedAt: now
+        } : item);
+        const saved = await writeRecord({ id: MEMORY_OUTBOX_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items: nextOutbox });
+        if (saved) cachedOutbox = nextOutbox;
+        return saved;
     }
 
     async function completeChatTurn(turnId, candidates) {
@@ -467,7 +594,7 @@
             existingContents.add(normalizedQuote);
             newItems.push({
                 id: 'memory_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-                schemaVersion: 1,
+                schemaVersion: MEMORY_SCHEMA_VERSION,
                 bindingId: queuedTurn.bindingId,
                 kind: 'memory',
                 tier: 'L1',
@@ -477,6 +604,8 @@
                 visibility: 'current_binding',
                 content: quote,
                 sourceRefs: [{ type: 'chat_quote', messageId: message.id, quote, createdAt: now }],
+                revision: 1,
+                retrievalStats: { injectedCount: 0, lastInjectedAt: '', lastInjectedTurn: '', lastScore: 0, lastReasons: [] },
                 createdAt: now,
                 updatedAt: now
             });
@@ -488,7 +617,7 @@
             existingFragmentSources.add(String(message.id));
             newItems.push({
                 id: 'fragment_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-                schemaVersion: 1,
+                schemaVersion: MEMORY_SCHEMA_VERSION,
                 bindingId: queuedTurn.bindingId,
                 kind: 'fragment',
                 tier: 'L3',
@@ -499,6 +628,8 @@
                 content,
                 keywords: createTextTerms(content),
                 sourceRefs: [{ type: 'chat_fragment', messageId: message.id, quote: content, createdAt: now }],
+                revision: 1,
+                retrievalStats: { injectedCount: 0, lastInjectedAt: '', lastInjectedTurn: '', lastScore: 0, lastReasons: [] },
                 createdAt: now,
                 updatedAt: now
             });
@@ -531,26 +662,48 @@
             : (formatMemoryDate(item.createdAt) || '手动记录');
         const actions = document.createElement('div');
         actions.className = 'memory-entry-actions';
-        const editButton = document.createElement('button');
-        editButton.type = 'button';
-        editButton.textContent = '编辑';
-        editButton.addEventListener('click', () => openComposer(item));
-        const deleteButton = document.createElement('button');
-        deleteButton.type = 'button';
-        deleteButton.textContent = '删除';
-        deleteButton.addEventListener('click', () => requestArchiveMemory(item.id));
-        actions.append(editButton, deleteButton);
+        if (item.status === 'archived' && item.archiveReason !== 'source_removed') {
+            const restoreButton = document.createElement('button');
+            restoreButton.type = 'button';
+            restoreButton.textContent = '恢复';
+            restoreButton.addEventListener('click', () => void restoreMemory(item.id));
+            actions.append(restoreButton);
+        } else {
+            const editButton = document.createElement('button');
+            editButton.type = 'button';
+            editButton.textContent = '编辑';
+            editButton.addEventListener('click', () => openComposer(item));
+            const deleteButton = document.createElement('button');
+            deleteButton.type = 'button';
+            deleteButton.className = 'memory-delete-action';
+            deleteButton.textContent = '删除';
+            deleteButton.addEventListener('click', () => requestArchiveMemory(item.id));
+            actions.append(editButton, deleteButton);
+        }
         entryHeader.append(meta, actions);
         const text = document.createElement('p');
         text.textContent = item.content || '';
-        entry.append(entryHeader, text);
+        const provenance = document.createElement('p');
+        provenance.className = 'memory-entry-provenance';
+        const recallReasons = Array.isArray(item.retrievalStats && item.retrievalStats.lastReasons) ? item.retrievalStats.lastReasons : [];
+        const recallCopy = getRetrievalCount(item) > 0
+            ? ' · 召回 ' + getRetrievalCount(item) + ' 次' + (recallReasons.length ? '（' + recallReasons.join('、') + '）' : '')
+            : '';
+        provenance.textContent = (item.status === 'archived' || item.status === 'superseded')
+            ? ('状态：' + (getArchiveReason(item) || '已归档'))
+            : getSourceLabel(item) + recallCopy;
+        entry.append(entryHeader, text, provenance);
         list.appendChild(entry);
     }
 
     function renderMemoryContent(contact) {
         const content = root.querySelector('[data-memory-content]');
         const title = root.querySelector('[data-memory-card-title]');
-        const items = contact ? getActiveItems(contact.id, activeTab) : [];
+        const items = contact
+            ? (activeTab === 'archive'
+                ? cachedMemoryItems.filter((item) => item && item.bindingId === contact.id && (item.status === 'archived' || item.status === 'superseded')).sort((left, right) => String(right.updatedAt || '').localeCompare(String(left.updatedAt || '')))
+                : getActiveItems(contact.id, activeTab))
+            : [];
         const summary = contact && activeTab === 'relationship' ? getActiveSummary(contact.id) : null;
         const [emptyTitle, emptyText] = getEmptyCopy();
         title.textContent = '@ ' + getTabLabel();
@@ -724,30 +877,32 @@
         }
         const now = new Date().toISOString();
         const existingItem = editingMemoryId && cachedMemoryItems.find((item) => item.id === editingMemoryId && item.bindingId === selectedContactId);
-        const item = existingItem ? {
-            ...existingItem,
-            status: 'active',
-            authority: 'user_confirmed',
-            content,
-            keywords: existingItem.tier === 'L3' ? createTextTerms(content) : existingItem.keywords,
-            sourceRefs: [{ type: 'manual_edit', createdAt: now }],
-            updatedAt: now
-        } : {
+        const item = {
             id: 'memory_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-            schemaVersion: 1,
+            schemaVersion: MEMORY_SCHEMA_VERSION,
             bindingId: selectedContactId,
-            kind: activeTab,
+            kind: existingItem ? existingItem.kind : (activeTab === 'archive' ? 'memory' : activeTab),
             tier: 'L1',
             status: 'active',
             authority: 'user_confirmed',
             visibility: 'current_binding',
             content,
-            sourceRefs: [{ type: 'manual', createdAt: now }],
+            sourceRefs: [{ type: existingItem ? 'manual_edit' : 'manual', createdAt: now }],
+            supersedes: existingItem ? existingItem.id : '',
+            revision: 1,
+            retrievalStats: { injectedCount: 0, lastInjectedAt: '', lastInjectedTurn: '', lastScore: 0, lastReasons: [] },
             createdAt: now,
             updatedAt: now
         };
         const nextItems = existingItem
-            ? cachedMemoryItems.map((memory) => memory.id === existingItem.id ? item : memory)
+            ? [...cachedMemoryItems.map((memory) => memory.id === existingItem.id ? {
+                ...memory,
+                status: 'superseded',
+                archiveReason: 'superseded',
+                supersededBy: item.id,
+                updatedAt: now,
+                revision: Math.max(1, Number(memory.revision) || 1) + 1
+            } : memory), item]
             : [...cachedMemoryItems, item];
         const nextSummaries = existingItem
             ? cachedSummaries.map((summary) => summary.bindingId === selectedContactId && summary.status === 'active'
@@ -756,7 +911,7 @@
             : null;
         const saved = existingItem
             ? await writeMemoryState(nextItems, cachedOutbox, nextSummaries)
-            : await writeRecord({ id: MEMORY_ITEMS_KEY, schemaVersion: 1, items: nextItems });
+            : await writeRecord({ id: MEMORY_ITEMS_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items: nextItems });
         if (!saved) {
             error.textContent = '暂时无法保存，请稍后重试。';
             return;
@@ -771,7 +926,13 @@
         const item = cachedMemoryItems.find((memory) => memory.id === itemId && memory.bindingId === selectedContactId && memory.status === 'active');
         if (!item) return false;
         const now = new Date().toISOString();
-        const nextItems = cachedMemoryItems.map((memory) => memory.id === itemId ? { ...memory, status: 'archived', updatedAt: now } : memory);
+        const nextItems = cachedMemoryItems.map((memory) => memory.id === itemId ? {
+            ...memory,
+            status: 'archived',
+            archiveReason: 'user_deleted',
+            updatedAt: now,
+            revision: Math.max(1, Number(memory.revision) || 1) + 1
+        } : memory);
         const nextSummaries = cachedSummaries.map((summary) => summary.bindingId === selectedContactId && summary.status === 'active'
             ? { ...summary, status: 'dirty', updatedAt: now }
             : summary);
@@ -781,6 +942,25 @@
         cachedSummaries = nextSummaries;
         render();
         return true;
+    }
+
+    async function restoreMemory(itemId) {
+        const item = cachedMemoryItems.find((memory) => memory && memory.id === itemId && memory.bindingId === selectedContactId && memory.status === 'archived' && memory.archiveReason !== 'source_removed');
+        if (!item) return false;
+        const now = new Date().toISOString();
+        const nextItems = cachedMemoryItems.map((memory) => memory.id === itemId ? {
+            ...memory,
+            status: 'active',
+            archiveReason: '',
+            updatedAt: now,
+            revision: Math.max(1, Number(memory.revision) || 1) + 1
+        } : memory);
+        const saved = await writeRecord({ id: MEMORY_ITEMS_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items: nextItems });
+        if (saved) {
+            cachedMemoryItems = nextItems;
+            render();
+        }
+        return saved;
     }
 
     function requestArchiveMemory(itemId) {
@@ -812,6 +992,7 @@
         root.querySelector('[data-memory-count]').textContent = String(memoryItems.length);
         root.querySelector('[data-memory-chat-count]').textContent = String(messages.length);
         root.querySelector('[data-memory-days]').textContent = String(getKnownDays(messages));
+        root.querySelector('[data-memory-action="add"]').hidden = activeTab === 'archive';
         root.querySelectorAll('[data-memory-tab]').forEach((button) => {
             button.classList.toggle('is-active', button.dataset.memoryTab === activeTab);
             button.setAttribute('aria-selected', String(button.dataset.memoryTab === activeTab));
@@ -831,10 +1012,10 @@
             ? records[CHATS_KEY].conversations
             : {};
         cachedMemoryItems = Array.isArray(records[MEMORY_ITEMS_KEY] && records[MEMORY_ITEMS_KEY].items)
-            ? records[MEMORY_ITEMS_KEY].items.filter((item) => item && item.id && item.bindingId && item.content)
+            ? records[MEMORY_ITEMS_KEY].items.map(hydrateMemoryItem).filter(Boolean)
             : [];
         cachedOutbox = Array.isArray(records[MEMORY_OUTBOX_KEY] && records[MEMORY_OUTBOX_KEY].items)
-            ? records[MEMORY_OUTBOX_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sourceMessages))
+            ? records[MEMORY_OUTBOX_KEY].items.map(hydrateOutboxItem).filter(Boolean)
             : [];
         cachedSummaries = Array.isArray(records[MEMORY_SUMMARIES_KEY] && records[MEMORY_SUMMARIES_KEY].items)
             ? records[MEMORY_SUMMARIES_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sections))
@@ -1005,8 +1186,9 @@
             .memory-entry-meta { display: block; color: var(--memory-blue); font-size: 11px; }
             .memory-entry-actions { display: flex; flex: 0 0 auto; gap: 6px; }
             .memory-entry-actions button { border: 0; padding: 3px 0; background: transparent; color: var(--memory-secondary); font: 12px/1 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
-            .memory-entry-actions button:last-child { color: #ff3b30; }
+            .memory-entry-actions .memory-delete-action { color: #ff3b30; }
             .memory-entry p { margin: 7px 0 0; color: #1c1c1e; font-size: 15px; line-height: 1.62; white-space: pre-wrap; }
+            .memory-entry .memory-entry-provenance { margin-top: 9px; color: var(--memory-secondary); font-size: 11px; line-height: 1.45; }
             .memory-tabs { position: sticky; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); width: 100%; margin: 8px 0 0; padding: 5px; border-radius: 24px; box-sizing: border-box; background: rgba(255,255,255,.94); box-shadow: 0 7px 20px rgba(60,60,67,.08); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
             .memory-tabs button { height: 44px; border: 0; border-radius: 19px; padding: 0; background: transparent; color: var(--memory-secondary); font: 14px/1 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
             .memory-tabs button.is-active { background: var(--memory-blue); color: #fff; font-weight: 700; }
@@ -1086,6 +1268,7 @@
         enqueueChatTurn,
         getPendingChatTurns,
         completeChatTurn,
+        markChatTurnFailed,
         getPromptSummary,
         getRelevantFragments,
         getSummaryJob,

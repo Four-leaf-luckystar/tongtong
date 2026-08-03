@@ -5833,6 +5833,9 @@
             await window.MemoryApp.completeChatTurn(turn.id, candidates);
         } catch (error) {
             console.warn('聊天记忆提取延后重试：', error);
+            if (typeof window.MemoryApp?.markChatTurnFailed === 'function') {
+                await window.MemoryApp.markChatTurnFailed(turn.id, error);
+            }
         } finally {
             wcMemoryExtractionTurnIds.delete(turn.id);
         }
@@ -6336,7 +6339,7 @@
             const latestUserMessage = (wcChatMessagesByContact[chatContactId] || [])
                 .slice().reverse().find((message) => message && message.type === 'sent' && typeof message.text === 'string');
             const relevantFragments = latestUserMessage && typeof window.MemoryApp?.getRelevantFragments === 'function'
-                ? window.MemoryApp.getRelevantFragments(chatContactId, latestUserMessage.text, 3)
+                ? window.MemoryApp.getRelevantFragments(chatContactId, latestUserMessage.text, 3, String(latestUserMessage.id || ''))
                 : [];
             if (relevantFragments.length > 0) {
                 systemPrompt += `<relevant_memory_fragments>\n`;
