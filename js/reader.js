@@ -1,0 +1,356 @@
+(function () {
+    'use strict';
+
+    const DATA_KEY = 'readerAppData';
+    const DB_NAME = 'iOSDesktopDB';
+    const STORE_NAME = 'layoutStore';
+    const DEFAULT_DATA = { version: 1, books: [], preferences: { fontSize: 18, lineHeight: 1.82 }, readingMsByDay: {} };
+    let root;
+    let data = null;
+    let activeView = 'home';
+    let activeBookId = null;
+    let sessionStartedAt = 0;
+    let persistTimer = null;
+    let searchMatches = [];
+    let currentMatch = -1;
+
+    function clone(value) { return JSON.parse(JSON.stringify(value)); }
+    function makeId(prefix) {
+        return prefix + '_' + (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '_' + Math.random().toString(16).slice(2));
+    }
+    function escapeHtml(value) {
+        const element = document.createElement('div');
+        element.textContent = value == null ? '' : String(value);
+        return element.innerHTML;
+    }
+    function getBook(bookId) { return data.books.find(book => book.id === bookId); }
+    function getDayKey(date) { return date.toISOString().slice(0, 10); }
+
+    function openDatabase() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME);
+            request.onerror = () => reject(request.error || new Error('阅读数据无法打开'));
+            request.onsuccess = () => resolve(request.result);
+        });
+    }
+
+    async function readData() {
+        const db = await openDatabase();
+        return new Promise((resolve, reject) => {
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.close();
+                reject(new Error('阅读数据存储尚未初始化'));
+                return;
+            }
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const request = tx.objectStore(STORE_NAME).get(DATA_KEY);
+            request.onsuccess = () => resolve(request.result && request.result.data ? request.result.data : null);
+            request.onerror = () => reject(request.error || new Error('阅读数据读取失败'));
+            tx.oncomplete = () => db.close();
+        });
+    }
+
+    async function writeData() {
+        const snapshot = clone(data);
+        const db = await openDatabase();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            tx.objectStore(STORE_NAME).put({ id: DATA_KEY, data: snapshot });
+            tx.oncomplete = () => { db.close(); resolve(); };
+            tx.onerror = () => { db.close(); reject(tx.error || new Error('阅读数据保存失败')); };
+        });
+    }
+
+    function scheduleSave() {
+        clearTimeout(persistTimer);
+        persistTimer = setTimeout(() => writeData().catch(error => console.warn('Reader save failed:', error)), 260);
+    }
+
+    function scanChapters(content) {
+        const chapters = [];
+        const pattern = /^(第[零一二三四五六七八九十百千万\d]+[章节回卷集篇]|chapter\s*\d+)/i;
+        let paragraphIndex = 0;
+        content.split(/\r?\n/).forEach(line => {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+            if (pattern.test(trimmed)) chapters.push({ title: trimmed.slice(0, 72), paragraphIndex });
+            paragraphIndex += 1;
+        });
+        return chapters;
+    }
+
+    function ensureRoot() {
+        root = document.getElementById('readerAppUI');
+        if (root) return;
+        root = document.createElement('section');
+        root.id = 'readerAppUI';
+        root.setAttribute('aria-label', '阅读');
+        root.innerHTML = `
+            <section class="ra-screen ra-home is-active" data-reader-view="home">
+                <header class="ra-header"><div><h1 class="ra-header-title">书架</h1><p class="ra-header-subtitle">READING ARCHIVE</p></div><button class="ra-icon-button" type="button" data-reader-action="import" aria-label="导入书籍">+</button></header>
+                <main class="ra-scroll"><nav class="ra-segment" aria-label="书架分组"><button class="is-active" type="button" data-reader-group="all">全部</button><button type="button" data-reader-group="reading">在读</button><button type="button" data-reader-group="done">读完</button></nav><div class="ra-books" id="raBooks"></div></main>
+            </section>
+            <section class="ra-screen ra-stats" data-reader-view="stats"><header class="ra-header"><div><h1 class="ra-header-title">统计</h1><p class="ra-header-subtitle">READING STATS</p></div><button class="ra-icon-button" type="button" data-reader-action="close" aria-label="返回桌面">×</button></header><main class="ra-scroll" id="raStats"></main></section>
+            <section class="ra-screen ra-profile" data-reader-view="profile"><header class="ra-header"><div><h1 class="ra-header-title">我的</h1><p class="ra-header-subtitle">MY LIBRARY</p></div><button class="ra-icon-button" type="button" data-reader-action="close" aria-label="返回桌面">×</button></header><main class="ra-scroll" id="raProfile"></main></section>
+            <section class="ra-screen ra-reader" data-reader-view="reader"><header class="ra-reader-header"><button class="ra-icon-button" type="button" data-reader-action="library" aria-label="返回书架">‹</button><div class="ra-reader-title" id="raReaderTitle"></div><button class="ra-icon-button" type="button" data-reader-action="toc" aria-label="目录">≡</button></header><main class="ra-reader-body" id="raReaderBody"></main><div class="ra-reader-toolbar"><button type="button" data-reader-action="toc"><b>≡</b>目录</button><button type="button" data-reader-action="search"><b>⌕</b>查找</button><button type="button" data-reader-action="settings"><b>Ａ</b>设置</button></div><div class="ra-search" id="raSearch"><input id="raSearchInput" type="search" placeholder="书内查找" autocomplete="off"><mark id="raSearchCount">0</mark><button type="button" data-reader-action="search-prev" aria-label="上一个结果">‹</button><button type="button" data-reader-action="search-next" aria-label="下一个结果">›</button><button type="button" data-reader-action="search-close" aria-label="关闭查找">×</button></div></section>
+            <nav class="ra-dock" id="raDock" aria-label="阅读导航"><button class="is-active" type="button" data-reader-view-button="home">书架</button><button type="button" data-reader-view-button="stats">统计</button><button type="button" data-reader-view-button="profile">我的</button></nav>
+            <div class="ra-sheet-backdrop" id="raSheetBackdrop" data-reader-action="sheet-close"></div>
+            <section class="ra-sheet" id="raSheet" aria-modal="true"><div class="ra-sheet-handle"></div><header class="ra-sheet-title"><span id="raSheetTitle"></span><button type="button" data-reader-action="sheet-close" aria-label="关闭">×</button></header><div class="ra-sheet-list" id="raSheetBody"></div></section>
+            <input id="raFileInput" type="file" accept=".txt,text/plain" hidden>
+        `;
+        (document.querySelector('.iphone') || document.body).appendChild(root);
+        bindEvents();
+    }
+
+    function bindEvents() {
+        root.addEventListener('click', event => {
+            const actionElement = event.target.closest('[data-reader-action]');
+            if (actionElement) handleAction(actionElement.dataset.readerAction);
+            const groupElement = event.target.closest('[data-reader-group]');
+            if (groupElement) renderBooks(groupElement.dataset.readerGroup);
+            const viewElement = event.target.closest('[data-reader-view-button]');
+            if (viewElement) setView(viewElement.dataset.readerViewButton);
+            const bookElement = event.target.closest('[data-reader-book]');
+            if (bookElement) openBook(bookElement.dataset.readerBook);
+            const chapterElement = event.target.closest('[data-reader-chapter]');
+            if (chapterElement) jumpToParagraph(Number(chapterElement.dataset.readerChapter));
+            const profileAction = event.target.closest('[data-reader-profile-action]');
+            if (profileAction && profileAction.dataset.readerProfileAction === 'import') openFilePicker();
+        });
+        root.querySelector('#raFileInput').addEventListener('change', importFile);
+        root.querySelector('#raReaderBody').addEventListener('scroll', saveReaderProgress, { passive: true });
+        root.querySelector('#raSearchInput').addEventListener('input', updateSearch);
+        document.addEventListener('visibilitychange', () => { if (document.hidden) finishSession(); });
+    }
+
+    function handleAction(action) {
+        if (action === 'import') openFilePicker();
+        else if (action === 'close') closeReaderApp();
+        else if (action === 'library') { finishSession(); setView('home'); }
+        else if (action === 'toc') openToc();
+        else if (action === 'settings') openSettings();
+        else if (action === 'search') root.querySelector('#raSearch').classList.add('is-open');
+        else if (action === 'search-close') { root.querySelector('#raSearch').classList.remove('is-open'); clearSearch(); }
+        else if (action === 'search-prev') moveSearch(-1);
+        else if (action === 'search-next') moveSearch(1);
+        else if (action === 'sheet-close') closeSheet();
+    }
+
+    function setView(view) {
+        if (view !== 'reader') finishSession();
+        activeView = view;
+        root.querySelectorAll('[data-reader-view]').forEach(element => element.classList.toggle('is-active', element.dataset.readerView === view));
+        root.querySelector('#raDock').style.display = view === 'reader' ? 'none' : 'flex';
+        root.querySelectorAll('[data-reader-view-button]').forEach(button => button.classList.toggle('is-active', button.dataset.readerViewButton === view));
+        if (view === 'home') renderBooks();
+        if (view === 'stats') renderStats();
+        if (view === 'profile') renderProfile();
+    }
+
+    function renderBooks(group) {
+        const selectedGroup = group || root.querySelector('[data-reader-group].is-active')?.dataset.readerGroup || 'all';
+        root.querySelectorAll('[data-reader-group]').forEach(button => button.classList.toggle('is-active', button.dataset.readerGroup === selectedGroup));
+        const books = data.books
+            .filter(book => selectedGroup === 'all' || book.group === selectedGroup)
+            .sort((left, right) => (right.lastReadAt || 0) - (left.lastReadAt || 0));
+        const grid = root.querySelector('#raBooks');
+        const cards = books.map(book => {
+            const cover = book.cover ? `<img src="${escapeHtml(book.cover)}" alt="">` : `<span class="ra-book-cover-text">${escapeHtml(book.title)}</span>`;
+            const progress = Math.max(0, Math.min(100, Number(book.progress) || 0));
+            const tag = book.group === 'done' ? 'DONE' : book.group === 'reading' ? 'READING' : 'BOOK';
+            return `<button class="ra-book-card" type="button" data-reader-book="${escapeHtml(book.id)}"><span class="ra-book-cover"><i class="ra-book-tape"></i>${cover}<b class="ra-book-tag">${tag}</b></span><span class="ra-book-info"><span class="ra-book-title">${escapeHtml(book.title)}</span><span class="ra-book-author">${escapeHtml(book.author || 'LOCAL TEXT')}</span><span class="ra-book-progress"><span style="width:${progress}%"></span></span></span></button>`;
+        });
+        if (!cards.length) cards.push('<div class="ra-empty">书架还没有书籍</div>');
+        cards.push('<button class="ra-add-card" type="button" data-reader-action="import"><b>+</b>导入 TXT</button>');
+        grid.innerHTML = cards.join('');
+    }
+
+    function openFilePicker() { root.querySelector('#raFileInput').click(); }
+    async function importFile(event) {
+        const file = event.target.files && event.target.files[0];
+        event.target.value = '';
+        if (!file) return;
+        const content = (await file.text()).replace(/^\uFEFF/, '').trim();
+        if (!content) return;
+        const title = file.name.replace(/\.txt$/i, '') || '未命名书籍';
+        data.books.push({ id: makeId('book'), title, author: '', content, chapters: scanChapters(content), group: 'reading', progress: 0, createdAt: Date.now(), lastReadAt: 0, reading: null });
+        await writeData();
+        setView('home');
+    }
+
+    function openBook(bookId) {
+        const book = getBook(bookId);
+        if (!book) return;
+        activeBookId = bookId;
+        activeView = 'reader';
+        root.querySelectorAll('[data-reader-view]').forEach(element => element.classList.toggle('is-active', element.dataset.readerView === 'reader'));
+        root.querySelector('#raDock').style.display = 'none';
+        root.querySelector('#raReaderTitle').textContent = book.title;
+        const readerBody = root.querySelector('#raReaderBody');
+        readerBody.style.setProperty('--ra-font-size', `${data.preferences.fontSize || 18}px`);
+        readerBody.style.setProperty('--ra-line-height', data.preferences.lineHeight || 1.82);
+        readerBody.innerHTML = book.content.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map((paragraph, index) => `<p data-reader-paragraph="${index}">${escapeHtml(paragraph)}</p>`).join('');
+        requestAnimationFrame(() => restoreReaderProgress(book));
+        sessionStartedAt = Date.now();
+    }
+
+    function restoreReaderProgress(book) {
+        const readerBody = root.querySelector('#raReaderBody');
+        const reading = book.reading;
+        if (!reading) return;
+        const paragraph = readerBody.querySelector(`[data-reader-paragraph="${reading.paragraphIndex}"]`);
+        if (paragraph) readerBody.scrollTop = paragraph.offsetTop + (reading.offset || 0);
+    }
+
+    function saveReaderProgress() {
+        const book = getBook(activeBookId);
+        const readerBody = root.querySelector('#raReaderBody');
+        if (!book || !readerBody) return;
+        const paragraphs = Array.from(readerBody.querySelectorAll('[data-reader-paragraph]'));
+        const current = paragraphs.reduce((closest, paragraph) => paragraph.offsetTop <= readerBody.scrollTop + 12 ? paragraph : closest, paragraphs[0]);
+        const contentHeight = Math.max(1, readerBody.scrollHeight - readerBody.clientHeight);
+        book.reading = { paragraphIndex: Number(current?.dataset.readerParagraph || 0), offset: readerBody.scrollTop - (current?.offsetTop || 0), updatedAt: Date.now() };
+        book.progress = Math.min(100, Math.max(0, readerBody.scrollTop / contentHeight * 100));
+        book.lastReadAt = Date.now();
+        book.group = book.progress >= 99.5 ? 'done' : 'reading';
+        scheduleSave();
+    }
+
+    function finishSession() {
+        if (!sessionStartedAt || !activeBookId) return;
+        saveReaderProgress();
+        const elapsed = Date.now() - sessionStartedAt;
+        sessionStartedAt = 0;
+        if (elapsed > 0) data.readingMsByDay[getDayKey(new Date())] = (data.readingMsByDay[getDayKey(new Date())] || 0) + elapsed;
+        scheduleSave();
+    }
+
+    function openToc() {
+        const book = getBook(activeBookId);
+        if (!book) return;
+        const chapters = Array.isArray(book.chapters) ? book.chapters : [];
+        openSheet('目录', chapters.length ? chapters.map(chapter => `<button class="ra-chapter" type="button" data-reader-chapter="${chapter.paragraphIndex}">${escapeHtml(chapter.title)}</button>`).join('') : '<div class="ra-empty">未检测到章节</div>');
+    }
+
+    function jumpToParagraph(paragraphIndex) {
+        const target = root.querySelector(`[data-reader-paragraph="${paragraphIndex}"]`);
+        if (target) root.querySelector('#raReaderBody').scrollTo({ top: target.offsetTop - 15, behavior: 'smooth' });
+        closeSheet();
+    }
+
+    function openSettings() {
+        const size = data.preferences.fontSize || 18;
+        const lineHeight = data.preferences.lineHeight || 1.82;
+        openSheet('阅读设置', `<label class="ra-settings-row"><span>字号</span><input id="raFontSize" type="range" min="14" max="26" value="${size}"><output id="raFontSizeOutput">${size}px</output></label><label class="ra-settings-row"><span>行距</span><input id="raLineHeight" type="range" min="1.4" max="2.3" step="0.05" value="${lineHeight}"><output id="raLineHeightOutput">${lineHeight}</output></label>`);
+        root.querySelector('#raFontSize').addEventListener('input', event => {
+            data.preferences.fontSize = Number(event.target.value);
+            root.querySelector('#raFontSizeOutput').textContent = `${event.target.value}px`;
+            root.querySelector('#raReaderBody').style.setProperty('--ra-font-size', `${event.target.value}px`);
+            scheduleSave();
+        });
+        root.querySelector('#raLineHeight').addEventListener('input', event => {
+            data.preferences.lineHeight = Number(event.target.value);
+            root.querySelector('#raLineHeightOutput').textContent = event.target.value;
+            root.querySelector('#raReaderBody').style.setProperty('--ra-line-height', event.target.value);
+            scheduleSave();
+        });
+    }
+
+    function openSheet(title, content) {
+        root.querySelector('#raSheetTitle').textContent = title;
+        root.querySelector('#raSheetBody').innerHTML = content;
+        root.querySelector('#raSheet').classList.add('is-open');
+        root.querySelector('#raSheetBackdrop').classList.add('is-open');
+    }
+    function closeSheet() { root.querySelector('#raSheet').classList.remove('is-open'); root.querySelector('#raSheetBackdrop').classList.remove('is-open'); }
+
+    function clearSearch() {
+        searchMatches = [];
+        currentMatch = -1;
+        root.querySelector('#raSearchCount').textContent = '0';
+        root.querySelector('#raSearchInput').value = '';
+        const paragraphs = root.querySelectorAll('#raReaderBody p');
+        paragraphs.forEach(paragraph => { paragraph.textContent = paragraph.textContent; });
+    }
+
+    function updateSearch() {
+        const input = root.querySelector('#raSearchInput');
+        const keyword = input.value.trim();
+        const paragraphs = root.querySelectorAll('#raReaderBody p');
+        paragraphs.forEach(paragraph => { paragraph.textContent = paragraph.textContent; });
+        searchMatches = [];
+        currentMatch = -1;
+        if (!keyword) { root.querySelector('#raSearchCount').textContent = '0'; return; }
+        const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escaped, 'gi');
+        paragraphs.forEach(paragraph => {
+            const text = paragraph.textContent;
+            if (!regex.test(text)) { regex.lastIndex = 0; return; }
+            regex.lastIndex = 0;
+            paragraph.innerHTML = escapeHtml(text).replace(new RegExp(`(${escaped})`, 'gi'), '<span class="ra-match">$1</span>');
+            paragraph.querySelectorAll('.ra-match').forEach(match => searchMatches.push(match));
+        });
+        root.querySelector('#raSearchCount').textContent = String(searchMatches.length);
+        if (searchMatches.length) { currentMatch = 0; focusSearchMatch(); }
+    }
+
+    function moveSearch(direction) {
+        if (!searchMatches.length) return;
+        currentMatch = (currentMatch + direction + searchMatches.length) % searchMatches.length;
+        focusSearchMatch();
+    }
+    function focusSearchMatch() {
+        searchMatches.forEach((match, index) => match.classList.toggle('is-current', index === currentMatch));
+        const target = searchMatches[currentMatch];
+        if (target) root.querySelector('#raReaderBody').scrollTo({ top: target.offsetTop - 90, behavior: 'smooth' });
+        root.querySelector('#raSearchCount').textContent = `${currentMatch + 1}/${searchMatches.length}`;
+    }
+
+    function renderStats() {
+        const totalMs = Object.values(data.readingMsByDay).reduce((total, value) => total + Number(value || 0), 0);
+        const totalMinutes = Math.floor(totalMs / 60000);
+        const todayMinutes = Math.floor((data.readingMsByDay[getDayKey(new Date())] || 0) / 60000);
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
+        const days = new Date(year, month + 1, 0).getDate();
+        const calendar = ['一', '二', '三', '四', '五', '六', '日'].map(day => `<span class="ra-calendar-weekday">${day}</span>`);
+        for (let index = 0; index < firstWeekday; index += 1) calendar.push('<span></span>');
+        for (let day = 1; day <= days; day += 1) {
+            const date = new Date(year, month, day);
+            const minutes = Math.floor((data.readingMsByDay[getDayKey(date)] || 0) / 60000);
+            const level = minutes > 90 ? 4 : minutes > 45 ? 3 : minutes > 15 ? 2 : minutes > 0 ? 1 : 0;
+            calendar.push(`<span class="ra-calendar-day" data-level="${level}">${day}</span>`);
+        }
+        root.querySelector('#raStats').innerHTML = `<section class="ra-stat-card"><div class="ra-stat-top"><strong>累计阅读</strong><span class="ra-stat-note">${data.books.length} 本书</span></div><div class="ra-stat-value">${Math.floor(totalMinutes / 60)} 小时 ${totalMinutes % 60} 分</div></section><section class="ra-stat-card"><div class="ra-stat-top"><strong>今日阅读</strong><span class="ra-stat-note">${todayMinutes} 分钟</span></div><div class="ra-calendar-title">${year} 年 ${month + 1} 月</div><div class="ra-calendar">${calendar.join('')}</div></section>`;
+    }
+
+    function renderProfile() {
+        const totalMs = Object.values(data.readingMsByDay).reduce((total, value) => total + Number(value || 0), 0);
+        root.querySelector('#raProfile').innerHTML = `<section class="ra-profile-card"><div class="ra-profile-avatar">我</div><div class="ra-profile-name">我的阅读</div><p class="ra-stat-note">累计 ${Math.floor(totalMs / 60000)} 分钟</p></section><section class="ra-profile-card"><button class="ra-list-row" type="button" data-reader-profile-action="import"><span>导入 TXT 书籍</span><span>›</span></button></section>`;
+    }
+
+    async function openReaderApp() {
+        ensureRoot();
+        if (!data) {
+            try { data = Object.assign(clone(DEFAULT_DATA), await readData() || {}); }
+            catch (error) { console.warn('Reader storage unavailable:', error); data = clone(DEFAULT_DATA); }
+            data.books = Array.isArray(data.books) ? data.books : [];
+            data.preferences = Object.assign({}, DEFAULT_DATA.preferences, data.preferences || {});
+            data.readingMsByDay = data.readingMsByDay || {};
+        }
+        root.style.display = 'block';
+        requestAnimationFrame(() => root.classList.add('show'));
+        setView('home');
+    }
+
+    function closeReaderApp() {
+        finishSession();
+        root.classList.remove('show');
+        setTimeout(() => { if (!root.classList.contains('show')) root.style.display = 'none'; }, 320);
+    }
+
+    window.openReaderApp = openReaderApp;
+    window.closeReaderApp = closeReaderApp;
+}());

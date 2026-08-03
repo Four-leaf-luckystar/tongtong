@@ -1,0 +1,113 @@
+#readerAppUI {
+    --ra-bg: #f2f2f7;
+    --ra-surface: rgba(255, 255, 255, 0.82);
+    --ra-text: #17171b;
+    --ra-muted: #8e8e93;
+    --ra-line: rgba(60, 60, 67, 0.16);
+    --ra-accent: #1f1f24;
+    --ra-reader-bg: #f7f3e9;
+    --ra-reader-text: #342f29;
+    position: absolute;
+    inset: 0;
+    z-index: 260;
+    display: none;
+    overflow: hidden;
+    color: var(--ra-text);
+    background: var(--ra-bg);
+    transform: translateY(100%);
+    transition: transform 0.32s cubic-bezier(0.25, 0.8, 0.25, 1);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+#readerAppUI.show { transform: translateY(0); }
+#readerAppUI *, #readerAppUI *::before, #readerAppUI *::after { box-sizing: border-box; }
+#readerAppUI button, #readerAppUI input { font: inherit; }
+#readerAppUI button { border: 0; cursor: pointer; }
+
+#readerAppUI .ra-screen { position: absolute; inset: 0; display: none; flex-direction: column; }
+#readerAppUI .ra-screen.is-active { display: flex; }
+#readerAppUI .ra-home, #readerAppUI .ra-stats, #readerAppUI .ra-profile { background: var(--ra-bg); }
+#readerAppUI .ra-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: calc(var(--top-safe-area, 0px) + 20px) 18px 12px; background: rgba(242, 242, 247, 0.78); backdrop-filter: blur(22px) saturate(160%); -webkit-backdrop-filter: blur(22px) saturate(160%); flex: 0 0 auto; z-index: 4; }
+#readerAppUI .ra-header-title { margin: 0; font-size: 30px; line-height: 1.1; letter-spacing: 0; }
+#readerAppUI .ra-header-subtitle { margin: 5px 0 0; color: var(--ra-muted); font-size: 11px; letter-spacing: 0; }
+#readerAppUI .ra-icon-button { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 40px; width: 40px; height: 40px; padding: 0; color: var(--ra-text); border: 1px solid rgba(255, 255, 255, 0.84); border-radius: 50%; background: rgba(255, 255, 255, 0.64); box-shadow: 0 4px 14px rgba(40, 40, 44, 0.08), inset 0 1px rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); font-size: 23px; line-height: 1; }
+#readerAppUI .ra-icon-button:active { transform: scale(0.94); }
+#readerAppUI .ra-scroll { min-height: 0; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px 18px calc(100px + var(--bottom-safe-area, 0px)); }
+#readerAppUI .ra-segment { display: flex; gap: 4px; padding: 4px; margin: 3px 0 15px; border-radius: 13px; background: rgba(118, 118, 128, 0.12); }
+#readerAppUI .ra-segment button { flex: 1; min-height: 32px; padding: 0 8px; border-radius: 10px; background: transparent; color: var(--ra-muted); font-size: 13px; }
+#readerAppUI .ra-segment button.is-active { background: rgba(255, 255, 255, 0.9); color: var(--ra-text); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08); }
+#readerAppUI .ra-books { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 14px; align-items: start; }
+#readerAppUI .ra-book-card { position: relative; min-height: 232px; padding: 6px 6px 14px; overflow: visible; border: 0; border-radius: 8px; background: #fff; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.07); text-align: left; }
+#readerAppUI .ra-book-cover { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; aspect-ratio: 0.68; overflow: hidden; border: 1px solid #e5e5e5; border-radius: 5px; background: #e9e9ec; color: #616167; }
+#readerAppUI .ra-book-cover img { width: 100%; height: 100%; object-fit: cover; }
+#readerAppUI .ra-book-cover-text { max-width: 72%; font-size: 18px; font-weight: 700; line-height: 1.45; text-align: center; word-break: break-word; }
+#readerAppUI .ra-book-tape { position: absolute; top: -5px; left: 50%; width: 46px; height: 14px; border: 1px solid rgba(0, 0, 0, 0.04); background: rgba(255, 255, 255, 0.7); transform: translateX(-50%) rotate(-2deg); z-index: 1; }
+#readerAppUI .ra-book-tag { position: absolute; bottom: -7px; left: 5px; padding: 2px 6px; border: 1px solid #1a1a1a; background: #fff; color: #1a1a1a; font-size: 9px; font-weight: 700; }
+#readerAppUI .ra-book-info { padding: 11px 4px 0; }
+#readerAppUI .ra-book-title { overflow: hidden; color: #1a1a1a; font-size: 14px; font-weight: 700; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+#readerAppUI .ra-book-author { overflow: hidden; margin-top: 3px; color: #999; font-size: 9px; letter-spacing: 0; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+#readerAppUI .ra-book-progress { height: 3px; margin-top: 9px; overflow: hidden; border-radius: 3px; background: #e8e8eb; }
+#readerAppUI .ra-book-progress > span { display: block; height: 100%; background: #1f1f24; }
+#readerAppUI .ra-add-card { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 232px; border: 1px dashed #b9b9c0; border-radius: 8px; background: rgba(255, 255, 255, 0.42); color: var(--ra-muted); font-size: 13px; text-align: center; }
+#readerAppUI .ra-add-card b { display: block; margin-bottom: 7px; color: #67676d; font-size: 30px; font-weight: 300; }
+#readerAppUI .ra-empty { grid-column: 1 / -1; padding: 54px 20px 34px; color: var(--ra-muted); font-size: 14px; text-align: center; }
+
+#readerAppUI .ra-dock { position: absolute; bottom: calc(16px + var(--bottom-safe-area, 0px)); left: 50%; display: flex; gap: 3px; padding: 5px; border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 24px; background: rgba(255, 255, 255, 0.72); box-shadow: 0 5px 20px rgba(0, 0, 0, 0.11), inset 0 1px rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); transform: translateX(-50%); z-index: 8; }
+#readerAppUI .ra-dock button { min-width: 43px; height: 38px; padding: 0 11px; border-radius: 20px; background: transparent; color: #77777e; font-size: 13px; white-space: nowrap; }
+#readerAppUI .ra-dock button.is-active { color: #fff; background: #1f1f24; }
+
+#readerAppUI .ra-reader { background: var(--ra-reader-bg); color: var(--ra-reader-text); }
+#readerAppUI .ra-reader-header { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; min-height: calc(54px + var(--top-safe-area, 0px)); padding: var(--top-safe-area, 0px) 14px 0; background: rgba(247, 243, 233, 0.82); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); z-index: 3; }
+#readerAppUI .ra-reader-title { overflow: hidden; padding: 0 8px; font-size: 15px; font-weight: 600; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+#readerAppUI .ra-reader .ra-icon-button { width: 36px; height: 36px; flex-basis: 36px; background: rgba(255, 255, 255, 0.55); font-size: 22px; }
+#readerAppUI .ra-reader-body { min-height: 0; flex: 1; overflow-y: auto; padding: 20px 24px calc(112px + var(--bottom-safe-area, 0px)); scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+#readerAppUI .ra-reader-body p { margin: 0 0 1.05em; color: var(--ra-reader-text); font-size: var(--ra-font-size, 18px); line-height: var(--ra-line-height, 1.82); text-align: justify; text-indent: 2em; word-break: break-word; }
+#readerAppUI .ra-reader-body p:first-child { margin-top: 3px; }
+#readerAppUI .ra-reader-toolbar { position: absolute; right: 14px; bottom: calc(15px + var(--bottom-safe-area, 0px)); left: 14px; display: flex; align-items: center; justify-content: space-around; min-height: 56px; padding: 7px 9px; border: 1px solid rgba(255, 255, 255, 0.86); border-radius: 18px; background: rgba(255, 255, 255, 0.72); box-shadow: 0 5px 20px rgba(40, 35, 30, 0.12); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 3; }
+#readerAppUI .ra-reader-toolbar button { min-width: 46px; padding: 5px 7px; color: #48423c; background: transparent; font-size: 11px; }
+#readerAppUI .ra-reader-toolbar button b { display: block; margin-bottom: 2px; font-size: 19px; font-weight: 400; line-height: 1; }
+#readerAppUI .ra-search { position: absolute; top: calc(var(--top-safe-area, 0px) + 8px); right: 12px; left: 12px; display: none; align-items: center; gap: 8px; padding: 8px; border: 1px solid rgba(255, 255, 255, 0.86); border-radius: 15px; background: rgba(255, 255, 255, 0.9); box-shadow: 0 8px 24px rgba(40, 35, 30, 0.16); backdrop-filter: blur(20px); z-index: 9; }
+#readerAppUI .ra-search.is-open { display: flex; }
+#readerAppUI .ra-search input { min-width: 0; flex: 1; height: 34px; padding: 0 10px; border: 0; border-radius: 9px; outline: 0; background: rgba(118, 118, 128, 0.12); color: var(--ra-text); font-size: 14px; }
+#readerAppUI .ra-search button { min-width: 30px; height: 30px; padding: 0 5px; border-radius: 8px; background: transparent; color: #4f4f55; font-size: 13px; }
+#readerAppUI .ra-search mark { padding: 0; background: transparent; color: var(--ra-muted); font-size: 12px; }
+#readerAppUI .ra-match { border-radius: 2px; background: rgba(255, 199, 86, 0.56); }
+#readerAppUI .ra-match.is-current { background: rgba(250, 143, 66, 0.7); }
+
+#readerAppUI .ra-sheet-backdrop { position: absolute; inset: 0; display: none; background: rgba(0, 0, 0, 0.25); z-index: 10; }
+#readerAppUI .ra-sheet-backdrop.is-open { display: block; }
+#readerAppUI .ra-sheet { position: absolute; right: 0; bottom: 0; left: 0; z-index: 11; display: flex; max-height: min(72%, 620px); flex-direction: column; padding: 12px 18px calc(18px + var(--bottom-safe-area, 0px)); border-radius: 22px 22px 0 0; background: #fff; box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.14); transform: translateY(105%); transition: transform 0.28s cubic-bezier(0.25, 0.8, 0.25, 1); }
+#readerAppUI .ra-sheet.is-open { transform: translateY(0); }
+#readerAppUI .ra-sheet-handle { width: 36px; height: 4px; margin: 0 auto 12px; border-radius: 3px; background: #d1d1d6; }
+#readerAppUI .ra-sheet-title { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; color: #1d1d20; font-size: 16px; font-weight: 700; }
+#readerAppUI .ra-sheet-list { min-height: 0; overflow-y: auto; }
+#readerAppUI .ra-chapter { display: block; width: 100%; padding: 13px 3px; border-bottom: 1px solid #ededf0; background: none; color: #45454a; font-size: 14px; text-align: left; }
+#readerAppUI .ra-chapter.is-current { color: #007aff; font-weight: 600; }
+#readerAppUI .ra-settings-row { display: grid; grid-template-columns: 66px minmax(0, 1fr) 36px; align-items: center; gap: 10px; min-height: 46px; border-bottom: 1px solid #ededf0; color: #38383d; font-size: 14px; }
+#readerAppUI .ra-settings-row input { width: 100%; accent-color: #1f1f24; }
+#readerAppUI .ra-settings-row output { color: var(--ra-muted); font-size: 12px; text-align: right; }
+
+#readerAppUI .ra-stat-card, #readerAppUI .ra-profile-card { margin: 8px 0 14px; padding: 18px; border: 1px solid rgba(255, 255, 255, 0.86); border-radius: 16px; background: var(--ra-surface); box-shadow: 0 5px 17px rgba(40, 40, 44, 0.05); }
+#readerAppUI .ra-stat-top { display: flex; align-items: baseline; justify-content: space-between; }
+#readerAppUI .ra-stat-value { margin-top: 7px; font-size: 28px; font-weight: 750; }
+#readerAppUI .ra-stat-note { color: var(--ra-muted); font-size: 12px; }
+#readerAppUI .ra-calendar-title { margin: 18px 0 9px; font-size: 15px; font-weight: 700; }
+#readerAppUI .ra-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+#readerAppUI .ra-calendar-weekday { color: var(--ra-muted); font-size: 10px; text-align: center; }
+#readerAppUI .ra-calendar-day { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; border-radius: 5px; color: #8e8e93; font-size: 12px; }
+#readerAppUI .ra-calendar-day[data-level="1"] { background: #e4e4e7; color: #303036; }
+#readerAppUI .ra-calendar-day[data-level="2"] { background: #c5c5ca; color: #303036; }
+#readerAppUI .ra-calendar-day[data-level="3"] { background: #77777e; color: #fff; }
+#readerAppUI .ra-calendar-day[data-level="4"] { background: #232329; color: #fff; }
+#readerAppUI .ra-profile-avatar { display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; margin-bottom: 13px; border-radius: 50%; background: #1f1f24; color: #fff; font-size: 22px; font-weight: 700; }
+#readerAppUI .ra-profile-name { font-size: 19px; font-weight: 700; }
+#readerAppUI .ra-list-row { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 51px; padding: 0; border-bottom: 1px solid #ebebef; background: transparent; color: var(--ra-text); font-size: 15px; text-align: left; }
+#readerAppUI .ra-list-row:last-child { border-bottom: 0; }
+#readerAppUI .ra-list-row span:last-child { color: var(--ra-muted); font-size: 19px; }
+
+@media (min-width: 520px) {
+    #readerAppUI .ra-scroll { max-width: 540px; width: 100%; margin: 0 auto; }
+    #readerAppUI .ra-header { padding-right: max(18px, calc((100% - 540px) / 2)); padding-left: max(18px, calc((100% - 540px) / 2)); }
+    #readerAppUI .ra-reader-body { max-width: 720px; width: 100%; margin: 0 auto; }
+    #readerAppUI .ra-reader-toolbar { right: max(14px, calc((100% - 560px) / 2)); left: max(14px, calc((100% - 560px) / 2)); }
+}

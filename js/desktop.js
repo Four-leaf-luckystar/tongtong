@@ -3,6 +3,46 @@
         const DESKTOP_MAX_ROWS = 7;
         let DESKTOP_ROWS = DESKTOP_MIN_ROWS;
         let DESKTOP_SLOT_COUNT = DESKTOP_COLUMNS * DESKTOP_ROWS;
+        let readerAppAssetsPromise = null;
+
+        function loadReaderAppAssets() {
+            if (readerAppAssetsPromise) return readerAppAssetsPromise;
+            readerAppAssetsPromise = new Promise((resolve, reject) => {
+                const stylesheet = document.querySelector('link[data-reader-app-style]');
+                const script = document.querySelector('script[data-reader-app-script]');
+                const finish = () => typeof window.openReaderApp === 'function'
+                    ? resolve()
+                    : reject(new Error('阅读模块未能初始化'));
+
+                if (stylesheet && script) {
+                    if (script.dataset.loaded === 'true') finish();
+                    else script.addEventListener('load', finish, { once: true });
+                    return;
+                }
+
+                const styleLink = stylesheet || document.createElement('link');
+                if (!stylesheet) {
+                    styleLink.rel = 'stylesheet';
+                    styleLink.href = 'css/reader.css?v=20260804-reader-v1';
+                    styleLink.dataset.readerAppStyle = 'true';
+                    document.head.appendChild(styleLink);
+                }
+
+                const readerScript = script || document.createElement('script');
+                if (!script) {
+                    readerScript.src = 'js/reader.js?v=20260804-reader-v1';
+                    readerScript.dataset.readerAppScript = 'true';
+                    readerScript.addEventListener('load', () => {
+                        readerScript.dataset.loaded = 'true';
+                        finish();
+                    }, { once: true });
+                    readerScript.addEventListener('error', () => reject(new Error('阅读模块加载失败')), { once: true });
+                    document.body.appendChild(readerScript);
+                }
+            });
+            return readerAppAssetsPromise;
+        }
+        window.loadReaderAppAssets = loadReaderAppAssets;
 
         function normalizeDesktopRowCount(value, pages) {
             const rows = Number(value);
@@ -1618,6 +1658,12 @@
                     openMeetingApp();
                 } else if (appId === 'placeholder-music') {
                     openMusicApp();
+                } else if (appId === 'placeholder-reading') {
+                    if (typeof window.openReaderApp === 'function') {
+                        window.openReaderApp();
+                    } else {
+                        loadReaderAppAssets().then(() => window.openReaderApp && window.openReaderApp());
+                    }
                 }
             }
         }
