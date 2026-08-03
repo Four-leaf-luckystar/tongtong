@@ -86,17 +86,15 @@
         root.id = 'readerAppUI';
         root.setAttribute('aria-label', '阅读');
         root.innerHTML = `
-            <section class="ra-screen ra-home is-active" data-reader-view="home">
-                <header class="ra-header"><div><h1 class="ra-header-title">书架</h1><p class="ra-header-subtitle">READING ARCHIVE</p></div><button class="ra-icon-button" type="button" data-reader-action="import" aria-label="导入书籍">+</button></header>
-                <main class="ra-scroll"><nav class="ra-segment" aria-label="书架分组"><button class="is-active" type="button" data-reader-group="all">全部</button><button type="button" data-reader-group="reading">在读</button><button type="button" data-reader-group="done">读完</button></nav><div class="ra-books" id="raBooks"></div></main>
-            </section>
+            <section class="ra-screen ra-dashboard is-active" data-reader-view="dashboard"><header class="ra-header"><h1 class="ra-header-title">首页</h1></header><main class="ra-scroll" id="raDashboard"></main></section>
+            <section class="ra-screen ra-home" data-reader-view="home"><header class="ra-header"><h1 class="ra-header-title">书架⌄</h1><div class="ra-header-tools"><button class="ra-plain-icon" type="button" data-reader-action="library-search" aria-label="搜索已导入书籍"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"></circle><path d="m16 16 4 4"></path></svg></button><button class="ra-plain-icon" type="button" data-reader-action="library-menu" aria-label="更多操作">•••</button></div></header><main class="ra-scroll"><div class="ra-library-search" id="raLibrarySearch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"></circle><path d="m16 16 4 4"></path></svg><input id="raLibrarySearchInput" type="search" placeholder="搜索书架" autocomplete="off"></div><div class="ra-books" id="raBooks"></div></main></section>
             <section class="ra-screen ra-stats" data-reader-view="stats"><header class="ra-header"><div><h1 class="ra-header-title">统计</h1><p class="ra-header-subtitle">READING STATS</p></div><button class="ra-icon-button" type="button" data-reader-action="close" aria-label="返回桌面">×</button></header><main class="ra-scroll" id="raStats"></main></section>
             <section class="ra-screen ra-profile" data-reader-view="profile"><header class="ra-header"><div><h1 class="ra-header-title">我的</h1><p class="ra-header-subtitle">MY LIBRARY</p></div><button class="ra-icon-button" type="button" data-reader-action="close" aria-label="返回桌面">×</button></header><main class="ra-scroll" id="raProfile"></main></section>
             <section class="ra-screen ra-reader" data-reader-view="reader"><header class="ra-reader-header"><button class="ra-icon-button" type="button" data-reader-action="library" aria-label="返回书架">‹</button><div class="ra-reader-title" id="raReaderTitle"></div><button class="ra-icon-button" type="button" data-reader-action="toc" aria-label="目录">≡</button></header><main class="ra-reader-body" id="raReaderBody"></main><div class="ra-reader-toolbar"><button type="button" data-reader-action="toc"><b>≡</b>目录</button><button type="button" data-reader-action="search"><b>⌕</b>查找</button><button type="button" data-reader-action="settings"><b>Ａ</b>设置</button></div><div class="ra-search" id="raSearch"><input id="raSearchInput" type="search" placeholder="书内查找" autocomplete="off"><mark id="raSearchCount">0</mark><button type="button" data-reader-action="search-prev" aria-label="上一个结果">‹</button><button type="button" data-reader-action="search-next" aria-label="下一个结果">›</button><button type="button" data-reader-action="search-close" aria-label="关闭查找">×</button></div></section>
-            <nav class="ra-dock" id="raDock" aria-label="阅读导航"><button class="is-active" type="button" data-reader-view-button="home">书架</button><button type="button" data-reader-view-button="stats">统计</button><button type="button" data-reader-view-button="profile">我的</button></nav>
+            <nav class="ra-dock" id="raDock" aria-label="阅读导航"><button class="is-active" type="button" data-reader-view-button="dashboard">首页</button><button type="button" data-reader-view-button="home">书架</button><button type="button" data-reader-view-button="stats">统计</button><button type="button" data-reader-view-button="profile">我的</button></nav>
             <div class="ra-sheet-backdrop" id="raSheetBackdrop" data-reader-action="sheet-close"></div>
             <section class="ra-sheet" id="raSheet" aria-modal="true"><div class="ra-sheet-handle"></div><header class="ra-sheet-title"><span id="raSheetTitle"></span><button type="button" data-reader-action="sheet-close" aria-label="关闭">×</button></header><div class="ra-sheet-list" id="raSheetBody"></div></section>
-            <input id="raFileInput" type="file" accept=".txt,text/plain" hidden>
+            <input id="raFileInput" type="file" accept=".txt,text/plain" hidden><input id="raCoverInput" type="file" accept="image/*" hidden>
         `;
         (document.querySelector('.iphone') || document.body).appendChild(root);
         bindEvents();
@@ -112,12 +110,16 @@
             if (viewElement) setView(viewElement.dataset.readerViewButton);
             const bookElement = event.target.closest('[data-reader-book]');
             if (bookElement) openBook(bookElement.dataset.readerBook);
+            const coverElement = event.target.closest('[data-reader-cover]');
+            if (coverElement) { activeBookId = coverElement.dataset.readerCover; openSheet('书籍设置', '<button class="ra-chapter" type="button" data-reader-action="cover">自定义封面</button>'); }
             const chapterElement = event.target.closest('[data-reader-chapter]');
             if (chapterElement) jumpToParagraph(Number(chapterElement.dataset.readerChapter));
             const profileAction = event.target.closest('[data-reader-profile-action]');
             if (profileAction && profileAction.dataset.readerProfileAction === 'import') openFilePicker();
         });
         root.querySelector('#raFileInput').addEventListener('change', importFile);
+        root.querySelector('#raCoverInput').addEventListener('change', importCover);
+        root.querySelector('#raLibrarySearchInput').addEventListener('input', () => renderBooks());
         root.querySelector('#raReaderBody').addEventListener('scroll', saveReaderProgress, { passive: true });
         root.querySelector('#raSearchInput').addEventListener('input', updateSearch);
         document.addEventListener('visibilitychange', () => { if (document.hidden) finishSession(); });
@@ -125,6 +127,10 @@
 
     function handleAction(action) {
         if (action === 'import') openFilePicker();
+        else if (action === 'library-menu') openSheet('书架', '<button class="ra-chapter" type="button" data-reader-action="import">导入书籍</button><button class="ra-chapter" type="button" data-reader-action="source-search">搜索书籍</button>');
+        else if (action === 'library-search') root.querySelector('#raLibrarySearch').classList.toggle('is-open');
+        else if (action === 'source-search') { closeSheet(); alert('书源筛选完成后将在这里搜索书籍。'); }
+        else if (action === 'cover') root.querySelector('#raCoverInput').click();
         else if (action === 'close') closeReaderApp();
         else if (action === 'library') { finishSession(); setView('home'); }
         else if (action === 'toc') openToc();
@@ -142,6 +148,7 @@
         root.querySelectorAll('[data-reader-view]').forEach(element => element.classList.toggle('is-active', element.dataset.readerView === view));
         root.querySelector('#raDock').style.display = view === 'reader' ? 'none' : 'flex';
         root.querySelectorAll('[data-reader-view-button]').forEach(button => button.classList.toggle('is-active', button.dataset.readerViewButton === view));
+        if (view === 'dashboard') renderDashboard();
         if (view === 'home') renderBooks();
         if (view === 'stats') renderStats();
         if (view === 'profile') renderProfile();
@@ -150,15 +157,17 @@
     function renderBooks(group) {
         const selectedGroup = group || root.querySelector('[data-reader-group].is-active')?.dataset.readerGroup || 'all';
         root.querySelectorAll('[data-reader-group]').forEach(button => button.classList.toggle('is-active', button.dataset.readerGroup === selectedGroup));
+        const query = root.querySelector('#raLibrarySearchInput')?.value.trim().toLowerCase() || '';
         const books = data.books
             .filter(book => selectedGroup === 'all' || book.group === selectedGroup)
+            .filter(book => !query || `${book.title} ${book.author || ''}`.toLowerCase().includes(query))
             .sort((left, right) => (right.lastReadAt || 0) - (left.lastReadAt || 0));
         const grid = root.querySelector('#raBooks');
         const cards = books.map(book => {
             const cover = book.cover ? `<img src="${escapeHtml(book.cover)}" alt="">` : `<span class="ra-book-cover-text">${escapeHtml(book.title)}</span>`;
             const progress = Math.max(0, Math.min(100, Number(book.progress) || 0));
             const tag = book.group === 'done' ? 'DONE' : book.group === 'reading' ? 'READING' : 'BOOK';
-            return `<button class="ra-book-card" type="button" data-reader-book="${escapeHtml(book.id)}"><span class="ra-book-cover"><i class="ra-book-tape"></i>${cover}<b class="ra-book-tag">${tag}</b></span><span class="ra-book-info"><span class="ra-book-title">${escapeHtml(book.title)}</span><span class="ra-book-author">${escapeHtml(book.author || 'LOCAL TEXT')}</span><span class="ra-book-progress"><span style="width:${progress}%"></span></span></span></button>`;
+            return `<div class="ra-book-entry"><button class="ra-book-card" type="button" data-reader-book="${escapeHtml(book.id)}"><span class="ra-book-cover">${cover}</span><span class="ra-book-info"><span class="ra-book-title">${escapeHtml(book.title)}</span><span class="ra-book-author">${progress >= 99.5 ? '已读完' : progress ? Math.floor(progress) + '%' : '未读过'}</span></span></button><button class="ra-card-more" type="button" data-reader-cover="${escapeHtml(book.id)}">•••</button></div>`;
         });
         if (!cards.length) cards.push('<div class="ra-empty">书架还没有书籍</div>');
         cards.push('<button class="ra-add-card" type="button" data-reader-action="import"><b>+</b>导入 TXT</button>');
@@ -176,6 +185,13 @@
         data.books.push({ id: makeId('book'), title, author: '', content, chapters: scanChapters(content), group: 'reading', progress: 0, createdAt: Date.now(), lastReadAt: 0, reading: null });
         await writeData();
         setView('home');
+    }
+
+    async function importCover(event) {
+        const file = event.target.files && event.target.files[0]; event.target.value = '';
+        const book = getBook(activeBookId); if (!file || !book) return;
+        book.cover = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(file); });
+        await writeData(); renderBooks();
     }
 
     function openBook(bookId) {
@@ -323,7 +339,19 @@
             const level = minutes > 90 ? 4 : minutes > 45 ? 3 : minutes > 15 ? 2 : minutes > 0 ? 1 : 0;
             calendar.push(`<span class="ra-calendar-day" data-level="${level}">${day}</span>`);
         }
-        root.querySelector('#raStats').innerHTML = `<section class="ra-stat-card"><div class="ra-stat-top"><strong>累计阅读</strong><span class="ra-stat-note">${data.books.length} 本书</span></div><div class="ra-stat-value">${Math.floor(totalMinutes / 60)} 小时 ${totalMinutes % 60} 分</div></section><section class="ra-stat-card"><div class="ra-stat-top"><strong>今日阅读</strong><span class="ra-stat-note">${todayMinutes} 分钟</span></div><div class="ra-calendar-title">${year} 年 ${month + 1} 月</div><div class="ra-calendar">${calendar.join('')}</div></section>`;
+        const finished = data.books.filter(book => Number(book.progress) >= 99.5).length;
+        const reading = data.books.filter(book => Number(book.progress) > 0 && Number(book.progress) < 99.5).length;
+        const daysRead = Object.values(data.readingMsByDay).filter(value => Number(value) > 0).length;
+        const words = data.books.reduce((total, book) => total + (book.content || '').replace(/\s/g, '').length * (Number(book.progress) || 0) / 100, 0);
+        root.querySelector('#raStats').innerHTML = `<div class="ra-stat-period">日　 周　 月　 年　 总</div><section class="ra-stat-card ra-stat-grid"><b>${totalMinutes} 分钟<small>阅读时间</small></b><b>${daysRead} 天<small>阅读天数</small></b><b>${data.books.length} 本<small>累计读过</small></b><b>${finished} 本<small>读完书籍</small></b><b>${reading} 本<small>在读书籍</small></b><b>0 条<small>记录笔记</small></b><b>${Math.floor(words)} 字<small>阅读字数</small></b><b>${totalMinutes ? Math.floor(words / totalMinutes) : 0} 字/分钟<small>阅读速度</small></b></section><section class="ra-stat-card"><div class="ra-stat-top"><strong>阅读时间趋势</strong><span class="ra-stat-note">${year}年${month + 1}月</span></div><div class="ra-calendar">${calendar.join('')}</div></section>`;
+    }
+
+    function renderDashboard() {
+        const totalMs = Object.values(data.readingMsByDay).reduce((total, value) => total + Number(value || 0), 0);
+        const totalMinutes = Math.floor(totalMs / 60000);
+        const finished = data.books.filter(book => Number(book.progress) >= 99.5).length;
+        const current = data.books.filter(book => Number(book.progress) > 0 && Number(book.progress) < 99.5).sort((a, b) => (b.lastReadAt || 0) - (a.lastReadAt || 0))[0];
+        root.querySelector('#raDashboard').innerHTML = `<button class="ra-summary" type="button" data-reader-view-button="stats"><b>累计阅读</b><span>${totalMinutes} 分钟　·　${finished} 本　›</span></button><section class="ra-home-section"><h2>继续阅读　›</h2>${current ? `<button class="ra-continue" type="button" data-reader-book="${escapeHtml(current.id)}">${escapeHtml(current.title)}<small>已读 ${Math.floor(current.progress || 0)}%</small></button>` : '<p>还没有阅读记录哦</p>'}</section><section class="ra-home-section"><h2>阅读目标　⌘</h2><p>找到你喜欢的书，开始阅读吧！</p><div class="ra-goal"><b>今日目标</b><strong>${Math.floor((data.readingMsByDay[getDayKey(new Date())] || 0) / 60000)} 分钟</strong><button type="button" data-reader-view-button="home">开始阅读</button></div></section>`;
     }
 
     function renderProfile() {
@@ -342,7 +370,7 @@
         }
         root.style.display = 'block';
         requestAnimationFrame(() => root.classList.add('show'));
-        setView('home');
+        setView('dashboard');
     }
 
     function closeReaderApp() {

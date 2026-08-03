@@ -111,3 +111,36 @@
     #readerAppUI .ra-reader-body { max-width: 720px; width: 100%; margin: 0 auto; }
     #readerAppUI .ra-reader-toolbar { right: max(14px, calc((100% - 560px) / 2)); left: max(14px, calc((100% - 560px) / 2)); }
 }
+
+/* Reference-aligned four-tab reader layout. */
+#readerAppUI { --ra-bg: #fff; --ra-surface: #fff; --ra-line: #e8e8e8; --ra-text: #111; --ra-muted: #85858d; }
+#readerAppUI .ra-header { min-height: 112px; padding: calc(var(--top-safe-area, 0px) + 38px) 33px 12px; background: #fff; backdrop-filter: none; }
+#readerAppUI .ra-header-title { font-size: 28px; font-weight: 750; }
+#readerAppUI .ra-header-tools { display: flex; align-items: center; gap: 18px; }
+#readerAppUI .ra-plain-icon { display: grid; width: 35px; height: 35px; padding: 0; place-items: center; background: transparent; color: #111; font-size: 19px; letter-spacing: 1px; }
+#readerAppUI .ra-plain-icon svg, #readerAppUI .ra-library-search svg { width: 24px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 2; }
+#readerAppUI .ra-scroll { padding: 8px 33px calc(105px + var(--bottom-safe-area, 0px)); }
+#readerAppUI .ra-library-search { display: none; align-items: center; gap: 10px; height: 48px; margin-bottom: 22px; padding: 0 16px; border-radius: 24px; background: #f4f4f5; color: #81818a; }
+#readerAppUI .ra-library-search.is-open { display: flex; }
+#readerAppUI .ra-library-search input { width: 100%; border: 0; outline: 0; background: transparent; font-size: 15px; }
+#readerAppUI .ra-books { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 23px 18px; }
+#readerAppUI .ra-book-entry { position: relative; min-width: 0; }
+#readerAppUI .ra-book-card { min-height: 0; padding: 0; box-shadow: none; background: transparent; }
+#readerAppUI .ra-book-cover { aspect-ratio: .68; border: 0; border-radius: 5px; background: #d9d9d9; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+#readerAppUI .ra-book-cover-text { padding: 14px; color: #404047; font-size: 15px; }
+#readerAppUI .ra-book-tape, #readerAppUI .ra-book-tag, #readerAppUI .ra-book-progress { display: none; }
+#readerAppUI .ra-book-info { padding: 9px 0 0; }
+#readerAppUI .ra-book-title { white-space: normal; font-size: 14px; }
+#readerAppUI .ra-book-author { font-size: 13px; text-transform: none; }
+#readerAppUI .ra-card-more { position: absolute; right: -5px; bottom: -4px; padding: 5px; border: 0; background: transparent; color: #777780; font-size: 16px; }
+#readerAppUI .ra-add-card { min-height: 0; aspect-ratio: .68; border-radius: 5px; }
+#readerAppUI .ra-dashboard .ra-scroll { padding-top: 16px; }
+#readerAppUI .ra-summary, #readerAppUI .ra-continue, #readerAppUI .ra-goal { display: block; width: 100%; padding: 22px 25px; border: 1px solid #e5e5e5; border-radius: 22px; background: #fff; color: #111; text-align: left; }
+#readerAppUI .ra-summary b { display: block; font-size: 16px; } #readerAppUI .ra-summary span, #readerAppUI .ra-home-section p, #readerAppUI .ra-continue small { display: block; margin-top: 8px; color: var(--ra-muted); font-size: 14px; }
+#readerAppUI .ra-home-section { margin-top: 44px; } #readerAppUI .ra-home-section h2 { margin: 0 0 18px; font-size: 22px; }
+#readerAppUI .ra-goal { min-height: 230px; } #readerAppUI .ra-goal strong { display: block; margin: 66px 0 20px; font-size: 32px; text-align: center; } #readerAppUI .ra-goal button { display: block; width: 60%; margin: 0 auto; padding: 13px; border-radius: 10px; background: #7a7a83; color: #fff; font-size: 16px; font-weight: 700; }
+#readerAppUI .ra-dock { right: 0; bottom: 0; left: 0; width: auto; justify-content: space-around; padding: 9px 12px calc(10px + var(--bottom-safe-area, 0px)); border: 0; border-top: 1px solid #e8e8e8; border-radius: 0; background: #fff; box-shadow: none; transform: none; }
+#readerAppUI .ra-dock button { min-width: 52px; height: 47px; border-radius: 8px; color: #777780; background: transparent; font-size: 13px; }
+#readerAppUI .ra-dock button.is-active { color: #111; background: transparent; font-weight: 750; }
+#readerAppUI .ra-stat-period { padding: 14px 10px; border-radius: 18px; background: #f4f4f5; font-size: 15px; word-spacing: 20px; text-align: center; }
+#readerAppUI .ra-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px 22px; min-height: 370px; } #readerAppUI .ra-stat-grid b { font-size: 22px; } #readerAppUI .ra-stat-grid small { display: block; margin-top: 9px; color: var(--ra-muted); font-size: 13px; font-weight: 500; }
