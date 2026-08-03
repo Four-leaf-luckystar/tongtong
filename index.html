@@ -33,6 +33,58 @@
     <link rel="stylesheet" href="css/dialogs.css">
     <link rel="stylesheet" href="css/dark-mode.css">
     <link rel="stylesheet" href="css/music-app.css?v=20260730-home-lyrics-exit-v1">
+    <style id="meetingAppStyles">
+        .meeting-app-container { position:absolute; inset:0; z-index:10050; display:none; background:#f2f2f7; color:#1c1c1e; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif; }
+        .meeting-app-container.is-open { display:flex; flex-direction:column; }
+        .meeting-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:calc(10px + env(safe-area-inset-top, 0px)) 16px 10px; flex:0 0 auto; }
+        .meeting-person, .meeting-round-button, .meeting-compose { border:1px solid rgba(255,255,255,.88); background:rgba(255,255,255,.88); box-shadow:0 8px 28px rgba(0,0,0,.08); backdrop-filter:saturate(180%) blur(24px); -webkit-backdrop-filter:saturate(180%) blur(24px); }
+        .meeting-person { min-width:0; display:flex; align-items:center; gap:9px; border-radius:28px; padding:6px 14px 6px 7px; cursor:pointer; }
+        .meeting-person svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2.4; flex:0 0 auto; }
+        .meeting-avatar { width:32px; height:32px; border-radius:50%; object-fit:cover; background:#d1d1d6; flex:0 0 auto; }
+        .meeting-person-copy { min-width:0; display:flex; flex-direction:column; line-height:1.25; }
+        .meeting-person-copy strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:15px; }
+        .meeting-person-copy small { color:#6c6c70; font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .meeting-round-button { width:44px; height:44px; border-radius:50%; display:grid; place-items:center; padding:0; color:#111; cursor:pointer; }
+        .meeting-round-button svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; }
+        .meeting-records { flex:1 1 auto; min-height:0; overflow-y:auto; padding:4px 12px 142px; scrollbar-width:none; }
+        .meeting-records::-webkit-scrollbar { display:none; }
+        .meeting-empty { height:100%; display:grid; place-content:center; gap:12px; text-align:center; color:#6c6c70; padding:32px; }
+        .meeting-empty strong { color:#1c1c1e; font-size:17px; }
+        .meeting-primary { border:0; border-radius:12px; padding:10px 15px; background:#007aff; color:#fff; font:inherit; cursor:pointer; }
+        .meeting-message { position:relative; background:#fff; border-radius:18px; padding:16px 18px; margin:0 0 14px; box-shadow:0 4px 16px rgba(0,0,0,.04); animation:meeting-enter .22s ease both; }
+        .meeting-message.is-user { background:#e8f3ff; }
+        .meeting-message-head { display:flex; align-items:center; gap:9px; margin-bottom:9px; }
+        .meeting-message-head img { width:30px; height:30px; border-radius:50%; object-fit:cover; background:#d1d1d6; }
+        .meeting-message-head strong { font-size:14px; }
+        .meeting-message-head time { color:#8e8e93; font-size:11px; margin-left:auto; }
+        .meeting-message-text { white-space:pre-wrap; overflow-wrap:anywhere; font-size:15px; line-height:1.62; }
+        .meeting-compose { position:absolute; z-index:2; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom, 0px)); display:flex; align-items:flex-end; gap:8px; padding:8px; border-radius:22px; }
+        .meeting-compose textarea { flex:1; min-width:0; max-height:106px; resize:none; border:0; outline:0; background:transparent; font:inherit; font-size:15px; line-height:1.45; padding:8px 6px; color:#1c1c1e; }
+        .meeting-send { width:36px; height:36px; border:0; border-radius:50%; background:#007aff; color:#fff; display:grid; place-items:center; flex:0 0 auto; cursor:pointer; }
+        .meeting-send:disabled { opacity:.45; cursor:default; }
+        .meeting-send svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2.2; }
+        .meeting-sheet { position:absolute; inset:0; z-index:4; display:none; align-items:flex-end; background:rgba(0,0,0,.22); }
+        .meeting-sheet.is-visible { display:flex; }
+        .meeting-sheet-panel { width:100%; max-height:82%; overflow:auto; border-radius:18px 18px 0 0; padding:10px 16px calc(22px + env(safe-area-inset-bottom, 0px)); background:rgba(249,249,251,.96); backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px); }
+        .meeting-sheet-handle { width:36px; height:4px; border-radius:3px; background:#c7c7cc; margin:0 auto 16px; }
+        .meeting-sheet-title { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+        .meeting-sheet-title strong { font-size:18px; }
+        .meeting-sheet-close { border:0; background:transparent; color:#007aff; font:inherit; padding:8px 0 8px 12px; cursor:pointer; }
+        .meeting-contact-list { display:grid; gap:8px; }
+        .meeting-contact-choice { width:100%; display:flex; align-items:center; gap:12px; padding:10px; border:0; border-radius:12px; background:#fff; color:#1c1c1e; text-align:left; font:inherit; cursor:pointer; }
+        .meeting-contact-choice img { width:42px; height:42px; border-radius:50%; object-fit:cover; background:#d1d1d6; }
+        .meeting-contact-choice small { display:block; color:#6c6c70; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .meeting-history { padding:0; }
+        .meeting-history button { width:100%; display:flex; justify-content:space-between; gap:12px; border:0; border-bottom:1px solid #e5e5ea; background:transparent; padding:13px 2px; text-align:left; font:inherit; cursor:pointer; }
+        .meeting-history small { color:#8e8e93; white-space:nowrap; }
+        @keyframes meeting-enter { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        .iphone.dark-mode .meeting-app-container { background:#000; color:#f5f5f7; }
+        .iphone.dark-mode .meeting-person, .iphone.dark-mode .meeting-round-button, .iphone.dark-mode .meeting-compose { background:rgba(44,44,46,.85); border-color:rgba(255,255,255,.12); color:#f5f5f7; }
+        .iphone.dark-mode .meeting-message, .iphone.dark-mode .meeting-contact-choice { background:#1c1c1e; color:#f5f5f7; }
+        .iphone.dark-mode .meeting-message.is-user { background:#11345b; }
+        .iphone.dark-mode .meeting-sheet-panel { background:rgba(28,28,30,.97); }
+        .iphone.dark-mode .meeting-compose textarea { color:#f5f5f7; }
+    </style>
 
     <style id="appAccessGateStyles">
         .app-access-pending .iphone {
@@ -380,6 +432,20 @@
     <div class="music-app-container" id="musicAppUI" aria-hidden="true">
         <iframe class="music-app-frame" id="musicAppFrame" title="Music" allow="autoplay"></iframe>
     </div>
+
+    <section class="meeting-app-container" id="meetingAppUI" aria-hidden="true" aria-label="见面">
+        <header class="meeting-header">
+            <button class="meeting-person" type="button" data-meeting-action="close" aria-label="返回桌面">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                <img class="meeting-avatar" id="meetingHeaderAvatar" alt="">
+                <span class="meeting-person-copy"><strong id="meetingHeaderName">见面</strong><small id="meetingHeaderMeta">选择联系人开始一段见面</small></span>
+            </button>
+            <button class="meeting-round-button" type="button" data-meeting-action="open-history" aria-label="见面记录"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg></button>
+        </header>
+        <main class="meeting-records" id="meetingRecords"></main>
+        <form class="meeting-compose" id="meetingCompose"><textarea id="meetingInput" rows="1" maxlength="4000" placeholder="写下此刻想说的话" aria-label="见面内容"></textarea><button class="meeting-send" id="meetingSend" type="submit" aria-label="发送"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 16-8-6 16-2-6zM12 14l8-10"/></svg></button></form>
+        <div class="meeting-sheet" id="meetingSheet" aria-hidden="true"><div class="meeting-sheet-panel"><div class="meeting-sheet-handle"></div><div class="meeting-sheet-title"><strong id="meetingSheetTitle">选择联系人</strong><button class="meeting-sheet-close" type="button" data-meeting-action="close-sheet">取消</button></div><div id="meetingSheetContent"></div></div></div>
+    </section>
 
     <!-- 主题 APP UI 容器 -->
     <div class="theme-app-container" id="themeAppUI">
@@ -4137,6 +4203,7 @@ fill="currentColor" viewBox="0 0 24 24" >
 <script src="js/db.js?v=20260731-time-awareness-switch-v1"></script>
 <script src="js/desktop.js?v=20260729-continuous-drag-v1"></script>
 <script src="js/music-app.js?v=20260730-player-layout-v5"></script>
+<script src="js/meeting-app.js?v=20260804-v1"></script>
 <script src="js/theme-app.js?v=20260727-adaptive-desktop-rows"></script>
 
 <script src="fullscreen.js"></script>

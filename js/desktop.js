@@ -167,7 +167,7 @@
 
         const PLACEHOLDER_DESKTOP_APP_BATCHES = Object.freeze({
             v1: Object.freeze([
-                { name: '见面', appId: 'placeholder-xiangfeng', icon: "url('https://nos.netease.com/ysf/264a2314c1b49fc41a3bab78fe2b3576.png')" },
+                { name: '见面', appId: 'meeting', icon: "url('https://nos.netease.com/ysf/264a2314c1b49fc41a3bab78fe2b3576.png')" },
                 { name: '音乐', appId: 'placeholder-music', icon: "url('https://nos.netease.com/ysf/44b1b063945538f0ebf2e1670a156958.jpg')" },
                 { name: '厨神驾到', appId: 'placeholder-food', icon: "url('https://bee-reg-ab.imagency.cn/p/f2c483d68ffb62b0d3222572086197f4.png')" },
                 { name: '今日', appId: 'placeholder-today', icon: null },
@@ -197,7 +197,6 @@
         const PLACEHOLDER_DESKTOP_APP_METADATA_UPDATE_IDS = new Set([
             'placeholder-food',
             'placeholder-game-center',
-            'placeholder-xiangfeng',
             'placeholder-yinyang'
         ]);
 
@@ -729,7 +728,7 @@
             { index: 1, name: 'wechat', appId: 'wechat', icon: iconMap['wechat'] },
             { index: 2, name: 'Contacts', appId: 'contacts', icon: iconMap['Contacts'] }, 
             { index: 3, name: '世界书', appId: 'worldbook', icon: iconMap['世界书'] },
-            { index: 4, name: '见面', appId: 'placeholder-xiangfeng', icon: iconMap['见面'] },
+            { index: 4, name: '见面', appId: 'meeting', icon: iconMap['见面'] },
             { index: 5, name: '音乐', appId: 'placeholder-music', icon: iconMap['音乐'] },
             { index: 6, name: '厨神驾到', appId: 'placeholder-food', icon: iconMap['厨神驾到'] },
             { index: 7, name: '今日', appId: 'placeholder-today', icon: iconMap['今日'] },
@@ -845,6 +844,19 @@
         const sourcePages = Array.isArray(desktopData) && Array.isArray(desktopData[0])
             ? desktopData
             : [Array.isArray(desktopData) ? desktopData : []];
+        let migratedMeetingApp = false;
+        sourcePages.forEach(page => page.forEach(app => {
+            if (app?.appId === 'placeholder-xiangfeng') {
+                app.appId = 'meeting';
+                migratedMeetingApp = true;
+            }
+        }));
+        dockData.forEach(app => {
+            if (app?.appId === 'placeholder-xiangfeng') {
+                app.appId = 'meeting';
+                migratedMeetingApp = true;
+            }
+        });
         const normalizedSourceRows = normalizeDesktopRowCount(sourceRows, sourcePages);
         const sourceSlotCount = DESKTOP_COLUMNS * normalizedSourceRows;
         applyDesktopRowCount(calculateDesktopRowCount());
@@ -906,7 +918,7 @@
         dockData.forEach(appData => {
             dock.appendChild(createAppElement(appData.name, appData.icon, appData.appId));
         });
-        if (repairedMemoryAppId) saveLayout();
+        if (repairedMemoryAppId || migratedMeetingApp) saveLayout();
     }
 
     let desktopResizeTimer = null;
@@ -1602,6 +1614,8 @@
                     openMemoryApp();
                 } else if (appId === 'placeholder-icity') {
                     openICityApp();
+                } else if (appId === 'meeting') {
+                    openMeetingApp();
                 } else if (appId === 'placeholder-music') {
                     openMusicApp();
                 }

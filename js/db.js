@@ -251,7 +251,7 @@
                     { index: 1, name: 'wechat', appId: 'wechat', icon: "url('https://www.yn12377.cn/jubao/upload/smjb/2026/07/13/e4b01d48b8ad4a5b82879231b5376827.png')" },
                     { index: 2, name: 'Contacts', appId: 'contacts', icon: "url('https://nos.netease.com/ysf/1390642a446f8db21a89e22b6cc5dc97.png')" }, 
                     { index: 3, name: '世界书', appId: 'worldbook', icon: "url('https://wxkb-res-1258476243.cos.ap-shanghai.myqcloud.com/web/img/8848100788856671/1L7mKgmQ7qzXUq1S34ehFM_20260713082207#.png')" },
-                    { index: 4, name: '见面', appId: 'placeholder-xiangfeng', icon: "url('https://nos.netease.com/ysf/264a2314c1b49fc41a3bab78fe2b3576.png')" },
+                    { index: 4, name: '见面', appId: 'meeting', icon: "url('https://nos.netease.com/ysf/264a2314c1b49fc41a3bab78fe2b3576.png')" },
                     { index: 5, name: '音乐', appId: 'placeholder-music', icon: "url('https://nos.netease.com/ysf/44b1b063945538f0ebf2e1670a156958.jpg')" },
                     { index: 6, name: '厨神驾到', appId: 'placeholder-food', icon: "url('https://bee-reg-ab.imagency.cn/p/f2c483d68ffb62b0d3222572086197f4.png')" },
                     { index: 7, name: '今日', appId: 'placeholder-today', icon: null },
