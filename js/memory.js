@@ -1299,8 +1299,16 @@
         const contact = cachedContacts.find((item) => item.id === selectedContactId) || null;
         const messages = contact ? getContactMessages(contact.id) : [];
         const items = contact ? getActiveItems(contact.id, activeTab) : [];
+        const summaryItems = contact && activeTab === 'relationship'
+            ? (getActiveSummary(contact.id)?.sections || []).map((section) => ({
+                tier: 'L2',
+                content: section.content || '',
+                createdAt: getActiveSummary(contact.id)?.updatedAt || ''
+            }))
+            : [];
         const query = memorySearchQuery.trim().toLocaleLowerCase();
-        const filteredItems = query ? items.filter((item) => String(item.content || '').toLocaleLowerCase().includes(query)) : items;
+        const displayItems = summaryItems.length ? summaryItems : items;
+        const filteredItems = query ? displayItems.filter((item) => String(item.content || '').toLocaleLowerCase().includes(query)) : displayItems;
         documentRef.getElementById('mainProfileName').textContent = contact?.name || '尚未选择角色';
         documentRef.querySelector('.profile-stat-line1').textContent = '记忆总数：' + (contact ? getActiveItems(contact.id).length : 0) + ' 条';
         documentRef.querySelector('.profile-stat-line2').textContent = '共同对话：' + messages.length + ' 轮 | 认识天数：' + getKnownDays(messages) + ' 天';
