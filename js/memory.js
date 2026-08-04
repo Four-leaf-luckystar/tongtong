@@ -19,6 +19,9 @@
     const OUTBOX_MAX_RETRY_DELAY_MS = 60 * 60 * 1000;
     const RETRIEVAL_COOLDOWN_MS = 8 * 60 * 1000;
     const RETRIEVAL_PRIORITY = Object.freeze({ low: -3, normal: 0, pinned: 6 });
+    const VECTOR_INDEX_VERSION = 'local-ngram-v1';
+    const VECTOR_DIMENSIONS = 256;
+    const VECTOR_MIN_SIMILARITY = 0.12;
     let root = null;
     let selectedContactId = '';
     let activeTab = 'memory';
@@ -287,6 +290,62 @@
         return Array.from(terms).slice(0, 40);
     }
 
+    function hashVectorToken(value) {
+        let hash = 2166136261;
+        for (let index = 0; index < value.length; index += 1) {
+            hash ^= value.charCodeAt(index);
+            hash = Math.imul(hash, 16777619);
+        }
+        return hash >>> 0;
+    }
+
+    function createLocalMemoryVector(value) {
+        const text = normalizeMemoryText(value).toLowerCase().replace(/\s+/g, '');
+        const values = new Float32Array(VECTOR_DIMENSIONS);
+        if (!text) return { version: VECTOR_INDEX_VERSION, dimensions: VECTOR_DIMENSIONS, values };
+
+        const addToken = (token, weight) => {
+            const hash = hashVectorToken(token);
+            const slot = hash % VECTOR_DIMENSIONS;
+            values[slot] += (hash & 1) === 0 ? weight : -weight;
+        };
+        for (let index = 0; index < text.length; index += 1) addToken(text[index], 0.5);
+        for (let size = 2; size <= 3; size += 1) {
+            for (let index = 0; index <= text.length - size; index += 1) addToken(text.slice(index, index + size), 1);
+        }
+        let norm = 0;
+        values.forEach((entry) => { norm += entry * entry; });
+        if (norm > 0) {
+            const scale = 1 / Math.sqrt(norm);
+            for (let index = 0; index < values.length; index += 1) values[index] *= scale;
+        }
+        return { version: VECTOR_INDEX_VERSION, dimensions: VECTOR_DIMENSIONS, values };
+    }
+
+    function getVectorValues(vector) {
+        const values = vector && vector.values;
+        if (!values || Number(vector.dimensions) !== VECTOR_DIMENSIONS || vector.version !== VECTOR_INDEX_VERSION) return null;
+        if (!Array.isArray(values) && !(values instanceof Float32Array)) return null;
+        return values.length === VECTOR_DIMENSIONS ? values : null;
+    }
+
+    function cosineSimilarity(leftVector, rightVector) {
+        const left = getVectorValues(leftVector);
+        const right = getVectorValues(rightVector);
+        if (!left || !right) return 0;
+        let score = 0;
+        for (let index = 0; index < VECTOR_DIMENSIONS; index += 1) score += left[index] * right[index];
+        return Math.max(0, Math.min(1, score));
+    }
+
+    function ensureLocalVector(item) {
+        const existing = getVectorValues(item && item.vectorIndex);
+        if (existing) return item.vectorIndex;
+        const vectorIndex = createLocalMemoryVector(item && item.content);
+        if (item) item.vectorIndex = vectorIndex;
+        return vectorIndex;
+    }
+
     function getActiveSummary(bindingId) {
         return cachedSummaries.find((summary) => summary && summary.bindingId === bindingId && summary.status === 'active') || null;
     }
@@ -303,14 +362,19 @@
 
     function getRelevantFragmentMatches(bindingId, query, limit = 3, turnId = '') {
         const queryTerms = new Set(createTextTerms(query));
-        if (queryTerms.size === 0) return [];
+        const queryVector = createLocalMemoryVector(query);
+        if (queryTerms.size === 0 && !getVectorValues(queryVector)) return [];
         const maxItems = Math.max(1, Math.min(Number(limit) || 3, 4));
         const now = Date.now();
-        return cachedMemoryItems
+        let upgradedVectorIndex = false;
+        const matches = cachedMemoryItems
             .filter((item) => item && item.bindingId === bindingId && item.tier === 'L3' && item.kind === 'fragment' && item.status === 'active')
             .map((item) => {
                 const terms = Array.isArray(item.keywords) ? item.keywords : createTextTerms(item.content);
                 const matchedTerms = terms.filter((term) => queryTerms.has(term));
+                const hadVector = Boolean(getVectorValues(item.vectorIndex));
+                const vectorSimilarity = cosineSimilarity(queryVector, ensureLocalVector(item));
+                if (!hadVector) upgradedVectorIndex = true;
                 const stats = item.retrievalStats || {};
                 const lastInjectedAt = Date.parse(stats.lastInjectedAt || '');
                 const ageDays = Math.max(0, (now - Date.parse(item.updatedAt || item.createdAt || now)) / 86400000);
@@ -319,21 +383,27 @@
                 const priorityScore = getRetrievalPriority(item);
                 const repeatPenalty = Math.min(4, Math.floor(getRetrievalCount(item) / 3));
                 const inCooldown = Number.isFinite(lastInjectedAt) && now - lastInjectedAt < RETRIEVAL_COOLDOWN_MS;
-                const score = matchedTerms.length * 8 + recencyScore + authorityScore + priorityScore - repeatPenalty;
+                const vectorScore = vectorSimilarity >= VECTOR_MIN_SIMILARITY ? Math.round(vectorSimilarity * 12) : 0;
+                const score = matchedTerms.length * 8 + vectorScore + recencyScore + authorityScore + priorityScore - repeatPenalty;
                 const reasons = [
                     matchedTerms.length ? '命中 ' + matchedTerms.slice(0, 3).join('、') : '',
+                    vectorScore ? '向量相似 ' + Math.round(vectorSimilarity * 100) + '%' : '',
                     recencyScore ? '近期记录' : '',
                     priorityScore === RETRIEVAL_PRIORITY.pinned ? '已置顶' : '',
                     priorityScore === RETRIEVAL_PRIORITY.low ? '降低优先级' : '',
                     inCooldown ? '冷却中' : ''
                 ].filter(Boolean);
-                return { item, score, reasons, inCooldown };
+                return { item, score, reasons, inCooldown, vectorSimilarity, hasSignal: matchedTerms.length > 0 || vectorScore > 0 };
             })
-            .filter(({ score, inCooldown }) => score > 0 && !inCooldown)
+            .filter(({ score, inCooldown, hasSignal }) => score > 0 && hasSignal && !inCooldown)
             .sort((left, right) => right.score - left.score || String(right.item.createdAt || '').localeCompare(String(left.item.createdAt || '')))
             .slice(0, maxItems)
             .filter(({ item }) => normalizeMemoryText(item.content).length <= 220)
-            .map(({ item, score, reasons }) => ({ id: item.id, content: normalizeMemoryText(item.content), score, reasons }));
+            .map(({ item, score, reasons, vectorSimilarity }) => ({ id: item.id, content: normalizeMemoryText(item.content), score, reasons, vectorSimilarity }));
+        if (upgradedVectorIndex && matches.length === 0) {
+            void writeRecord({ id: MEMORY_ITEMS_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items: cachedMemoryItems });
+        }
+        return matches;
     }
 
     function recordFragmentInjection(matches, turnId = '') {
@@ -354,6 +424,7 @@
                     lastInjectedAt: now,
                     lastInjectedTurn: String(turnId || ''),
                     lastScore: match.score,
+                    lastVectorSimilarity: Number(match.vectorSimilarity) || 0,
                     lastReasons: Array.isArray(match.reasons) ? match.reasons.slice(0, 4) : []
                 }
             };
@@ -397,6 +468,7 @@
         });
         cachedMemoryItems = [
             fixture('plain', 'role-a', 'coffee at the corner shop'),
+            fixture('vector-only', 'role-a', 'coffee with no lexical index', { keywords: [] }),
             fixture('pinned', 'role-a', 'coffee from the usual cafe', { retrievalPriority: RETRIEVAL_PRIORITY.pinned }),
             fixture('other-role', 'role-b', 'coffee for another role', { retrievalPriority: RETRIEVAL_PRIORITY.pinned }),
             fixture('archived', 'role-a', 'archived coffee', { status: 'archived', retrievalPriority: RETRIEVAL_PRIORITY.pinned }),
@@ -409,7 +481,8 @@
                 { name: '角色隔离', pass: !ids.includes('other-role') },
                 { name: '归档不召回', pass: !ids.includes('archived') },
                 { name: '冷却不重复', pass: !ids.includes('cooling') },
-                { name: '置顶优先', pass: ids[0] === 'pinned' }
+                { name: '置顶优先', pass: ids[0] === 'pinned' },
+                { name: '向量召回', pass: ids.includes('vector-only') }
             ];
             return { passed: cases.every((entry) => entry.pass), cases };
         } finally {
@@ -691,6 +764,7 @@
                 visibility: 'current_binding',
                 content,
                 keywords: createTextTerms(content),
+                vectorIndex: createLocalMemoryVector(content),
                 sourceRefs: [{ type: 'chat_fragment', messageId: message.id, quote: content, createdAt: now }],
                 revision: 1,
                 retrievalStats: { injectedCount: 0, lastInjectedAt: '', lastInjectedTurn: '', lastScore: 0, lastReasons: [] },
@@ -769,12 +843,15 @@
         provenance.className = 'memory-entry-provenance';
         const recallReasons = Array.isArray(item.retrievalStats && item.retrievalStats.lastReasons) ? item.retrievalStats.lastReasons : [];
         const priorityCopy = item.tier === 'L3' ? '优先级：' + getRetrievalPriorityLabel(item) : '';
+        const vectorCopy = item.tier === 'L3'
+            ? (getVectorValues(item.vectorIndex) ? '本地向量已建立' : '本地向量待建立')
+            : '';
         const recallCopy = getRetrievalCount(item) > 0
             ? ' · 召回 ' + getRetrievalCount(item) + ' 次' + (recallReasons.length ? '（' + recallReasons.join('、') + '）' : '')
             : '';
         provenance.textContent = (item.status === 'archived' || item.status === 'superseded')
             ? ('状态：' + (getArchiveReason(item) || '已归档'))
-            : [getSourceLabel(item), priorityCopy].filter(Boolean).join(' · ') + recallCopy;
+            : [getSourceLabel(item), priorityCopy, vectorCopy].filter(Boolean).join(' · ') + recallCopy;
         entry.append(entryHeader, text, provenance);
         list.appendChild(entry);
     }
