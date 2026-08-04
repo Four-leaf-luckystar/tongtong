@@ -195,20 +195,55 @@
     transform: translateX(-50%);
     display: flex;
     gap: 4px;
-    width: 132px;
-    height: 52px;
     padding: 5px;
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    border-radius: 26px;
-    background: rgba(238, 238, 242, 0.72);
-    backdrop-filter: blur(22px) saturate(160%);
-    -webkit-backdrop-filter: blur(22px) saturate(160%);
-    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.12);
+    border-radius: 28px;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
     z-index: 30;
+    transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
 }
-#contactsAppUI .ct-tab { display: flex; align-items: center; justify-content: center; width: 58px; height: 40px; border-radius: 20px; color: #6f7378; }
-#contactsAppUI .ct-tab.is-active { color: #111; background: rgba(255, 255, 255, 0.92); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
-#contactsAppUI .ct-tab svg { width: 23px; height: 23px; fill: currentColor; }
+#contactsAppUI .ct-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    min-width: 42px;
+    padding: 0 10px;
+    border-radius: 21px;
+    color: #8e8e93;
+    background: transparent;
+    transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+#contactsAppUI .ct-tab.is-active {
+    color: #000000;
+    background: #f2f2f7;
+    padding: 0 20px;
+}
+#contactsAppUI .ct-tab svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    fill: currentColor;
+    transition: transform 0.2s ease;
+}
+#contactsAppUI .ct-tab:active svg { transform: scale(0.9); }
+#contactsAppUI .ct-tab-text {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+#contactsAppUI .ct-floating-tabs.is-expanded .ct-tab.is-active .ct-tab-text {
+    max-width: 60px;
+    opacity: 1;
+    margin-left: 6px;
+}
 #contactsAppUI .ct-home-indicator { position: absolute; z-index: 35; left: 50%; bottom: calc(7px + env(safe-area-inset-bottom, 0px)); width: 112px; height: 5px; border-radius: 3px; background: rgba(0, 0, 0, 0.8); transform: translateX(-50%); }
 
 #contactsAppUI .ct-section-label { margin: 20px 16px 8px; color: var(--ct-subtext); font-size: 12px; font-weight: 600; }
