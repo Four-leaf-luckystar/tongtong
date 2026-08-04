@@ -1517,7 +1517,16 @@
         const action = actionElement.dataset.action;
         switch (action) {
             case 'close-app': closeApp(); break;
-            case 'switch-tab': switchTab(actionElement.dataset.tab); break;
+            case 'switch-tab': 
+                const targetTab = actionElement.dataset.tab;
+                const nav = el('.ct-floating-tabs');
+                if (data.selectedTab === targetTab) {
+                    nav?.classList.toggle('is-expanded');
+                } else {
+                    nav?.classList.add('is-expanded');
+                    switchTab(targetTab);
+                }
+                break;
             case 'toggle-main-menu': setMainMenu(!mainMenuOpen); break;
             case 'toggle-edit': setMainMenu(false); isEditMode = !isEditMode; renderMain(); break;
             case 'add-current': setMainMenu(false); data.selectedTab === 'char' ? openContact(null) : openUser(null); break;
@@ -1576,6 +1585,12 @@
     function bindEvents() {
         root.addEventListener('click', event => {
             const actionElement = event.target.closest('[data-action]');
+            const nav = el('.ct-floating-tabs');
+            
+            if (nav && !nav.contains(event.target) && (!actionElement || actionElement.dataset.action !== 'switch-tab')) {
+                nav.classList.remove('is-expanded');
+            }
+
             if (actionElement && root.contains(actionElement)) handleAction(actionElement, event);
             else if (mainMenuOpen && !event.target.closest('.ct-header-menu-wrap')) setMainMenu(false);
             else if (contactAvatarMenuOpen && event.target === el('#ctContactAvatarMenuOverlay')) closeContactAvatarMenu();
