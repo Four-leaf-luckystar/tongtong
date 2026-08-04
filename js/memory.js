@@ -1003,6 +1003,72 @@
         root.querySelector('[data-memory-summary-settings]').setAttribute('aria-hidden', 'true');
     }
 
+    function getSemanticModelState() {
+        return typeof window.SemanticMemory?.getState === 'function'
+            ? window.SemanticMemory.getState()
+            : { status: 'unavailable', manifestUrl: '', downloadedBytes: 0, totalBytes: 0, error: '' };
+    }
+
+    function renderSemanticModelState(state = getSemanticModelState()) {
+        if (!root) return;
+        const status = root.querySelector('[data-semantic-model-status]');
+        const progress = root.querySelector('[data-semantic-model-progress]');
+        const removeButton = root.querySelector('[data-memory-action="remove-semantic-model"]');
+        if (!status || !progress || !removeButton) return;
+        const labels = {
+            'not-configured': '未配置模型',
+            downloading: '正在下载',
+            ready: '已下载，可供本地语义模型使用',
+            error: '下载失败',
+            unavailable: '当前浏览器不支持'
+        };
+        const downloaded = Math.max(0, Number(state.downloadedBytes) || 0);
+        const total = Math.max(0, Number(state.totalBytes) || 0);
+        status.textContent = state.error ? (labels[state.status] || '下载失败') + '：' + state.error : (labels[state.status] || '未配置模型');
+        progress.max = total || 1;
+        progress.value = Math.min(downloaded, progress.max);
+        progress.hidden = state.status !== 'downloading' && state.status !== 'ready';
+        removeButton.hidden = state.status !== 'ready';
+    }
+
+    function openSemanticSettings() {
+        if (!root) return;
+        const state = getSemanticModelState();
+        const input = root.querySelector('[data-semantic-model-url]');
+        input.value = state.manifestUrl || '';
+        renderSemanticModelState(state);
+        root.classList.add('is-configuring-semantic');
+        root.querySelector('[data-memory-semantic-settings]').setAttribute('aria-hidden', 'false');
+        requestAnimationFrame(() => input.focus());
+    }
+
+    function closeSemanticSettings() {
+        if (!root) return;
+        root.classList.remove('is-configuring-semantic');
+        root.querySelector('[data-memory-semantic-settings]').setAttribute('aria-hidden', 'true');
+    }
+
+    async function downloadSemanticModel() {
+        const input = root.querySelector('[data-semantic-model-url]');
+        if (!window.SemanticMemory?.download) {
+            renderSemanticModelState({ status: 'unavailable', error: '' });
+            return;
+        }
+        try {
+            await window.SemanticMemory.download(input.value.trim(), (downloaded, total) => {
+                renderSemanticModelState({ ...window.SemanticMemory.getState(), downloadedBytes: downloaded, totalBytes: total, status: 'downloading' });
+            });
+        } catch (error) {
+            renderSemanticModelState();
+        }
+    }
+
+    async function removeSemanticModel() {
+        if (!window.SemanticMemory?.remove) return;
+        await window.SemanticMemory.remove();
+        renderSemanticModelState();
+    }
+
     async function saveSummarySettings() {
         const input = root.querySelector('[data-memory-summary-interval]');
         const error = root.querySelector('[data-memory-summary-error]');
@@ -1206,6 +1272,7 @@
                     <div class="memory-header-actions">
                         <button class="memory-switch-role" type="button" data-memory-action="switch-role">切换</button>
                         <button class="memory-summary-settings-button" type="button" data-memory-action="summary-settings" aria-label="摘要更新频率" title="摘要更新频率">•••</button>
+                        <button class="memory-summary-settings-button" type="button" data-memory-action="semantic-settings" aria-label="语义模型" title="语义模型">◇</button>
                         <button class="memory-add" type="button" data-memory-action="add" aria-label="新增记忆" title="新增记忆">+</button>
                     </div>
                 </header>
@@ -1276,14 +1343,33 @@
             </div>`;
         root.appendChild(summarySettings);
 
+        const semanticSettings = document.createElement('section');
+        semanticSettings.className = 'memory-semantic-settings';
+        semanticSettings.setAttribute('data-memory-semantic-settings', '');
+        semanticSettings.setAttribute('aria-hidden', 'true');
+        semanticSettings.innerHTML = '<div class="memory-semantic-settings-sheet" role="dialog" aria-modal="true" aria-labelledby="memorySemanticSettingsTitle">'
+            + '<div class="memory-composer-header"><button type="button" data-memory-action="close-semantic-settings">取消</button><h2 id="memorySemanticSettingsTitle">语义模型</h2><button type="button" data-memory-action="download-semantic-model">下载</button></div>'
+            + '<p class="memory-semantic-settings-copy">模型下载到本机后，记忆向量化和召回都在本地完成，不会上传聊天内容。</p>'
+            + '<label class="memory-semantic-settings-input"><span>Manifest</span><input type="url" data-semantic-model-url placeholder="粘贴模型清单地址"></label>'
+            + '<progress class="memory-semantic-model-progress" data-semantic-model-progress max="1" value="0" hidden></progress>'
+            + '<p class="memory-semantic-model-status" data-semantic-model-status>未配置模型</p>'
+            + '<button class="memory-semantic-remove" type="button" data-memory-action="remove-semantic-model" hidden>删除本地模型</button>'
+            + '<p class="memory-summary-settings-note">需要模型 CDN 提供 manifest.json，包含 version、files、path、bytes、sha256。未下载时继续使用当前轻量本地向量。</p>'
+            + '</div>';
+        root.appendChild(semanticSettings);
+
         root.querySelectorAll('[data-memory-action="close"]').forEach((button) => button.addEventListener('click', close));
         root.querySelector('[data-memory-action="switch-role"]').addEventListener('click', showRolePicker);
         root.querySelector('[data-memory-action="summary-settings"]').addEventListener('click', openSummarySettings);
+        root.querySelector('[data-memory-action="semantic-settings"]').addEventListener('click', openSemanticSettings);
         root.querySelector('[data-memory-action="add"]').addEventListener('click', openComposer);
         root.querySelector('[data-memory-action="close-composer"]').addEventListener('click', closeComposer);
         root.querySelector('[data-memory-action="save-memory"]').addEventListener('click', saveManualMemory);
         root.querySelector('[data-memory-action="close-summary-settings"]').addEventListener('click', closeSummarySettings);
         root.querySelector('[data-memory-action="save-summary-settings"]').addEventListener('click', saveSummarySettings);
+        root.querySelector('[data-memory-action="close-semantic-settings"]').addEventListener('click', closeSemanticSettings);
+        root.querySelector('[data-memory-action="download-semantic-model"]').addEventListener('click', downloadSemanticModel);
+        root.querySelector('[data-memory-action="remove-semantic-model"]').addEventListener('click', removeSemanticModel);
         root.querySelector('[data-memory-action="open-contacts"]').addEventListener('click', () => {
             close();
             if (typeof window.openContactsApp === 'function') window.openContactsApp();
@@ -1298,8 +1384,10 @@
             if (event.key !== 'Escape') return;
             if (root.classList.contains('is-composing')) closeComposer();
             else if (root.classList.contains('is-configuring-summary')) closeSummarySettings();
+            else if (root.classList.contains('is-configuring-semantic')) closeSemanticSettings();
             else close();
         });
+        window.addEventListener('semanticmemory:status', (event) => renderSemanticModelState(event.detail));
         const host = document.querySelector('.iphone') || document.body;
         host.appendChild(root);
     }
@@ -1391,6 +1479,16 @@
             .memory-summary-settings-input { display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 14px; border-radius: 14px; box-sizing: border-box; background: #f2f2f7; color: var(--memory-secondary); font-size: 15px; }
             .memory-summary-settings-input input { width: 78px; border: 0; padding: 0; outline: 0; background: transparent; color: #1c1c1e; font: 24px/1.2 Georgia, "Noto Serif SC", "STSong", "SimSun", serif; }
             .memory-summary-settings-note { margin: 11px 0 0; color: var(--memory-secondary); font-size: 13px; line-height: 1.6; }
+            .memory-semantic-settings { position: absolute; inset: 0; z-index: 6; display: none; align-items: flex-end; background: rgba(0,0,0,.28); }
+            .memory-app-container.is-configuring-semantic .memory-semantic-settings { display: flex; }
+            .memory-semantic-settings-sheet { width: 100%; padding: 14px 20px calc(25px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0; box-sizing: border-box; background: var(--memory-card); box-shadow: 0 -12px 28px rgba(0,0,0,.12); }
+            .memory-semantic-settings-copy { margin: 24px 0 12px; color: #1c1c1e; font-size: 16px; line-height: 1.6; }
+            .memory-semantic-settings-input { display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 14px; border-radius: 14px; box-sizing: border-box; background: #f2f2f7; color: var(--memory-secondary); font-size: 13px; }
+            .memory-semantic-settings-input span { flex: 0 0 auto; }
+            .memory-semantic-settings-input input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: #1c1c1e; font: 14px/1.4 Arial, sans-serif; }
+            .memory-semantic-model-progress { display: block; width: 100%; height: 6px; margin: 16px 0 0; accent-color: #1c1c1e; }
+            .memory-semantic-model-status { min-height: 20px; margin: 12px 0 0; color: var(--memory-secondary); font-size: 13px; line-height: 1.5; }
+            .memory-semantic-remove { border: 0; padding: 0; background: transparent; color: #ff3b30; font: 13px/1.5 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
             @media (max-width: 360px) { .memory-app-scroll, .memory-role-picker { padding-right: 15px; padding-left: 15px; } .memory-avatar-shell { width: 136px; height: 136px; } .memory-name-line h1 { font-size: 28px; } .memory-stats { gap: 9px; } .memory-stats article { min-height: 84px; border-radius: 17px; } .memory-stats b { font-size: 22px; } .memory-content-card { padding-right: 20px; padding-left: 20px; border-radius: 20px; } }
         `;
         document.head.appendChild(style);
@@ -1413,6 +1511,7 @@
         if (!root) return;
         closeComposer();
         closeSummarySettings();
+        closeSemanticSettings();
         root.classList.remove('is-picking-role');
         root.querySelector('[data-memory-role-picker]').setAttribute('aria-hidden', 'true');
         root.classList.remove('is-open');
