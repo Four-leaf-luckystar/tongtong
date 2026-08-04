@@ -1018,7 +1018,7 @@
         const labels = {
             'not-configured': '未配置模型',
             downloading: '正在下载',
-            ready: '已下载，可供本地语义模型使用',
+            ready: '已下载，等待语义运行时接入',
             error: '下载失败',
             unavailable: '当前浏览器不支持'
         };
