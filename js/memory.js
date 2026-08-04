@@ -32,6 +32,7 @@
     let cachedOutbox = [];
     let cachedSummaries = [];
     let summaryIntervalMessages = DEFAULT_SUMMARY_INTERVAL;
+    let memorySearchQuery = '';
     const invalidatedSourceIds = new Set();
 
     function readRecords(keys) {
@@ -859,14 +860,18 @@
     function renderMemoryContent(contact) {
         const content = root.querySelector('[data-memory-content]');
         const title = root.querySelector('[data-memory-card-title]');
-        const items = contact
+        const allItems = contact
             ? (activeTab === 'archive'
                 ? cachedMemoryItems.filter((item) => item && item.bindingId === contact.id && (item.status === 'archived' || item.status === 'superseded')).sort((left, right) => String(right.updatedAt || '').localeCompare(String(left.updatedAt || '')))
                 : getActiveItems(contact.id, activeTab))
             : [];
+        const searchQuery = memorySearchQuery.trim().toLocaleLowerCase();
+        const items = searchQuery
+            ? allItems.filter((item) => String(item.content || '').toLocaleLowerCase().includes(searchQuery))
+            : allItems;
         const summary = contact && activeTab === 'relationship' ? getActiveSummary(contact.id) : null;
         const [emptyTitle, emptyText] = getEmptyCopy();
-        title.textContent = '@ ' + getTabLabel();
+        title.textContent = activeTab === 'memory' ? '\u8fd1\u671f\u8bb0\u5fc6' : getTabLabel();
         content.replaceChildren();
 
         if (summary || items.length > 0) {
@@ -992,6 +997,10 @@
         const error = root.querySelector('[data-memory-summary-error]');
         input.value = String(summaryIntervalMessages);
         error.textContent = '';
+        const semanticState = getSemanticModelState();
+        const modelUrl = root.querySelector('[data-semantic-model-url]');
+        if (modelUrl) modelUrl.value = semanticState.manifestUrl || '';
+        renderSemanticModelState(semanticState);
         root.classList.add('is-configuring-summary');
         sheet.setAttribute('aria-hidden', 'false');
         requestAnimationFrame(() => input.focus());
@@ -1211,11 +1220,12 @@
         const memoryItems = contact ? getActiveItems(contact.id) : [];
 
         root.querySelector('[data-memory-name]').textContent = name;
-        root.querySelector('[data-memory-status]').textContent = contact ? (memoryItems.length ? '已记录' : '档案空白') : '等待建立';
+        root.querySelector('[data-memory-status]').textContent = contact ? (memoryItems.length ? '共同记忆档案' : '等待第一条记忆') : '等待选择角色';
         root.querySelector('[data-memory-subtitle]').textContent = contact
-            ? (memoryItems.length ? '已有 ' + memoryItems.length + ' 条共同记忆。' : '共同记忆会从这里慢慢留下。')
-            : '先在聊天中选择一位角色。';
-        root.querySelector('[data-memory-count]').textContent = String(memoryItems.length);
+            ? '记忆总数：' + memoryItems.length + ' 条'
+            : '记忆总数：0 条';
+        const memoryCount = root.querySelector('[data-memory-count]');
+        if (memoryCount) memoryCount.textContent = String(memoryItems.length);
         root.querySelector('[data-memory-chat-count]').textContent = String(messages.length);
         root.querySelector('[data-memory-days]').textContent = String(getKnownDays(messages));
         root.querySelector('[data-memory-action="add"]').hidden = activeTab === 'archive';
@@ -1302,6 +1312,38 @@
                 </nav>
             </div>`;
 
+        // Reference layout replaces the legacy centered profile before overlays are attached.
+        root.innerHTML = `
+            <div class="memory-app-scroll">
+                <header class="memory-profile-header">
+                    <button class="memory-back" type="button" data-memory-action="close" aria-label="\u8fd4\u56de\u684c\u9762">\u2039</button>
+                    <button class="memory-settings-button" type="button" data-memory-action="summary-settings">\u8bbe\u7f6e</button>
+                </header>
+                <main class="memory-profile-main">
+                    <section class="memory-profile-section">
+                        <div class="memory-avatar-shell">
+                            <div class="memory-avatar" data-memory-avatar><img data-memory-avatar-image alt=""><span data-memory-monogram>\u8bb0</span></div>
+                            <button class="memory-avatar-switch" type="button" data-memory-action="switch-role" aria-label="\u5207\u6362\u89d2\u8272">\u21c4</button>
+                        </div>
+                        <div class="memory-heading">
+                            <div class="memory-name-line"><h1 data-memory-name>\u8bb0\u5fc6</h1></div>
+                            <p data-memory-subtitle>\u8bb0\u5fc6\u603b\u6570\uff1a0 \u6761</p>
+                            <p class="memory-profile-stat"><span>\u5171\u540c\u5bf9\u8bdd\uff1a<b data-memory-chat-count>0</b> \u8f6e</span><i></i><span>\u8ba4\u8bc6\u5929\u6570\uff1a<b data-memory-days>0</b> \u5929</span></p>
+                            <span class="memory-profile-status" data-memory-status>\u8bfb\u53d6\u4e2d</span>
+                        </div>
+                    </section>
+                    <nav class="memory-tabs" role="tablist" aria-label="\u8bb0\u5fc6\u89c6\u56fe">
+                        <button type="button" data-memory-tab="memory" class="is-active" role="tab" aria-selected="true">\u8bb0\u5fc6</button>
+                        <button type="button" data-memory-tab="relationship" role="tab" aria-selected="false">\u5173\u7cfb</button>
+                        <button type="button" data-memory-tab="fragment" role="tab" aria-selected="false">\u7247\u6bb5</button>
+                        <button type="button" data-memory-tab="archive" role="tab" aria-selected="false">\u6863\u6848</button>
+                    </nav>
+                    <label class="memory-search"><span aria-hidden="true">\u2315</span><input type="search" data-memory-search placeholder="\u641c\u7d22\u8bb0\u5fc6..."></label>
+                    <div class="memory-list-header"><h2 data-memory-card-title>\u8fd1\u671f\u8bb0\u5fc6</h2><div><button type="button" data-memory-action="summary-settings">\u6458\u8981</button><button type="button" data-memory-action="add">\uff0b \u65b0\u589e</button></div></div>
+                    <section class="memory-content-card"><div data-memory-content></div></section>
+                </main>
+            </div>`;
+
         const rolePicker = document.createElement('section');
         rolePicker.className = 'memory-role-picker';
         rolePicker.setAttribute('data-memory-role-picker', '');
@@ -1342,6 +1384,16 @@
                 <p class="memory-composer-error" data-memory-summary-error aria-live="polite"></p>
             </div>`;
         root.appendChild(summarySettings);
+        summarySettings.querySelector('.memory-summary-settings-sheet').insertAdjacentHTML('beforeend', `
+            <section class="memory-settings-section">
+                <h3>\u5411\u91cf\u6a21\u578b</h3>
+                <p class="memory-semantic-settings-copy">\u4e0b\u8f7d\u5230\u672c\u673a\u540e\uff0c\u804a\u5929\u5185\u5bb9\u4e0d\u4f1a\u4e0a\u4f20\u3002</p>
+                <label class="memory-semantic-settings-input"><span>\u81ea\u5b9a\u4e49\u6e05\u5355</span><input type="url" data-semantic-model-url placeholder="\u53ef\u9009\uff1amanifest \u5730\u5740"></label>
+                <button class="memory-model-download" type="button" data-memory-action="download-semantic-model">\u4e0b\u8f7d\u5411\u91cf\u6a21\u578b</button>
+                <progress class="memory-semantic-model-progress" data-semantic-model-progress max="1" value="0" hidden></progress>
+                <p class="memory-semantic-model-status" data-semantic-model-status>\u6a21\u578b\u672a\u4e0b\u8f7d</p>
+                <button class="memory-semantic-remove" type="button" data-memory-action="remove-semantic-model" hidden>\u5220\u9664\u672c\u5730\u6a21\u578b</button>
+            </section>`);
 
         const semanticSettings = document.createElement('section');
         semanticSettings.className = 'memory-semantic-settings';
@@ -1360,8 +1412,7 @@
 
         root.querySelectorAll('[data-memory-action="close"]').forEach((button) => button.addEventListener('click', close));
         root.querySelector('[data-memory-action="switch-role"]').addEventListener('click', showRolePicker);
-        root.querySelector('[data-memory-action="summary-settings"]').addEventListener('click', openSummarySettings);
-        root.querySelector('[data-memory-action="semantic-settings"]').addEventListener('click', openSemanticSettings);
+        root.querySelectorAll('[data-memory-action="summary-settings"]').forEach((button) => button.addEventListener('click', openSummarySettings));
         root.querySelector('[data-memory-action="add"]').addEventListener('click', openComposer);
         root.querySelector('[data-memory-action="close-composer"]').addEventListener('click', closeComposer);
         root.querySelector('[data-memory-action="save-memory"]').addEventListener('click', saveManualMemory);
@@ -1370,6 +1421,10 @@
         root.querySelector('[data-memory-action="close-semantic-settings"]').addEventListener('click', closeSemanticSettings);
         root.querySelector('[data-memory-action="download-semantic-model"]').addEventListener('click', downloadSemanticModel);
         root.querySelector('[data-memory-action="remove-semantic-model"]').addEventListener('click', removeSemanticModel);
+        root.querySelector('[data-memory-search]').addEventListener('input', (event) => {
+            memorySearchQuery = event.target.value || '';
+            renderMemoryContent(cachedContacts.find((item) => item.id === selectedContactId) || null);
+        });
         root.querySelector('[data-memory-action="open-contacts"]').addEventListener('click', () => {
             close();
             if (typeof window.openContactsApp === 'function') window.openContactsApp();
@@ -1489,7 +1544,52 @@
             .memory-semantic-model-progress { display: block; width: 100%; height: 6px; margin: 16px 0 0; accent-color: #1c1c1e; }
             .memory-semantic-model-status { min-height: 20px; margin: 12px 0 0; color: var(--memory-secondary); font-size: 13px; line-height: 1.5; }
             .memory-semantic-remove { border: 0; padding: 0; background: transparent; color: #ff3b30; font: 13px/1.5 "Noto Serif SC", "STSong", "SimSun", serif; cursor: pointer; }
-            @media (max-width: 360px) { .memory-app-scroll, .memory-role-picker { padding-right: 15px; padding-left: 15px; } .memory-avatar-shell { width: 136px; height: 136px; } .memory-name-line h1 { font-size: 28px; } .memory-stats { gap: 9px; } .memory-stats article { min-height: 84px; border-radius: 17px; } .memory-stats b { font-size: 22px; } .memory-content-card { padding-right: 20px; padding-left: 20px; border-radius: 20px; } }
+            /* Reference memory-library layout. */
+            .memory-app-container { --memory-blue: #007aff; --memory-background: #fff; --memory-card: #f6f6f6; --memory-secondary: #8e8e93; background: #fff; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; }
+            .memory-app-scroll { display: block; height: 100%; padding: max(54px, calc(env(safe-area-inset-top) + 20px)) 20px calc(28px + env(safe-area-inset-bottom)); background: #fff; }
+            .memory-profile-header { min-height: 34px; }
+            .memory-back { width: 34px; height: 34px; padding: 0 2px 4px 0; border-radius: 50%; background: rgba(142,142,147,.12); box-shadow: none; color: #000; font: 31px/31px Arial, sans-serif; }
+            .memory-settings-button { height: 34px; border: 0; border-radius: 17px; padding: 0 16px; background: rgba(142,142,147,.12); color: #000; font: 500 15px/34px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; cursor: pointer; }
+            .memory-profile-main { display: block; padding: 0; }
+            .memory-profile-section { display: flex; align-items: center; min-width: 0; padding: 22px 0 24px; }
+            .memory-avatar-shell { position: relative; display: block; width: 88px; height: 88px; padding: 0; border: 0; border-radius: 20px; background: #d1d1d6; box-shadow: none; flex: 0 0 auto; }
+            .memory-avatar { border: 0; border-radius: 20px; background: #d1d1d6; color: #fff; font-size: 32px; }
+            .memory-avatar-switch { position: absolute; right: -6px; bottom: -6px; display: grid; width: 30px; height: 30px; border: 1px solid rgba(0,0,0,.05); border-radius: 50%; padding: 0; place-items: center; background: #fff; color: #000; box-shadow: 0 2px 10px rgba(0,0,0,.15); font: 17px/1 Arial, sans-serif; cursor: pointer; }
+            .memory-heading { width: auto; min-width: 0; margin: 0 0 0 18px; text-align: left; }
+            .memory-name-line { display: block; }
+            .memory-name-line h1 { max-width: 100%; font-size: 24px; line-height: 1.2; font-weight: 600; letter-spacing: 0; }
+            .memory-heading p { margin: 7px 0 0; color: #c7c7cc; font-size: 13px; line-height: 1.35; }
+            .memory-profile-stat { display: flex; align-items: center; gap: 7px; color: #8e8e93 !important; font-size: 12px !important; white-space: nowrap; }
+            .memory-profile-stat b { color: inherit; font-weight: 400; }
+            .memory-profile-stat i { width: 1px; height: 11px; background: #c7c7cc; }
+            .memory-profile-status { display: none; }
+            .memory-tabs { position: static; display: grid; grid-template-columns: repeat(4, 1fr); width: 100%; margin: 0 0 16px; padding: 4px; border-radius: 10px; background: #f2f2f7; box-shadow: none; backdrop-filter: none; }
+            .memory-tabs button { height: 28px; border-radius: 7px; color: #8e8e93; font: 500 13px/28px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+            .memory-tabs button.is-active { background: #fff; color: #000; box-shadow: 0 3px 8px rgba(0,0,0,.04), 0 1px 1px rgba(0,0,0,.04); font-weight: 600; }
+            .memory-search { display: flex; align-items: center; height: 36px; margin-bottom: 20px; border-radius: 10px; padding: 0 8px; background: rgba(142,142,147,.12); color: #8e8e93; }
+            .memory-search span { margin-right: 6px; font: 21px/1 Arial, sans-serif; transform: rotate(-20deg); }
+            .memory-search input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: #000; font: 17px/1 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+            .memory-search input::placeholder { color: #8e8e93; }
+            .memory-list-header { display: flex; align-items: center; justify-content: space-between; min-height: 25px; margin-bottom: 12px; }
+            .memory-list-header h2 { margin: 0; color: #000; font-size: 18px; font-weight: 600; }
+            .memory-list-header > div { display: flex; align-items: center; gap: 16px; }
+            .memory-list-header button { border: 0; padding: 0; background: transparent; color: #007aff; font: 500 14px/20px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; cursor: pointer; }
+            .memory-content-card { display: block; width: 100%; min-height: 0; margin: 0; padding: 0; border-radius: 0; background: transparent; box-shadow: none; }
+            .memory-content-card [data-memory-content] { display: block; min-height: 0; }
+            .memory-entry-list { display: grid; gap: 16px; padding: 0; overflow: visible; }
+            .memory-entry { padding: 16px; border-radius: 16px; background: #f6f6f6; }
+            .memory-entry-meta { display: inline-flex; align-items: center; border-radius: 6px; padding: 4px 8px; background: rgba(0,122,255,.12); color: #007aff; font-size: 12px; font-weight: 600; }
+            .memory-entry p { margin-top: 8px; color: #000; font-size: 15px; line-height: 1.5; }
+            .memory-entry .memory-entry-provenance { color: #8e8e93; font-size: 11px; }
+            .memory-empty-state { min-height: 180px; padding: 25px 12px; }
+            .memory-empty-state h2 { font-size: 21px; }
+            .memory-composer, .memory-summary-settings, .memory-semantic-settings { background: rgba(0,0,0,.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+            .memory-summary-settings-sheet { border-radius: 18px 18px 0 0; background: #fff; }
+            .memory-settings-section { margin-top: 26px; padding-top: 20px; border-top: 1px solid #e5e5ea; }
+            .memory-settings-section h3 { margin: 0; color: #000; font-size: 17px; font-weight: 600; }
+            .memory-model-download { width: 100%; height: 42px; margin-top: 14px; border: 0; border-radius: 10px; background: #007aff; color: #fff; font: 500 15px/42px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; cursor: pointer; }
+            .memory-semantic-model-progress { width: 100%; margin-top: 12px; }
+            @media (max-width: 360px) { .memory-app-scroll, .memory-role-picker { padding-right: 15px; padding-left: 15px; } .memory-profile-section { padding-top: 18px; } .memory-avatar-shell { width: 78px; height: 78px; } .memory-heading { margin-left: 14px; } .memory-profile-stat { gap: 5px; font-size: 11px !important; } }
         `;
         document.head.appendChild(style);
     }
