@@ -792,11 +792,11 @@
 
     function appendMemoryEntry(list, item) {
         const entry = document.createElement('article');
-        entry.className = 'memory-entry';
+        entry.className = 'memory-entry memory-card';
         const entryHeader = document.createElement('div');
-        entryHeader.className = 'memory-entry-header';
+        entryHeader.className = 'memory-entry-header memory-card-header';
         const meta = document.createElement('span');
-        meta.className = 'memory-entry-meta';
+        meta.className = 'memory-entry-meta badge ' + (item.tier === 'L2' ? 'summary' : 'manual');
         meta.textContent = item.tier === 'L3'
             ? 'L3 片段 · ' + (formatMemoryDate(item.createdAt) || '聊天记录')
             : (formatMemoryDate(item.createdAt) || '手动记录');
@@ -877,14 +877,14 @@
 
         if (summary || items.length > 0) {
             const list = document.createElement('div');
-            list.className = 'memory-entry-list';
+            list.className = 'memory-entry-list memory-list';
 
             if (summary) {
                 summary.sections.forEach((section) => {
                     const entry = document.createElement('article');
-                    entry.className = 'memory-entry';
+                    entry.className = 'memory-entry memory-card';
                     const meta = document.createElement('span');
-                    meta.className = 'memory-entry-meta';
+                    meta.className = 'memory-entry-meta badge summary';
                     meta.textContent = 'L2 摘要 · ' + (section.title || '近况');
                     const text = document.createElement('p');
                     text.textContent = section.content || '';
@@ -1241,6 +1241,7 @@
         root.querySelector('[data-memory-action="add"]').hidden = activeTab === 'archive';
         root.querySelectorAll('[data-memory-tab]').forEach((button) => {
             button.classList.toggle('is-active', button.dataset.memoryTab === activeTab);
+            button.classList.toggle('active', button.dataset.memoryTab === activeTab);
             button.setAttribute('aria-selected', String(button.dataset.memoryTab === activeTab));
         });
         setAvatar(contact);
@@ -1422,18 +1423,6 @@
         root.id = 'memoryAppUI';
         root.className = 'memory-app-container';
         root.setAttribute('aria-hidden', 'true');
-        root.innerHTML = '<iframe data-memory-reference-frame title="记忆库" style="width:100%;height:100%;border:0;display:block"></iframe>';
-        const referenceFrame = getReferenceFrame();
-        const referenceHost = document.querySelector('.iphone') || document.body;
-        referenceHost.appendChild(root);
-        buildReferenceSettings();
-        decodeReferenceDocument().then((documentText) => {
-            referenceFrame.addEventListener('load', () => attachReferenceDocument(referenceFrame), { once: true });
-            referenceFrame.srcdoc = documentText;
-        }).catch(() => {
-            referenceFrame.srcdoc = '<!doctype html><p>记忆库界面加载失败</p>';
-        });
-        return;
         root.innerHTML = `
             <div class="memory-app-scroll">
                 <header class="memory-profile-header">
@@ -1473,32 +1462,32 @@
 
         // Reference layout replaces the legacy centered profile before overlays are attached.
         root.innerHTML = `
-            <div class="memory-app-scroll">
-                <header class="memory-profile-header">
-                    <button class="memory-back" type="button" data-memory-action="close" aria-label="\u8fd4\u56de\u684c\u9762">\u2039</button>
-                    <button class="memory-settings-button" type="button" data-memory-action="summary-settings">\u8bbe\u7f6e</button>
+            <div class="memory-app-scroll scroll-content">
+                <header class="memory-profile-header top-actions">
+                    <button class="memory-back btn-circle" type="button" data-memory-action="close" aria-label="\u8fd4\u56de\u684c\u9762">\u2039</button>
+                    <button class="memory-settings-button btn-capsule" type="button" data-memory-action="summary-settings">\u8bbe\u7f6e</button>
                 </header>
                 <main class="memory-profile-main">
-                    <section class="memory-profile-section">
-                        <div class="memory-avatar-shell">
-                            <div class="memory-avatar" data-memory-avatar><img data-memory-avatar-image alt=""><span data-memory-monogram>\u8bb0</span></div>
+                    <section class="memory-profile-section profile-section">
+                        <div class="memory-avatar-shell profile-avatar-wrapper">
+                            <div class="memory-avatar profile-avatar" data-memory-avatar><img data-memory-avatar-image alt=""><span data-memory-monogram>\u8bb0</span></div>
                             <button class="memory-avatar-switch" type="button" data-memory-action="switch-role" aria-label="\u5207\u6362\u89d2\u8272">\u21c4</button>
                         </div>
-                        <div class="memory-heading">
-                            <div class="memory-name-line"><h1 data-memory-name>\u8bb0\u5fc6</h1></div>
-                            <p data-memory-subtitle>\u8bb0\u5fc6\u603b\u6570\uff1a0 \u6761</p>
-                            <p class="memory-profile-stat"><span>\u5171\u540c\u5bf9\u8bdd\uff1a<b data-memory-chat-count>0</b> \u8f6e</span><i></i><span>\u8ba4\u8bc6\u5929\u6570\uff1a<b data-memory-days>0</b> \u5929</span></p>
+                        <div class="memory-heading profile-info">
+                            <div class="memory-name-line"><h1 class="profile-name" data-memory-name>\u8bb0\u5fc6</h1></div>
+                            <p class="profile-stat-line1" data-memory-subtitle>\u8bb0\u5fc6\u603b\u6570\uff1a0 \u6761</p>
+                            <p class="memory-profile-stat profile-stat-line2"><span>\u5171\u540c\u5bf9\u8bdd\uff1a<b data-memory-chat-count>0</b> \u8f6e</span><i></i><span>\u8ba4\u8bc6\u5929\u6570\uff1a<b data-memory-days>0</b> \u5929</span></p>
                             <span class="memory-profile-status" data-memory-status>\u8bfb\u53d6\u4e2d</span>
                         </div>
                     </section>
-                    <nav class="memory-tabs" role="tablist" aria-label="\u8bb0\u5fc6\u89c6\u56fe">
-                        <button type="button" data-memory-tab="memory" class="is-active" role="tab" aria-selected="true">\u8bb0\u5fc6</button>
-                        <button type="button" data-memory-tab="relationship" role="tab" aria-selected="false">\u5173\u7cfb</button>
-                        <button type="button" data-memory-tab="fragment" role="tab" aria-selected="false">\u7247\u6bb5</button>
-                        <button type="button" data-memory-tab="archive" role="tab" aria-selected="false">\u6863\u6848</button>
+                    <nav class="memory-tabs segmented-control" role="tablist" aria-label="\u8bb0\u5fc6\u89c6\u56fe">
+                        <button type="button" data-memory-tab="memory" class="is-active active segment-btn" role="tab" aria-selected="true">\u8bb0\u5fc6</button>
+                        <button type="button" data-memory-tab="relationship" class="segment-btn" role="tab" aria-selected="false">\u5173\u7cfb</button>
+                        <button type="button" data-memory-tab="fragment" class="segment-btn" role="tab" aria-selected="false">\u7247\u6bb5</button>
+                        <button type="button" data-memory-tab="archive" class="segment-btn" role="tab" aria-selected="false">\u6863\u6848</button>
                     </nav>
-                    <label class="memory-search"><span aria-hidden="true">\u2315</span><input type="search" data-memory-search placeholder="\u641c\u7d22\u8bb0\u5fc6..."></label>
-                    <div class="memory-list-header"><h2 data-memory-card-title>\u8fd1\u671f\u8bb0\u5fc6</h2><div><button type="button" data-memory-action="summary-settings">\u6458\u8981</button><button type="button" data-memory-action="add">\uff0b \u65b0\u589e</button></div></div>
+                    <div class="ios-search-bar"><label class="memory-search search-box"><span aria-hidden="true">\u2315</span><input type="search" data-memory-search placeholder="\u641c\u7d22\u8bb0\u5fc6..."></label></div>
+                    <div class="memory-list-header ios-list-header"><h2 class="ios-list-title" data-memory-card-title>\u8fd1\u671f\u8bb0\u5fc6</h2><div class="ios-list-actions"><button class="icon-action-btn" type="button" data-memory-action="summary-settings">\u6458\u8981</button><button class="icon-action-btn" type="button" data-memory-action="add">\uff0b \u65b0\u589e</button></div></div>
                     <section class="memory-content-card"><div data-memory-content></div></section>
                 </main>
             </div>`;
@@ -1753,9 +1742,29 @@
         document.head.appendChild(style);
     }
 
+    async function installReferenceStyles() {
+        if (document.getElementById('memoryReferenceStyles')) return;
+        const documentText = await decodeReferenceDocument();
+        const styleMatch = documentText.match(/<style>([\s\S]*?)<\/style>/i);
+        if (!styleMatch) return;
+        const style = document.createElement('style');
+        style.id = 'memoryReferenceStyles';
+        style.textContent = styleMatch[1].replace(/body, html\s*\{[\s\S]*?\}/, '')
+            + '#memoryAppUI .memory-app-scroll{width:100%;height:100%;overflow-y:auto;background:#fff}'
+            + '#memoryAppUI .profile-avatar{overflow:hidden;position:relative}'
+            + '#memoryAppUI .profile-avatar img{display:none;width:100%;height:100%;object-fit:cover}'
+            + '#memoryAppUI .profile-avatar.has-image img{display:block}'
+            + '#memoryAppUI .profile-avatar.has-image [data-memory-monogram]{display:none}'
+            + '#memoryAppUI .memory-entry-actions{display:flex;gap:8px;align-items:center}'
+            + '#memoryAppUI .memory-entry-actions button,#memoryAppUI .memory-entry-actions select{border:0;background:transparent;color:#007AFF;font:500 12px -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif}'
+            + '#memoryAppUI .memory-entry-actions .memory-delete-action{color:#ff3b30}';
+        document.head.appendChild(style);
+    }
+
     function init() {
         ensureStyles();
         if (!root) buildRoot();
+        void installReferenceStyles();
         return Promise.resolve();
     }
 
