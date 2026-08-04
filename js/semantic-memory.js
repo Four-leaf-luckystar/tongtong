@@ -5,6 +5,22 @@
     const STORE_NAME = 'layoutStore';
     const STATE_KEY = 'memorySemanticModelV1';
     const CACHE_PREFIX = 'tonghuaji-semantic-model-';
+    const DEFAULT_MODEL_SOURCE = 'https://huggingface.co/Xenova/bge-small-zh-v1.5';
+    const DEFAULT_MODEL_REVISION = '75c43b069aac4d136ba6bc1122f995fedcfd2781';
+    const DEFAULT_MODEL_MANIFEST = {
+        version: 'bge-small-zh-v1.5-20260805',
+        name: 'BGE Small 中文语义记忆模型',
+        engine: 'transformers.js',
+        modelId: 'Xenova/bge-small-zh-v1.5',
+        files: [
+            { path: 'config.json', bytes: 716, sha256: 'd4193ead3a810fd694fa8a31d7fc72fbaebc0668b603e398734bf2f6538ff42f' },
+            { path: 'special_tokens_map.json', bytes: 125, sha256: 'b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3' },
+            { path: 'tokenizer.json', bytes: 439125, sha256: '48cea5d44424912a6fd1ea647bf4fe50b55ab8b1e5879c3275f80e339e8fae26' },
+            { path: 'tokenizer_config.json', bytes: 367, sha256: 'e6f3b96db926a37d4039995fbf5ad17de158dfb8f6343d607e4dbaad18d75f5a' },
+            { path: 'vocab.txt', bytes: 109540, sha256: '45bbac6b341c319adc98a532532882e91a9cefc0329aa57bac9ae761c27b291c' },
+            { path: 'onnx/model_quantized.onnx', bytes: 24010842, sha256: '15b717c382bcb518ba457b93ea6850ede7f4f1cd8937454aa06972366cd19bcc' }
+        ]
+    };
     let state = {
         status: 'not-configured',
         manifestUrl: '',
@@ -93,7 +109,7 @@
             if (!file || !file.path) throw new Error('模型清单存在无效文件');
             return {
                 path: String(file.path),
-                url: new URL(file.path, baseUrl).href,
+                url: new URL(file.url || file.path, baseUrl).href,
                 bytes: Math.max(0, Number(file.bytes) || 0),
                 sha256: String(file.sha256 || '').toLowerCase()
             };
@@ -114,38 +130,51 @@
         return Array.from(new Uint8Array(digest)).map((value) => value.toString(16).padStart(2, '0')).join('');
     }
 
+    async function cacheModel(manifest, onProgress) {
+        const totalBytes = manifest.files.reduce((total, file) => total + file.bytes, 0);
+        const cache = await caches.open(CACHE_PREFIX + manifest.version);
+        let downloadedBytes = 0;
+        setState({ manifest, totalBytes });
+
+        for (const file of manifest.files) {
+            const fileResponse = await fetch(file.url, { cache: 'no-store' });
+            if (!fileResponse.ok) throw new Error('模型文件下载失败：' + file.path);
+            const bytes = await fileResponse.arrayBuffer();
+            const actualHash = await digestSha256(bytes);
+            if (file.sha256 && actualHash && file.sha256 !== actualHash) {
+                throw new Error('模型文件校验失败：' + file.path);
+            }
+            await cache.put(file.url, new Response(bytes, {
+                headers: { 'Content-Type': fileResponse.headers.get('Content-Type') || 'application/octet-stream' }
+            }));
+            downloadedBytes += bytes.byteLength;
+            setState({ downloadedBytes });
+            if (typeof onProgress === 'function') onProgress(downloadedBytes, totalBytes, file.path);
+        }
+
+        setState({ status: 'ready', manifest, downloadedBytes, totalBytes, error: '' });
+        return { ...state };
+    }
+
     async function download(manifestUrl, onProgress) {
         const url = String(manifestUrl || state.manifestUrl || '').trim();
-        if (!url) throw new Error('请先填写模型清单地址');
         if (!window.caches) throw new Error('当前浏览器不支持模型缓存');
         setState({ status: 'downloading', manifestUrl: url, manifest: null, downloadedBytes: 0, totalBytes: 0, error: '' });
         try {
+            if (!url) {
+                const manifest = normalizeManifest({
+                    ...DEFAULT_MODEL_MANIFEST,
+                    files: DEFAULT_MODEL_MANIFEST.files.map((file) => ({
+                        ...file,
+                        url: DEFAULT_MODEL_SOURCE + '/resolve/' + DEFAULT_MODEL_REVISION + '/' + file.path
+                    }))
+                }, DEFAULT_MODEL_SOURCE);
+                return await cacheModel(manifest, onProgress);
+            }
             const response = await fetch(url, { cache: 'no-store' });
             if (!response.ok) throw new Error('模型清单下载失败：HTTP ' + response.status);
             const manifest = normalizeManifest(await response.json(), url);
-            const totalBytes = manifest.files.reduce((total, file) => total + file.bytes, 0);
-            const cache = await caches.open(CACHE_PREFIX + manifest.version);
-            let downloadedBytes = 0;
-            setState({ manifest, totalBytes });
-
-            for (const file of manifest.files) {
-                const fileResponse = await fetch(file.url, { cache: 'no-store' });
-                if (!fileResponse.ok) throw new Error('模型文件下载失败：' + file.path);
-                const bytes = await fileResponse.arrayBuffer();
-                const actualHash = await digestSha256(bytes);
-                if (file.sha256 && actualHash && file.sha256 !== actualHash) {
-                    throw new Error('模型文件校验失败：' + file.path);
-                }
-                await cache.put(file.url, new Response(bytes, {
-                    headers: { 'Content-Type': fileResponse.headers.get('Content-Type') || 'application/octet-stream' }
-                }));
-                downloadedBytes += bytes.byteLength;
-                setState({ downloadedBytes });
-                if (typeof onProgress === 'function') onProgress(downloadedBytes, totalBytes, file.path);
-            }
-
-            setState({ status: 'ready', manifest, downloadedBytes, totalBytes, error: '' });
-            return { ...state };
+            return await cacheModel(manifest, onProgress);
         } catch (error) {
             setState({ status: 'error', error: String(error && error.message || error) });
             throw error;

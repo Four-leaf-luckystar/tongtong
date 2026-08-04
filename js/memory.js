@@ -1016,7 +1016,7 @@
         const removeButton = root.querySelector('[data-memory-action="remove-semantic-model"]');
         if (!status || !progress || !removeButton) return;
         const labels = {
-            'not-configured': '未配置模型',
+            'not-configured': '默认中文模型待下载',
             downloading: '正在下载',
             ready: '已下载，等待语义运行时接入',
             error: '下载失败',
@@ -1349,12 +1349,12 @@
         semanticSettings.setAttribute('aria-hidden', 'true');
         semanticSettings.innerHTML = '<div class="memory-semantic-settings-sheet" role="dialog" aria-modal="true" aria-labelledby="memorySemanticSettingsTitle">'
             + '<div class="memory-composer-header"><button type="button" data-memory-action="close-semantic-settings">取消</button><h2 id="memorySemanticSettingsTitle">语义模型</h2><button type="button" data-memory-action="download-semantic-model">下载</button></div>'
-            + '<p class="memory-semantic-settings-copy">模型下载到本机后，记忆向量化和召回都在本地完成，不会上传聊天内容。</p>'
-            + '<label class="memory-semantic-settings-input"><span>Manifest</span><input type="url" data-semantic-model-url placeholder="粘贴模型清单地址"></label>'
+            + '<p class="memory-semantic-settings-copy">默认从 Hugging Face 直连下载中文模型到本机；聊天内容不会上传。</p>'
+            + '<label class="memory-semantic-settings-input"><span>自定义清单</span><input type="url" data-semantic-model-url placeholder="可选：粘贴自定义 manifest 地址"></label>'
             + '<progress class="memory-semantic-model-progress" data-semantic-model-progress max="1" value="0" hidden></progress>'
             + '<p class="memory-semantic-model-status" data-semantic-model-status>未配置模型</p>'
             + '<button class="memory-semantic-remove" type="button" data-memory-action="remove-semantic-model" hidden>删除本地模型</button>'
-            + '<p class="memory-summary-settings-note">需要模型 CDN 提供 manifest.json，包含 version、files、path、bytes、sha256。未下载时继续使用当前轻量本地向量。</p>'
+            + '<p class="memory-summary-settings-note">直接点下载即可获取 BGE Small 中文模型。填写自定义清单时才使用其他模型来源；未下载时继续使用当前轻量本地向量。</p>'
             + '</div>';
         root.appendChild(semanticSettings);
 
