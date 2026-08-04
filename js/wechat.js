@@ -896,7 +896,7 @@
                             <div class="avatar" style="${avatarStyle}; background-color: transparent;">${avatarContent}</div>
                             <div class="info-wrapper">
                                 <div class="name">${contact.name}</div>
-                                <div class="desc">${contact.desc}</div>
+                                <div class="desc">角色联系人</div>
                             </div>
                         </div>
                     </div>
