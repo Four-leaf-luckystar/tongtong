@@ -974,6 +974,11 @@
     function openComposer(item = null) {
         const contact = cachedContacts.find((item) => item.id === selectedContactId);
         if (!contact) {
+            const referenceFrame = getReferenceFrame();
+            if (referenceFrame?.contentDocument) {
+                showReferenceRolePicker(referenceFrame.contentDocument);
+                return;
+            }
             showRolePicker();
             return;
         }
@@ -1336,6 +1341,20 @@
             text.className = 'memory-text';
             text.textContent = item.content || '';
             header.append(badge, date);
+            if (item.tier === 'L3') {
+                const priority = documentRef.createElement('select');
+                priority.setAttribute('aria-label', '片段召回优先级');
+                priority.style.cssText = 'margin-left:auto;border:0;background:transparent;color:#007AFF;font-size:12px';
+                [[RETRIEVAL_PRIORITY.pinned, '置顶'], [RETRIEVAL_PRIORITY.normal, '普通'], [RETRIEVAL_PRIORITY.low, '降低']].forEach(([value, label]) => {
+                    const option = documentRef.createElement('option');
+                    option.value = String(value);
+                    option.textContent = label;
+                    option.selected = value === getRetrievalPriority(item);
+                    priority.appendChild(option);
+                });
+                priority.addEventListener('change', () => void setMemoryRetrievalPriority(item.id, Number(priority.value)));
+                header.appendChild(priority);
+            }
             card.append(header, text);
             list.appendChild(card);
         });
@@ -1366,6 +1385,7 @@
         });
         const actions = documentRef.querySelectorAll('.icon-action-btn');
         actions[0]?.addEventListener('click', openSummarySettings, true);
+        actions[1]?.addEventListener('click', openComposer, true);
         renderReferenceDocument();
     }
 
@@ -1418,11 +1438,36 @@
         settings.querySelector('[data-memory-action="remove-semantic-model"]').addEventListener('click', removeSemanticModel);
     }
 
+    function buildReferenceComposer() {
+        const composer = document.createElement('section');
+        composer.className = 'memory-composer';
+        composer.setAttribute('data-memory-composer', '');
+        composer.setAttribute('aria-hidden', 'true');
+        composer.innerHTML = '<div class="memory-composer-sheet" role="dialog" aria-modal="true">'
+            + '<div class="memory-composer-header"><button type="button" data-memory-action="close-composer">取消</button><h2 data-memory-composer-title>新增记忆</h2><button type="button" data-memory-action="save-memory">保存</button></div>'
+            + '<p class="memory-composer-role">写入 <span data-memory-composer-role></span> 的独立档案</p>'
+            + '<textarea data-memory-composer-input maxlength="30000" placeholder="写下想让角色记住的事..."></textarea><p class="memory-composer-error" data-memory-composer-error aria-live="polite"></p></div>';
+        root.appendChild(composer);
+        composer.querySelector('[data-memory-action="close-composer"]').addEventListener('click', closeComposer);
+        composer.querySelector('[data-memory-action="save-memory"]').addEventListener('click', saveManualMemory);
+    }
+
     function buildRoot() {
         root = document.createElement('section');
         root.id = 'memoryAppUI';
         root.className = 'memory-app-container';
         root.setAttribute('aria-hidden', 'true');
+        root.innerHTML = '<iframe data-memory-reference-frame title="记忆库" style="width:100%;height:100%;border:0;display:block"></iframe>';
+        const referenceFrame = getReferenceFrame();
+        const referenceHost = document.querySelector('.iphone') || document.body;
+        referenceHost.appendChild(root);
+        buildReferenceSettings();
+        buildReferenceComposer();
+        decodeReferenceDocument().then((documentText) => {
+            referenceFrame.addEventListener('load', () => attachReferenceDocument(referenceFrame), { once: true });
+            referenceFrame.srcdoc = documentText;
+        }).catch(() => { referenceFrame.srcdoc = '<!doctype html><p>记忆库界面加载失败</p>'; });
+        return;
         root.innerHTML = `
             <div class="memory-app-scroll">
                 <header class="memory-profile-header">
@@ -1764,7 +1809,7 @@
     function init() {
         ensureStyles();
         if (!root) buildRoot();
-        void installReferenceStyles();
+        if (!getReferenceFrame()) void installReferenceStyles();
         return Promise.resolve();
     }
 
