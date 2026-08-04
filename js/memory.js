@@ -1366,6 +1366,56 @@
         }
     }
 
+    function openReferenceComposer(documentRef) {
+        const contact = cachedContacts.find((item) => item.id === selectedContactId);
+        if (!contact) {
+            showReferenceRolePicker(documentRef);
+            return;
+        }
+        const overlay = documentRef.createElement('div');
+        overlay.className = 'switcher-overlay is-visible';
+        const sheet = documentRef.createElement('div');
+        sheet.className = 'modal-card';
+        sheet.style.cssText = 'height:auto;min-height:220px;width:310px;display:block;padding:18px 16px;box-sizing:border-box';
+        const title = documentRef.createElement('h3');
+        title.className = 'modal-card-title';
+        title.textContent = '新增记忆';
+        const input = documentRef.createElement('textarea');
+        input.placeholder = '写下想让角色记住的事...';
+        input.maxLength = 30000;
+        input.style.cssText = 'width:100%;height:110px;margin-top:14px;padding:10px;box-sizing:border-box;border:0;border-radius:10px;background:#f2f2f7;resize:none;font:15px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;outline:0';
+        const actions = documentRef.createElement('div');
+        actions.style.cssText = 'display:flex;justify-content:flex-end;gap:18px;margin-top:14px';
+        const cancel = documentRef.createElement('button');
+        cancel.type = 'button';
+        cancel.textContent = '取消';
+        const save = documentRef.createElement('button');
+        save.type = 'button';
+        save.textContent = '保存';
+        [cancel, save].forEach((button) => { button.style.cssText = 'border:0;background:transparent;color:#007AFF;font:500 15px -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif'; });
+        cancel.addEventListener('click', () => overlay.remove());
+        save.addEventListener('click', async () => {
+            const hostInput = root.querySelector('[data-memory-composer-input]');
+            const hostError = root.querySelector('[data-memory-composer-error]');
+            hostInput.value = input.value;
+            hostError.textContent = '';
+            await saveManualMemory();
+            if (!hostError.textContent) {
+                overlay.remove();
+            } else {
+                input.setCustomValidity(hostError.textContent);
+                input.reportValidity();
+                input.setCustomValidity('');
+            }
+        });
+        actions.append(cancel, save);
+        sheet.append(title, input, actions);
+        overlay.appendChild(sheet);
+        overlay.addEventListener('click', (event) => { if (event.target === overlay) overlay.remove(); });
+        documentRef.body.appendChild(overlay);
+        requestAnimationFrame(() => input.focus());
+    }
+
     function attachReferenceDocument(frame) {
         const documentRef = frame.contentDocument;
         const chromeOverride = documentRef.createElement('style');
@@ -1389,7 +1439,7 @@
             actions[1].onclick = (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                openComposer();
+                openReferenceComposer(documentRef);
             };
         }
         renderReferenceDocument();
