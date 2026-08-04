@@ -1298,6 +1298,36 @@
         return root && root.querySelector('[data-memory-reference-frame]');
     }
 
+    function openMemoryPriorityDialog(item) {
+        const overlay = document.getElementById('customDialogOverlay');
+        const dialog = document.getElementById('customDialog');
+        if (!overlay || !dialog) return;
+        dialog.replaceChildren();
+        const text = document.createElement('div');
+        text.className = 'custom-dialog-text';
+        const title = document.createElement('div');
+        title.className = 'custom-dialog-title';
+        title.textContent = '片段权重';
+        const message = document.createElement('div');
+        message.className = 'custom-dialog-message';
+        message.textContent = '选择这条片段在对话中的召回优先级';
+        text.append(title, message);
+        const buttons = document.createElement('div');
+        buttons.className = 'custom-dialog-btns';
+        [[RETRIEVAL_PRIORITY.pinned, '置顶'], [RETRIEVAL_PRIORITY.normal, '普通'], [RETRIEVAL_PRIORITY.low, '降低']].forEach(([value, label]) => {
+            const button = document.createElement('button');
+            button.className = 'custom-dialog-btn' + (value === getRetrievalPriority(item) ? ' bold' : '');
+            button.textContent = label;
+            button.addEventListener('click', () => {
+                overlay.classList.remove('show');
+                void setMemoryRetrievalPriority(item.id, value);
+            });
+            buttons.appendChild(button);
+        });
+        dialog.append(text, buttons);
+        overlay.classList.add('show');
+    }
+
     function renderReferenceDocument() {
         const frame = getReferenceFrame();
         const documentRef = frame && frame.contentDocument;
@@ -1342,18 +1372,26 @@
             text.textContent = item.content || '';
             header.append(badge, date);
             if (item.tier === 'L3') {
-                const priority = documentRef.createElement('select');
-                priority.setAttribute('aria-label', '片段召回优先级');
-                priority.style.cssText = 'margin-left:auto;border:0;background:transparent;color:#007AFF;font-size:12px';
-                [[RETRIEVAL_PRIORITY.pinned, '置顶'], [RETRIEVAL_PRIORITY.normal, '普通'], [RETRIEVAL_PRIORITY.low, '降低']].forEach(([value, label]) => {
-                    const option = documentRef.createElement('option');
-                    option.value = String(value);
-                    option.textContent = label;
-                    option.selected = value === getRetrievalPriority(item);
-                    priority.appendChild(option);
+                const priority = documentRef.createElement('button');
+                priority.type = 'button';
+                priority.textContent = getRetrievalPriorityLabel(item) + '⌄';
+                priority.style.cssText = 'margin-left:auto;border:0;background:transparent;color:#007AFF;font:500 14px -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif';
+                priority.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    openMemoryPriorityDialog(item);
                 });
-                priority.addEventListener('change', () => void setMemoryRetrievalPriority(item.id, Number(priority.value)));
                 header.appendChild(priority);
+            }
+            if (item.id && item.authority === 'user_confirmed') {
+                const edit = documentRef.createElement('button');
+                edit.type = 'button';
+                edit.textContent = '编辑';
+                edit.style.cssText = 'margin-left:12px;border:0;background:transparent;color:#007AFF;font:500 14px -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif';
+                edit.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    openReferenceComposer(documentRef, item);
+                });
+                header.appendChild(edit);
             }
             card.append(header, text);
             list.appendChild(card);
@@ -1366,7 +1404,7 @@
         }
     }
 
-    function openReferenceComposer(documentRef) {
+    function openReferenceComposer(documentRef, item = null) {
         const contact = cachedContacts.find((item) => item.id === selectedContactId);
         if (!contact) {
             showReferenceRolePicker(documentRef);
@@ -1379,10 +1417,12 @@
         sheet.style.cssText = 'height:auto;min-height:220px;width:310px;display:block;padding:18px 16px;box-sizing:border-box';
         const title = documentRef.createElement('h3');
         title.className = 'modal-card-title';
-        title.textContent = '新增记忆';
+        editingMemoryId = item && item.id ? item.id : '';
+        title.textContent = editingMemoryId ? '编辑记忆' : '新增记忆';
         const input = documentRef.createElement('textarea');
         input.placeholder = '写下想让角色记住的事...';
         input.maxLength = 30000;
+        input.value = item && item.content ? item.content : '';
         input.style.cssText = 'width:100%;height:110px;margin-top:14px;padding:10px;box-sizing:border-box;border:0;border-radius:10px;background:#f2f2f7;resize:none;font:15px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;outline:0';
         const actions = documentRef.createElement('div');
         actions.style.cssText = 'display:flex;justify-content:flex-end;gap:18px;margin-top:14px';
