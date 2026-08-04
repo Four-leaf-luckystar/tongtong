@@ -1385,7 +1385,13 @@
         });
         const actions = documentRef.querySelectorAll('.icon-action-btn');
         actions[0]?.addEventListener('click', openSummarySettings, true);
-        actions[1]?.addEventListener('click', openComposer, true);
+        if (actions[1]) {
+            actions[1].onclick = (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                openComposer();
+            };
+        }
         renderReferenceDocument();
     }
 
@@ -1441,6 +1447,7 @@
     function buildReferenceComposer() {
         const composer = document.createElement('section');
         composer.className = 'memory-composer';
+        composer.style.zIndex = '7202';
         composer.setAttribute('data-memory-composer', '');
         composer.setAttribute('aria-hidden', 'true');
         composer.innerHTML = '<div class="memory-composer-sheet" role="dialog" aria-modal="true">'
