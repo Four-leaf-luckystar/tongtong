@@ -1424,7 +1424,7 @@
         const tabs = ['memory', 'relationship', 'fragment', 'archive'];
         documentRef.querySelector('.btn-circle').addEventListener('click', close);
         documentRef.querySelector('.btn-capsule').addEventListener('click', openSummarySettings);
-        documentRef.querySelector('.avatar-switch-badge').addEventListener('click', () => showReferenceRolePicker(documentRef), true);
+        documentRef.querySelector('.avatar-switch-badge').addEventListener('click', () => void showReferenceRolePicker(documentRef), true);
         documentRef.querySelectorAll('.segment-btn').forEach((button, index) => button.addEventListener('click', () => {
             activeTab = tabs[index] || 'memory';
             renderReferenceDocument();
@@ -1439,16 +1439,41 @@
             actions[1].onclick = (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                openReferenceComposer(documentRef);
+                void refresh().then(() => openReferenceComposer(documentRef));
             };
         }
         renderReferenceDocument();
     }
 
-    function showReferenceRolePicker(documentRef) {
+    async function showReferenceRolePicker(documentRef) {
+        await refresh();
         const overlay = documentRef.getElementById('switcherOverlay');
         const list = overlay.querySelector('.modal-list-container');
         list.replaceChildren();
+        if (!cachedContacts.length) {
+            const emptyCard = documentRef.createElement('div');
+            emptyCard.className = 'modal-card';
+            emptyCard.style.cssText = 'height:auto;min-height:110px;display:block;padding:16px';
+            const title = documentRef.createElement('h3');
+            title.className = 'modal-card-title';
+            title.textContent = '暂无可选角色';
+            const copy = documentRef.createElement('p');
+            copy.className = 'modal-card-subtitle';
+            copy.textContent = '先在联系人中创建角色，再为其新增记忆。';
+            const button = documentRef.createElement('button');
+            button.type = 'button';
+            button.textContent = '前往联系人';
+            button.style.cssText = 'margin-top:12px;border:0;background:transparent;color:#007AFF;font:500 15px -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;padding:0';
+            button.addEventListener('click', () => {
+                overlay.classList.remove('is-visible');
+                close();
+                if (typeof window.openContactsApp === 'function') window.openContactsApp();
+            });
+            emptyCard.append(title, copy, button);
+            list.appendChild(emptyCard);
+            overlay.classList.add('is-visible');
+            return;
+        }
         cachedContacts.forEach((contact) => {
             const card = documentRef.createElement('button');
             card.type = 'button';
