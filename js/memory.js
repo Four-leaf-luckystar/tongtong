@@ -22,6 +22,7 @@
     const VECTOR_INDEX_VERSION = 'local-ngram-v1';
     const VECTOR_DIMENSIONS = 256;
     const VECTOR_MIN_SIMILARITY = 0.12;
+    const REFERENCE_DOCUMENT_GZIP_BASE64 = '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';
     let root = null;
     let selectedContactId = '';
     let activeTab = 'memory';
@@ -961,6 +962,11 @@
         selectedContactId = contactId;
         activeTab = 'memory';
         savePreferences();
+        if (getReferenceFrame()) {
+            getReferenceFrame().contentDocument?.getElementById('switcherOverlay')?.classList.remove('is-visible');
+            renderReferenceDocument();
+            return;
+        }
         hideRolePicker();
         render();
     }
@@ -1214,6 +1220,10 @@
 
     function render() {
         if (!root) return;
+        if (getReferenceFrame()) {
+            renderReferenceDocument();
+            return;
+        }
         const contact = cachedContacts.find((item) => item.id === selectedContactId) || null;
         const messages = contact ? getContactMessages(contact.id) : [];
         const name = contact && contact.name ? contact.name.trim() : '尚未选择角色';
@@ -1270,11 +1280,145 @@
         render();
     }
 
+    async function decodeReferenceDocument() {
+        const binary = atob(REFERENCE_DOCUMENT_GZIP_BASE64);
+        const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+        if (!window.DecompressionStream) throw new Error('当前浏览器不支持参考界面解压');
+        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+        return new Response(stream).text();
+    }
+
+    function getReferenceFrame() {
+        return root && root.querySelector('[data-memory-reference-frame]');
+    }
+
+    function renderReferenceDocument() {
+        const frame = getReferenceFrame();
+        const documentRef = frame && frame.contentDocument;
+        if (!documentRef || !documentRef.body) return;
+        const contact = cachedContacts.find((item) => item.id === selectedContactId) || null;
+        const messages = contact ? getContactMessages(contact.id) : [];
+        const items = contact ? getActiveItems(contact.id, activeTab) : [];
+        const query = memorySearchQuery.trim().toLocaleLowerCase();
+        const filteredItems = query ? items.filter((item) => String(item.content || '').toLocaleLowerCase().includes(query)) : items;
+        documentRef.getElementById('mainProfileName').textContent = contact?.name || '尚未选择角色';
+        documentRef.querySelector('.profile-stat-line1').textContent = '记忆总数：' + (contact ? getActiveItems(contact.id).length : 0) + ' 条';
+        documentRef.querySelector('.profile-stat-line2').textContent = '共同对话：' + messages.length + ' 轮 | 认识天数：' + getKnownDays(messages) + ' 天';
+        const avatar = documentRef.querySelector('.profile-avatar');
+        avatar.style.backgroundImage = contact?.avatar ? 'url(' + JSON.stringify(contact.avatar) + ')' : '';
+        avatar.style.backgroundSize = 'cover';
+        avatar.style.backgroundPosition = 'center';
+        const tabs = ['memory', 'relationship', 'fragment', 'archive'];
+        documentRef.querySelectorAll('.segment-btn').forEach((button, index) => button.classList.toggle('active', tabs[index] === activeTab));
+        const list = documentRef.querySelector('.memory-list');
+        list.replaceChildren();
+        filteredItems.forEach((item) => {
+            const card = documentRef.createElement('div');
+            card.className = 'memory-card';
+            const header = documentRef.createElement('div');
+            header.className = 'memory-card-header';
+            const badge = documentRef.createElement('span');
+            badge.className = 'badge ' + (item.tier === 'L2' ? 'summary' : 'manual');
+            badge.textContent = item.tier === 'L2' ? 'L2 摘要 · 近况' : '手动记录';
+            const date = documentRef.createElement('span');
+            date.className = 'memory-date';
+            date.textContent = formatMemoryDate(item.createdAt) || '刚刚';
+            const text = documentRef.createElement('p');
+            text.className = 'memory-text';
+            text.textContent = item.content || '';
+            header.append(badge, date);
+            card.append(header, text);
+            list.appendChild(card);
+        });
+        if (!filteredItems.length) {
+            const card = documentRef.createElement('div');
+            card.className = 'memory-card';
+            card.textContent = query ? '没有匹配的记忆' : getEmptyCopy()[0];
+            list.appendChild(card);
+        }
+    }
+
+    function attachReferenceDocument(frame) {
+        const documentRef = frame.contentDocument;
+        const tabs = ['memory', 'relationship', 'fragment', 'archive'];
+        documentRef.querySelector('.btn-circle').addEventListener('click', close);
+        documentRef.querySelector('.btn-capsule').addEventListener('click', openSummarySettings);
+        documentRef.querySelector('.avatar-switch-badge').addEventListener('click', () => showReferenceRolePicker(documentRef), true);
+        documentRef.querySelectorAll('.segment-btn').forEach((button, index) => button.addEventListener('click', () => {
+            activeTab = tabs[index] || 'memory';
+            renderReferenceDocument();
+        }, true));
+        documentRef.querySelector('.search-box input').addEventListener('input', (event) => {
+            memorySearchQuery = event.target.value || '';
+            renderReferenceDocument();
+        });
+        const actions = documentRef.querySelectorAll('.icon-action-btn');
+        actions[0]?.addEventListener('click', openSummarySettings, true);
+        renderReferenceDocument();
+    }
+
+    function showReferenceRolePicker(documentRef) {
+        const overlay = documentRef.getElementById('switcherOverlay');
+        const list = overlay.querySelector('.modal-list-container');
+        list.replaceChildren();
+        cachedContacts.forEach((contact) => {
+            const card = documentRef.createElement('button');
+            card.type = 'button';
+            card.className = 'modal-card';
+            const avatar = documentRef.createElement('span');
+            avatar.className = 'modal-card-avatar';
+            if (contact.avatar) avatar.style.backgroundImage = 'url(' + JSON.stringify(contact.avatar) + ')';
+            const info = documentRef.createElement('span');
+            info.className = 'modal-card-info';
+            const title = documentRef.createElement('span');
+            title.className = 'modal-card-title';
+            title.textContent = contact.name || '未命名角色';
+            const subtitle = documentRef.createElement('span');
+            subtitle.className = 'modal-card-subtitle';
+            subtitle.textContent = '共同记忆档案';
+            info.append(title, subtitle);
+            card.append(avatar, info);
+            card.addEventListener('click', () => selectRole(contact.id));
+            list.appendChild(card);
+        });
+        overlay.classList.add('is-visible');
+    }
+
+    function buildReferenceSettings() {
+        const settings = document.createElement('section');
+        settings.className = 'memory-summary-settings';
+        settings.setAttribute('data-memory-summary-settings', '');
+        settings.setAttribute('aria-hidden', 'true');
+        settings.innerHTML = '<div class="memory-summary-settings-sheet" role="dialog" aria-modal="true">'
+            + '<div class="memory-composer-header"><button type="button" data-memory-action="close-summary-settings">取消</button><h2>设置</h2><button type="button" data-memory-action="save-summary-settings">保存</button></div>'
+            + '<p class="memory-summary-settings-copy">每累计多少条新消息，更新一次近期摘要</p>'
+            + '<label class="memory-summary-settings-input"><input type="number" inputmode="numeric" min="1" max="500" step="1" data-memory-summary-interval><span>条新消息</span></label>'
+            + '<section class="memory-settings-section"><h3>向量模型</h3><p class="memory-semantic-settings-copy">下载到本机后，聊天内容不会上传。</p><label class="memory-semantic-settings-input"><span>自定义清单</span><input type="url" data-semantic-model-url placeholder="可选：manifest 地址"></label><button class="memory-model-download" type="button" data-memory-action="download-semantic-model">下载向量模型</button><progress class="memory-semantic-model-progress" data-semantic-model-progress max="1" value="0" hidden></progress><p class="memory-semantic-model-status" data-semantic-model-status>模型未下载</p><button class="memory-semantic-remove" type="button" data-memory-action="remove-semantic-model" hidden>删除本地模型</button></section>'
+            + '<p class="memory-composer-error" data-memory-summary-error aria-live="polite"></p></div>';
+        root.appendChild(settings);
+        settings.querySelector('[data-memory-action="close-summary-settings"]').addEventListener('click', closeSummarySettings);
+        settings.querySelector('[data-memory-action="save-summary-settings"]').addEventListener('click', saveSummarySettings);
+        settings.querySelector('[data-memory-action="download-semantic-model"]').addEventListener('click', downloadSemanticModel);
+        settings.querySelector('[data-memory-action="remove-semantic-model"]').addEventListener('click', removeSemanticModel);
+    }
+
     function buildRoot() {
         root = document.createElement('section');
         root.id = 'memoryAppUI';
         root.className = 'memory-app-container';
         root.setAttribute('aria-hidden', 'true');
+        root.innerHTML = '<iframe data-memory-reference-frame title="记忆库" style="width:100%;height:100%;border:0;display:block"></iframe>';
+        const referenceFrame = getReferenceFrame();
+        const referenceHost = document.querySelector('.iphone') || document.body;
+        referenceHost.appendChild(root);
+        buildReferenceSettings();
+        decodeReferenceDocument().then((documentText) => {
+            referenceFrame.addEventListener('load', () => attachReferenceDocument(referenceFrame), { once: true });
+            referenceFrame.srcdoc = documentText;
+        }).catch(() => {
+            referenceFrame.srcdoc = '<!doctype html><p>记忆库界面加载失败</p>';
+        });
+        return;
         root.innerHTML = `
             <div class="memory-app-scroll">
                 <header class="memory-profile-header">
@@ -1604,11 +1748,16 @@
         if (!root) init();
         root.setAttribute('aria-hidden', 'false');
         root.classList.add('is-open');
-        refresh().then(showRolePicker);
+        refresh();
     }
 
     function close() {
         if (!root) return;
+        if (getReferenceFrame()) {
+            root.classList.remove('is-open');
+            root.setAttribute('aria-hidden', 'true');
+            return;
+        }
         closeComposer();
         closeSummarySettings();
         closeSemanticSettings();
