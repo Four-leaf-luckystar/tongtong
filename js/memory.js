@@ -1348,6 +1348,9 @@
 
     function attachReferenceDocument(frame) {
         const documentRef = frame.contentDocument;
+        const chromeOverride = documentRef.createElement('style');
+        chromeOverride.textContent = 'html,body{width:100%;height:100%;background:#fff}body{display:block}.iphone-mockup{width:100%;height:100%;border-radius:0;box-shadow:none}.notch{display:none}.modal-card-avatar{background-size:cover;background-position:center;background-repeat:no-repeat}';
+        documentRef.head.appendChild(chromeOverride);
         const tabs = ['memory', 'relationship', 'fragment', 'archive'];
         documentRef.querySelector('.btn-circle').addEventListener('click', close);
         documentRef.querySelector('.btn-capsule').addEventListener('click', openSummarySettings);
@@ -1373,15 +1376,19 @@
             const card = documentRef.createElement('button');
             card.type = 'button';
             card.className = 'modal-card';
-            const avatar = documentRef.createElement('span');
+            const avatar = documentRef.createElement('div');
             avatar.className = 'modal-card-avatar';
-            if (contact.avatar) avatar.style.backgroundImage = 'url(' + JSON.stringify(contact.avatar) + ')';
-            const info = documentRef.createElement('span');
+            if (contact.avatar) {
+                avatar.style.backgroundImage = 'url(' + JSON.stringify(contact.avatar) + ')';
+                avatar.style.backgroundSize = 'cover';
+                avatar.style.backgroundPosition = 'center';
+            }
+            const info = documentRef.createElement('div');
             info.className = 'modal-card-info';
-            const title = documentRef.createElement('span');
+            const title = documentRef.createElement('h3');
             title.className = 'modal-card-title';
             title.textContent = contact.name || '未命名角色';
-            const subtitle = documentRef.createElement('span');
+            const subtitle = documentRef.createElement('p');
             subtitle.className = 'modal-card-subtitle';
             subtitle.textContent = '共同记忆档案';
             info.append(title, subtitle);
