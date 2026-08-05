@@ -121,27 +121,28 @@
 #readerAppUI .ra-plain-icon { display: grid; width: 35px; height: 35px; padding: 0; place-items: center; background: transparent; color: #111; font-size: 19px; letter-spacing: 1px; }
 #readerAppUI .ra-plain-icon svg, #readerAppUI .ra-library-search svg { width: 24px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 2; }
 #readerAppUI .ra-scroll { padding: 8px 33px calc(105px + var(--bottom-safe-area, 0px)); }
-#readerAppUI .ra-library-search { display: flex; align-items: center; gap: 13px; height: 60px; margin: 2px 0 24px; padding: 0 20px; border: 1px solid #ededf0; border-radius: 30px; background: #fff; box-shadow: 0 6px 18px rgba(35, 35, 40, 0.05); color: #8b8b93; }
+#readerAppUI .ra-library-search { display: flex; align-items: center; gap: 12px; height: 52px; margin: 2px 0 22px; padding: 0 18px; border: 1px solid #ededf0; border-radius: 26px; background: #fff; box-shadow: 0 6px 18px rgba(35, 35, 40, 0.05); color: #8b8b93; }
 #readerAppUI .ra-library-search.is-open { display: flex; }
 #readerAppUI .ra-library-search svg { flex: 0 0 24px; }
-#readerAppUI .ra-library-search input { width: 100%; border: 0; outline: 0; background: transparent; color: #17171b; font-size: 17px; }
+#readerAppUI .ra-library-search input { width: 100%; border: 0; outline: 0; background: transparent; color: #17171b; font-size: 15px; }
 #readerAppUI .ra-library-search input::placeholder { color: #a6a6ad; }
 #readerAppUI .ra-books { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 #readerAppUI .ra-book-entry { position: relative; min-width: 0; }
-#readerAppUI .ra-book-card { display: grid; grid-template-columns: 106px minmax(0, 1fr); align-items: start; gap: 17px; width: 100%; min-height: 166px; padding: 17px 48px 17px 17px; border: 1px solid #f0f0f2; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgba(35, 35, 40, 0.06); text-align: left; }
+#readerAppUI .ra-book-card { display: grid; grid-template-columns: 106px minmax(0, 1fr); align-items: start; gap: 17px; width: 100%; min-height: 156px; padding: 17px 48px 17px 17px; border: 1px solid #f0f0f2; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgba(35, 35, 40, 0.06); text-align: left; }
 #readerAppUI .ra-book-cover { align-self: start; aspect-ratio: .68; border: 1px solid #ededf0; border-radius: 4px; background: #fff; box-shadow: 0 2px 7px rgba(0,0,0,.08); }
-#readerAppUI .ra-book-cover-text { padding: 12px; color: #111; font-size: 15px; font-weight: 650; line-height: 1.5; }
+#readerAppUI .ra-book-cover-text { padding: 12px; color: #111; font-size: 13px; font-weight: 650; line-height: 1.5; }
 #readerAppUI .ra-book-tape, #readerAppUI .ra-book-tag, #readerAppUI .ra-book-progress { display: none; }
 #readerAppUI .ra-book-info { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; padding: 1px 0 0; }
-#readerAppUI .ra-book-title { display: block; width: 100%; overflow: hidden; color: #111; font-size: 19px; font-weight: 700; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
-#readerAppUI .ra-book-author { display: block; width: 100%; margin-top: 4px; overflow: hidden; color: #929299; font-size: 14px; line-height: 1.35; text-overflow: ellipsis; text-transform: none; white-space: nowrap; }
-#readerAppUI .ra-book-tags { display: flex; flex-wrap: wrap; gap: 5px 7px; margin-top: 9px; color: #17171b; font-size: 12px; font-weight: 650; line-height: 1.25; }
+#readerAppUI .ra-book-title { display: block; width: 100%; overflow: hidden; color: #111; font-size: 16px; font-weight: 700; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+#readerAppUI .ra-book-author { display: block; width: 100%; margin-top: 4px; overflow: hidden; color: #929299; font-size: 13px; line-height: 1.35; text-overflow: ellipsis; text-transform: none; white-space: nowrap; }
+#readerAppUI .ra-book-tags { display: flex; flex-wrap: wrap; gap: 5px 7px; margin-top: 8px; color: #17171b; font-size: 11px; font-weight: 650; line-height: 1.25; }
 #readerAppUI .ra-book-tags span { white-space: nowrap; }
-#readerAppUI .ra-book-description { display: -webkit-box; margin-top: 10px; overflow: hidden; color: #6b6b72; font-size: 13px; line-height: 1.45; text-align: left; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+#readerAppUI .ra-book-description { display: -webkit-box; margin-top: 9px; overflow: hidden; color: #6b6b72; font-size: 12px; line-height: 1.45; text-align: left; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 #readerAppUI .ra-card-more { position: absolute; top: 20px; right: 15px; display: grid; width: 28px; height: 28px; padding: 0; place-items: center; border: 0; border-radius: 14px; background: transparent; color: #777780; }
 #readerAppUI .ra-card-more:active { background: #f1f1f3; }
-#readerAppUI .ra-card-more svg { width: 20px; height: 20px; fill: currentColor; }
-#readerAppUI .ra-add-card { min-height: 112px; aspect-ratio: auto; border-radius: 8px; }
+#readerAppUI .ra-card-more svg { width: 18px; height: 18px; fill: currentColor; }
+#readerAppUI .ra-add-card { min-height: 104px; aspect-ratio: auto; border-radius: 8px; font-size: 14px; }
+#readerAppUI .ra-add-card b { font-size: 24px; }
 #readerAppUI .ra-dashboard .ra-scroll { padding-top: 16px; }
 #readerAppUI .ra-summary, #readerAppUI .ra-continue, #readerAppUI .ra-goal { display: block; width: 100%; padding: 22px 25px; border: 1px solid #e5e5e5; border-radius: 22px; background: #fff; color: #111; text-align: left; }
 #readerAppUI .ra-summary b { display: block; font-size: 16px; } #readerAppUI .ra-summary span, #readerAppUI .ra-home-section p, #readerAppUI .ra-continue small { display: block; margin-top: 8px; color: var(--ra-muted); font-size: 14px; }
