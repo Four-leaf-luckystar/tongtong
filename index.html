@@ -2891,6 +2891,20 @@
                     </div>
 
                     <div class="wc-settings-list-item" style="cursor: default;">
+                        <div class="wc-settings-item-icon">
+                            <svg class="stroke-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>
+                        </div>
+                        <div class="wc-settings-item-content">
+                            <div class="wc-settings-item-title">主动消息间隔</div>
+                            <div class="wc-settings-item-subtitle" id="wc-proactive-message-interval-description">未设置，由角色按人设自行决定</div>
+                        </div>
+                        <div class="wc-settings-item-right" style="gap: 6px;">
+                            <input type="number" id="wc-proactive-message-interval" min="1" max="1440" step="1" inputmode="numeric" placeholder="自动" aria-label="主动消息间隔，单位分钟" style="width: 58px; padding: 5px 4px; border: 1px solid rgba(60, 60, 67, 0.18); border-radius: 7px; background: rgba(118, 118, 128, 0.08); color: inherit; text-align: center; font-size: 14px;" onchange="wcSaveProactiveMessageInterval(this.value)">
+                            <span style="font-size: 13px; color: #8e8e93;">分钟</span>
+                        </div>
+                    </div>
+
+                    <div class="wc-settings-list-item" style="cursor: default;">
                         <div class="wc-settings-item-icon"><svg class="stroke-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12h16M7 8h10M10 16h4"/></svg></div>
                         <div class="wc-settings-item-content"><div class="wc-settings-item-title">聊天流速</div><div class="wc-settings-item-subtitle">控制连续气泡之间的发送间隔</div></div>
                         <div class="wc-settings-item-right" style="gap: 8px;"><input type="range" id="wc-reply-speed-slider" min="25" max="300" step="25" value="100" style="width: 90px; accent-color: #007aff;" onchange="wcSaveReplySpeed()"><span id="wc-reply-speed-value" style="min-width: 42px; text-align: right; font-size: 14px; color: #8e8e93;">1x</span></div>
@@ -4264,7 +4278,7 @@ fill="currentColor" viewBox="0 0 24 24" >
     <script src="js/voice-imggen.js"></script>
     <script src="js/semantic-memory.js?v=20260805-hf-direct-v1"></script>
     <script src="js/memory.js?v=20260805-hf-direct-v1"></script>
-    <script src="js/wechat.js?v=20260805-proactive-message-v1"></script>
+<script src="js/wechat.js?v=20260805-proactive-message-v2"></script>
 <script src="js/icity.js?v=20260802-v1"></script>
 <script src="js/icity-enhancements.js?v=20260803-v2"></script>
 <script src="js/search.js"></script>
