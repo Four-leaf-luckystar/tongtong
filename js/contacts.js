@@ -349,7 +349,7 @@
     function createGroupCard(group) {
         const groupId = group ? group.id : 'all';
         const card = document.createElement('section');
-        card.className = 'ct-card ct-group';
+        card.className = 'ct-group';
         card.dataset.groupId = groupId;
         if (data.expandedGroupIds.includes(groupId)) card.classList.add('is-expanded');
 
@@ -361,29 +361,36 @@
 
         const title = document.createElement('span');
         title.className = 'ct-group-title';
-        title.innerHTML = '<svg class="ct-group-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm0 2c-4.67 0-7 2.34-7 3.5V19h14v-2.5C15 15.34 12.67 13 8 13Zm8 0c-.35 0-.7.02-1.06.06 1.23.9 2.06 2.04 2.06 3.44V19h6v-2.5c0-1.16-2.33-3.5-7-3.5Z"/></svg>';
+        title.innerHTML = '<div class="ct-icon-wrapper" style="color: #8e8e93;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" /></svg></div>';
         const name = document.createElement('span');
-        name.textContent = group ? group.name : '所有联系人';
+        name.className = 'ct-item-text';
+        name.textContent = group ? group.name : '所有角色';
         title.appendChild(name);
 
-        const count = document.createElement('span');
-        count.className = 'ct-group-count';
-        count.textContent = String(contactCount(groupId));
-        header.append(title, count);
+        const rightWrap = document.createElement('div');
+        rightWrap.className = 'ct-item-right';
 
+        const count = document.createElement('span');
+        count.className = 'ct-item-count';
+        count.textContent = String(contactCount(groupId));
+        
         if (group) {
             const remove = document.createElement('span');
             remove.className = 'ct-group-delete';
             remove.dataset.action = 'delete-group';
             remove.dataset.groupId = groupId;
             remove.textContent = '−';
-            header.appendChild(remove);
+            rightWrap.appendChild(remove);
         }
 
-        const chevron = document.createElement('span');
+        const chevron = document.createElement('svg');
         chevron.className = 'ct-chevron';
-        chevron.textContent = '›';
-        header.appendChild(chevron);
+        chevron.setAttribute('viewBox', '0 0 8 13');
+        chevron.innerHTML = '<path d="M1.5 1.5L6.5 6.5L1.5 11.5"/>';
+        
+        rightWrap.appendChild(count);
+        rightWrap.appendChild(chevron);
+        header.append(title, rightWrap);
 
         const body = document.createElement('div');
         body.className = 'ct-group-body';
@@ -436,26 +443,39 @@
     }
 
     function createUserCard(user) {
-        const card = document.createElement('div');
-        card.className = 'ct-card ct-user-card';
-        const row = document.createElement('button');
-        row.type = 'button';
-        row.className = 'ct-user-row';
+        const row = document.createElement('div');
+        row.className = 'ct-list-item';
         row.dataset.action = 'open-user';
         row.dataset.userId = user.id;
-        const main = document.createElement('span');
-        main.className = 'ct-user-main';
-        main.appendChild(createAvatar(user.avatar, 'User'));
-        const name = document.createElement('span');
+
+        // 新增：删除红点
+        const remove = document.createElement('span');
+        remove.className = 'ct-delete-dot';
+        remove.textContent = '−';
+
+        const avatarWrap = document.createElement('div');
+        avatarWrap.className = 'ct-avatar';
+        avatarWrap.style.marginRight = '12px';
+        avatarWrap.appendChild(avatarContent(user.avatar, 'User'));
+
+        const info = document.createElement('div');
+        info.className = 'ct-contact-info';
+        const name = document.createElement('div');
         name.className = 'ct-contact-name';
         name.textContent = user.name || '未命名 User';
-        main.appendChild(name);
-        const chevron = document.createElement('span');
+        info.appendChild(name);
+
+        const right = document.createElement('div');
+        right.className = 'ct-item-right';
+        const chevron = document.createElement('svg');
         chevron.className = 'ct-chevron';
-        chevron.textContent = '›';
-        row.append(main, chevron);
-        card.appendChild(row);
-        return card;
+        chevron.setAttribute('viewBox', '0 0 8 13');
+        chevron.innerHTML = '<path d="M1.5 1.5L6.5 6.5L1.5 11.5"/>';
+        right.appendChild(chevron);
+
+        // 将 remove 添加到最前面
+        row.append(remove, avatarWrap, info, right);
+        return row;
     }
 
     function renderUsers() {
@@ -464,9 +484,9 @@
         if (!data.users.length) {
             const empty = document.createElement('div');
             empty.className = 'ct-empty';
-            empty.style.padding = '40px 0';
+            empty.style.padding = '20px 0';
             empty.style.textAlign = 'center';
-            empty.textContent = '暂无 User 信息，请点击右上角添加';
+            empty.textContent = '暂无 User 信息';
             list.replaceChildren(empty);
             return;
         }
@@ -484,12 +504,13 @@
         all('[data-view]').forEach(view => view.classList.toggle('is-active', view.dataset.view === data.selectedTab));
         all('[data-action="switch-tab"]').forEach(button => button.classList.toggle('is-active', button.dataset.tab === data.selectedTab));
         setText('#ctAddMenuLabel', data.selectedTab === 'char' ? '添加联系人' : '添加 User');
-        setText('#ctEditMenuLabel', isEditMode ? '完成编辑' : '编辑列表');
-        const editMenuItem = el('#ctEditMenuItem');
-        if (editMenuItem) editMenuItem.hidden = data.selectedTab !== 'char';
+        setText('#ctEditMenuLabel', isEditMode ? '完成' : '编辑');
+        setText('#ctMainLargeTitle', data.selectedTab === 'char' ? 'Character' : 'Mask');
+        // 删除了隐藏编辑按钮的逻辑，让它在 User 页面也显示
         renderGroups();
         renderUsers();
     }
+
 
     function setMainMenu(open) {
         mainMenuOpen = Boolean(open);
@@ -528,7 +549,6 @@
         setValue('#ctVoiceSovitsPromptText', contactDraft.voice.sovitsPromptText);
         setValue('#ctVoiceSovitsPromptLanguage', contactDraft.voice.sovitsPromptLanguage || 'zh');
         setValue('#ctVoiceSovitsTextLanguage', contactDraft.voice.sovitsTextLanguage || 'zh');
-        setText('#ctSelectedGroup', groupName(contactDraft.groupId));
         updateWorldbookStatus();
         fillAvatar(el('#ctContactAvatarPreview'), contactDraft.avatar, '角色');
         renderReferenceImage();
@@ -885,7 +905,6 @@
             searchable: data.groups.length > 6,
             onSelect: value => {
                 contactDraft.groupId = value === 'all' ? null : value;
-                setText('#ctSelectedGroup', groupName(contactDraft.groupId));
             }
         });
     }
@@ -923,7 +942,7 @@
                     name.textContent = choice.name;
                     const check = document.createElement('span');
                     check.className = 'ct-picker-check';
-                    check.textContent = '✓';
+                    check.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>';
                     item.append(name, check);
                     groupCard.appendChild(item);
                 });
@@ -951,14 +970,18 @@
                     const nameSpan = document.createElement('span');
                     nameSpan.textContent = group.name;
                     
-                    const chevron = document.createElement('span');
-                    chevron.className = 'ct-chevron';
-                    chevron.textContent = '›';
+                    const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    chevron.setAttribute('class', 'ct-chevron');
+                    chevron.setAttribute('viewBox', '0 0 8 13');
+                    chevron.innerHTML = '<path d="M1.5 1.5L6.5 6.5L1.5 11.5"/>';
                     
                     groupHeader.append(nameSpan, chevron);
                     
                     const entriesContainer = document.createElement('div');
                     entriesContainer.className = 'ct-picker-group-entries';
+                    
+                    const entriesInner = document.createElement('div');
+                    entriesInner.className = 'ct-picker-group-entries-inner';
                     
                     groupHeader.onclick = () => {
                         groupCard.classList.toggle('is-expanded');
@@ -975,11 +998,12 @@
                         name.textContent = entry.name;
                         const check = document.createElement('span');
                         check.className = 'ct-picker-check';
-                        check.textContent = '✓';
+                        check.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>';
                         item.append(name, check);
-                        entriesContainer.appendChild(item);
+                        entriesInner.appendChild(item);
                     });
                     
+                    entriesContainer.appendChild(entriesInner);
                     groupCard.append(groupHeader, entriesContainer);
                     list.appendChild(groupCard);
                 });
@@ -1011,7 +1035,6 @@
         if (!contactDraft) return closePicker();
         if (pickerMode === 'group') {
             contactDraft.groupId = pickerSelection[0] === 'all' ? null : pickerSelection[0];
-            setText('#ctSelectedGroup', groupName(contactDraft.groupId));
         } else {
             contactDraft.worldbookIds = pickerSelection.slice();
             updateWorldbookStatus();
@@ -1541,7 +1564,15 @@
                     deleteContact();
                 } else openContact(actionElement.dataset.contactId);
                 break;
-            case 'open-user': openUser(actionElement.dataset.userId); break;
+            case 'open-user':
+                if (isEditMode) {
+                    editingUserId = actionElement.dataset.userId;
+                    userDraft = clone(data.users.find(user => user.id === editingUserId));
+                    deleteUser();
+                } else {
+                    openUser(actionElement.dataset.userId);
+                }
+                break;
             case 'back-main': goMain(); break;
             case 'save-contact': saveContact(); break;
             case 'switch-section': switchEditorSection(actionElement.dataset.section); break;
