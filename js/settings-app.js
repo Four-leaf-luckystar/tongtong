@@ -87,11 +87,48 @@
     }
 
     function applyMessageNotifications() {
-        const toggle = document.getElementById('messageNotificationToggle');
         const enabled = appSettings?.message_notifications_enabled === true;
+        const toggle = document.getElementById('messageNotificationPageToggle');
         if (toggle) {
             toggle.classList.toggle('on', enabled);
             toggle.setAttribute('aria-checked', String(enabled));
+        }
+        updateMessageNotificationPermissionStatus();
+    }
+
+    function openMessageNotificationSettingsApp() {
+        const settingsUI = document.getElementById('messageNotificationSettingsUI');
+        if (!settingsUI) return;
+        settingsUI.style.display = 'flex';
+        applyMessageNotifications();
+        setTimeout(() => settingsUI.classList.add('show'), 10);
+    }
+
+    function closeMessageNotificationSettingsApp() {
+        const settingsUI = document.getElementById('messageNotificationSettingsUI');
+        if (!settingsUI) return;
+        settingsUI.classList.remove('show');
+        setTimeout(() => { settingsUI.style.display = 'none'; }, 300);
+    }
+
+    function updateMessageNotificationPermissionStatus() {
+        const status = document.getElementById('messageNotificationPermissionStatus');
+        if (!status) return;
+        if (!('Notification' in window)) {
+            status.textContent = '当前浏览器不支持网页通知';
+            status.style.color = '#ff3b30';
+            return;
+        }
+        const permission = Notification.permission;
+        if (permission === 'granted') {
+            status.textContent = appSettings?.message_notifications_enabled === true ? '已开启，浏览器通知权限已获得' : '浏览器通知权限已获得，开关当前关闭';
+            status.style.color = '#34c759';
+        } else if (permission === 'denied') {
+            status.textContent = '浏览器已拒绝通知，请在浏览器设置中重新允许';
+            status.style.color = '#ff3b30';
+        } else {
+            status.textContent = '尚未获得权限，开启开关时会请求';
+            status.style.color = '#8e8e93';
         }
     }
 
@@ -119,7 +156,65 @@
         appSettings.message_notifications_enabled = enabled;
         applyMessageNotifications();
         if (typeof saveAppSettings === 'function') saveAppSettings();
+        updateMessageNotificationPermissionStatus();
         if (typeof showToast === 'function') showToast(enabled ? '消息通知已开启' : '消息通知已关闭');
+    }
+
+    async function testMessageNotification() {
+        const result = document.getElementById('messageNotificationTestResult');
+        const button = document.getElementById('messageNotificationTestButton');
+        const report = (text, success = false) => {
+            if (result) {
+                result.textContent = text;
+                result.style.color = success ? '#34c759' : '#ff3b30';
+            }
+        };
+        if (button) {
+            button.disabled = true;
+            button.style.opacity = '0.6';
+        }
+        try {
+            if (typeof appSettings === 'undefined' || appSettings.message_notifications_enabled !== true) {
+                report('测试失败：请先打开上方的消息通知开关');
+                return;
+            }
+            if (!('Notification' in window)) {
+                report('测试失败：当前浏览器不支持网页通知');
+                return;
+            }
+            if (Notification.permission !== 'granted') {
+                report(Notification.permission === 'denied'
+                    ? '测试失败：浏览器已拒绝通知，请在浏览器设置中重新允许'
+                    : '测试失败：尚未获得通知权限，请先打开消息通知开关');
+                return;
+            }
+            const tag = `wc-notification-test-${Date.now()}`;
+            if ('serviceWorker' in navigator) {
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (registration?.showNotification) {
+                    await registration.showNotification('消息通知测试', { body: '如果你看到这条通知，消息通知功能正常。', tag, renotify: true });
+                    if (typeof registration.getNotifications === 'function') {
+                        const notifications = await registration.getNotifications({ tag });
+                        if (!notifications.length) throw new Error('浏览器未返回测试通知，可能被系统通知设置或免打扰模式拦截');
+                    }
+                } else {
+                    const notification = new Notification('消息通知测试', { body: '如果你看到这条通知，消息通知功能正常。', tag });
+                    notification.onclick = () => notification.close();
+                }
+            } else {
+                const notification = new Notification('消息通知测试', { body: '如果你看到这条通知，消息通知功能正常。', tag });
+                notification.onclick = () => notification.close();
+            }
+            report('测试成功：浏览器已接受通知请求，请检查系统通知中心', true);
+        } catch (error) {
+            report(`测试失败：${error?.message || '浏览器未能显示通知'}`);
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.style.opacity = '';
+            }
+            updateMessageNotificationPermissionStatus();
+        }
     }
 
     // ==========================================
