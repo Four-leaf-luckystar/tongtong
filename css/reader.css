@@ -23,6 +23,7 @@
 #readerAppUI *, #readerAppUI *::before, #readerAppUI *::after { box-sizing: border-box; }
 #readerAppUI button, #readerAppUI input { font: inherit; }
 #readerAppUI button { border: 0; cursor: pointer; }
+#readerAppUI .icon-menu-item { width: 100%; border-radius: 0; background: transparent; text-align: left; }
 
 #readerAppUI .ra-screen { position: absolute; inset: 0; display: none; flex-direction: column; }
 #readerAppUI .ra-screen.is-active { display: flex; }

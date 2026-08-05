@@ -95,6 +95,18 @@
             <div class="ra-sheet-backdrop" id="raSheetBackdrop" data-reader-action="sheet-close"></div>
             <section class="ra-sheet" id="raSheet" aria-modal="true"><div class="ra-sheet-handle"></div><header class="ra-sheet-title"><span id="raSheetTitle"></span><button type="button" data-reader-action="sheet-close" aria-label="关闭">×</button></header><div class="ra-sheet-list" id="raSheetBody"></div></section>
             <input id="raFileInput" type="file" accept=".txt,text/plain" hidden><input id="raCoverInput" type="file" accept="image/*" hidden>
+            <div class="icon-menu-overlay" id="raCoverMenuOverlay">
+                <div class="icon-menu" id="raCoverMenu">
+                    <button class="icon-menu-item" type="button" data-reader-action="cover-file">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16V6a2 2 0 0 1 2-2h10"></path><rect x="8" y="8" width="14" height="14" rx="2" ry="2"></rect><circle cx="13.5" cy="13.5" r="1.5"></circle><path d="M8 18l4-4 2 2 3-3 5 5"></path></svg>
+                        <span>照片图库</span>
+                    </button>
+                    <button class="icon-menu-item" type="button" data-reader-action="cover-url">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                        <span>使用 URL</span>
+                    </button>
+                </div>
+            </div>
         `;
         (document.querySelector('.iphone') || document.body).appendChild(root);
         bindEvents();
@@ -103,7 +115,7 @@
     function bindEvents() {
         root.addEventListener('click', event => {
             const actionElement = event.target.closest('[data-reader-action]');
-            if (actionElement) handleAction(actionElement.dataset.readerAction);
+            if (actionElement) handleAction(actionElement.dataset.readerAction, actionElement);
             const groupElement = event.target.closest('[data-reader-group]');
             if (groupElement) renderBooks(groupElement.dataset.readerGroup);
             const viewElement = event.target.closest('[data-reader-view-button]');
@@ -119,18 +131,23 @@
         });
         root.querySelector('#raFileInput').addEventListener('change', importFile);
         root.querySelector('#raCoverInput').addEventListener('change', importCover);
+        root.querySelector('#raCoverMenuOverlay').addEventListener('click', event => {
+            if (event.target === event.currentTarget) closeCoverMenu();
+        });
         root.querySelector('#raLibrarySearchInput').addEventListener('input', () => renderBooks());
         root.querySelector('#raReaderBody').addEventListener('scroll', saveReaderProgress, { passive: true });
         root.querySelector('#raSearchInput').addEventListener('input', updateSearch);
         document.addEventListener('visibilitychange', () => { if (document.hidden) finishSession(); });
     }
 
-    function handleAction(action) {
+    function handleAction(action, trigger) {
         if (action === 'import') openFilePicker();
         else if (action === 'library-menu') openSheet('书架', '<button class="ra-chapter" type="button" data-reader-action="import">导入书籍</button><button class="ra-chapter" type="button" data-reader-action="source-search">搜索书籍</button>');
         else if (action === 'library-search') root.querySelector('#raLibrarySearch').classList.toggle('is-open');
         else if (action === 'source-search') { closeSheet(); alert('书源筛选完成后将在这里搜索书籍。'); }
-        else if (action === 'cover') root.querySelector('#raCoverInput').click();
+        else if (action === 'cover') openCoverMenu(trigger);
+        else if (action === 'cover-file') { closeCoverMenu(); root.querySelector('#raCoverInput').click(); }
+        else if (action === 'cover-url') openCoverUrlPrompt();
         else if (action === 'close') closeReaderApp();
         else if (action === 'library') { finishSession(); setView('home'); }
         else if (action === 'toc') openToc();
@@ -175,6 +192,35 @@
     }
 
     function openFilePicker() { root.querySelector('#raFileInput').click(); }
+
+    function openCoverMenu(trigger) {
+        closeSheet();
+        const overlay = root.querySelector('#raCoverMenuOverlay');
+        const menu = root.querySelector('#raCoverMenu');
+        const rect = trigger?.getBoundingClientRect();
+        overlay.style.display = 'block';
+        let top = (rect ? rect.bottom : root.getBoundingClientRect().height / 2) + 10;
+        let left = rect ? rect.left + rect.width / 2 - 120 : root.getBoundingClientRect().width / 2 - 120;
+        if (top + 130 > window.innerHeight) top = (rect ? rect.top : window.innerHeight / 2) - 120;
+        left = Math.max(12, Math.min(left, window.innerWidth - 252));
+        menu.style.top = `${top}px`;
+        menu.style.left = `${left}px`;
+    }
+
+    function closeCoverMenu() { root.querySelector('#raCoverMenuOverlay').style.display = 'none'; }
+
+    function openCoverUrlPrompt() {
+        closeCoverMenu();
+        if (typeof window.showCustomPrompt !== 'function') return;
+        window.showCustomPrompt('使用 URL', { placeholder: '输入图片 URL' }, '确定').then(async url => {
+            const book = getBook(activeBookId);
+            if (!url || !url.trim() || !book) return;
+            book.cover = url.trim();
+            await writeData();
+            renderBooks();
+        });
+    }
+
     async function importFile(event) {
         const file = event.target.files && event.target.files[0];
         event.target.value = '';
