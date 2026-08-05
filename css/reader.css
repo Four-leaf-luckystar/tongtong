@@ -155,8 +155,8 @@
 #readerAppUI .ra-reader.is-chrome-visible .ra-reader-header { opacity: 1; pointer-events: auto; transform: translateY(0); }
 #readerAppUI .ra-reader-nav-button { display: grid; width: 44px; height: 44px; padding: 0; place-items: center; background: transparent; color: #111; }
 #readerAppUI .ra-reader-nav-button svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2.25; }
-#readerAppUI .ra-reader-body { padding: calc(20px + var(--top-safe-area, 0px)) 24px calc(24px + var(--bottom-safe-area, 0px)); background: #fff; }
-#readerAppUI .ra-reader-body p { color: #171717; }
+#readerAppUI .ra-reader-body { padding: calc(20px + var(--top-safe-area, 0px)) var(--ra-padding-x, 24px) calc(24px + var(--bottom-safe-area, 0px)); background: var(--ra-custom-background, #fff); }
+#readerAppUI .ra-reader-body p { margin-bottom: calc(var(--ra-paragraph-spacing, 1.05) * 1em); color: var(--ra-custom-text, #171717); font-family: var(--ra-font-family, system-ui, sans-serif); }
 
 #readerAppUI .ra-reader-toolbar { position: absolute; right: 0; bottom: 0; left: 0; z-index: 7; display: block; min-height: 214px; padding: 18px 22px calc(18px + var(--bottom-safe-area, 0px)); border: 1px solid #e6e6e8; border-bottom: 0; border-radius: 20px 20px 0 0; background: #fff; box-shadow: 0 -3px 14px rgba(0, 0, 0, 0.09); opacity: 0; pointer-events: none; transform: translateY(105%); transition: opacity 0.2s ease, transform 0.24s ease; }
 #readerAppUI .ra-reader.is-chrome-visible .ra-reader-toolbar { opacity: 1; pointer-events: auto; transform: translateY(0); }
@@ -176,12 +176,26 @@
 #readerAppUI .ra-search { top: calc(var(--top-safe-area, 0px) + 70px); z-index: 9; background: #fff; }
 #readerAppUI .ra-sheet-list .ra-chapter b, #readerAppUI .ra-sheet-list .ra-chapter small { display: block; }
 #readerAppUI .ra-sheet-list .ra-chapter small { margin-top: 4px; color: #8e8e93; font-size: 12px; }
+#readerAppUI .ra-settings-row select { width: 100%; min-width: 0; border: 0; background: transparent; color: #38383d; font-size: 14px; outline: 0; }
 
-#readerAppUI .ra-reader.is-night, #readerAppUI .ra-reader.is-night .ra-reader-body { background: #171718; }
-#readerAppUI .ra-reader.is-night .ra-reader-body p { color: #e7e7e9; }
-#readerAppUI .ra-reader.is-night .ra-reader-header, #readerAppUI .ra-reader.is-night .ra-reader-toolbar, #readerAppUI .ra-reader.is-night .ra-search { border-color: #343438; background: #242426; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
+#readerAppUI .ra-selection-menu { position: absolute; z-index: 12; display: none; grid-template-columns: repeat(5, auto); max-width: calc(100% - 24px); padding: 5px; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 8px; background: rgba(28, 28, 30, 0.96); box-shadow: 0 5px 18px rgba(0, 0, 0, 0.22); transform: translateX(0); }
+#readerAppUI .ra-selection-menu.is-open { display: grid; }
+#readerAppUI .ra-selection-menu button { min-width: 42px; height: 31px; padding: 0 7px; border-radius: 5px; background: transparent; color: #fff; font-size: 11px; white-space: nowrap; }
+#readerAppUI .ra-selection-menu button:active { background: rgba(255, 255, 255, 0.18); }
+#readerAppUI .ra-note-mark-highlight { border-radius: 2px; background: rgba(255, 213, 95, 0.54); }
+#readerAppUI .ra-note-mark-underline { text-decoration: underline 2px rgba(58, 112, 220, 0.86); text-underline-offset: 3px; }
+#readerAppUI .ra-reader-annotation { display: grid; gap: 5px; margin: -0.5em 0 1.1em 2em; padding: 9px 11px; border-left: 2px solid #8a8a92; background: rgba(128, 128, 138, 0.08); color: #55555d; font-size: 12px; line-height: 1.55; }
+#readerAppUI .ra-reader-annotation b { color: #232328; font-size: 12px; }
+#readerAppUI .ra-reader-annotation b img { width: 18px; height: 18px; margin-right: 6px; border-radius: 50%; object-fit: cover; vertical-align: middle; }
+#readerAppUI .ra-export-notes { margin-top: 10px; color: #007aff; }
+
+#readerAppUI .ra-reader.is-night, #readerAppUI .ra-reader.is-night .ra-reader-body { background: #1a1814; }
+#readerAppUI .ra-reader.is-night .ra-reader-body p { color: #c8b99a; }
+#readerAppUI .ra-reader.is-night .ra-reader-header, #readerAppUI .ra-reader.is-night .ra-reader-toolbar, #readerAppUI .ra-reader.is-night .ra-search { border-color: #37332c; background: #1f1c18; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
 #readerAppUI .ra-reader.is-night .ra-reader-nav-button, #readerAppUI .ra-reader.is-night .ra-reader-tools button, #readerAppUI .ra-reader.is-night .ra-reader-stats b { color: #f4f4f5; }
 #readerAppUI .ra-reader.is-night .ra-reader-stats small { color: #aaaab2; }
+#readerAppUI .ra-reader.is-night .ra-reader-annotation { border-color: #a7997f; background: rgba(200, 185, 154, 0.09); color: #c8b99a; }
+#readerAppUI .ra-reader.is-night .ra-reader-annotation b { color: #eee1c8; }
 #readerAppUI .ra-dashboard .ra-scroll { padding-top: 16px; }
 #readerAppUI .ra-summary, #readerAppUI .ra-continue, #readerAppUI .ra-goal { display: block; width: 100%; padding: 22px 25px; border: 1px solid #e5e5e5; border-radius: 22px; background: #fff; color: #111; text-align: left; }
 #readerAppUI .ra-summary b { display: block; font-size: 16px; } #readerAppUI .ra-summary span, #readerAppUI .ra-home-section p, #readerAppUI .ra-continue small { display: block; margin-top: 8px; color: var(--ra-muted); font-size: 14px; }

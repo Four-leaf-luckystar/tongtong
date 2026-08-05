@@ -4,7 +4,20 @@
     const DATA_KEY = 'readerAppData';
     const DB_NAME = 'iOSDesktopDB';
     const STORE_NAME = 'layoutStore';
-    const DEFAULT_DATA = { version: 1, books: [], preferences: { fontSize: 18, lineHeight: 1.82 }, readingMsByDay: {} };
+    const DEFAULT_PREFERENCES = {
+        fontSize: 18,
+        lineHeight: 1.82,
+        paddingX: 24,
+        paragraphSpacing: 1.05,
+        fontFamily: 'system',
+        backgroundColor: '#ffffff',
+        textColor: '#171717',
+        nightMode: false,
+        sortMode: 'recent',
+        ttsEnabled: false,
+        ttsRate: 1
+    };
+    const DEFAULT_DATA = { version: 2, books: [], preferences: DEFAULT_PREFERENCES, readingMsByDay: {} };
     let root;
     let data = null;
     let activeView = 'home';
@@ -13,6 +26,9 @@
     let persistTimer = null;
     let readerChromeVisible = false;
     let readerToolbarTimer = null;
+    let selectionMenuTimer = null;
+    let suppressReaderChromeTapUntil = 0;
+    let activeSelectionContext = null;
     let searchMatches = [];
     let currentMatch = -1;
 
@@ -29,6 +45,8 @@
     function getDayKey(date) { return date.toISOString().slice(0, 10); }
     function getShelfGroup(book) { return String(book.shelfGroup || '默认').trim() || '默认'; }
     function getBookmarks(book) { return Array.isArray(book.bookmarks) ? book.bookmarks : []; }
+    function getNotes(book) { return Array.isArray(book.notes) ? book.notes : []; }
+    function getAnnotations(book) { return Array.isArray(book.annotations) ? book.annotations : []; }
     function getBookTags(book) {
         const source = book.tags ?? book.tag ?? [];
         const rawTags = Array.isArray(source) ? source : typeof source === 'string' ? source.split(/[，,]/) : [];
@@ -151,6 +169,18 @@
                 <button type="button" data-reader-action="settings"><svg viewBox="0 0 24 24"><path d="M12 15.25A3.25 3.25 0 1 0 12 8.75a3.25 3.25 0 0 0 0 6.5Z"></path><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56v.1h-3v-.1a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7 15a1.7 1.7 0 0 0-1.56-1.03h-.1v-3h.1A1.7 1.7 0 0 0 7 9.94a1.7 1.7 0 0 0-.34-1.88L6.6 8 8.72 5.88l.06.06A1.7 1.7 0 0 0 10.66 6.28a1.7 1.7 0 0 0 1.03-1.56v-.1h3v.1a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06L19.78 8l-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.03h.1v3h-.1A1.7 1.7 0 0 0 19.4 15Z"></path></svg><span>设置</span></button>
             </div>
         `;
+        const selectionMenu = document.createElement('div');
+        selectionMenu.id = 'raSelectionMenu';
+        selectionMenu.className = 'ra-selection-menu';
+        selectionMenu.setAttribute('role', 'toolbar');
+        selectionMenu.innerHTML = `
+            <button type="button" data-reader-action="selection-note">笔记</button>
+            <button type="button" data-reader-action="selection-highlight">高亮</button>
+            <button type="button" data-reader-action="selection-underline">下划线</button>
+            <button type="button" data-reader-action="selection-read">朗读</button>
+            <button type="button" data-reader-action="selection-annotate">角色批注</button>
+        `;
+        root.querySelector('.ra-reader').appendChild(selectionMenu);
         (document.querySelector('.iphone') || document.body).appendChild(root);
         bindEvents();
     }
@@ -171,6 +201,27 @@
             if (chapterElement) jumpToParagraph(Number(chapterElement.dataset.readerChapter));
             const bookmarkElement = event.target.closest('[data-reader-bookmark]');
             if (bookmarkElement) jumpToBookmark(Number(bookmarkElement.dataset.readerBookmark));
+            const noteElement = event.target.closest('[data-reader-note]');
+            if (noteElement) jumpToNote(noteElement.dataset.readerNote);
+            const groupChoice = event.target.closest('[data-reader-group-choice]');
+            if (groupChoice) {
+                const book = getBook(groupChoice.dataset.readerBookId);
+                if (book) {
+                    book.shelfGroup = groupChoice.dataset.readerGroupChoice;
+                    scheduleSave();
+                    closeSheet();
+                    renderBooks(book.shelfGroup);
+                }
+            }
+            const sortChoice = event.target.closest('[data-reader-sort]');
+            if (sortChoice) {
+                data.preferences.sortMode = sortChoice.dataset.readerSort;
+                scheduleSave();
+                closeSheet();
+                renderBooks();
+            }
+            const characterChoice = event.target.closest('[data-reader-character]');
+            if (characterChoice) chooseReaderCharacter(characterChoice.dataset.readerCharacter);
             const profileAction = event.target.closest('[data-reader-profile-action]');
             if (profileAction && profileAction.dataset.readerProfileAction === 'import') openFilePicker();
         });
@@ -182,6 +233,9 @@
         root.querySelector('#raLibrarySearchInput').addEventListener('input', () => renderBooks());
         root.querySelector('#raReaderBody').addEventListener('scroll', saveReaderProgress, { passive: true });
         root.querySelector('#raReaderBody').addEventListener('click', toggleReaderChromeFromContent);
+        root.querySelector('#raReaderBody').addEventListener('mouseup', queueSelectionMenu);
+        root.querySelector('#raReaderBody').addEventListener('touchend', queueSelectionMenu, { passive: true });
+        root.querySelector('#raReaderBody').addEventListener('pointerdown', hideSelectionMenu, { passive: true });
         root.querySelector('#raReaderProgressSlider').addEventListener('input', seekReaderProgress);
         root.querySelector('#raSearchInput').addEventListener('input', updateSearch);
         document.addEventListener('visibilitychange', () => { if (document.hidden) finishSession(); });
@@ -189,7 +243,7 @@
 
     function handleAction(action, trigger) {
         if (action === 'import') openFilePicker();
-        else if (action === 'library-menu') openSheet('书架', '<button class="ra-chapter" type="button" data-reader-action="import">导入书籍</button><button class="ra-chapter" type="button" data-reader-action="source-search">搜索书籍</button>');
+        else if (action === 'library-menu') openSheet('书架', '<button class="ra-chapter" type="button" data-reader-action="import">导入书籍</button><button class="ra-chapter" type="button" data-reader-action="new-group">新建分组</button><button class="ra-chapter" type="button" data-reader-action="sort-books">书架排序</button><button class="ra-chapter" type="button" data-reader-action="source-search">搜索书籍</button>');
         else if (action === 'library-search') root.querySelector('#raLibrarySearch').classList.toggle('is-open');
         else if (action === 'source-search') { closeSheet(); alert('书源筛选完成后将在这里搜索书籍。'); }
         else if (action === 'cover') openCoverMenu(trigger);
@@ -198,15 +252,62 @@
         else if (action === 'close') closeReaderApp();
         else if (action === 'library') { finishSession(); setView('home'); }
         else if (action === 'bookmark') addBookmark();
-        else if (action === 'reader-notes') openBookmarks();
+        else if (action === 'reader-notes') openNotes();
         else if (action === 'night') toggleNightMode();
         else if (action === 'toc') openToc();
         else if (action === 'settings') openSettings();
+        else if (action === 'reader-menu') openReaderMenu();
+        else if (action === 'selection-note') saveSelectionNote('note');
+        else if (action === 'selection-highlight') saveSelectionNote('highlight');
+        else if (action === 'selection-underline') saveSelectionNote('underline');
+        else if (action === 'selection-read') readSelectedText();
+        else if (action === 'selection-annotate') openReaderCharacterPicker();
+        else if (action === 'notes-export') exportNotes();
+        else if (action === 'bookmarks') openBookmarks();
+        else if (action === 'book-options') openBookOptions(trigger.dataset.readerBookId);
+        else if (action === 'book-move-group') moveBookToGroup(trigger.dataset.readerBookId);
+        else if (action === 'sort-books') chooseBookSort();
+        else if (action === 'new-group') createShelfGroup();
         else if (action === 'search') { setReaderChromeVisible(true); root.querySelector('#raSearch').classList.add('is-open'); }
         else if (action === 'search-close') { root.querySelector('#raSearch').classList.remove('is-open'); clearSearch(); }
         else if (action === 'search-prev') moveSearch(-1);
         else if (action === 'search-next') moveSearch(1);
         else if (action === 'sheet-close') closeSheet();
+    }
+
+    function openReaderMenu() {
+        openSheet('更多功能', '<button class="ra-chapter" type="button" data-reader-action="bookmarks">书签</button><button class="ra-chapter" type="button" data-reader-action="reader-notes">笔记</button><button class="ra-chapter" type="button" data-reader-action="notes-export">导出笔记</button>');
+    }
+
+    function openBookOptions(bookId) {
+        const book = getBook(bookId);
+        if (!book) return;
+        activeBookId = bookId;
+        openSheet('书籍设置', `<button class="ra-chapter" type="button" data-reader-action="cover">自定义封面</button><button class="ra-chapter" type="button" data-reader-action="book-move-group" data-reader-book-id="${escapeHtml(bookId)}">移动分组</button>`);
+    }
+
+    function moveBookToGroup(bookId) {
+        const book = getBook(bookId);
+        if (!book) return;
+        const groups = Array.from(new Set(['默认', ...(Array.isArray(data.shelfGroups) ? data.shelfGroups : []), ...data.books.map(getShelfGroup)]));
+        openSheet('移动分组', groups.map(group => `<button class="ra-chapter" type="button" data-reader-group-choice="${escapeHtml(group)}" data-reader-book-id="${escapeHtml(book.id)}">${escapeHtml(group)}${group === getShelfGroup(book) ? '　当前' : ''}</button>`).join(''));
+    }
+
+    function chooseBookSort() {
+        const sortMode = data.preferences.sortMode || 'recent';
+        openSheet('书架排序', `<button class="ra-chapter" type="button" data-reader-sort="recent">最近阅读${sortMode === 'recent' ? '　当前' : ''}</button><button class="ra-chapter" type="button" data-reader-sort="title">书名${sortMode === 'title' ? '　当前' : ''}</button><button class="ra-chapter" type="button" data-reader-sort="created">导入时间${sortMode === 'created' ? '　当前' : ''}</button>`);
+    }
+
+    async function createShelfGroup() {
+        if (typeof window.showCustomPrompt !== 'function') return;
+        const value = await window.showCustomPrompt('新建分组', { placeholder: '输入分组名称' }, '创建');
+        const group = String(value || '').trim();
+        if (!group) return;
+        data.shelfGroups = Array.isArray(data.shelfGroups) ? data.shelfGroups : [];
+        if (!data.shelfGroups.includes(group)) data.shelfGroups.push(group);
+        await writeData();
+        closeSheet();
+        renderBooks(group);
     }
 
     function setView(view) {
@@ -224,13 +325,18 @@
     function renderBooks(group) {
         const selectedGroup = group || root.querySelector('[data-reader-group].is-active')?.dataset.readerGroup || '默认';
         root.querySelectorAll('[data-reader-group]').forEach(button => button.classList.toggle('is-active', button.dataset.readerGroup === selectedGroup));
-        const shelfGroups = Array.from(new Set(['默认', ...data.books.map(getShelfGroup)]));
+        const shelfGroups = Array.from(new Set(['默认', ...(Array.isArray(data.shelfGroups) ? data.shelfGroups : []), ...data.books.map(getShelfGroup)]));
         root.querySelector('#raShelfGroups').innerHTML = shelfGroups.map(groupName => `<button type="button" class="${groupName === selectedGroup ? 'is-active' : ''}" data-reader-group="${escapeHtml(groupName)}">${escapeHtml(groupName)}</button>`).join('');
         const query = root.querySelector('#raLibrarySearchInput')?.value.trim().toLowerCase() || '';
         const books = data.books
             .filter(book => getShelfGroup(book) === selectedGroup)
             .filter(book => !query || getBookSearchText(book).includes(query))
-            .sort((left, right) => (right.lastReadAt || 0) - (left.lastReadAt || 0));
+            .sort((left, right) => {
+                const sortMode = data.preferences.sortMode || 'recent';
+                if (sortMode === 'title') return String(left.title || '').localeCompare(String(right.title || ''), 'zh-CN');
+                if (sortMode === 'created') return (right.createdAt || 0) - (left.createdAt || 0);
+                return (right.lastReadAt || 0) - (left.lastReadAt || 0);
+            });
         const grid = root.querySelector('#raBooks');
         const cards = books.map(book => {
             const cover = book.cover ? `<img src="${escapeHtml(book.cover)}" alt="">` : `<span class="ra-book-cover-text">${escapeHtml(book.title)}</span>`;
@@ -255,6 +361,9 @@
         grid.querySelectorAll('[data-reader-cover]').forEach(button => {
             button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle></svg>';
             button.setAttribute('aria-label', '书籍设置');
+            button.dataset.readerBookId = button.dataset.readerCover;
+            button.dataset.readerAction = 'book-options';
+            delete button.dataset.readerCover;
         });
     }
 
@@ -295,7 +404,7 @@
         const content = (await file.text()).replace(/^\uFEFF/, '').trim();
         if (!content) return;
         const title = file.name.replace(/\.txt$/i, '') || '未命名书籍';
-        data.books.push({ id: makeId('book'), title, author: '', description: '', tags: [], shelfGroup: '默认', bookmarks: [], content, chapters: scanChapters(content), group: 'reading', progress: 0, createdAt: Date.now(), lastReadAt: 0, reading: null });
+        data.books.push({ id: makeId('book'), title, author: '', description: '', tags: [], shelfGroup: '默认', bookmarks: [], notes: [], annotations: [], readingTimeMs: 0, content, chapters: scanChapters(content), group: 'reading', progress: 0, createdAt: Date.now(), lastReadAt: 0, reading: null });
         await writeData();
         setView('home');
     }
@@ -318,10 +427,8 @@
         const readerTitle = root.querySelector('#raReaderTitle');
         if (readerTitle) readerTitle.textContent = book.title;
         const readerBody = root.querySelector('#raReaderBody');
-        readerBody.style.setProperty('--ra-font-size', `${data.preferences.fontSize || 18}px`);
-        readerBody.style.setProperty('--ra-line-height', data.preferences.lineHeight || 1.82);
-        root.querySelector('.ra-reader').classList.toggle('is-night', Boolean(data.preferences.nightMode));
-        readerBody.innerHTML = book.content.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map((paragraph, index) => `<p data-reader-paragraph="${index}">${escapeHtml(paragraph)}</p>`).join('');
+        applyReaderPreferences();
+        renderReaderContent(book);
         requestAnimationFrame(() => restoreReaderProgress(book));
         sessionStartedAt = Date.now();
         clearInterval(readerToolbarTimer);
@@ -336,8 +443,272 @@
     }
 
     function toggleReaderChromeFromContent(event) {
+        if (Date.now() < suppressReaderChromeTapUntil || window.getSelection()?.toString().trim()) return;
         if (!event.target.closest('p')) return;
         setReaderChromeVisible(!readerChromeVisible);
+    }
+
+    function applyReaderPreferences() {
+        const reader = root.querySelector('.ra-reader');
+        const readerBody = root.querySelector('#raReaderBody');
+        const preferences = data.preferences;
+        readerBody.style.setProperty('--ra-font-size', `${preferences.fontSize || 18}px`);
+        readerBody.style.setProperty('--ra-line-height', preferences.lineHeight || 1.82);
+        readerBody.style.setProperty('--ra-padding-x', `${preferences.paddingX || 24}px`);
+        readerBody.style.setProperty('--ra-paragraph-spacing', preferences.paragraphSpacing || 1.05);
+        readerBody.style.setProperty('--ra-font-family', preferences.fontFamily === 'serif' ? 'Georgia, "Times New Roman", serif' : preferences.fontFamily === 'rounded' ? 'ui-rounded, "PingFang SC", sans-serif' : 'system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif');
+        readerBody.style.setProperty('--ra-custom-background', preferences.backgroundColor || '#ffffff');
+        readerBody.style.setProperty('--ra-custom-text', preferences.textColor || '#171717');
+        reader.classList.toggle('is-night', Boolean(preferences.nightMode));
+    }
+
+    function renderReaderContent(book) {
+        const notesByParagraph = new Map();
+        getNotes(book).forEach(note => {
+            if (!Number.isInteger(Number(note.paragraphIndex))) return;
+            const index = Number(note.paragraphIndex);
+            const records = notesByParagraph.get(index) || [];
+            records.push(note);
+            notesByParagraph.set(index, records);
+        });
+        const annotationsByParagraph = new Map();
+        getAnnotations(book).forEach(annotation => {
+            const index = Number(annotation.paragraphIndex);
+            if (!Number.isInteger(index)) return;
+            const records = annotationsByParagraph.get(index) || [];
+            records.push(annotation);
+            annotationsByParagraph.set(index, records);
+        });
+        root.querySelector('#raReaderBody').innerHTML = book.content.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map((paragraph, index) => {
+            const notes = notesByParagraph.get(index) || [];
+            const annotations = annotationsByParagraph.get(index) || [];
+            const annotationMarkup = annotations.map(annotation => `<aside class="ra-reader-annotation"><b>${annotation.characterAvatar ? `<img src="${escapeHtml(annotation.characterAvatar)}" alt="">` : ''}${escapeHtml(annotation.characterName || '角色批注')}</b><span>${escapeHtml(annotation.content || '')}</span></aside>`).join('');
+            return `<p data-reader-paragraph="${index}">${renderMarkedParagraph(paragraph, notes)}</p>${annotationMarkup}`;
+        }).join('');
+    }
+
+    function renderMarkedParagraph(text, notes) {
+        const markNotes = notes.filter(note => note.markType === 'highlight' || note.markType === 'underline')
+            .filter(note => Number.isInteger(Number(note.start)) && Number.isInteger(Number(note.end)))
+            .sort((left, right) => Number(left.start) - Number(right.start));
+        let cursor = 0;
+        let output = '';
+        markNotes.forEach(note => {
+            const start = Math.max(cursor, Math.min(text.length, Number(note.start)));
+            const end = Math.max(start, Math.min(text.length, Number(note.end)));
+            if (end <= start) return;
+            output += escapeHtml(text.slice(cursor, start));
+            output += `<span class="ra-note-mark ra-note-mark-${note.markType}" data-reader-note-id="${escapeHtml(note.id)}">${escapeHtml(text.slice(start, end))}</span>`;
+            cursor = end;
+        });
+        return output + escapeHtml(text.slice(cursor));
+    }
+
+    function queueSelectionMenu() {
+        clearTimeout(selectionMenuTimer);
+        selectionMenuTimer = setTimeout(showSelectionMenu, 0);
+    }
+
+    function getSelectionContext() {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount !== 1 || !selection.toString().trim()) return null;
+        const range = selection.getRangeAt(0);
+        const readerBody = root.querySelector('#raReaderBody');
+        if (!readerBody.contains(range.commonAncestorContainer)) return null;
+        const getParagraph = node => (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement)?.closest('[data-reader-paragraph]');
+        const startParagraph = getParagraph(range.startContainer);
+        const endParagraph = getParagraph(range.endContainer);
+        if (!startParagraph || startParagraph !== endParagraph) return null;
+        const text = startParagraph.textContent || '';
+        const prefix = range.cloneRange();
+        prefix.selectNodeContents(startParagraph);
+        prefix.setEnd(range.startContainer, range.startOffset);
+        const start = prefix.toString().length;
+        const selectedText = selection.toString().replace(/\s+/g, ' ').trim();
+        const end = Math.min(text.length, start + selectedText.length);
+        if (!selectedText || end <= start) return null;
+        return { paragraphIndex: Number(startParagraph.dataset.readerParagraph), start, end, selectedText, rect: range.getBoundingClientRect() };
+    }
+
+    function showSelectionMenu() {
+        const context = getSelectionContext();
+        if (!context) return;
+        activeSelectionContext = context;
+        suppressReaderChromeTapUntil = Date.now() + 500;
+        const menu = root.querySelector('#raSelectionMenu');
+        const rootRect = root.getBoundingClientRect();
+        const menuWidth = 260;
+        const left = Math.max(12, Math.min(context.rect.left - rootRect.left + context.rect.width / 2 - menuWidth / 2, rootRect.width - menuWidth - 12));
+        const top = Math.max(12, context.rect.top - rootRect.top - 48);
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+        menu.classList.add('is-open');
+    }
+
+    function hideSelectionMenu() {
+        clearTimeout(selectionMenuTimer);
+        root?.querySelector('#raSelectionMenu')?.classList.remove('is-open');
+    }
+
+    async function saveSelectionNote(markType) {
+        const book = getBook(activeBookId);
+        const context = activeSelectionContext || getSelectionContext();
+        hideSelectionMenu();
+        if (!book || !context) return;
+        suppressReaderChromeTapUntil = Date.now() + 420;
+        let note = '';
+        if (markType === 'note') {
+            if (typeof window.showCustomPrompt !== 'function') return;
+            const result = await window.showCustomPrompt('添加笔记', { placeholder: '写下你的想法（可选）' }, '保存');
+            if (result === null || result === undefined) return;
+            note = String(result).trim();
+        }
+        book.notes = getNotes(book);
+        book.notes.push({ id: makeId('note'), paragraphIndex: context.paragraphIndex, start: context.start, end: context.end, selectedText: context.selectedText, note, markType, createdAt: Date.now() });
+        window.getSelection()?.removeAllRanges();
+        renderReaderContent(book);
+        await writeData();
+        updateReaderToolbar();
+        if (typeof window.showToast === 'function') window.showToast(markType === 'note' ? '笔记已保存' : '标记已添加');
+    }
+
+    function openNotes() {
+        const book = getBook(activeBookId);
+        if (!book) return;
+        const notes = getNotes(book).slice().sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0));
+        const content = notes.length
+            ? notes.map(note => `<button class="ra-chapter" type="button" data-reader-note="${escapeHtml(note.id)}"><b>${escapeHtml(note.selectedText || '笔记')}</b><small>${escapeHtml(note.note || (note.markType === 'highlight' ? '高亮标记' : note.markType === 'underline' ? '下划线标记' : '无备注'))}</small></button>`).join('')
+            : '<div class="ra-empty">还没有笔记</div>';
+        openSheet('笔记', `${content}<button class="ra-chapter ra-export-notes" type="button" data-reader-action="notes-export">导出笔记</button>`);
+    }
+
+    function jumpToNote(noteId) {
+        const book = getBook(activeBookId);
+        const note = getNotes(book).find(item => item.id === noteId);
+        if (!note) return;
+        jumpToParagraph(Number(note.paragraphIndex));
+    }
+
+    function exportNotes() {
+        const book = getBook(activeBookId);
+        if (!book) return;
+        const records = getNotes(book);
+        if (!records.length) {
+            if (typeof window.showToast === 'function') window.showToast('还没有可导出的笔记');
+            return;
+        }
+        const lines = [`# ${book.title} - 阅读笔记`, ''];
+        records.slice().sort((left, right) => Number(left.paragraphIndex) - Number(right.paragraphIndex)).forEach(note => {
+            lines.push(`> ${note.selectedText || ''}`);
+            lines.push(note.note || (note.markType === 'highlight' ? '高亮标记' : note.markType === 'underline' ? '下划线标记' : '笔记'));
+            lines.push('');
+        });
+        const annotations = getAnnotations(book).slice().sort((left, right) => Number(left.paragraphIndex) - Number(right.paragraphIndex));
+        if (annotations.length) lines.push('## 角色批注', '');
+        annotations.forEach(annotation => {
+            lines.push(`> ${annotation.selectedText || ''}`);
+            lines.push(`${annotation.characterName || '角色'}：${annotation.content || ''}`);
+            lines.push('');
+        });
+        const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${String(book.title || '阅读笔记').replace(/[\\/:*?"<>|]/g, '_')}-笔记.md`;
+        link.click();
+        URL.revokeObjectURL(url);
+        closeSheet();
+    }
+
+    function readSelectedText() {
+        const context = activeSelectionContext || getSelectionContext();
+        hideSelectionMenu();
+        if (!context || !('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(context.selectedText);
+        utterance.lang = 'zh-CN';
+        utterance.rate = Number(data.preferences.ttsRate || 1);
+        window.speechSynthesis.speak(utterance);
+    }
+
+    async function readReaderContacts() {
+        const db = await openDatabase();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const request = tx.objectStore(STORE_NAME).get('contactsAppData');
+            request.onsuccess = () => resolve(Array.isArray(request.result?.data?.contacts) ? request.result.data.contacts : []);
+            request.onerror = () => reject(request.error || new Error('联系人读取失败'));
+            tx.oncomplete = () => db.close();
+            tx.onerror = () => { db.close(); reject(tx.error || new Error('联系人读取失败')); };
+        });
+    }
+
+    async function openReaderCharacterPicker() {
+        hideSelectionMenu();
+        const context = activeSelectionContext || getSelectionContext();
+        if (!context) return;
+        activeSelectionContext = context;
+        let contacts = [];
+        try { contacts = await readReaderContacts(); } catch (error) { console.warn('Reader contacts unavailable:', error); }
+        const available = contacts.filter(contact => contact && contact.id && String(contact.name || '').trim());
+        if (!available.length) {
+            if (typeof window.showToast === 'function') window.showToast('请先在联系人中创建角色');
+            return;
+        }
+        openSheet('选择角色批注', available.map(contact => `<button class="ra-chapter" type="button" data-reader-character="${escapeHtml(contact.id)}"><b>${escapeHtml(contact.name)}</b><small>${escapeHtml(contact.persona || '暂无人设')}</small></button>`).join(''));
+    }
+
+    async function chooseReaderCharacter(characterId) {
+        const contacts = await readReaderContacts().catch(() => []);
+        const character = contacts.find(contact => contact.id === characterId);
+        if (!character || !activeSelectionContext) return;
+        data.preferences.readerCharacterId = character.id;
+        scheduleSave();
+        closeSheet();
+        await requestCharacterAnnotation(character, activeSelectionContext);
+    }
+
+    function getCompletionUrl(url) {
+        const base = String(url || '').trim().replace(/\/+$/, '');
+        return /\/chat\/completions$/i.test(base) ? base : `${base}/chat/completions`;
+    }
+
+    async function requestCharacterAnnotation(character, context) {
+        const book = getBook(activeBookId);
+        if (!book || !context) return;
+        const api = typeof apiDataList !== 'undefined' && Array.isArray(apiDataList) ? apiDataList.find(item => item.id === apiConnectedId) : null;
+        if (!api?.url || !api?.key || !api?.model) {
+            if (typeof window.showToast === 'function') window.showToast('请先在 API 连接中配置并连接一个模型');
+            return;
+        }
+        if (typeof window.showToast === 'function') window.showToast('正在生成角色批注');
+        try {
+            const response = await fetch(getCompletionUrl(api.url), {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${api.key}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: api.model,
+                    temperature: api.temperature !== undefined ? api.temperature : 0.7,
+                    messages: [
+                        { role: 'system', content: `你是${character.name}。人设：${character.persona || '未设置'}。请针对读者摘录给出简短、自然的第一人称批注，不超过80字。` },
+                        { role: 'user', content: `书名：《${book.title}》\n摘录：${context.selectedText}` }
+                    ]
+                })
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const payload = await response.json();
+            const content = String(payload?.choices?.[0]?.message?.content || '').trim();
+            if (!content) throw new Error('模型未返回批注');
+            book.annotations = getAnnotations(book);
+            book.annotations.push({ id: makeId('annotation'), paragraphIndex: context.paragraphIndex, start: context.start, end: context.end, selectedText: context.selectedText, characterId: character.id, characterName: character.name, characterAvatar: character.avatar || '', content, createdAt: Date.now() });
+            window.getSelection()?.removeAllRanges();
+            renderReaderContent(book);
+            await writeData();
+            if (typeof window.showToast === 'function') window.showToast('角色批注已添加');
+        } catch (error) {
+            console.warn('Reader annotation failed:', error);
+            if (typeof window.showToast === 'function') window.showToast('角色批注生成失败，请检查 API 连接');
+        }
     }
 
     function updateReaderToolbar() {
@@ -345,12 +716,13 @@
         if (!book || !root) return;
         const progress = Math.max(0, Math.min(100, Number(book.progress) || 0));
         const elapsedSeconds = Math.max(0, Math.floor((Date.now() - sessionStartedAt) / 1000));
+        const totalSeconds = Math.max(0, Math.floor((Number(book.readingTimeMs) || 0) / 1000) + elapsedSeconds);
         const readCharacters = (book.content || '').replace(/\s/g, '').length * progress / 100;
         const speed = elapsedSeconds ? Math.floor(readCharacters / (elapsedSeconds / 60)) : 0;
-        root.querySelector('#raReaderDuration').textContent = `${elapsedSeconds} 秒`;
+        root.querySelector('#raReaderDuration').textContent = totalSeconds < 60 ? `${totalSeconds} 秒` : `${Math.floor(totalSeconds / 60)} 分`;
         root.querySelector('#raReaderProgress').textContent = `${progress.toFixed(1)} %`;
         root.querySelector('#raReaderSpeed').textContent = `${speed} 字/分钟`;
-        root.querySelector('#raReaderNotes').textContent = `${getBookmarks(book).length} 条`;
+        root.querySelector('#raReaderNotes').textContent = `${getNotes(book).length} 条`;
         root.querySelector('#raReaderProgressSlider').value = String(progress);
     }
 
@@ -432,7 +804,11 @@
         saveReaderProgress();
         const elapsed = Date.now() - sessionStartedAt;
         sessionStartedAt = 0;
-        if (elapsed > 0) data.readingMsByDay[getDayKey(new Date())] = (data.readingMsByDay[getDayKey(new Date())] || 0) + elapsed;
+        if (elapsed > 0) {
+            data.readingMsByDay[getDayKey(new Date())] = (data.readingMsByDay[getDayKey(new Date())] || 0) + elapsed;
+            const book = getBook(activeBookId);
+            if (book) book.readingTimeMs = (Number(book.readingTimeMs) || 0) + elapsed;
+        }
         scheduleSave();
     }
 
@@ -452,11 +828,48 @@
     function openSettings() {
         const size = data.preferences.fontSize || 18;
         const lineHeight = data.preferences.lineHeight || 1.82;
-        openSheet('阅读设置', `<label class="ra-settings-row"><span>字号</span><input id="raFontSize" type="range" min="14" max="26" value="${size}"><output id="raFontSizeOutput">${size}px</output></label><label class="ra-settings-row"><span>行距</span><input id="raLineHeight" type="range" min="1.4" max="2.3" step="0.05" value="${lineHeight}"><output id="raLineHeightOutput">${lineHeight}</output></label>`);
+        const padding = data.preferences.paddingX || 24;
+        const paragraphSpacing = data.preferences.paragraphSpacing || 1.05;
+        const family = data.preferences.fontFamily || 'system';
+        const ttsRate = data.preferences.ttsRate || 1;
+        openSheet('阅读设置', `<label class="ra-settings-row"><span>字号</span><input id="raFontSize" type="range" min="14" max="26" value="${size}"><output id="raFontSizeOutput">${size}px</output></label><label class="ra-settings-row"><span>行距</span><input id="raLineHeight" type="range" min="1.4" max="2.3" step="0.05" value="${lineHeight}"><output id="raLineHeightOutput">${lineHeight}</output></label><label class="ra-settings-row"><span>边距</span><input id="raPaddingX" type="range" min="16" max="42" value="${padding}"><output id="raPaddingXOutput">${padding}px</output></label><label class="ra-settings-row"><span>段距</span><input id="raParagraphSpacing" type="range" min="0.7" max="1.8" step="0.05" value="${paragraphSpacing}"><output id="raParagraphSpacingOutput">${paragraphSpacing}</output></label><label class="ra-settings-row"><span>字体</span><select id="raFontFamily"><option value="system">系统</option><option value="serif">衬线</option><option value="rounded">圆体</option></select><output></output></label><label class="ra-settings-row"><span>背景</span><input id="raBackgroundColor" type="color" value="${escapeHtml(data.preferences.backgroundColor || '#ffffff')}"><output></output></label><label class="ra-settings-row"><span>文字</span><input id="raTextColor" type="color" value="${escapeHtml(data.preferences.textColor || '#171717')}"><output></output></label><label class="ra-settings-row"><span>朗读速度</span><input id="raTtsRate" type="range" min="0.7" max="1.5" step="0.1" value="${ttsRate}"><output id="raTtsRateOutput">${ttsRate}x</output></label>`);
+        root.querySelector('#raFontFamily').value = family;
         root.querySelector('#raFontSize').addEventListener('input', event => {
             data.preferences.fontSize = Number(event.target.value);
             root.querySelector('#raFontSizeOutput').textContent = `${event.target.value}px`;
             root.querySelector('#raReaderBody').style.setProperty('--ra-font-size', `${event.target.value}px`);
+            scheduleSave();
+        });
+        root.querySelector('#raPaddingX').addEventListener('input', event => {
+            data.preferences.paddingX = Number(event.target.value);
+            root.querySelector('#raPaddingXOutput').textContent = `${event.target.value}px`;
+            applyReaderPreferences();
+            scheduleSave();
+        });
+        root.querySelector('#raParagraphSpacing').addEventListener('input', event => {
+            data.preferences.paragraphSpacing = Number(event.target.value);
+            root.querySelector('#raParagraphSpacingOutput').textContent = event.target.value;
+            applyReaderPreferences();
+            scheduleSave();
+        });
+        root.querySelector('#raFontFamily').addEventListener('change', event => {
+            data.preferences.fontFamily = event.target.value;
+            applyReaderPreferences();
+            scheduleSave();
+        });
+        root.querySelector('#raBackgroundColor').addEventListener('input', event => {
+            data.preferences.backgroundColor = event.target.value;
+            applyReaderPreferences();
+            scheduleSave();
+        });
+        root.querySelector('#raTextColor').addEventListener('input', event => {
+            data.preferences.textColor = event.target.value;
+            applyReaderPreferences();
+            scheduleSave();
+        });
+        root.querySelector('#raTtsRate').addEventListener('input', event => {
+            data.preferences.ttsRate = Number(event.target.value);
+            root.querySelector('#raTtsRateOutput').textContent = `${event.target.value}x`;
             scheduleSave();
         });
         root.querySelector('#raLineHeight').addEventListener('input', event => {
@@ -480,15 +893,16 @@
         currentMatch = -1;
         root.querySelector('#raSearchCount').textContent = '0';
         root.querySelector('#raSearchInput').value = '';
-        const paragraphs = root.querySelectorAll('#raReaderBody p');
-        paragraphs.forEach(paragraph => { paragraph.textContent = paragraph.textContent; });
+        const book = getBook(activeBookId);
+        if (book) renderReaderContent(book);
     }
 
     function updateSearch() {
         const input = root.querySelector('#raSearchInput');
         const keyword = input.value.trim();
+        const book = getBook(activeBookId);
+        if (book) renderReaderContent(book);
         const paragraphs = root.querySelectorAll('#raReaderBody p');
-        paragraphs.forEach(paragraph => { paragraph.textContent = paragraph.textContent; });
         searchMatches = [];
         currentMatch = -1;
         if (!keyword) { root.querySelector('#raSearchCount').textContent = '0'; return; }
@@ -539,7 +953,8 @@
         const reading = data.books.filter(book => Number(book.progress) > 0 && Number(book.progress) < 99.5).length;
         const daysRead = Object.values(data.readingMsByDay).filter(value => Number(value) > 0).length;
         const words = data.books.reduce((total, book) => total + (book.content || '').replace(/\s/g, '').length * (Number(book.progress) || 0) / 100, 0);
-        root.querySelector('#raStats').innerHTML = `<div class="ra-stat-period">日　 周　 月　 年　 总</div><section class="ra-stat-card ra-stat-grid"><b>${totalMinutes} 分钟<small>阅读时间</small></b><b>${daysRead} 天<small>阅读天数</small></b><b>${started} 本<small>累计读过</small></b><b>${finished} 本<small>读完书籍</small></b><b>${reading} 本<small>在读书籍</small></b><b>0 条<small>记录笔记</small></b><b>${Math.floor(words)} 字<small>阅读字数</small></b><b>${totalMinutes ? Math.floor(words / totalMinutes) : 0} 字/分钟<small>阅读速度</small></b></section><section class="ra-stat-card"><div class="ra-stat-top"><strong>阅读时间趋势</strong><span class="ra-stat-note">${year}年${month + 1}月</span></div><div class="ra-calendar">${calendar.join('')}</div></section>`;
+        const notes = data.books.reduce((total, book) => total + getNotes(book).length, 0);
+        root.querySelector('#raStats').innerHTML = `<div class="ra-stat-period">日　 周　 月　 年　 总</div><section class="ra-stat-card ra-stat-grid"><b>${totalMinutes} 分钟<small>阅读时间</small></b><b>${daysRead} 天<small>阅读天数</small></b><b>${started} 本<small>累计读过</small></b><b>${finished} 本<small>读完书籍</small></b><b>${reading} 本<small>在读书籍</small></b><b>${notes} 条<small>记录笔记</small></b><b>${Math.floor(words)} 字<small>阅读字数</small></b><b>${totalMinutes ? Math.floor(words / totalMinutes) : 0} 字/分钟<small>阅读速度</small></b></section><section class="ra-stat-card"><div class="ra-stat-top"><strong>阅读时间趋势</strong><span class="ra-stat-note">${year}年${month + 1}月</span></div><div class="ra-calendar">${calendar.join('')}</div></section>`;
     }
 
     function renderDashboard() {
@@ -562,6 +977,7 @@
             try { data = Object.assign(clone(DEFAULT_DATA), await readData() || {}); }
             catch (error) { console.warn('Reader storage unavailable:', error); data = clone(DEFAULT_DATA); }
             data.books = Array.isArray(data.books) ? data.books : [];
+            data.shelfGroups = Array.isArray(data.shelfGroups) ? data.shelfGroups.filter(group => String(group || '').trim()) : [];
             data.preferences = Object.assign({}, DEFAULT_DATA.preferences, data.preferences || {});
             data.readingMsByDay = data.readingMsByDay || {};
         }
