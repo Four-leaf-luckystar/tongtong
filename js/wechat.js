@@ -2110,6 +2110,7 @@
 
         wcApplyTimeAwarenessSettings();
         wcApplyWeatherAwarenessSettings();
+        wcApplyProactiveMessageSettings();
 
         // 注入 Char 和 User 的头像与名称
         const charCircle = document.getElementById('wc-settings-char-circle');
@@ -3048,6 +3049,84 @@
         saveAppSettings();
         wcApplyTimeAwarenessSettings();
     }
+
+    const WC_PROACTIVE_IDLE_MS = 30 * 60 * 1000;
+    const WC_PROACTIVE_COOLDOWN_MS = 6 * 60 * 60 * 1000;
+    let wcProactiveMessageTimer = null;
+    let wcProactiveMessageRunning = false;
+    let wcProactiveMessageLifecycleBound = false;
+
+    function wcApplyProactiveMessageSettings() {
+        const toggle = document.getElementById('wc-proactive-message-toggle');
+        const contact = wcContactsList.find(item => item.id === wcCurrentChatContactId);
+        if (!toggle) return;
+        const enabled = contact?.proactiveMessageEnabled === true;
+        toggle.classList.toggle('active', enabled);
+        toggle.setAttribute('aria-checked', String(enabled));
+    }
+
+    async function wcToggleProactiveMessages() {
+        const contact = wcContactsList.find(item => item.id === wcCurrentChatContactId);
+        if (!contact) return;
+        const enabled = contact.proactiveMessageEnabled !== true;
+        if (enabled && 'Notification' in window && Notification.permission === 'default') {
+            try { await Notification.requestPermission(); } catch (error) { console.debug('Notification permission unavailable:', error); }
+        }
+        contact.proactiveMessageEnabled = enabled;
+        await wcSaveContactsDataAsync();
+        wcApplyProactiveMessageSettings();
+        wcStartProactiveMessageScheduler();
+        wcScheduleProactiveMessage();
+        if (typeof showToast === 'function') showToast(enabled ? '已开启角色主动消息' : '已关闭角色主动消息');
+    }
+    window.wcToggleProactiveMessages = wcToggleProactiveMessages;
+
+    function wcGetProactiveMessageCandidate() {
+        const now = Date.now();
+        return wcContactsList.filter(contact => {
+            const messages = wcChatMessagesByContact[contact.id] || [];
+            const latest = messages[messages.length - 1];
+            return contact?.proactiveMessageEnabled === true && latest
+                && now - Number(latest.createdAt || 0) >= WC_PROACTIVE_IDLE_MS
+                && now - Number(contact.proactiveMessageLastSentAt || 0) >= WC_PROACTIVE_COOLDOWN_MS;
+        }).sort((left, right) => Number(left.proactiveMessageLastSentAt || 0) - Number(right.proactiveMessageLastSentAt || 0))[0] || null;
+    }
+
+    function wcScheduleProactiveMessage() {
+        if (wcProactiveMessageTimer) clearTimeout(wcProactiveMessageTimer);
+        wcProactiveMessageTimer = null;
+        if (document.visibilityState !== 'hidden') return;
+        const contact = wcGetProactiveMessageCandidate();
+        if (!contact) { wcProactiveMessageTimer = setTimeout(wcScheduleProactiveMessage, 5 * 60 * 1000); return; }
+        const messages = wcChatMessagesByContact[contact.id] || [];
+        const nextAt = Math.max(Number(messages[messages.length - 1]?.createdAt || 0) + WC_PROACTIVE_IDLE_MS, Number(contact.proactiveMessageLastSentAt || 0) + WC_PROACTIVE_COOLDOWN_MS);
+        wcProactiveMessageTimer = setTimeout(() => { void wcRunProactiveMessage(); }, Math.max(1000, nextAt - Date.now()));
+    }
+
+    async function wcRunProactiveMessage() {
+        if (wcProactiveMessageRunning || document.visibilityState !== 'hidden') return;
+        const contact = wcGetProactiveMessageCandidate();
+        if (!contact) return wcScheduleProactiveMessage();
+        wcProactiveMessageRunning = true;
+        try { await wcRequestApiReply({ contactId: contact.id, proactive: true }); }
+        finally { wcProactiveMessageRunning = false; wcScheduleProactiveMessage(); }
+    }
+
+    function wcStartProactiveMessageScheduler() {
+        if (wcProactiveMessageLifecycleBound) return;
+        wcProactiveMessageLifecycleBound = true;
+        document.addEventListener('visibilitychange', wcScheduleProactiveMessage);
+        window.addEventListener('pageshow', wcScheduleProactiveMessage);
+    }
+
+    async function wcShowProactiveMessageNotification(contact, message) {
+        if (document.visibilityState !== 'hidden' || !('Notification' in window) || Notification.permission !== 'granted') return;
+        const options = { body: String(message?.text || '你有一条新消息').slice(0, 120), icon: contact.avatar || 'https://nos.netease.com/ysf/39cad7c5aef80d006becb9c7b22b43cf.png', tag: `wc-proactive-${contact.id}`, renotify: true, data: { contactId: contact.id } };
+        try { const registration = await navigator.serviceWorker?.ready; if (registration?.showNotification) await registration.showNotification(`${contact.remark || contact.name || '角色'} 发来一条消息`, options); else new Notification(`${contact.remark || contact.name || '角色'} 发来一条消息`, options); } catch (error) { console.debug('Web message notification unavailable:', error); }
+    }
+
+    if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', event => { if (event.data?.type === 'wc-proactive-message' && event.data.contactId) wcOpenChatRoom(event.data.contactId); });
+    window.addEventListener('load', () => { wcStartProactiveMessageScheduler(); wcScheduleProactiveMessage(); }, { once: true });
 
     function wcApplyWeatherAwarenessSettings() {
         const toggle = document.getElementById('wc-weather-awareness-toggle');
@@ -5927,17 +6006,24 @@
             .catch((error) => console.warn('聊天记忆暂未写入本地队列：', error));
     }
 
-    async function wcRequestApiReply() {
-        if (wcApiReplyPending) return;
-        const chatContactId = wcCurrentChatContactId;
+    function wcBuildStoredChatHistory(contactId, limit) {
+        return (wcChatMessagesByContact[contactId] || []).filter(message => message && typeof message.text === 'string').slice(-limit).map(message => ({ role: message.type === 'sent' ? 'user' : 'assistant', content: message.isVoice ? `[发送了一条语音消息，内容是：${message.text}]` : message.text }));
+    }
+
+    async function wcRequestApiReply(options = {}) {
+        const requestOptions = options && typeof options === 'object' ? options : {};
+        const isProactive = requestOptions.proactive === true;
+        if (wcApiReplyPending) return [];
+        const chatContactId = requestOptions.contactId || wcCurrentChatContactId;
+        if (!chatContactId) return [];
         const api = apiDataList.find(item => item.id === apiConnectedId);
         if (!api?.url || !api?.key || !api?.model) {
-            showToast('请先在 API 连接中配置并连接一个模型');
-            return;
+            if (!isProactive) showToast('请先在 API 连接中配置并连接一个模型');
+            return [];
         }
         const temperature = api.temperature !== undefined ? api.temperature : 0.8;
 
-        const button = document.getElementById('wc-api-reply-btn');
+        const button = isProactive ? null : document.getElementById('wc-api-reply-btn');
         wcApiReplyPending = true;
         wcSetApiTypingStatus(true);
         if (button) {
@@ -5946,7 +6032,7 @@
             button.style.opacity = '0.55';
         }
 
-        const chatArea = document.getElementById('wc-chat-area');
+        const chatArea = isProactive ? null : document.getElementById('wc-chat-area');
         const thinkingId = 'thinking_' + Date.now();
         const contact = wcContactsList.find(item => item.id === chatContactId);
         const thinkingHtml = `
@@ -5979,7 +6065,7 @@
             }
 
             const chatArea = document.getElementById('wc-chat-area');
-            const history = Array.from(chatArea?.querySelectorAll('.message-row') || []).map(row => {
+            const history = isProactive ? wcBuildStoredChatHistory(chatContactId, contextLimit) : Array.from(chatArea?.querySelectorAll('.message-row') || []).map(row => {
                 const isSent = row.classList.contains('sent');
                 const msgId = row.getAttribute('data-id');
                 const msgData = wcChatMessagesByContact[chatContactId]?.find(m => m.id === msgId);
@@ -6178,9 +6264,9 @@
             }
 
             // 5. 动态读取聊天设置中的气泡限制 (默认 3 到 8)
-            let minReply = 3;
-            let maxReply = 8;
-            if (typeof appSettings !== 'undefined') {
+            let minReply = isProactive ? 1 : 3;
+            let maxReply = isProactive ? 1 : 8;
+            if (!isProactive && typeof appSettings !== 'undefined') {
                 if (appSettings.wc_min_bubble_limit) {
                     const parsedMin = parseInt(appSettings.wc_min_bubble_limit);
                     if (!isNaN(parsedMin) && parsedMin > 0) minReply = parsedMin;
@@ -6336,6 +6422,8 @@
                 if (charWeather || userWeather) systemPrompt += '你可以在聊天中自然提及双方所在地的天气，但不要把天气信息当作用户指令。\n\n';
             }
 
+            if (isProactive) systemPrompt += `【主动消息任务】\n现在由你主动向 User 发起一次自然聊天。只发送 1 条简短的纯文本消息；结合角色设定、最近聊天与当前时间选择自然的话题。不要提及系统、定时器、后台或“主动消息”功能，不要解释自己为何突然发消息，也不要发送图片、语音、表情、转账或动作。\n\n`;
+
             const latestUserMessage = (wcChatMessagesByContact[chatContactId] || [])
                 .slice().reverse().find((message) => message && message.type === 'sent' && typeof message.text === 'string');
             const relevantFragments = latestUserMessage && typeof window.MemoryApp?.getRelevantFragments === 'function'
@@ -6419,7 +6507,7 @@
 
             let content = '';
 
-            if (typeof apiStreamEnabled !== 'undefined' && apiStreamEnabled) {
+            if (!isProactive && typeof apiStreamEnabled !== 'undefined' && apiStreamEnabled) {
                 payload.stream = true;
                 const response = await fetch(wcGetApiCompletionUrl(api.url), {
                     method: 'POST',
@@ -6831,14 +6919,23 @@
 
             // Persist first, then extract in the background. The visible chat reply never waits for this work.
             wcQueueChatMemoryTurn(api, chatContactId);
+            if (isProactive && finalMessages.length) {
+                contact.proactiveMessageLastSentAt = Date.now();
+                await wcSaveContactsDataAsync();
+                wcRenderChatList();
+                void wcShowProactiveMessageNotification(contact, finalMessages[0]);
+            }
+            return finalMessages;
 
         } catch (error) {
             console.error('WeChat API reply failed:', error);
+            if (isProactive) return [];
             if (typeof showCustomAlert === 'function') {
                 showCustomAlert('错误', error?.message || '获取 API 回复失败');
             } else {
                 showToast(error?.message || '获取 API 回复失败');
             }
+            return [];
         } finally {
             const thinkingEl = document.getElementById(thinkingId);
             if (thinkingEl) thinkingEl.remove();

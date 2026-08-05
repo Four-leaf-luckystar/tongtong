@@ -2877,6 +2877,19 @@
                         </div>
                     </div>
 
+                    <div class="wc-settings-list-item" onclick="wcToggleProactiveMessages()">
+                        <div class="wc-settings-item-icon">
+                            <svg class="stroke-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.4 8.4 0 0 1-7.6-5.1L3 21l5.7-1.5A8.4 8.4 0 1 1 21 11.5Z"/><path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01"/></svg>
+                        </div>
+                        <div class="wc-settings-item-content">
+                            <div class="wc-settings-item-title">角色主动消息</div>
+                            <div class="wc-settings-item-subtitle">后台空闲 30 分钟后，由 TA 主动发来一条消息</div>
+                        </div>
+                        <div class="wc-settings-item-right">
+                            <div class="wc-ios-switch" id="wc-proactive-message-toggle" aria-checked="false"></div>
+                        </div>
+                    </div>
+
                     <div class="wc-settings-list-item" style="cursor: default;">
                         <div class="wc-settings-item-icon"><svg class="stroke-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12h16M7 8h10M10 16h4"/></svg></div>
                         <div class="wc-settings-item-content"><div class="wc-settings-item-title">聊天流速</div><div class="wc-settings-item-subtitle">控制连续气泡之间的发送间隔</div></div>
@@ -4251,7 +4264,7 @@ fill="currentColor" viewBox="0 0 24 24" >
     <script src="js/voice-imggen.js"></script>
     <script src="js/semantic-memory.js?v=20260805-hf-direct-v1"></script>
     <script src="js/memory.js?v=20260805-hf-direct-v1"></script>
-    <script src="js/wechat.js?v=20260804-ombre-local-v2"></script>
+    <script src="js/wechat.js?v=20260805-proactive-message-v1"></script>
 <script src="js/icity.js?v=20260802-v1"></script>
 <script src="js/icity-enhancements.js?v=20260803-v2"></script>
 <script src="js/search.js"></script>
