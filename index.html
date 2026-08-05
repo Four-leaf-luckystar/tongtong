@@ -3861,42 +3861,72 @@ fill="currentColor" viewBox="0 0 24 24" >
     <div class="contacts-app-container" id="contactsAppUI" aria-hidden="true">
         <div class="ct-page is-active" data-page="main">
             <header class="ct-header">
-                <button class="ct-glass-circle" type="button" data-action="close-app" aria-label="返回桌面">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>
+                <button class="ct-nav-circle-btn" type="button" data-action="close-app" aria-label="返回桌面">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
                 </button>
-                <div class="ct-header-title">列表</div>
                 <div class="ct-header-menu-wrap">
-                    <button class="ct-glass-circle" type="button" data-action="toggle-main-menu" aria-label="联系人操作" aria-expanded="false">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M12 5v14M5 12h14"/>
-                            <path class="ct-menu-pencil" d="m14.8 16.7 3.9-3.9 1.5 1.5-3.9 3.9-2.1.6.6-2.1Z"/>
-                        </svg>
+                    <button class="ct-nav-capsule-btn" type="button" data-action="toggle-edit" id="ctEditMenuItem">
+                        <span id="ctEditMenuLabel">编辑</span>
                     </button>
-                    <div class="ct-header-menu" id="ctMainMenu" role="menu" aria-hidden="true">
-                        <button type="button" data-action="add-current" role="menuitem">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-                            <span id="ctAddMenuLabel">添加联系人</span>
-                        </button>
-                        <button type="button" data-action="toggle-edit" role="menuitem" id="ctEditMenuItem">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-.7 4 4-.7L18.8 7.8l-3.3-3.3L4 16Z"/><path d="m13.8 6.2 3.3 3.3"/></svg>
-                            <span id="ctEditMenuLabel">编辑列表</span>
-                        </button>
-                    </div>
                 </div>
             </header>
 
             <main class="ct-scroll ct-main-scroll">
+                <h1 class="ct-large-title" id="ctMainLargeTitle">Character</h1>
+                <div class="ct-search-bar-container">
+                    <div class="ct-search-bar">
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" placeholder="搜索">
+                    </div>
+                </div>
+
                 <section class="ct-view is-active" data-view="char">
-                    <button class="ct-card ct-create-group" type="button" data-action="add-group">
-                        <span class="ct-plus">+</span>
-                        <span>新建联系人分组</span>
-                    </button>
-                    <div id="ctGroupsList"></div>
+                    <div class="ct-list-card">
+                        <div class="ct-list-item" data-action="add-group">
+                            <div class="ct-icon-wrapper" style="color: var(--ct-blue);">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M19.5 21a3 3 0 0 0 3-3v-4.5a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3V18a3 3 0 0 0 3 3h15ZM1.5 10.146V6a3 3 0 0 1 3-3h5.379a2.25 2.25 0 0 1 1.59.659l2.122 2.121c.14.141.331.22.53.22H19.5a3 3 0 0 1 3 3v1.146A4.483 4.483 0 0 0 19.5 9h-15a4.483 4.483 0 0 0-3 1.146Z" />
+                                </svg>
+                            </div>
+                            <div class="ct-item-text">创建分组</div>
+                            <div class="ct-item-right">
+                                <svg class="ct-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                            </div>
+                        </div>
+                        <div class="ct-list-item" data-action="add-current">
+                            <div class="ct-icon-wrapper" style="color: #34c759;">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <g id="person-pin-fill">
+                                    <path id="Union" fill="currentColor" d="M20 2c1.1046 0 2 0.89543 2 2v13c0 1.1046 -0.8954 2 -2 2h-5.0859l-2.2071 2.207c-0.3905 0.3906 -1.0235 0.3906 -1.414 0L9.08594 19H4c-1.10457 0 -2 -0.8954 -2 -2V4c0 -1.10457 0.89543 -2 2 -2zm-8 11.5c-2.63595 0 -4.48919 0.6126 -5.55078 1.1055C5.44938 15.0698 5 16.0728 5 17h14c0 -0.9272 -0.4494 -1.9302 -1.4492 -2.3945C16.4892 14.1126 14.636 13.5 12 13.5m0 -8c-1.933 0 -3.5 1.567 -3.5 3.5s1.567 3.5 3.5 3.5 3.5 -1.567 3.5 -3.5 -1.567 -3.5 -3.5 -3.5"></path>
+                                  </g>
+                                </svg>
+                            </div>
+                            <div class="ct-item-text">创建角色</div>
+                            <div class="ct-item-right">
+                                <svg class="ct-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                            </div>
+                        </div>
+                        <div id="ctGroupsList"></div>
+                    </div>
                 </section>
 
                 <section class="ct-view" data-view="user">
-                    <div class="ct-section-label">我的预设身份</div>
-                    <div id="ctUsersList"></div>
+                    <div class="ct-list-card">
+                        <div class="ct-list-item" data-action="add-current">
+                            <div class="ct-icon-wrapper" style="color: #34c759;">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <g id="person-pin-fill">
+                                    <path id="Union" fill="currentColor" d="M20 2c1.1046 0 2 0.89543 2 2v13c0 1.1046 -0.8954 2 -2 2h-5.0859l-2.2071 2.207c-0.3905 0.3906 -1.0235 0.3906 -1.414 0L9.08594 19H4c-1.10457 0 -2 -0.8954 -2 -2V4c0 -1.10457 0.89543 -2 2 -2zm-8 11.5c-2.63595 0 -4.48919 0.6126 -5.55078 1.1055C5.44938 15.0698 5 16.0728 5 17h14c0 -0.9272 -0.4494 -1.9302 -1.4492 -2.3945C16.4892 14.1126 14.636 13.5 12 13.5m0 -8c-1.933 0 -3.5 1.567 -3.5 3.5s1.567 3.5 3.5 3.5 3.5 -1.567 3.5 -3.5 -1.567 -3.5 -3.5 -3.5"></path>
+                                  </g>
+                                </svg>
+                            </div>
+                            <div class="ct-item-text">创建面具</div>
+                            <div class="ct-item-right">
+                                <svg class="ct-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>
+                            </div>
+                        </div>
+                        <div id="ctUsersList"></div>
+                    </div>
                 </section>
             </main>
 
@@ -3918,57 +3948,81 @@ fill="currentColor" viewBox="0 0 24 24" >
         </div>
 
         <div class="ct-page" data-page="contact-editor">
-            <header class="ct-header">
-                <button class="ct-text-button ct-primary" type="button" data-action="back-main">取消</button>
-                <div class="ct-title" id="ctContactEditorTitle">新建角色</div>
-                <button class="ct-text-button ct-primary ct-strong" type="button" data-action="save-contact">完成</button>
+            <header class="ct-header" style="justify-content: space-between; align-items: center;">
+                <button class="ct-nav-circle-btn" type="button" data-action="back-main" aria-label="返回">
+                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <div class="ct-title" id="ctContactEditorTitle" style="display: none;">新建角色</div>
+                <button class="ct-nav-capsule-btn" type="button" data-action="save-contact">完成</button>
             </header>
             <main class="ct-scroll ct-editor-scroll">
                 <div class="ct-profile-editor">
                     <button class="ct-avatar ct-avatar-large" type="button" data-action="pick-contact-avatar" aria-label="选择头像">
-                        <span id="ctContactAvatarPreview"></span>
+                        <span id="ctContactAvatarPreview">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20.37 21.25C20.37 21.4489 20.291 21.6397 20.1503 21.7803C20.0097 21.921 19.8189 22 19.62 22H4.38C4.18109 22 3.99032 21.921 3.84967 21.7803C3.70902 21.6397 3.63 21.4489 3.63 21.25C3.63 17.15 8.13 13.97 12 13.97C15.87 13.97 20.37 17.15 20.37 21.25Z" fill="currentColor"/>
+                                <path d="M17.1 7.11002C17.098 8.11827 16.7972 9.1033 16.2356 9.94067C15.674 10.778 14.8768 11.4302 13.9448 11.8147C13.0127 12.1991 11.9876 12.2987 10.9989 12.1008C10.0103 11.9029 9.10249 11.4164 8.39024 10.7027C7.67799 9.98908 7.19327 9.08031 6.99729 8.09128C6.80132 7.10225 6.90289 6.07735 7.28919 5.14603C7.67549 4.21471 8.32917 3.41878 9.16764 2.85883C10.0061 2.29887 10.9918 2 12 2C13.3535 2.00265 14.6507 2.54219 15.6069 3.50021C16.563 4.45824 17.1 5.75649 17.1 7.11002Z" fill="currentColor"/>
+                            </svg>
+                        </span>
                         <span class="ct-camera-badge">+</span>
                     </button>
+                    <div class="ct-name-subtitle">CHARACTER · 角色</div>
                     <input class="ct-name-input" id="ctContactName" type="text" maxlength="40" placeholder="输入角色名称">
                 </div>
 
                 <div class="ct-action-tabs" role="tablist">
                     <button class="ct-action-tab is-active" type="button" data-action="switch-section" data-section="persona">
-                        <span class="ct-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2"/><path d="M5.8 19c.5-4 2.5-6 6.2-6s5.7 2 6.2 6"/></svg></span><span>人设基础</span>
+                        <span class="ct-action-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="m4.16 21.633 -0.002 0.002 -0.79 0.741 1.076 0.12a7.785 7.785 0 0 0 2.691 -0.199c0.891 -0.234 1.828 -0.688 2.422 -1.532 0.786 0.154 1.604 0.235 2.443 0.235 6 0 11 -4.184 11 -9.5S18 2 12 2 1 6.184 1 11.5c0 3.236 1.866 6.065 4.668 7.77 -0.086 0.471 -0.377 0.994 -0.723 1.462a7.726 7.726 0 0 1 -0.773 0.89l-0.012 0.011Z"></path></svg></span><span>人设基础</span>
                     </button>
                     <button class="ct-action-tab" type="button" data-action="switch-section" data-section="advanced">
-                        <span class="ct-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h8M16 7h4M4 17h4M12 17h8"/><circle cx="14" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span><span>高级设置</span>
+                        <span class="ct-action-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.5092 14.5901L20.2592 13.2701C20.4192 12.3081 20.3989 11.3247 20.1992 10.3701L21.4191 9.05011C21.5138 8.9446 21.5771 8.81468 21.6019 8.67508C21.6266 8.53547 21.6118 8.39173 21.5591 8.2601C21.0532 7.00967 20.3056 5.87128 19.3591 4.9101C19.2666 4.81762 19.1513 4.75133 19.0248 4.71796C18.8983 4.68458 18.7652 4.6853 18.6391 4.72009L16.7991 5.19009C16.2326 4.78274 15.6179 4.44687 14.9691 4.19009L14.5191 2.47009C14.4857 2.33059 14.4119 2.20405 14.307 2.10623C14.2021 2.00842 14.0706 1.94367 13.9291 1.92011C13.306 1.80317 12.6731 1.74623 12.0391 1.75009C11.2458 1.75342 10.4562 1.85759 9.68915 2.06009C9.56114 2.09227 9.44422 2.15856 9.35089 2.25189C9.25756 2.34522 9.19129 2.46212 9.15912 2.59012L8.67914 4.36011C8.14253 4.59838 7.63294 4.8934 7.15912 5.24011L5.33911 4.7901C5.21132 4.7567 5.07686 4.75858 4.95007 4.79556C4.82328 4.83255 4.70893 4.90323 4.61914 5.00009C3.62491 6.03296 2.86435 7.26755 2.3891 8.62012C2.34301 8.75085 2.33361 8.89168 2.36181 9.02741C2.39002 9.16313 2.45477 9.28856 2.54913 9.39011L3.80914 10.7001C3.74605 11.1206 3.7126 11.5449 3.7091 11.9701C3.7091 12.2701 3.70915 12.5701 3.75915 12.8701L2.44915 14.3301C2.361 14.4272 2.2998 14.5457 2.27173 14.6738C2.24365 14.8019 2.24965 14.935 2.28912 15.0601C2.70006 16.3823 3.38111 17.6048 4.28912 18.6501C4.38044 18.7575 4.50016 18.8369 4.63458 18.8794C4.769 18.9218 4.9127 18.9256 5.04913 18.8901L6.7691 18.4501C7.37095 18.9572 8.04503 19.3718 8.7691 19.6801L9.2691 21.4701C9.30762 21.5999 9.37971 21.7172 9.47802 21.8102C9.57634 21.9033 9.69741 21.9688 9.8291 22.0001C10.5511 22.1632 11.2889 22.2471 12.0291 22.2501C12.6195 22.2435 13.2084 22.1867 13.7891 22.0801C13.9272 22.0557 14.0556 21.9932 14.1599 21.8995C14.2642 21.8058 14.3402 21.6848 14.3791 21.5501L14.8491 19.8601C15.7125 19.5512 16.5173 19.0981 17.2291 18.5201L18.9891 18.9201C19.1211 18.9508 19.259 18.9446 19.3877 18.9023C19.5164 18.86 19.6311 18.7831 19.7191 18.6801C20.5957 17.7067 21.2749 16.5724 21.7191 15.3401C21.755 15.2078 21.7545 15.0682 21.7175 14.9362C21.6806 14.8041 21.6086 14.6846 21.5092 14.5901ZM12.1191 15.8601C11.3647 15.8621 10.6267 15.6401 9.99865 15.2222C9.37057 14.8043 8.88067 14.2094 8.59106 13.5128C8.30145 12.8162 8.22519 12.0493 8.37188 11.3093C8.51858 10.5693 8.8816 9.88949 9.41504 9.35605C9.94848 8.82261 10.6283 8.45953 11.3683 8.31284C12.1083 8.16615 12.8752 8.24244 13.5718 8.53204C14.2684 8.82165 14.8633 9.31156 15.2812 9.93964C15.6991 10.5677 15.9211 11.3057 15.9191 12.0601C15.9165 13.0671 15.5153 14.0321 14.8032 14.7442C14.0912 15.4563 13.1261 15.8575 12.1191 15.8601Z" fill="currentColor"/></svg></span><span>高级设置</span>
                     </button>
                     <button class="ct-action-tab" type="button" data-action="switch-section" data-section="security">
-                        <span class="ct-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v2"/></svg></span><span>账号密码</span>
+                        <span class="ct-action-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.38 9.10028V7.51028C17.4113 6.78492 17.2955 6.06072 17.0394 5.38132C16.7834 4.70192 16.3926 4.08137 15.8904 3.55704C15.3882 3.03271 14.785 2.61544 14.1173 2.33038C13.4496 2.04533 12.731 1.89838 12.005 1.89838C11.279 1.89838 10.5605 2.04533 9.89272 2.33038C9.22498 2.61544 8.62184 3.03271 8.11964 3.55704C7.61745 4.08137 7.22657 4.70192 6.97057 5.38132C6.71456 6.06072 6.59871 6.78492 6.63 7.51028V9.10028C5.8651 9.15881 5.14858 9.49707 4.61731 10.0505C4.08604 10.6039 3.77727 11.3336 3.75 12.1003V19.0403C3.77613 19.8767 4.133 20.6686 4.74228 21.2423C5.35156 21.816 6.1635 22.1245 7 22.1003H17C17.8365 22.1245 18.6485 21.816 19.2577 21.2423C19.867 20.6686 20.2239 19.8767 20.25 19.0403V12.1003C20.223 11.3352 19.9156 10.6068 19.3864 10.0536C18.8572 9.50045 18.1431 9.16115 17.38 9.10028ZM8.13 7.51028C8.12744 7.00148 8.22601 6.49723 8.42 6.02686C8.61399 5.55648 8.89952 5.12937 9.26001 4.77029C9.98804 4.04498 10.9723 3.63543 12 3.63028C13.0282 3.63292 14.0136 4.04255 14.7407 4.76962C15.4677 5.49669 15.8774 6.48206 15.88 7.51028V9.07028H8.13V7.51028ZM15.47 18.9103H8.57001C8.30479 18.9103 8.05044 18.8049 7.8629 18.6174C7.67536 18.4299 7.57001 18.1755 7.57001 17.9103C7.57001 17.6451 7.67536 17.3907 7.8629 17.2032C8.05044 17.0156 8.30479 16.9103 8.57001 16.9103H15.51C15.7752 16.9103 16.0296 17.0156 16.2171 17.2032C16.4047 17.3907 16.51 17.6451 16.51 17.9103C16.51 18.1755 16.4047 18.4299 16.2171 18.6174C16.0296 18.8049 15.7752 18.9103 15.51 18.9103H15.47Z" fill="currentColor"/></svg></span><span>账号密码</span>
                     </button>
                     <button class="ct-action-tab" type="button" data-action="switch-section" data-section="npc">
-                        <span class="ct-action-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5h11a2 2 0 0 1 2 2V20H7a2 2 0 0 1-2-2V6.5a2 2 0 0 1 1-2Z"/><path d="M8 4v16M11 9h5M11 13h5"/></svg></span><span>NPC库</span>
+                        <span class="ct-action-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M8.25 6.75a3.75 3.75 0 1 1 7.5 0 3.75 3.75 0 0 1-7.5 0ZM15.75 9.75a3 3 0 1 1 6 0 3 3 0 0 1-6 0ZM2.25 9.75a3 3 0 1 1 6 0 3 3 0 0 1-6 0ZM6.31 15.117A6.745 6.745 0 0 1 12 12a6.745 6.745 0 0 1 6.709 7.498.75.75 0 0 1-.372.568A12.696 12.696 0 0 1 12 21.75c-2.305 0-4.47-.612-6.337-1.684a.75.75 0 0 1-.372-.568 6.787 6.787 0 0 1 1.019-4.38Z" clip-rule="evenodd" /><path d="M5.082 14.254a8.287 8.287 0 0 0-1.308 5.135 9.687 9.687 0 0 1-1.764-.44l-.115-.04a.563.563 0 0 1-.373-.487l-.01-.121a3.75 3.75 0 0 1 3.57-4.047ZM20.226 19.389a8.287 8.287 0 0 0-1.308-5.135 3.75 3.75 0 0 1 3.57 4.047l-.01.121a.563.563 0 0 1-.373.486l-.115.04c-.567.2-1.156.349-1.764.441Z" /></svg></span><span>NPC库</span>
+                    </button>
+                    <button class="ct-action-tab" type="button" data-action="choose-group">
+                        <span class="ct-action-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.99 7.325V5.17501C20.9918 4.6761 20.8307 4.19023 20.531 3.79131C20.2314 3.3924 19.8097 3.10227 19.33 2.96502C19.0044 2.87544 18.663 2.85836 18.33 2.915L11.82 3.915C11.5156 3.558 11.1456 3.26267 10.73 3.04501C10.1743 2.74349 9.55223 2.5854 8.92002 2.58501H5.84002C5.335 2.58236 4.83448 2.67987 4.36739 2.87191C3.90031 3.06395 3.47593 3.34671 3.11883 3.70382C2.76172 4.06092 2.47896 4.48527 2.28692 4.95235C2.09488 5.41944 1.99737 5.91999 2.00002 6.42501V17.585C1.9987 18.0892 2.09719 18.5886 2.28982 19.0546C2.48245 19.5205 2.76541 19.9437 3.12238 20.2997C3.47936 20.6558 3.90328 20.9376 4.36971 21.1291C4.83614 21.3205 5.33585 21.4176 5.84002 21.415H18.17C18.6732 21.416 19.1717 21.3176 19.6368 21.1254C20.1018 20.9332 20.5243 20.651 20.88 20.295C21.5935 19.573 21.9956 18.6001 22 17.585V9.885C22.002 8.93412 21.6407 8.0184 20.99 7.325ZM16.65 17.085H7.40002C7.1348 17.085 6.88044 16.9796 6.69291 16.7921C6.50537 16.6046 6.40002 16.3502 6.40002 16.085C6.40002 15.8198 6.50537 15.5654 6.69291 15.3779C6.88044 15.1904 7.1348 15.085 7.40002 15.085H16.65C16.9152 15.085 17.1696 15.1904 17.3571 15.3779C17.5447 15.5654 17.65 15.8198 17.65 16.085C17.65 16.3502 17.5447 16.6046 17.3571 16.7921C17.1696 16.9796 16.9152 17.085 16.65 17.085ZM19.53 6.37499C19.1135 6.22266 18.6735 6.14483 18.23 6.14501H13.83C13.6659 6.14419 13.5045 6.10298 13.36 6.02502C13.2194 5.94796 13.0993 5.8382 13.01 5.70501L12.78 5.36501L18.58 4.43499C18.6919 4.40965 18.8081 4.40965 18.92 4.43499C19.0312 4.46397 19.134 4.51879 19.22 4.59499C19.311 4.66411 19.3804 4.7578 19.42 4.86501C19.4692 4.96792 19.4932 5.08101 19.49 5.195L19.53 6.37499Z" fill="currentColor"/></svg></span><span>所属分组</span>
                     </button>
                 </div>
 
                 <section class="ct-editor-section is-active" data-section-panel="persona">
-                    <button class="ct-settings-card ct-settings-row ct-import-row" type="button" data-action="import-persona">
-                        <span class="ct-import-main">
-                            <span class="ct-import-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7Z"/><path d="M14 3v5h4M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg></span>
-                            <span><strong>导入人设文档</strong><small>支持 TXT、DOCX</small></span>
-                        </span>
-                        <span class="ct-chevron">›</span>
-                    </button>
-                    <button class="ct-settings-card ct-settings-row" type="button" data-action="choose-group">
-                        <span>所属分组</span><span class="ct-row-value"><span id="ctSelectedGroup">所有联系人</span><span class="ct-chevron">›</span></span>
-                    </button>
+                    <div class="ct-settings-card">
+                        <button class="ct-settings-row ct-import-row" type="button" data-action="import-persona">
+                            <div class="ct-import-main">
+                                <span class="ct-import-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.6801 7.01398C20.458 6.54993 20.1451 6.1351 19.76 5.79398L16.76 3.07398C16.0997 2.46873 15.2613 2.09339 14.37 2.004H8.21008C7.54764 1.97591 6.88617 2.07983 6.26428 2.30976C5.64239 2.53969 5.07249 2.89103 4.58765 3.3433C4.10281 3.79557 3.71274 4.33973 3.44019 4.94416C3.16763 5.54858 3.01797 6.20119 3 6.86399V17.164C3.03538 18.1635 3.36978 19.1294 3.95984 19.937C4.5499 20.7445 5.36855 21.3566 6.31006 21.694C6.92247 21.9255 7.57613 22.0277 8.22998 21.994H15.79C16.4525 22.0221 17.1138 21.9181 17.7357 21.6882C18.3576 21.4583 18.9276 21.107 19.4125 20.6547C19.8973 20.2024 20.2874 19.6582 20.5599 19.0538C20.8325 18.4494 20.982 17.7968 21 17.134V8.564C21.0048 8.03045 20.8958 7.502 20.6801 7.01398ZM15.8401 15.094L13.1801 17.764C13.0271 17.9131 12.8472 18.0319 12.65 18.114C12.5171 18.1738 12.3751 18.211 12.23 18.224C12.0983 18.254 11.9617 18.254 11.8301 18.224C11.6849 18.211 11.5429 18.1738 11.41 18.114C11.2128 18.0319 11.033 17.9131 10.88 17.764L8.21997 15.094C8.05614 14.9027 7.97063 14.6566 7.98035 14.4049C7.99007 14.1533 8.09437 13.9145 8.27246 13.7364C8.45056 13.5583 8.68924 13.454 8.94092 13.4443C9.19259 13.4346 9.4387 13.5202 9.63 13.684L11.03 15.084V10.474C11.03 10.2088 11.1353 9.95442 11.3229 9.76688C11.5104 9.57934 11.7648 9.474 12.03 9.474C12.2952 9.474 12.5496 9.57934 12.7372 9.76688C12.9247 9.95442 13.03 10.2088 13.03 10.474V15.084L14.4301 13.684C14.6214 13.5202 14.8675 13.4346 15.1191 13.4443C15.3708 13.454 15.6095 13.5583 15.7876 13.7364C15.9657 13.9145 16.07 14.1533 16.0797 14.4049C16.0894 14.6566 16.0039 14.9027 15.8401 15.094ZM16.0601 7.404C15.9174 7.40532 15.7759 7.37836 15.6437 7.32468C15.5115 7.271 15.3913 7.19164 15.2899 7.09122C15.1886 6.9908 15.1081 6.87129 15.0532 6.7396C14.9983 6.60791 14.97 6.46665 14.97 6.32398V3.67399C15.2509 3.82603 15.5215 3.99641 15.78 4.184L18.78 6.91398C18.9456 7.05349 19.0875 7.219 19.2001 7.404H16.0601Z" fill="currentColor"/></svg></span>
+                                <div class="ct-row-content">
+                                    <div class="ct-row-title">导入人设文档</div>
+                                    <div class="ct-row-value">支持 TXT、DOCX</div>
+                                </div>
+                            </div>
+                            <div class="ct-item-right"><svg class="ct-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                        </button>
+                    </div>
                     <div class="ct-settings-card ct-textarea-card ct-persona-textarea">
-                        <textarea id="ctContactPersona" placeholder="点击此处输入角色人设、背景故事或性格设定..."></textarea>
+                        <div class="ct-section-label" style="margin: 12px 16px 8px; font-size: 14px; color: var(--ct-text); font-weight: 400;">Notes</div>
+                        <textarea id="ctContactPersona" placeholder="点击此处输入角色人设、背景故事或性格设定..." style="padding-top: 0;"></textarea>
                     </div>
                 </section>
 
                 <section class="ct-editor-section" data-section-panel="advanced">
                     <div class="ct-settings-card">
-                        <button class="ct-settings-row" type="button" data-action="open-voice"><span>语音设定</span><span class="ct-chevron">›</span></button>
-                        <button class="ct-settings-row" type="button" data-action="open-appearance"><span>生图外貌</span><span class="ct-chevron">›</span></button>
+                        <button class="ct-settings-row" type="button" data-action="open-voice">
+                            <div class="ct-row-content"><div class="ct-row-title">语音设定</div></div>
+                            <div class="ct-item-right"><svg class="ct-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                        </button>
+                        <button class="ct-settings-row" type="button" data-action="open-appearance">
+                            <div class="ct-row-content"><div class="ct-row-title">生图外貌</div></div>
+                            <div class="ct-item-right"><svg class="ct-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
+                        </button>
                         <button class="ct-settings-row" type="button" data-action="choose-worldbooks">
-                            <span>世界书选择</span><span class="ct-row-value"><span id="ctWorldbookStatus">未选择</span><span class="ct-chevron">›</span></span>
+                            <div class="ct-row-content">
+                                <div class="ct-row-title">世界书选择</div>
+                                <div class="ct-row-value" id="ctWorldbookStatus">未选择</div>
+                            </div>
+                            <div class="ct-item-right"><svg class="ct-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg></div>
                         </button>
                     </div>
                 </section>
@@ -3990,7 +4044,7 @@ fill="currentColor" viewBox="0 0 24 24" >
                 <section class="ct-editor-section" data-section-panel="npc">
                     <div class="ct-settings-card">
                         <div id="ctNpcList"></div>
-                        <button class="ct-settings-row ct-centered ct-primary" type="button" data-action="add-npc">+ 添加 NPC</button>
+                        <button class="ct-settings-row ct-centered ct-primary" type="button" data-action="add-npc" style="color: var(--ct-text); font-weight: 500;">+ 添加 NPC</button>
                     </div>
                 </section>
 
@@ -4051,50 +4105,57 @@ fill="currentColor" viewBox="0 0 24 24" >
         </div>
 
         <div class="ct-page" data-page="npc-editor">
-            <header class="ct-header">
-                <button class="ct-text-button ct-primary" type="button" data-action="cancel-npc">取消</button>
-                <div class="ct-title" id="ctNpcEditorTitle">新建 NPC</div>
-                <button class="ct-text-button ct-primary ct-strong" type="button" data-action="save-npc">完成</button>
+            <header class="ct-header" style="justify-content: space-between; align-items: center;">
+                <button class="ct-nav-circle-btn" type="button" data-action="cancel-npc" aria-label="返回">
+                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <div class="ct-title" id="ctNpcEditorTitle" style="display: none;">新建 NPC</div>
+                <button class="ct-nav-capsule-btn" type="button" data-action="save-npc">完成</button>
             </header>
             <main class="ct-scroll ct-editor-scroll">
-                <div class="ct-profile-editor ct-compact-profile">
+                <div class="ct-profile-editor">
                     <div class="ct-avatar ct-avatar-large"><span class="ct-avatar-placeholder">NPC</span></div>
+                    <div class="ct-name-subtitle">FRIEND · NPC</div>
                     <input class="ct-name-input" id="ctNpcName" type="text" maxlength="40" placeholder="输入 NPC 名称">
                 </div>
                 <div class="ct-settings-card ct-form-card">
                     <label><span>身份/关系</span><input id="ctNpcRole" type="text" maxlength="80" placeholder="例如：店员、朋友、敌人..."></label>
                 </div>
-                <div class="ct-section-label">NPC 人设描述</div>
                 <div class="ct-settings-card ct-textarea-card ct-tall-textarea">
-                    <textarea id="ctNpcPersona" placeholder="输入该 NPC 的性格、背景、行为逻辑等..."></textarea>
+                    <div class="ct-section-label" style="margin: 12px 16px 8px; font-size: 14px; color: var(--ct-text); font-weight: 400;">Notes</div>
+                    <textarea id="ctNpcPersona" placeholder="输入该 NPC 的性格、背景、行为逻辑等..." style="padding-top: 0;"></textarea>
                 </div>
-                <button class="ct-danger-card" id="ctDeleteNpcButton" type="button" data-action="delete-npc">删除 NPC</button>
+                <button class="ct-danger-card" id="ctDeleteNpcButton" type="button" data-action="delete-npc" style="width: calc(100% - 32px);">删除 NPC</button>
             </main>
         </div>
 
         <div class="ct-page" data-page="user-editor">
-            <header class="ct-header">
-                <button class="ct-text-button ct-primary" type="button" data-action="back-main">取消</button>
-                <div class="ct-title" id="ctUserEditorTitle">新建 User</div>
-                <button class="ct-text-button ct-primary ct-strong" type="button" data-action="save-user">完成</button>
+            <header class="ct-header" style="justify-content: space-between; align-items: center;">
+                <button class="ct-nav-circle-btn" type="button" data-action="back-main" aria-label="返回">
+                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <div class="ct-title" id="ctUserEditorTitle" style="display: none;">新建 User</div>
+                <button class="ct-nav-capsule-btn" type="button" data-action="save-user">完成</button>
             </header>
             <main class="ct-scroll ct-editor-scroll">
                 <div class="ct-profile-editor">
                     <button class="ct-avatar ct-avatar-large" type="button" data-action="pick-user-avatar" aria-label="选择头像">
                         <span id="ctUserAvatarPreview"></span><span class="ct-camera-badge">+</span>
                     </button>
+                    <div class="ct-name-subtitle">MASK · 面具</div>
                     <input class="ct-name-input" id="ctUserName" type="text" maxlength="40" placeholder="输入 User 名称">
                 </div>
-                <div class="ct-section-label">User 人设描述</div>
                 <div class="ct-settings-card ct-textarea-card ct-tall-textarea">
-                    <textarea id="ctUserPersona" placeholder="输入该身份的背景、性格与表达习惯..."></textarea>
+                    <div class="ct-section-label" style="margin: 12px 16px 8px; font-size: 14px; color: var(--ct-text); font-weight: 400;">Notes</div>
+                    <textarea id="ctUserPersona" placeholder="输入该身份的背景、性格与表达习惯..." style="padding-top: 0;"></textarea>
                 </div>
-                <button class="ct-danger-card" id="ctDeleteUserButton" type="button" data-action="delete-user">删除 User</button>
+                <button class="ct-danger-card" id="ctDeleteUserButton" type="button" data-action="delete-user" style="width: calc(100% - 32px);">删除 User</button>
             </main>
         </div>
 
         <div class="ct-picker-overlay" id="ctPickerOverlay" aria-hidden="true">
             <div class="ct-picker-sheet">
+                <div class="ct-picker-handle"></div>
                 <div class="ct-picker-header"><button type="button" data-action="close-picker">取消</button><strong id="ctPickerTitle">选择</strong><button type="button" data-action="confirm-picker">完成</button></div>
                 <div class="ct-picker-list" id="ctPickerList"></div>
             </div>
