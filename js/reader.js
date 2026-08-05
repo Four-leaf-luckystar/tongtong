@@ -11,6 +11,8 @@
     let activeBookId = null;
     let sessionStartedAt = 0;
     let persistTimer = null;
+    let readerChromeVisible = false;
+    let readerToolbarTimer = null;
     let searchMatches = [];
     let currentMatch = -1;
 
@@ -25,6 +27,8 @@
     }
     function getBook(bookId) { return data.books.find(book => book.id === bookId); }
     function getDayKey(date) { return date.toISOString().slice(0, 10); }
+    function getShelfGroup(book) { return String(book.shelfGroup || '默认').trim() || '默认'; }
+    function getBookmarks(book) { return Array.isArray(book.bookmarks) ? book.bookmarks : []; }
     function getBookTags(book) {
         const source = book.tags ?? book.tag ?? [];
         const rawTags = Array.isArray(source) ? source : typeof source === 'string' ? source.split(/[，,]/) : [];
@@ -127,6 +131,26 @@
         const libraryMenuButton = root.querySelector('[data-reader-action="library-menu"]');
         libraryMenuButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle></svg>';
         root.querySelector('.ra-home .ra-header-title').textContent = '书架';
+        const shelfGroups = document.createElement('div');
+        shelfGroups.id = 'raShelfGroups';
+        shelfGroups.className = 'ra-shelf-groups';
+        root.querySelector('#raLibrarySearch').insertAdjacentElement('afterend', shelfGroups);
+        root.querySelector('.ra-reader-header').innerHTML = `
+            <button class="ra-reader-nav-button" type="button" data-reader-action="library" aria-label="返回书架"><svg viewBox="0 0 24 24"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg></button>
+            <button class="ra-reader-nav-button" type="button" data-reader-action="bookmark" aria-label="添加书签"><svg viewBox="0 0 24 24"><path d="M6 3.75A1.75 1.75 0 0 1 7.75 2h8.5A1.75 1.75 0 0 1 18 3.75V22l-6-3.5L6 22V3.75Z"></path></svg></button>
+            <button class="ra-reader-nav-button" type="button" data-reader-action="search" aria-label="全书搜索"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg></button>
+            <button class="ra-reader-nav-button" type="button" data-reader-action="reader-menu" aria-label="更多功能"><svg viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path></svg></button>
+        `;
+        root.querySelector('.ra-reader-toolbar').innerHTML = `
+            <div class="ra-reader-stats" aria-label="阅读统计"><span><b id="raReaderDuration">0 秒</b><small>阅读时长</small></span><span><b id="raReaderProgress">0.0 %</b><small>阅读进度</small></span><span><b id="raReaderSpeed">0 字/分钟</b><small>阅读速度</small></span><span><b id="raReaderNotes">0 条</b><small>笔记</small></span></div>
+            <input id="raReaderProgressSlider" class="ra-reader-progress-slider" type="range" min="0" max="100" value="0" step="0.1" aria-label="阅读进度">
+            <div class="ra-reader-tools">
+                <button type="button" data-reader-action="toc"><svg viewBox="0 0 24 24"><path d="M8 6h12"></path><path d="M8 12h12"></path><path d="M8 18h12"></path><circle cx="4" cy="6" r="1"></circle><circle cx="4" cy="12" r="1"></circle><circle cx="4" cy="18" r="1"></circle></svg><span>目录</span></button>
+                <button type="button" data-reader-action="reader-notes"><svg viewBox="0 0 24 24"><path d="M4 20h16"></path><path d="m14.5 4.5 5 5"></path><path d="m5 19 1.5-5.5L15.75 4.25a1.77 1.77 0 0 1 2.5 2.5L9 16.5 5 19Z"></path></svg><span>笔记</span></button>
+                <button type="button" data-reader-action="night"><svg viewBox="0 0 24 24"><path d="M20.5 15.3A8.5 8.5 0 0 1 8.7 3.5a8.5 8.5 0 1 0 11.8 11.8Z"></path></svg><span>夜间</span></button>
+                <button type="button" data-reader-action="settings"><svg viewBox="0 0 24 24"><path d="M12 15.25A3.25 3.25 0 1 0 12 8.75a3.25 3.25 0 0 0 0 6.5Z"></path><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56v.1h-3v-.1a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7 15a1.7 1.7 0 0 0-1.56-1.03h-.1v-3h.1A1.7 1.7 0 0 0 7 9.94a1.7 1.7 0 0 0-.34-1.88L6.6 8 8.72 5.88l.06.06A1.7 1.7 0 0 0 10.66 6.28a1.7 1.7 0 0 0 1.03-1.56v-.1h3v.1a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06L19.78 8l-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.03h.1v3h-.1A1.7 1.7 0 0 0 19.4 15Z"></path></svg><span>设置</span></button>
+            </div>
+        `;
         (document.querySelector('.iphone') || document.body).appendChild(root);
         bindEvents();
     }
@@ -145,6 +169,8 @@
             if (coverElement) { activeBookId = coverElement.dataset.readerCover; openSheet('书籍设置', '<button class="ra-chapter" type="button" data-reader-action="cover">自定义封面</button>'); }
             const chapterElement = event.target.closest('[data-reader-chapter]');
             if (chapterElement) jumpToParagraph(Number(chapterElement.dataset.readerChapter));
+            const bookmarkElement = event.target.closest('[data-reader-bookmark]');
+            if (bookmarkElement) jumpToBookmark(Number(bookmarkElement.dataset.readerBookmark));
             const profileAction = event.target.closest('[data-reader-profile-action]');
             if (profileAction && profileAction.dataset.readerProfileAction === 'import') openFilePicker();
         });
@@ -155,6 +181,8 @@
         });
         root.querySelector('#raLibrarySearchInput').addEventListener('input', () => renderBooks());
         root.querySelector('#raReaderBody').addEventListener('scroll', saveReaderProgress, { passive: true });
+        root.querySelector('#raReaderBody').addEventListener('click', toggleReaderChromeFromContent);
+        root.querySelector('#raReaderProgressSlider').addEventListener('input', seekReaderProgress);
         root.querySelector('#raSearchInput').addEventListener('input', updateSearch);
         document.addEventListener('visibilitychange', () => { if (document.hidden) finishSession(); });
     }
@@ -169,9 +197,12 @@
         else if (action === 'cover-url') openCoverUrlPrompt();
         else if (action === 'close') closeReaderApp();
         else if (action === 'library') { finishSession(); setView('home'); }
+        else if (action === 'bookmark') addBookmark();
+        else if (action === 'reader-notes') openBookmarks();
+        else if (action === 'night') toggleNightMode();
         else if (action === 'toc') openToc();
         else if (action === 'settings') openSettings();
-        else if (action === 'search') root.querySelector('#raSearch').classList.add('is-open');
+        else if (action === 'search') { setReaderChromeVisible(true); root.querySelector('#raSearch').classList.add('is-open'); }
         else if (action === 'search-close') { root.querySelector('#raSearch').classList.remove('is-open'); clearSearch(); }
         else if (action === 'search-prev') moveSearch(-1);
         else if (action === 'search-next') moveSearch(1);
@@ -191,11 +222,13 @@
     }
 
     function renderBooks(group) {
-        const selectedGroup = group || root.querySelector('[data-reader-group].is-active')?.dataset.readerGroup || 'all';
+        const selectedGroup = group || root.querySelector('[data-reader-group].is-active')?.dataset.readerGroup || '默认';
         root.querySelectorAll('[data-reader-group]').forEach(button => button.classList.toggle('is-active', button.dataset.readerGroup === selectedGroup));
+        const shelfGroups = Array.from(new Set(['默认', ...data.books.map(getShelfGroup)]));
+        root.querySelector('#raShelfGroups').innerHTML = shelfGroups.map(groupName => `<button type="button" class="${groupName === selectedGroup ? 'is-active' : ''}" data-reader-group="${escapeHtml(groupName)}">${escapeHtml(groupName)}</button>`).join('');
         const query = root.querySelector('#raLibrarySearchInput')?.value.trim().toLowerCase() || '';
         const books = data.books
-            .filter(book => selectedGroup === 'all' || book.group === selectedGroup)
+            .filter(book => getShelfGroup(book) === selectedGroup)
             .filter(book => !query || getBookSearchText(book).includes(query))
             .sort((left, right) => (right.lastReadAt || 0) - (left.lastReadAt || 0));
         const grid = root.querySelector('#raBooks');
@@ -262,7 +295,7 @@
         const content = (await file.text()).replace(/^\uFEFF/, '').trim();
         if (!content) return;
         const title = file.name.replace(/\.txt$/i, '') || '未命名书籍';
-        data.books.push({ id: makeId('book'), title, author: '', description: '', tags: [], content, chapters: scanChapters(content), group: 'reading', progress: 0, createdAt: Date.now(), lastReadAt: 0, reading: null });
+        data.books.push({ id: makeId('book'), title, author: '', description: '', tags: [], shelfGroup: '默认', bookmarks: [], content, chapters: scanChapters(content), group: 'reading', progress: 0, createdAt: Date.now(), lastReadAt: 0, reading: null });
         await writeData();
         setView('home');
     }
@@ -279,15 +312,97 @@
         if (!book) return;
         activeBookId = bookId;
         activeView = 'reader';
+        setReaderChromeVisible(false);
         root.querySelectorAll('[data-reader-view]').forEach(element => element.classList.toggle('is-active', element.dataset.readerView === 'reader'));
         root.querySelector('#raDock').style.display = 'none';
-        root.querySelector('#raReaderTitle').textContent = book.title;
+        const readerTitle = root.querySelector('#raReaderTitle');
+        if (readerTitle) readerTitle.textContent = book.title;
         const readerBody = root.querySelector('#raReaderBody');
         readerBody.style.setProperty('--ra-font-size', `${data.preferences.fontSize || 18}px`);
         readerBody.style.setProperty('--ra-line-height', data.preferences.lineHeight || 1.82);
+        root.querySelector('.ra-reader').classList.toggle('is-night', Boolean(data.preferences.nightMode));
         readerBody.innerHTML = book.content.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map((paragraph, index) => `<p data-reader-paragraph="${index}">${escapeHtml(paragraph)}</p>`).join('');
         requestAnimationFrame(() => restoreReaderProgress(book));
         sessionStartedAt = Date.now();
+        clearInterval(readerToolbarTimer);
+        readerToolbarTimer = setInterval(updateReaderToolbar, 1000);
+        updateReaderToolbar();
+    }
+
+    function setReaderChromeVisible(visible) {
+        readerChromeVisible = Boolean(visible);
+        root?.querySelector('.ra-reader')?.classList.toggle('is-chrome-visible', readerChromeVisible);
+        if (readerChromeVisible) updateReaderToolbar();
+    }
+
+    function toggleReaderChromeFromContent(event) {
+        if (!event.target.closest('p')) return;
+        const bounds = event.currentTarget.getBoundingClientRect();
+        const offsetY = event.clientY - bounds.top;
+        if (offsetY < bounds.height * 0.16 || offsetY > bounds.height * 0.84) return;
+        setReaderChromeVisible(!readerChromeVisible);
+    }
+
+    function updateReaderToolbar() {
+        const book = getBook(activeBookId);
+        if (!book || !root) return;
+        const progress = Math.max(0, Math.min(100, Number(book.progress) || 0));
+        const elapsedSeconds = Math.max(0, Math.floor((Date.now() - sessionStartedAt) / 1000));
+        const readCharacters = (book.content || '').replace(/\s/g, '').length * progress / 100;
+        const speed = elapsedSeconds ? Math.floor(readCharacters / (elapsedSeconds / 60)) : 0;
+        root.querySelector('#raReaderDuration').textContent = `${elapsedSeconds} 秒`;
+        root.querySelector('#raReaderProgress').textContent = `${progress.toFixed(1)} %`;
+        root.querySelector('#raReaderSpeed').textContent = `${speed} 字/分钟`;
+        root.querySelector('#raReaderNotes').textContent = `${getBookmarks(book).length} 条`;
+        root.querySelector('#raReaderProgressSlider').value = String(progress);
+    }
+
+    function seekReaderProgress(event) {
+        const book = getBook(activeBookId);
+        const readerBody = root.querySelector('#raReaderBody');
+        if (!book || !readerBody) return;
+        const progress = Number(event.target.value) || 0;
+        const scrollRange = Math.max(0, readerBody.scrollHeight - readerBody.clientHeight);
+        readerBody.scrollTop = scrollRange * progress / 100;
+        saveReaderProgress();
+    }
+
+    async function addBookmark() {
+        const book = getBook(activeBookId);
+        if (!book || typeof window.showCustomPrompt !== 'function') return;
+        saveReaderProgress();
+        const note = await window.showCustomPrompt('添加书签备注', { placeholder: '输入书签备注（可选）' }, '添加');
+        if (note === null || note === undefined) return;
+        const reading = book.reading || { paragraphIndex: 0, offset: 0 };
+        book.bookmarks = getBookmarks(book);
+        book.bookmarks.push({ id: makeId('bookmark'), paragraphIndex: reading.paragraphIndex, offset: reading.offset, note: String(note).trim(), createdAt: Date.now() });
+        await writeData();
+        updateReaderToolbar();
+        if (typeof window.showToast === 'function') window.showToast('书签已添加');
+    }
+
+    function openBookmarks() {
+        const book = getBook(activeBookId);
+        const bookmarks = getBookmarks(book);
+        const content = bookmarks.length
+            ? bookmarks.map((bookmark, index) => `<button class="ra-chapter" type="button" data-reader-bookmark="${index}"><b>${escapeHtml(bookmark.note || '书签')}</b><small>第 ${bookmark.paragraphIndex + 1} 段</small></button>`).join('')
+            : '<div class="ra-empty">还没有书签</div>';
+        openSheet('书签', content);
+    }
+
+    function jumpToBookmark(index) {
+        const book = getBook(activeBookId);
+        const bookmark = getBookmarks(book)[index];
+        if (!bookmark) return;
+        const target = root.querySelector(`[data-reader-paragraph="${bookmark.paragraphIndex}"]`);
+        if (target) root.querySelector('#raReaderBody').scrollTo({ top: target.offsetTop + (bookmark.offset || 0), behavior: 'smooth' });
+        closeSheet();
+    }
+
+    function toggleNightMode() {
+        data.preferences.nightMode = !data.preferences.nightMode;
+        root.querySelector('.ra-reader').classList.toggle('is-night', data.preferences.nightMode);
+        scheduleSave();
     }
 
     function restoreReaderProgress(book) {
@@ -310,9 +425,12 @@
         book.lastReadAt = Date.now();
         book.group = book.progress >= 99.5 ? 'done' : 'reading';
         scheduleSave();
+        updateReaderToolbar();
     }
 
     function finishSession() {
+        clearInterval(readerToolbarTimer);
+        readerToolbarTimer = null;
         if (!sessionStartedAt || !activeBookId) return;
         saveReaderProgress();
         const elapsed = Date.now() - sessionStartedAt;

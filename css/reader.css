@@ -143,6 +143,45 @@
 #readerAppUI .ra-card-more svg { width: 18px; height: 18px; fill: currentColor; }
 #readerAppUI .ra-add-card { min-height: 104px; aspect-ratio: auto; border-radius: 8px; font-size: 14px; }
 #readerAppUI .ra-add-card b { font-size: 24px; }
+
+/* Bookshelf groups and tap-to-reveal reader controls. */
+#readerAppUI .ra-shelf-groups { display: flex; gap: 8px; margin: -4px 0 16px; overflow-x: auto; scrollbar-width: none; }
+#readerAppUI .ra-shelf-groups::-webkit-scrollbar { display: none; }
+#readerAppUI .ra-shelf-groups button { flex: 0 0 auto; min-height: 32px; padding: 0 15px; border: 1px solid #e8e8eb; border-radius: 16px; background: #fff; color: #686870; font-size: 13px; line-height: 1; }
+#readerAppUI .ra-shelf-groups button.is-active { border-color: #1d1d20; background: #1d1d20; color: #fff; font-weight: 650; }
+
+#readerAppUI .ra-reader { position: relative; background: #fff; color: #161616; }
+#readerAppUI .ra-reader-header { position: absolute; inset: 0 0 auto; z-index: 7; display: grid; grid-template-columns: repeat(4, 44px); align-items: center; justify-content: space-between; min-height: calc(66px + var(--top-safe-area, 0px)); padding: var(--top-safe-area, 0px) 26px 0; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); opacity: 0; pointer-events: none; transform: translateY(-105%); transition: opacity 0.2s ease, transform 0.24s ease; }
+#readerAppUI .ra-reader.is-chrome-visible .ra-reader-header { opacity: 1; pointer-events: auto; transform: translateY(0); }
+#readerAppUI .ra-reader-nav-button { display: grid; width: 44px; height: 44px; padding: 0; place-items: center; background: transparent; color: #111; }
+#readerAppUI .ra-reader-nav-button svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2.25; }
+#readerAppUI .ra-reader-body { padding: calc(20px + var(--top-safe-area, 0px)) 24px calc(24px + var(--bottom-safe-area, 0px)); background: #fff; }
+#readerAppUI .ra-reader-body p { color: #171717; }
+
+#readerAppUI .ra-reader-toolbar { position: absolute; right: 0; bottom: 0; left: 0; z-index: 7; display: block; min-height: 214px; padding: 18px 22px calc(18px + var(--bottom-safe-area, 0px)); border: 1px solid #e6e6e8; border-bottom: 0; border-radius: 20px 20px 0 0; background: #fff; box-shadow: 0 -3px 14px rgba(0, 0, 0, 0.09); opacity: 0; pointer-events: none; transform: translateY(105%); transition: opacity 0.2s ease, transform 0.24s ease; }
+#readerAppUI .ra-reader.is-chrome-visible .ra-reader-toolbar { opacity: 1; pointer-events: auto; transform: translateY(0); }
+#readerAppUI .ra-reader-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+#readerAppUI .ra-reader-stats span { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: 5px; text-align: center; }
+#readerAppUI .ra-reader-stats b { overflow: hidden; max-width: 100%; color: #171717; font-size: 12px; font-weight: 700; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+#readerAppUI .ra-reader-stats small { color: #85858d; font-size: 11px; line-height: 1.25; white-space: nowrap; }
+#readerAppUI .ra-reader-progress-slider { width: 100%; height: 30px; margin: 18px 0 14px; padding: 0; appearance: none; -webkit-appearance: none; background: transparent; }
+#readerAppUI .ra-reader-progress-slider::-webkit-slider-runnable-track { height: 10px; border-radius: 6px; background: #e6e6e8; }
+#readerAppUI .ra-reader-progress-slider::-webkit-slider-thumb { width: 28px; height: 28px; margin-top: -9px; border: 1px solid #d5d5d8; border-radius: 50%; appearance: none; -webkit-appearance: none; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+#readerAppUI .ra-reader-progress-slider::-moz-range-track { height: 10px; border-radius: 6px; background: #e6e6e8; }
+#readerAppUI .ra-reader-progress-slider::-moz-range-thumb { width: 26px; height: 26px; border: 1px solid #d5d5d8; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+#readerAppUI .ra-reader-tools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+#readerAppUI .ra-reader-tools button { display: flex; min-width: 0; min-height: 58px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 0; background: transparent; color: #161616; font-size: 12px; }
+#readerAppUI .ra-reader-tools svg { width: 29px; height: 29px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.9; }
+#readerAppUI .ra-reader-tools button:active, #readerAppUI .ra-reader-nav-button:active { opacity: 0.48; }
+#readerAppUI .ra-search { top: calc(var(--top-safe-area, 0px) + 70px); z-index: 9; background: #fff; }
+#readerAppUI .ra-sheet-list .ra-chapter b, #readerAppUI .ra-sheet-list .ra-chapter small { display: block; }
+#readerAppUI .ra-sheet-list .ra-chapter small { margin-top: 4px; color: #8e8e93; font-size: 12px; }
+
+#readerAppUI .ra-reader.is-night, #readerAppUI .ra-reader.is-night .ra-reader-body { background: #171718; }
+#readerAppUI .ra-reader.is-night .ra-reader-body p { color: #e7e7e9; }
+#readerAppUI .ra-reader.is-night .ra-reader-header, #readerAppUI .ra-reader.is-night .ra-reader-toolbar, #readerAppUI .ra-reader.is-night .ra-search { border-color: #343438; background: #242426; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
+#readerAppUI .ra-reader.is-night .ra-reader-nav-button, #readerAppUI .ra-reader.is-night .ra-reader-tools button, #readerAppUI .ra-reader.is-night .ra-reader-stats b { color: #f4f4f5; }
+#readerAppUI .ra-reader.is-night .ra-reader-stats small { color: #aaaab2; }
 #readerAppUI .ra-dashboard .ra-scroll { padding-top: 16px; }
 #readerAppUI .ra-summary, #readerAppUI .ra-continue, #readerAppUI .ra-goal { display: block; width: 100%; padding: 22px 25px; border: 1px solid #e5e5e5; border-radius: 22px; background: #fff; color: #111; text-align: left; }
 #readerAppUI .ra-summary b { display: block; font-size: 16px; } #readerAppUI .ra-summary span, #readerAppUI .ra-home-section p, #readerAppUI .ra-continue small { display: block; margin-top: 8px; color: var(--ra-muted); font-size: 14px; }
