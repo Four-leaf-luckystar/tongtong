@@ -188,6 +188,12 @@
 #readerAppUI .ra-selection-menu button:active { background: rgba(255, 255, 255, 0.18); }
 #readerAppUI .ra-note-mark-highlight { border-radius: 2px; background: rgba(255, 213, 95, 0.54); }
 #readerAppUI .ra-note-mark-underline { text-decoration: underline 2px rgba(58, 112, 220, 0.86); text-underline-offset: 3px; }
+#readerAppUI .ra-reader-body p.has-reader-note { border-left: 2px solid #6d9fec; padding-left: 10px; text-indent: calc(2em - 10px); }
+#readerAppUI .ra-note-entry b { display: flex !important; align-items: center; gap: 7px; }
+#readerAppUI .ra-note-swatch { display: inline-block; width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: #6d9fec; }
+#readerAppUI .ra-note-swatch-highlight { background: #f1c94d; }
+#readerAppUI .ra-note-swatch-underline { background: #5d91df; }
+#readerAppUI .ra-note-swatch-note { background: #6d9fec; }
 #readerAppUI .ra-reader-annotation { display: grid; gap: 5px; margin: -0.5em 0 1.1em 2em; padding: 9px 11px; border-left: 2px solid #8a8a92; background: rgba(128, 128, 138, 0.08); color: #55555d; font-size: 12px; line-height: 1.55; }
 #readerAppUI .ra-reader-annotation b { color: #232328; font-size: 12px; }
 #readerAppUI .ra-reader-annotation b img { width: 18px; height: 18px; margin-right: 6px; border-radius: 50%; object-fit: cover; vertical-align: middle; }

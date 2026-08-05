@@ -162,9 +162,9 @@
         root.querySelector('.ra-reader-toolbar').innerHTML = `
             <div class="ra-reader-stats" aria-label="阅读统计"><span><b id="raReaderDuration">0 秒</b><small>阅读时长</small></span><span><b id="raReaderProgress">0.0 %</b><small>阅读进度</small></span><span><b id="raReaderSpeed">0 字/分钟</b><small>阅读速度</small></span><span><b id="raReaderNotes">0 条</b><small>笔记</small></span></div>
             <div class="ra-reader-page-controls">
-                <button class="ra-reader-page-button" type="button" data-reader-action="page-prev" aria-label="上一页"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"></path></svg></button>
+                <button class="ra-reader-page-button" type="button" data-reader-action="chapter-prev" aria-label="上一章"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"></path></svg></button>
                 <input id="raReaderProgressSlider" class="ra-reader-progress-slider" type="range" min="0" max="100" value="0" step="0.1" aria-label="阅读进度">
-                <button class="ra-reader-page-button" type="button" data-reader-action="page-next" aria-label="下一页"><svg viewBox="0 0 24 24"><path d="m10 6 6 6-6 6"></path></svg></button>
+                <button class="ra-reader-page-button" type="button" data-reader-action="chapter-next" aria-label="下一章"><svg viewBox="0 0 24 24"><path d="m10 6 6 6-6 6"></path></svg></button>
             </div>
             <div class="ra-reader-tools">
                 <button type="button" data-reader-action="toc"><svg viewBox="0 0 24 24"><path d="M8 6h12"></path><path d="M8 12h12"></path><path d="M8 18h12"></path><circle cx="4" cy="6" r="1"></circle><circle cx="4" cy="12" r="1"></circle><circle cx="4" cy="18" r="1"></circle></svg><span>目录</span></button>
@@ -268,8 +268,8 @@
         else if (action === 'selection-annotate') openReaderCharacterPicker();
         else if (action === 'notes-export') exportNotes();
         else if (action === 'bookmarks') openBookmarks();
-        else if (action === 'page-prev') turnReaderPage(-1);
-        else if (action === 'page-next') turnReaderPage(1);
+        else if (action === 'chapter-prev') switchReaderChapter(-1);
+        else if (action === 'chapter-next') switchReaderChapter(1);
         else if (action === 'book-options') openBookOptions(trigger.dataset.readerBookId);
         else if (action === 'book-move-group') moveBookToGroup(trigger.dataset.readerBookId);
         else if (action === 'sort-books') chooseBookSort();
@@ -499,7 +499,7 @@
             const notes = notesByParagraph.get(index) || [];
             const annotations = annotationsByParagraph.get(index) || [];
             const annotationMarkup = annotations.map(annotation => `<aside class="ra-reader-annotation"><b>${annotation.characterAvatar ? `<img src="${escapeHtml(annotation.characterAvatar)}" alt="">` : ''}${escapeHtml(annotation.characterName || '角色批注')}</b><span>${escapeHtml(annotation.content || '')}</span></aside>`).join('');
-            return `<p data-reader-paragraph="${index}">${renderMarkedParagraph(paragraph, notes)}</p>${annotationMarkup}`;
+            return `<p class="${notes.length ? 'has-reader-note' : ''}" data-reader-paragraph="${index}">${renderMarkedParagraph(paragraph, notes)}</p>${annotationMarkup}`;
         }).join('');
     }
 
@@ -593,9 +593,19 @@
         if (!book) return;
         const notes = getNotes(book).slice().sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0));
         const content = notes.length
-            ? notes.map(note => `<button class="ra-chapter" type="button" data-reader-note="${escapeHtml(note.id)}"><b>${escapeHtml(note.selectedText || '笔记')}</b><small>${escapeHtml(note.note || (note.markType === 'highlight' ? '高亮标记' : note.markType === 'underline' ? '下划线标记' : '无备注'))}</small></button>`).join('')
+            ? notes.map(note => {
+                const chapter = getChapterForParagraph(book, Number(note.paragraphIndex));
+                const timestamp = Number(note.createdAt) ? new Date(Number(note.createdAt)).toLocaleString('zh-CN', { hour12: false }) : '';
+                const markLabel = note.markType === 'highlight' ? '高亮' : note.markType === 'underline' ? '下划线' : '笔记';
+                return `<button class="ra-chapter ra-note-entry" type="button" data-reader-note="${escapeHtml(note.id)}"><b><i class="ra-note-swatch ra-note-swatch-${escapeHtml(note.markType || 'note')}"></i>${escapeHtml(note.selectedText || '笔记')}</b><small>${escapeHtml(chapter?.title || `第 ${Number(note.paragraphIndex) + 1} 段`)}　${escapeHtml(timestamp)}</small><small>${escapeHtml(note.note || markLabel)}</small></button>`;
+            }).join('')
             : '<div class="ra-empty">还没有笔记</div>';
         openSheet('笔记', `${content}<button class="ra-chapter ra-export-notes" type="button" data-reader-action="notes-export">导出笔记</button>`);
+    }
+
+    function getChapterForParagraph(book, paragraphIndex) {
+        const chapters = Array.isArray(book?.chapters) ? book.chapters : [];
+        return chapters.reduce((current, chapter) => chapter.paragraphIndex <= paragraphIndex ? chapter : current, null);
     }
 
     function jumpToNote(noteId) {
@@ -762,6 +772,30 @@
         window.setTimeout(saveReaderProgress, 260);
     }
 
+    function getCurrentParagraphIndex() {
+        const readerBody = root.querySelector('#raReaderBody');
+        const paragraphs = Array.from(readerBody?.querySelectorAll('[data-reader-paragraph]') || []);
+        const current = paragraphs.reduce((closest, paragraph) => paragraph.offsetTop <= readerBody.scrollTop + 12 ? paragraph : closest, paragraphs[0]);
+        return Number(current?.dataset.readerParagraph || 0);
+    }
+
+    function switchReaderChapter(direction) {
+        const book = getBook(activeBookId);
+        const chapters = Array.isArray(book?.chapters) ? book.chapters : [];
+        if (!book || !chapters.length) {
+            turnReaderPage(direction);
+            return;
+        }
+        const currentParagraphIndex = getCurrentParagraphIndex();
+        let chapterIndex = chapters.reduce((activeIndex, chapter, index) => chapter.paragraphIndex <= currentParagraphIndex ? index : activeIndex, 0);
+        if (direction < 0 && chapters[chapterIndex].paragraphIndex < currentParagraphIndex - 8) {
+            jumpToParagraph(chapters[chapterIndex].paragraphIndex, false);
+            return;
+        }
+        chapterIndex = Math.max(0, Math.min(chapters.length - 1, chapterIndex + direction));
+        jumpToParagraph(chapters[chapterIndex].paragraphIndex, false);
+    }
+
     async function addBookmark() {
         const book = getBook(activeBookId);
         if (!book || typeof window.showCustomPrompt !== 'function') return;
@@ -845,10 +879,10 @@
         openSheet('目录', chapters.length ? chapters.map(chapter => `<button class="ra-chapter" type="button" data-reader-chapter="${chapter.paragraphIndex}">${escapeHtml(chapter.title)}</button>`).join('') : '<div class="ra-empty">未检测到章节</div>');
     }
 
-    function jumpToParagraph(paragraphIndex) {
+    function jumpToParagraph(paragraphIndex, shouldCloseSheet = true) {
         const target = root.querySelector(`[data-reader-paragraph="${paragraphIndex}"]`);
         if (target) root.querySelector('#raReaderBody').scrollTo({ top: target.offsetTop - 15, behavior: 'smooth' });
-        closeSheet();
+        if (shouldCloseSheet) closeSheet();
     }
 
     function openSettings() {
