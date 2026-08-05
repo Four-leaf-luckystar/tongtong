@@ -337,9 +337,6 @@
 
     function toggleReaderChromeFromContent(event) {
         if (!event.target.closest('p')) return;
-        const bounds = event.currentTarget.getBoundingClientRect();
-        const offsetY = event.clientY - bounds.top;
-        if (offsetY < bounds.height * 0.16 || offsetY > bounds.height * 0.84) return;
         setReaderChromeVisible(!readerChromeVisible);
     }
 
