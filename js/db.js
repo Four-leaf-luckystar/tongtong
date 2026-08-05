@@ -42,6 +42,9 @@
     let wcChatBgList = [];
     let wcCurrentChatBg = '';
     let wcChatMessagesByContact = {};
+    let wcChatDataHydrated = false;
+    let wcChatDataDirty = false;
+    let wcChatSaveQueue = Promise.resolve();
     let wcEmojiGroups = [];
     let wbGroups = [];
     let wbEntries = [];
@@ -427,21 +430,8 @@
         // --- 加载微信聊天记录 ---
         const wcChatRequest = store.get("wechatChatData");
         wcChatRequest.onsuccess = (e) => {
-            const conversations = e.target.result?.conversations;
-            wcChatMessagesByContact = {};
-            if (conversations && typeof conversations === 'object' && !Array.isArray(conversations)) {
-                Object.entries(conversations).forEach(([contactId, messages]) => {
-                    if (!Array.isArray(messages)) return;
-                    wcChatMessagesByContact[contactId] = messages.filter(message => (
-                        message
-                        && (message.type === 'sent' || message.type === 'received')
-                        && typeof message.text === 'string'
-                    ));
-                });
-            }
-            if (typeof wcRenderChatMessages === 'function' && typeof wcCurrentChatContactId !== 'undefined' && wcCurrentChatContactId) {
-                wcRenderChatMessages(wcCurrentChatContactId);
-            }
+            // A delayed startup read must never replace messages created in this session.
+            if (!wcChatDataDirty) wcApplyStoredChatData(e.target.result?.conversations);
         };
 
         // --- 加载微信朋友圈数据 ---
@@ -649,12 +639,66 @@
     }
 
 
+    function wcApplyStoredChatData(conversations) {
+        const nextConversations = {};
+        if (conversations && typeof conversations === 'object' && !Array.isArray(conversations)) {
+            Object.entries(conversations).forEach(([contactId, messages]) => {
+                if (!Array.isArray(messages)) return;
+                nextConversations[contactId] = messages.filter(message => (
+                    message
+                    && (message.type === 'sent' || message.type === 'received')
+                    && typeof message.text === 'string'
+                ));
+            });
+        }
+        wcChatMessagesByContact = nextConversations;
+        wcChatDataHydrated = true;
+        if (typeof wcRenderChatMessages === 'function' && typeof wcCurrentChatContactId !== 'undefined' && wcCurrentChatContactId) {
+            wcRenderChatMessages(wcCurrentChatContactId);
+        }
+        if (typeof wcRenderChatList === 'function') wcRenderChatList();
+    }
+
+    function wcCloneChatData(conversations) {
+        if (typeof structuredClone === 'function') return structuredClone(conversations || {});
+        return JSON.parse(JSON.stringify(conversations || {}));
+    }
+
+    function wcReloadChatDataFromStorage() {
+        if (!db) return Promise.resolve(false);
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([storeName], "readonly");
+            const request = transaction.objectStore(storeName).get("wechatChatData");
+            request.onsuccess = () => {
+                if (!wcChatDataDirty) wcApplyStoredChatData(request.result?.conversations);
+            };
+            request.onerror = () => reject(request.error || new Error('微信聊天记录刷新失败'));
+            transaction.oncomplete = () => resolve(wcChatDataHydrated);
+            transaction.onerror = () => reject(transaction.error || new Error('微信聊天记录刷新失败'));
+        });
+    }
+
     function wcSaveChatData() {
-        if (!db) return;
-        const transaction = db.transaction([storeName], "readwrite");
-        const store = transaction.objectStore(storeName);
-        store.put({ id: "wechatChatData", conversations: wcChatMessagesByContact });
-        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+        if (!db) return Promise.resolve(false);
+        wcChatDataDirty = true;
+        const snapshot = wcCloneChatData(wcChatMessagesByContact);
+        wcChatSaveQueue = wcChatSaveQueue
+            .catch(() => false)
+            .then(() => new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], "readwrite");
+                transaction.objectStore(storeName).put({ id: "wechatChatData", conversations: snapshot });
+                transaction.oncomplete = () => resolve(true);
+                transaction.onerror = () => reject(transaction.error || new Error('微信聊天记录保存失败'));
+            }))
+            .then(result => {
+                if (result && typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+                return result;
+            })
+            .catch(error => {
+                console.error('微信聊天记录保存失败:', error);
+                return false;
+            });
+        return wcChatSaveQueue;
     }
 
 

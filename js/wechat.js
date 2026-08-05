@@ -87,6 +87,11 @@
                             console.error('同步角色库头像失败', syncErr);
                         }
 
+                        // Wait for the authoritative chat snapshot before the list is rendered.
+                        // This prevents the late startup read from replacing the just-opened view.
+                        if (typeof wcReloadChatDataFromStorage === 'function') {
+                            await wcReloadChatDataFromStorage();
+                        }
                         wcSwitchTab('chat');
                         const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
                         if (bottomNav) bottomNav.style.display = 'block';
