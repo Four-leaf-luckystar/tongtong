@@ -17,6 +17,56 @@
 
     let backgroundKeepAliveWakeLock = null;
     let backgroundKeepAliveLifecycleBound = false;
+    let backgroundKeepAliveAudio = null;
+
+    function createBackgroundKeepAliveAudio() {
+        const sampleRate = 8000;
+        const sampleCount = sampleRate;
+        const bytes = new Uint8Array(44 + sampleCount);
+        const view = new DataView(bytes.buffer);
+        const writeText = (offset, text) => {
+            for (let index = 0; index < text.length; index += 1) bytes[offset + index] = text.charCodeAt(index);
+        };
+        writeText(0, 'RIFF');
+        view.setUint32(4, 36 + sampleCount, true);
+        writeText(8, 'WAVEfmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, 1, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate, true);
+        view.setUint16(32, 1, true);
+        view.setUint16(34, 8, true);
+        writeText(36, 'data');
+        view.setUint32(40, sampleCount, true);
+        bytes.fill(128, 44);
+
+        const chunkSize = 4096;
+        let binary = '';
+        for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+            binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+        }
+        const audio = new Audio(`data:audio/wav;base64,${btoa(binary)}`);
+        audio.loop = true;
+        audio.preload = 'auto';
+        audio.playsInline = true;
+        return audio;
+    }
+
+    function startBackgroundKeepAliveAudio() {
+        if (!appSettings?.background_keep_alive_enabled) return;
+        if (!backgroundKeepAliveAudio) backgroundKeepAliveAudio = createBackgroundKeepAliveAudio();
+        const playback = backgroundKeepAliveAudio.play();
+        if (playback?.catch) {
+            playback.catch(error => console.debug('Background keep-alive audio unavailable:', error));
+        }
+    }
+
+    function stopBackgroundKeepAliveAudio() {
+        if (!backgroundKeepAliveAudio) return;
+        backgroundKeepAliveAudio.pause();
+        backgroundKeepAliveAudio.currentTime = 0;
+    }
 
     async function requestBackgroundKeepAliveWakeLock() {
         if (!appSettings?.background_keep_alive_enabled || document.visibilityState !== 'visible') return;
@@ -59,8 +109,10 @@
         }
         if (enabled) {
             void requestBackgroundKeepAliveWakeLock();
+            startBackgroundKeepAliveAudio();
         } else {
             void releaseBackgroundKeepAliveWakeLock();
+            stopBackgroundKeepAliveAudio();
         }
     }
 
