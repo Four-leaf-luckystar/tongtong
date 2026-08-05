@@ -1374,8 +1374,8 @@
             if (item.tier === 'L3') {
                 const priority = documentRef.createElement('button');
                 priority.type = 'button';
-                priority.textContent = getRetrievalPriorityLabel(item) + '⌄';
-                priority.style.cssText = 'margin-left:auto;border:0;background:transparent;color:#007AFF;font:500 14px -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif';
+                priority.innerHTML = getRetrievalPriorityLabel(item) + '<svg style="width: 12px; height: 12px; margin-left: 2px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+                priority.style.cssText = 'margin-left:auto;border:0;background:transparent;color:#007AFF;font:500 14px -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif; display: flex; align-items: center;';
                 priority.addEventListener('click', (event) => {
                     event.stopPropagation();
                     openMemoryPriorityDialog(item);

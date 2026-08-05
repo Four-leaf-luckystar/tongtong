@@ -264,7 +264,7 @@
         if (!list) return;
         
         // 保留 SVG defs
-        const defs = `<svg style="display:none;"><defs><g id="wb-folder-icon"><path d="M3 19V6a2 2 0 0 1 2-2h4.5c.4 0 .8.2 1 .5l1 1.5c.2.3.6.5 1 .5H21a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></g><g id="wb-delete-icon"><circle cx="12" cy="12" r="10"/><rect x="7" y="11" width="10" height="2" fill="#fff"/></g></defs></svg>`;
+        const defs = `<svg style="display:none;"><defs><symbol id="wb-folder-icon" viewBox="-0.75 -0.75 16 16"><path stroke-linecap="round" stroke-linejoin="round" d="M1.359375 7.703124999999999V7.25A1.359375 1.359375 0 0 1 2.71875 5.890625h9.0625A1.359375 1.359375 0 0 1 13.140625 7.25v0.453125m-5.250208333333333 -3.890833333333333 -1.2808333333333333 -1.2808333333333333a0.90625 0.90625 0 0 0 -0.6410208333333333 -0.2658333333333333H2.71875A1.359375 1.359375 0 0 0 1.359375 3.625v7.25a1.359375 1.359375 0 0 0 1.359375 1.359375h9.0625A1.359375 1.359375 0 0 0 13.140625 10.875V5.4375a1.359375 1.359375 0 0 0 -1.359375 -1.359375h-3.2498124999999995a0.90625 0.90625 0 0 1 -0.6404166666666666 -0.2658333333333333Z"/></symbol><g id="wb-delete-icon"><circle cx="12" cy="12" r="10"/><rect x="7" y="11" width="10" height="2" fill="#fff"/></g></defs></svg>`;
         
         if (wbGroups.length === 0) {
             list.innerHTML = defs + `<div class="wb-empty-state" style="display:block;">请先添加世界书</div>`;
