@@ -29,7 +29,7 @@
         .wb-edit-mode .wb-delete-btn { width: 36px; opacity: 1; }
         .wb-delete-btn svg { width: 22px; height: 22px; fill: #ff3b30; }
         .wb-item-icon { width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; margin-right: 14px; flex-shrink: 0; }
-        .wb-item-icon svg { width: 26px; height: 22px; fill: none; stroke: #e5b53c; stroke-width: 2; stroke-linejoin: round; }
+        .wb-item-icon svg { width: 28px; height: 28px; fill: none; stroke: #e5b53c; stroke-width: 1.2; stroke-linejoin: round; }
         .wb-item-content { flex: 1; display: flex; justify-content: space-between; align-items: center; }
         .wb-item-title { font-size: 17px; font-weight: 500; color: #000; }
         .wb-item-right { display: flex; align-items: center; gap: 8px; color: #c5c5c7; transition: opacity 0.2s; }
