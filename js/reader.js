@@ -25,6 +25,22 @@
     }
     function getBook(bookId) { return data.books.find(book => book.id === bookId); }
     function getDayKey(date) { return date.toISOString().slice(0, 10); }
+    function getBookTags(book) {
+        const source = book.tags ?? book.tag ?? [];
+        const rawTags = Array.isArray(source) ? source : typeof source === 'string' ? source.split(/[，,]/) : [];
+        return rawTags.map(tag => String(tag || '').trim().replace(/^#/, '')).filter(Boolean);
+    }
+    function getBookDescription(book) {
+        const description = String(book.description || book.summary || '').replace(/\s+/g, ' ').trim();
+        return description || String(book.content || '').replace(/\s+/g, ' ').trim();
+    }
+    function getBookSearchText(book) {
+        return `${book.title || ''} ${book.author || ''} ${getBookTags(book).join(' ')} ${getBookDescription(book)}`.toLowerCase();
+    }
+    function truncateBookDescription(value) {
+        const text = String(value || '').trim();
+        return text.length > 30 ? `${text.slice(0, 30)}...` : text;
+    }
 
     function openDatabase() {
         return new Promise((resolve, reject) => {
@@ -108,6 +124,8 @@
                 </div>
             </div>
         `;
+        const libraryMenuButton = root.querySelector('[data-reader-action="library-menu"]');
+        libraryMenuButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle></svg>';
         (document.querySelector('.iphone') || document.body).appendChild(root);
         bindEvents();
     }
@@ -177,7 +195,7 @@
         const query = root.querySelector('#raLibrarySearchInput')?.value.trim().toLowerCase() || '';
         const books = data.books
             .filter(book => selectedGroup === 'all' || book.group === selectedGroup)
-            .filter(book => !query || `${book.title} ${book.author || ''}`.toLowerCase().includes(query))
+            .filter(book => !query || getBookSearchText(book).includes(query))
             .sort((left, right) => (right.lastReadAt || 0) - (left.lastReadAt || 0));
         const grid = root.querySelector('#raBooks');
         const cards = books.map(book => {
@@ -189,6 +207,21 @@
         if (!cards.length) cards.push('<div class="ra-empty">书架还没有书籍</div>');
         cards.push('<button class="ra-add-card" type="button" data-reader-action="import"><b>+</b>导入 TXT</button>');
         grid.innerHTML = cards.join('');
+        books.forEach(book => {
+            const card = Array.from(grid.querySelectorAll('[data-reader-book]')).find(element => element.dataset.readerBook === book.id);
+            if (!card) return;
+            const tags = getBookTags(book);
+            const description = truncateBookDescription(getBookDescription(book));
+            const cover = book.cover ? `<img src="${escapeHtml(book.cover)}" alt="">` : `<span class="ra-book-cover-text">${escapeHtml(book.title)}</span>`;
+            const author = book.author ? `<span class="ra-book-author">${escapeHtml(book.author)}</span>` : '';
+            const tagMarkup = tags.length ? `<span class="ra-book-tags">${tags.map(tag => `<span>#${escapeHtml(tag)}</span>`).join('')}</span>` : '';
+            const descriptionMarkup = description ? `<span class="ra-book-description">${escapeHtml(description)}</span>` : '';
+            card.innerHTML = `<span class="ra-book-cover">${cover}</span><span class="ra-book-info"><span class="ra-book-title">${escapeHtml(book.title)}</span>${author}${tagMarkup}${descriptionMarkup}</span>`;
+        });
+        grid.querySelectorAll('[data-reader-cover]').forEach(button => {
+            button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle></svg>';
+            button.setAttribute('aria-label', '书籍设置');
+        });
     }
 
     function openFilePicker() { root.querySelector('#raFileInput').click(); }
@@ -228,7 +261,7 @@
         const content = (await file.text()).replace(/^\uFEFF/, '').trim();
         if (!content) return;
         const title = file.name.replace(/\.txt$/i, '') || '未命名书籍';
-        data.books.push({ id: makeId('book'), title, author: '', content, chapters: scanChapters(content), group: 'reading', progress: 0, createdAt: Date.now(), lastReadAt: 0, reading: null });
+        data.books.push({ id: makeId('book'), title, author: '', description: '', tags: [], content, chapters: scanChapters(content), group: 'reading', progress: 0, createdAt: Date.now(), lastReadAt: 0, reading: null });
         await writeData();
         setView('home');
     }
