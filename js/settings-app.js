@@ -86,6 +86,42 @@
         }
     }
 
+    function applyMessageNotifications() {
+        const toggle = document.getElementById('messageNotificationToggle');
+        const enabled = appSettings?.message_notifications_enabled === true;
+        if (toggle) {
+            toggle.classList.toggle('on', enabled);
+            toggle.setAttribute('aria-checked', String(enabled));
+        }
+    }
+
+    async function toggleMessageNotifications() {
+        if (typeof appSettings === 'undefined') return;
+        const enabled = appSettings.message_notifications_enabled !== true;
+        if (enabled) {
+            if (!('Notification' in window)) {
+                if (typeof showToast === 'function') showToast('当前浏览器不支持网页通知');
+                return;
+            }
+            if (Notification.permission !== 'granted') {
+                let permission = 'denied';
+                try {
+                    permission = await Notification.requestPermission();
+                } catch (error) {
+                    console.debug('Web message notification permission unavailable:', error);
+                }
+                if (permission !== 'granted') {
+                    if (typeof showToast === 'function') showToast('未获得消息通知权限');
+                    return;
+                }
+            }
+        }
+        appSettings.message_notifications_enabled = enabled;
+        applyMessageNotifications();
+        if (typeof saveAppSettings === 'function') saveAppSettings();
+        if (typeof showToast === 'function') showToast(enabled ? '消息通知已开启' : '消息通知已关闭');
+    }
+
     // ==========================================
     function openDisplaySettingsApp() {
         const displayUI = document.getElementById('displaySettingsUI');

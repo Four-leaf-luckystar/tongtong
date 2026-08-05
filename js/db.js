@@ -1,6 +1,7 @@
     let appSettings = {
         simulatedStatusBarVisible: true,
         background_keep_alive_enabled: false,
+        message_notifications_enabled: false,
         ios_theme_mode: 'light',
         ios_brightness: 100,
         wc_presets: [],
@@ -534,6 +535,7 @@
             applyStatusBarVisibility();
             initThemeAndBrightness();
             initBackgroundKeepAlive();
+            applyMessageNotifications();
             
             wcPresets = appSettings.wc_presets || [];
             wcCurrentPresetId = appSettings.wc_current_preset_id;

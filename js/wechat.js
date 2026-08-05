@@ -3120,7 +3120,7 @@
     }
 
     async function wcShowProactiveMessageNotification(contact, message) {
-        if (document.visibilityState !== 'hidden' || !('Notification' in window) || Notification.permission !== 'granted') return;
+        if (document.visibilityState !== 'hidden' || appSettings?.message_notifications_enabled !== true || !('Notification' in window) || Notification.permission !== 'granted') return;
         const options = { body: String(message?.text || '你有一条新消息').slice(0, 120), icon: contact.avatar || 'https://nos.netease.com/ysf/39cad7c5aef80d006becb9c7b22b43cf.png', tag: `wc-proactive-${contact.id}`, renotify: true, data: { contactId: contact.id } };
         try { const registration = await navigator.serviceWorker?.ready; if (registration?.showNotification) await registration.showNotification(`${contact.remark || contact.name || '角色'} 发来一条消息`, options); else new Notification(`${contact.remark || contact.name || '角色'} 发来一条消息`, options); } catch (error) { console.debug('Web message notification unavailable:', error); }
     }
