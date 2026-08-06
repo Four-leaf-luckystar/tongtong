@@ -1556,13 +1556,41 @@
 
     function wcSendVoiceMessage() {
         wcCloseFunctionPanel();
-        showCustomPrompt('发送语音', { placeholder: '请输入语音转换的文字内容' }, '发送').then(text => {
-            if (text && text.trim()) {
-                wcAppendChatMessage(text.trim(), 'sent', wcCurrentChatContactId, null, wcCurrentReplyMsgId, true);
-                wcCloseReplyPreview();
-            }
-        });
+        const overlay = document.getElementById('wcVoiceMsgOverlay');
+        const textarea = document.getElementById('wcVoiceMsgTextarea');
+        if (overlay && textarea) {
+            textarea.value = '';
+            overlay.style.display = 'flex';
+            overlay.offsetHeight; // 触发重绘
+            overlay.classList.add('show');
+            setTimeout(() => textarea.focus(), 300);
+        }
     }
+    window.wcSendVoiceMessage = wcSendVoiceMessage;
+
+    function wcCloseVoiceMsgModal() {
+        const overlay = document.getElementById('wcVoiceMsgOverlay');
+        if (overlay) {
+            overlay.classList.remove('show');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
+        }
+    }
+    window.wcCloseVoiceMsgModal = wcCloseVoiceMsgModal;
+
+    function wcConfirmSendVoiceMsg() {
+        const textarea = document.getElementById('wcVoiceMsgTextarea');
+        const text = textarea ? textarea.value.trim() : '';
+        if (text) {
+            wcAppendChatMessage(text, 'sent', wcCurrentChatContactId, null, wcCurrentReplyMsgId, true);
+            wcCloseReplyPreview();
+            wcCloseVoiceMsgModal();
+        } else {
+            if (typeof showToast === 'function') showToast('请输入语音转换的文字内容');
+        }
+    }
+    window.wcConfirmSendVoiceMsg = wcConfirmSendVoiceMsg;
 
     function wcSimulateSendImage() {
         wcCloseFunctionPanel();
@@ -5313,6 +5341,69 @@
                 e.stopPropagation();
                 wcHandleTransferClick(message.id, isSent);
             });
+        } else if (text.startsWith('[赠送亲属卡]') || text.startsWith('[已领取亲属卡]') || text.startsWith('[已拒绝亲属卡]') || text.startsWith('[索要亲属卡]')) {
+            let fcState = 'pending';
+            if (text.startsWith('[已领取亲属卡]')) fcState = 'received';
+            else if (text.startsWith('[已拒绝亲属卡]')) fcState = 'rejected';
+            else if (text.startsWith('[索要亲属卡]')) fcState = 'request';
+
+            const amountMatch = text.match(/¥([\d.]+)/);
+            const amount = amountMatch ? amountMatch[1] : (fcState === 'request' ? '' : '3000.00');
+            
+            const noteMatch = text.match(/\((.*?)\)/);
+            const note = noteMatch ? noteMatch[1] : '';
+
+            const cardClass = `wc-transfer-card ${fcState === 'received' ? 'received' : (fcState === 'rejected' ? 'rejected' : 'pending')} v1`;
+            
+            let iconHtml = '';
+            let descText = '';
+            
+            if (fcState === 'pending') {
+                iconHtml = `<svg class="wc-cny-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>`;
+                descText = isSent ? '赠送亲属卡给对方' : '赠送你一张亲属卡';
+            } else if (fcState === 'received') {
+                iconHtml = `<svg class="wc-check-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                descText = isSent ? '对方已领取' : '你已领取';
+            } else if (fcState === 'rejected') {
+                iconHtml = `<svg class="wc-return-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v.5"/></svg>`;
+                descText = isSent ? '对方已拒绝' : '已拒绝';
+            } else if (fcState === 'request') {
+                iconHtml = `<svg class="wc-cny-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>`;
+                descText = isSent ? '向对方索要亲属卡' : '向你索要亲属卡';
+            }
+            
+            if (note) {
+                descText += ` - ${note}`;
+            }
+
+            bubble.style.setProperty('background-color', 'transparent', 'important');
+            bubble.style.setProperty('padding', '0', 'important');
+            bubble.style.setProperty('box-shadow', 'none', 'important');
+            bubble.classList.add('transfer-bubble');
+
+            const fcHtml = `
+                <div class="${cardClass}">
+                    <div class="wc-transfer-top">
+                        <div class="wc-transfer-icon-box" style="color: #FF9500;">
+                            ${iconHtml}
+                        </div>
+                        <div class="wc-transfer-info">
+                            <div class="wc-transfer-amount">${fcState === 'request' ? '亲属卡' : `¥${amount}`}</div>
+                            <div class="wc-transfer-desc">${descText}</div>
+                        </div>
+                    </div>
+                    <div class="wc-transfer-bottom">
+                        <span>Wechat Pay</span>
+                        <svg class="wc-wp-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 20.947c6.075 0 11 -4.241 11 -9.473a8.363 8.363 0 0 0 -1.048 -4.04l-12.434 7.09a1.045 1.045 0 0 1 -1.457 -0.452L5.545 8.93l3.883 1.854 11.28 -5.1C18.696 3.444 15.544 2 12 2 5.925 2 1 6.242 1 11.474c0 2.806 1.416 5.326 3.667 7.061L4.143 22l4.009 -1.649c1.197 0.386 2.494 0.596 3.848 0.596Z"/></svg>
+                    </div>
+                </div>
+            `;
+            bubble.innerHTML = fcHtml;
+
+            bubble.querySelector('.wc-transfer-card').addEventListener('click', (e) => {
+                e.stopPropagation();
+                wcHandleFamilyCardClick(message.id, isSent);
+            });
         } else {
             const messageText = document.createElement('div');
             messageText.className = 'msg-text';
@@ -5542,45 +5633,6 @@
         return 'https://nos.netease.com/ysf/f8351d4c8de1d1407e5044b639f6bddf.png';
     }
 
-    function wcBuildImageIntentPrompt(text, contact) {
-        const request = String(text || '').trim();
-        if (!request || /(?:别|不要|不想|不用|无需|不必).{0,8}(?:发|来|拍|生成|画|看).{0,6}(?:图|图片|照片|自拍|相片|写真|头像|照)/.test(request)) return null;
-
-        const isRequest = /(?:看(?:看)?|想看|给我看|让我看)\s*(?:你|你的|本人|自拍|照片|图|脸|样子)/.test(request)
-            || /(?:发|来|拍|给我|给|整|生成|画|做|出|想要|要)\s*(?:一|1|几)?\s*(?:张|幅|个)?[\s\S]{0,24}?(?:图|图片|照片|自拍|相片|写真|头像|照)/.test(request)
-            || /(?:图|图片|照片|自拍|相片|写真|头像)\s*(?:呢|呀|吗|嘛)$/.test(request);
-        if (!isRequest) return null;
-
-        const subject = contact?.name || '聊天对象';
-        const persona = contact?.persona || contact?.desc || '';
-        const selfView = /(?:看(?:看)?|想看|给我看|让我看)\s*(?:你|你的|本人|自拍|脸|样子)/.test(request);
-        const scene = request
-            .replace(/^(?:请|麻烦|能不能|可以|给我|帮我|让我)?\s*(?:看看?|想看|发|来|拍|给|整|生成|画|做|出)\s*(?:一|1|几)?\s*(?:张|幅|个)?\s*/i, '')
-            .replace(/(?:图|图片|照片|自拍|相片|写真|头像|照)\s*(?:吧|呀|呢|吗|嘛)?$/i, '')
-            .trim();
-        const requestDetail = scene || (selfView ? '自然的近景生活照或自拍' : '一张适合聊天分享的自然生活照片');
-        return `为微信聊天生成一张可直接发送的图片。人物是“${subject}”。${persona ? '人物设定：' + persona.slice(0, 800) + '。' : ''}用户想看：${requestDetail}。画面自然、真实、无文字、适合私人聊天分享。`;
-    }
-
-    async function wcReplyWithRequestedImage(text, contactId, replyTo) {
-        const contact = wcContactsList.find(item => item.id === contactId);
-        const prompt = wcBuildImageIntentPrompt(text, contact);
-        if (!prompt) return;
-
-        const description = `图片描述：${String(text).trim()}`;
-        if (typeof window.generateChatImage === 'function') {
-            try {
-                let imageUrl = await window.generateChatImage(prompt);
-                // 只有成功生成了真实图片才发送，绝对不自动发送占位图
-                if (imageUrl) {
-                    wcAppendChatMessage(description, 'received', contactId, imageUrl, replyTo);
-                }
-            } catch (error) {
-                console.warn('聊天生图失败：', error);
-            }
-        }
-    }
-
     function wcSendMessage() {
         const input = document.getElementById('wc-chat-input');
         const text = input?.value.trim();
@@ -5599,7 +5651,6 @@
         input.value = '';
         wcCloseReplyPreview();
         if (links.length > 0) wcResolveChatLinks(message, contactId);
-        wcReplyWithRequestedImage(text, contactId, replyTo);
     }
 
     let wcCurrentLongPressMsgId = null;
@@ -5662,8 +5713,8 @@
         
         menuContainer.style.top = containerTop + 'px';
         
-        // 左右对齐逻辑：胶囊宽度固定为 310px
-        let containerLeft = rect.right - 310; 
+        // 左右对齐逻辑：胶囊宽度固定为 260px
+        let containerLeft = rect.right - 260; 
         if (containerLeft < 10) containerLeft = 10;
         menuContainer.style.left = containerLeft + 'px';
     }
@@ -5778,22 +5829,66 @@
         } else if (action === 'favorite') {
             if (typeof showToast === 'function') showToast('收藏功能开发中');
         } else if (action === 'edit') {
-            if (msg.type === 'sent') {
-                const input = document.getElementById('wc-chat-input');
-                if (input) {
-                    input.value = msg.text;
-                    input.focus();
-                }
-                if (typeof showToast === 'function') showToast('已填入输入框');
-            } else {
-                if (typeof showToast === 'function') showToast('只能编辑自己发送的消息');
-            }
+            // 呼出编辑弹窗，允许编辑双方的消息
+            wcOpenEditMsgModal(msg.id, msg.text);
         } else if (action === 'multiselect') {
             wcEnterChatMultiSelectMode();
         }
         
         wcCloseBubbleMenu();
     }
+
+    let wcEditingMsgId = null;
+
+    function wcOpenEditMsgModal(msgId, text) {
+        wcEditingMsgId = msgId;
+        const overlay = document.getElementById('wcEditMsgOverlay');
+        const textarea = document.getElementById('wcEditMsgTextarea');
+        if (overlay && textarea) {
+            textarea.value = text || '';
+            overlay.style.display = 'flex';
+            overlay.offsetHeight; // 触发重绘
+            overlay.classList.add('show');
+            setTimeout(() => textarea.focus(), 300);
+        }
+    }
+    window.wcOpenEditMsgModal = wcOpenEditMsgModal;
+
+    function wcCloseEditMsgModal() {
+        const overlay = document.getElementById('wcEditMsgOverlay');
+        if (overlay) {
+            overlay.classList.remove('show');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                wcEditingMsgId = null;
+            }, 300);
+        }
+    }
+    window.wcCloseEditMsgModal = wcCloseEditMsgModal;
+
+    function wcSaveEditedMsg() {
+        if (!wcEditingMsgId || !wcCurrentChatContactId) return;
+        const textarea = document.getElementById('wcEditMsgTextarea');
+        const newText = textarea ? textarea.value.trim() : '';
+        
+        if (!newText) {
+            if (typeof showToast === 'function') showToast('消息内容不能为空');
+            return;
+        }
+
+        const messages = wcChatMessagesByContact[wcCurrentChatContactId];
+        if (messages) {
+            const msg = messages.find(m => m.id === wcEditingMsgId);
+            if (msg) {
+                msg.text = newText;
+                wcSaveChatData();
+                wcRenderChatMessages(wcCurrentChatContactId);
+                if (typeof showToast === 'function') showToast('修改成功');
+            }
+        }
+        wcCloseEditMsgModal();
+    }
+    window.wcSaveEditedMsg = wcSaveEditedMsg;
 
     let wcIsChatMultiSelectMode = false;
     let wcSelectedChatMsgIds = new Set();
@@ -6233,6 +6328,28 @@
                     const amount = amountMatch ? amountMatch[1] : '0.00';
                     contentStr = `[发送了一笔转账，金额：¥${amount}，状态：已过期]`;
                     finalContent = contentStr;
+                } else if (contentStr.startsWith('[赠送亲属卡]')) {
+                    const amountMatch = contentStr.match(/¥([\d.]+)/);
+                    const amount = amountMatch ? amountMatch[1] : '3000.00';
+                    const noteMatch = contentStr.match(/\((.*?)\)/);
+                    const note = noteMatch ? noteMatch[1] : '';
+                    contentStr = `[赠送了一张亲属卡，额度：¥${amount}${note ? '，备注：' + note : ''}，状态：未领取]`;
+                    finalContent = contentStr;
+                } else if (contentStr.startsWith('[已领取亲属卡]')) {
+                    const amountMatch = contentStr.match(/¥([\d.]+)/);
+                    const amount = amountMatch ? amountMatch[1] : '3000.00';
+                    contentStr = `[赠送了一张亲属卡，额度：¥${amount}，状态：已领取]`;
+                    finalContent = contentStr;
+                } else if (contentStr.startsWith('[已拒绝亲属卡]')) {
+                    const amountMatch = contentStr.match(/¥([\d.]+)/);
+                    const amount = amountMatch ? amountMatch[1] : '';
+                    contentStr = `[${amount ? '赠送' : '索要'}亲属卡请求，状态：已拒绝]`;
+                    finalContent = contentStr;
+                } else if (contentStr.startsWith('[索要亲属卡]')) {
+                    const noteMatch = contentStr.match(/\((.*?)\)/);
+                    const note = noteMatch ? noteMatch[1] : '';
+                    contentStr = `[发起了一个亲属卡索要请求${note ? '，备注：' + note : ''}]`;
+                    finalContent = contentStr;
                 }
 
                 return {
@@ -6553,6 +6670,16 @@
                 systemPrompt += finalPromptText;
             }
 
+            // --- 新增：检测上下文是否包含转账或亲属卡 ---
+            let hasTransferInContext = false;
+            let hasFamilyCardInContext = false;
+            finalHistory.forEach(msg => {
+                const contentStr = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
+                if (contentStr.includes('转账')) hasTransferInContext = true;
+                if (contentStr.includes('亲属卡')) hasFamilyCardInContext = true;
+            });
+            // -------------------------------------------
+
             systemPrompt += `【回复格式要求】\n`;
             systemPrompt += `你的回复必须严格拆分为 ${minReply} 到 ${maxReply} 个独立的气泡（即 messages 数组中的对象数量）！\n`;
             systemPrompt += `- Message Splitting (Natural Speech): Break your response into multiple independent short messages. Cut at natural speech pauses or breath marks. Do NOT cram multiple clauses or long paragraphs into one message.\n`;
@@ -6566,8 +6693,16 @@
             }
             systemPrompt += `- 贴反应: {"type":"reaction", "target":"对方原话", "emoji":"❤️"}\n`;
             systemPrompt += `- 发转账: {"type":"transfer", "amount":"金额", "note":"备注"}\n`;
-            systemPrompt += `- 收转账: {"type":"transfer_action", "action":"receive"}\n`;
-            systemPrompt += `- 退转账: {"type":"transfer_action", "action":"reject"}\n`;
+            if (hasTransferInContext) {
+                systemPrompt += `- 收转账: {"type":"transfer_action", "action":"receive"}\n`;
+                systemPrompt += `- 退转账: {"type":"transfer_action", "action":"reject"}\n`;
+            }
+            systemPrompt += `- 赠送亲属卡: {"type":"family_card", "action":"send", "amount":"额度", "note":"备注"}\n`;
+            systemPrompt += `- 索要亲属卡: {"type":"family_card", "action":"request", "note":"备注"}\n`;
+            if (hasFamilyCardInContext) {
+                systemPrompt += `- 领取亲属卡: {"type":"family_card", "action":"receive"}\n`;
+                systemPrompt += `- 拒绝亲属卡: {"type":"family_card", "action":"reject"}\n`;
+            }
             systemPrompt += `- 换头像: {"type":"change_avatar", "image_index": 1} (如果你想把对方刚刚发送的第几张图片设为自己的头像，请使用此命令，image_index 为图片序号)\n`;
             systemPrompt += `注意：只输出包含 "messages" 数组的纯 JSON，不要包含任何 Markdown 标记或说明文字。`;
 
@@ -6681,7 +6816,7 @@
                 let cleanJson = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
                 const parsed = JSON.parse(cleanJson);
                 if (parsed && Array.isArray(parsed.messages)) {
-                    messages = parsed.messages.filter(m => m.content || ['transfer', 'transfer_action', 'reaction', 'change_avatar'].includes(m.type)); // 保留有效对象
+                    messages = parsed.messages.filter(m => m.content || ['transfer', 'transfer_action', 'reaction', 'change_avatar', 'family_card'].includes(m.type)); // 保留有效对象
                 } else {
                     throw new Error('JSON format missing messages array');
                 }
@@ -6730,6 +6865,13 @@
                     messages.push({ type: 'change_avatar', image_index: parseInt(avMatch[1]) });
                 }
                 
+                // 兜底提取 family_card
+                const familyCardRegex = /\{\s*"type"\s*:\s*"family_card"\s*,\s*"action"\s*:\s*"([^"]+)"(?:\s*,\s*"amount"\s*:\s*"([^"]+)")?(?:\s*,\s*"note"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)")?\s*\}/g;
+                let fcMatch;
+                while ((fcMatch = familyCardRegex.exec(content)) !== null) {
+                    messages.push({ type: 'family_card', action: fcMatch[1], amount: fcMatch[2] || '3000.00', note: fcMatch[3] || '' });
+                }
+
                 // 兜底 2: 如果上面的正则没匹配到，退化为只匹配 content
                 if (messages.length === 0) {
                     const fallbackRegex = /"content"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"/g;
@@ -6865,8 +7007,48 @@
                 }
             }
             
-            // 过滤掉 reaction, transfer_action, change_avatar，只保留要发送的文本/表情包/转账
-            messages = messages.filter(m => m.type !== 'reaction' && m.type !== 'transfer_action' && m.type !== 'change_avatar');
+            // 处理 AI 的亲属卡操作 (family_card receive)
+            let hasFamilyCardUpdate = false;
+            messages.forEach(msgObj => {
+                if (msgObj.type === 'family_card') {
+                    if (msgObj.action === 'receive') {
+                        const targetMsg = wcChatMessagesByContact[chatContactId]?.slice().reverse().find(m => m.type === 'sent' && m.text.startsWith('[赠送亲属卡]'));
+                        if (targetMsg) {
+                            targetMsg.text = targetMsg.text.replace('[赠送亲属卡]', '[已领取亲属卡]');
+                            // 钱包逻辑：添加亲属卡记录
+                            const contact = wcContactsList.find(c => c.id === chatContactId);
+                            wcWalletData.familyCards.push({
+                                id: 'fc_' + Date.now(),
+                                name: `亲属卡 (${contact ? contact.name : '对方'})`,
+                                number: '8888',
+                                type: 'MasterCard',
+                                bg: 'linear-gradient(135deg, #7B8AA0 0%, #101C37 50%, #3D4D6B 100%)',
+                                logo: 'F',
+                                logoColor: '#BCC4CE'
+                            });
+                            wcSaveWalletData();
+                            hasFamilyCardUpdate = true;
+                        }
+                    } else if (msgObj.action === 'reject') {
+                        const targetMsg = wcChatMessagesByContact[chatContactId]?.slice().reverse().find(m => m.type === 'sent' && (m.text.startsWith('[赠送亲属卡]') || m.text.startsWith('[索要亲属卡]')));
+                        if (targetMsg) {
+                            if (targetMsg.text.startsWith('[赠送亲属卡]')) {
+                                targetMsg.text = targetMsg.text.replace('[赠送亲属卡]', '[已拒绝亲属卡]');
+                            } else if (targetMsg.text.startsWith('[索要亲属卡]')) {
+                                targetMsg.text = targetMsg.text.replace('[索要亲属卡]', '[已拒绝亲属卡]');
+                            }
+                            hasFamilyCardUpdate = true;
+                        }
+                    }
+                }
+            });
+            if (hasFamilyCardUpdate) {
+                wcSaveChatData();
+                wcRenderChatMessages(chatContactId);
+            }
+
+            // 过滤掉 reaction, transfer_action, change_avatar，只保留要发送的文本/表情包/转账/亲属卡
+            messages = messages.filter(m => m.type !== 'reaction' && m.type !== 'transfer_action' && m.type !== 'change_avatar' && !(m.type === 'family_card' && (m.action === 'receive' || m.action === 'reject')));
 
             // 处理 replyTo 转换为 ID
             messages.forEach(msgObj => {
@@ -6925,6 +7107,16 @@
                     const note = msgObj.note || '';
                     const text = note ? `[转账] ¥${amount.toFixed(2)} (${note})` : `[转账] ¥${amount.toFixed(2)}`;
                     finalMessages.push({ text: text, imageUrl: null, replyToId: replyToId, isVoice: false });
+                } else if (type === 'family_card') {
+                    const note = msgObj.note || '';
+                    if (msgObj.action === 'send') {
+                        const amount = parseFloat(msgObj.amount) || 3000;
+                        const text = note ? `[赠送亲属卡] 额度：¥${amount.toFixed(2)} (${note})` : `[赠送亲属卡] 额度：¥${amount.toFixed(2)}`;
+                        finalMessages.push({ text: text, imageUrl: null, replyToId: replyToId, isVoice: false });
+                    } else if (msgObj.action === 'request') {
+                        const text = note ? `[索要亲属卡] (${note})` : `[索要亲属卡]`;
+                        finalMessages.push({ text: text, imageUrl: null, replyToId: replyToId, isVoice: false });
+                    }
                 } else {
                     // 处理 text 类型，兼容 AI 偶尔还是在文本里混排 [表情: xxx] 的情况
                     const emojiRegex = /\[表情:\s*([^\]]+)\]/g;
@@ -6990,13 +7182,27 @@
             // 9. 逐个渲染气泡
             for (let i = 0; i < finalMessages.length; i++) {
                 let audioBlob = null;
-                if (finalMessages[i].isVoice && typeof window.synthesizeConnectedVoice === 'function') {
+                if (finalMessages[i].isVoice && typeof window.synthesizeConnectedVoice === 'function' && typeof appSettings !== 'undefined' && appSettings.auto_generate_voice) {
                     try {
-                        audioBlob = await window.synthesizeConnectedVoice(finalMessages[i].text);
+                        // 传入 chatContactId
+                        audioBlob = await window.synthesizeConnectedVoice(finalMessages[i].text, chatContactId);
                     } catch (error) {
                         console.warn('聊天语音合成失败，已保留语音文本描述：', error);
                     }
                 }
+                
+                if (finalMessages[i].imageUrl === 'https://nos.netease.com/ysf/f8351d4c8de1d1407e5044b639f6bddf.png' && typeof window.generateChatImage === 'function' && typeof appSettings !== 'undefined' && appSettings.auto_generate_image) {
+                    try {
+                        // 传入 chatContactId
+                        let realImageUrl = await window.generateChatImage(finalMessages[i].text, chatContactId);
+                        if (realImageUrl) {
+                            finalMessages[i].imageUrl = realImageUrl;
+                        }
+                    } catch (error) {
+                        console.warn('聊天生图失败，已保留占位图：', error);
+                    }
+                }
+
                 wcAppendChatMessage(finalMessages[i].text, 'received', chatContactId, finalMessages[i].imageUrl, finalMessages[i].replyToId, finalMessages[i].isVoice, audioBlob);
                 if (i < finalMessages.length - 1) {
                     wcSetApiTypingStatus(true);
@@ -8208,6 +8414,53 @@
         });
     }
     window.wcUpdateWalletDots = wcUpdateWalletDots;
+    // 打开亲属卡列表页面
+    function wcOpenFamilyCardList() {
+        document.querySelectorAll('#wechatAppUI .page').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-family-cards').classList.add('active');
+        wcRenderFamilyCardList();
+    }
+    window.wcOpenFamilyCardList = wcOpenFamilyCardList;
+
+    // 关闭亲属卡列表页面
+    function wcCloseFamilyCardList() {
+        document.querySelectorAll('#wechatAppUI .page').forEach(el => el.classList.remove('active'));
+        document.getElementById('page-wallet').classList.add('active');
+    }
+    window.wcCloseFamilyCardList = wcCloseFamilyCardList;
+
+    // 渲染亲属卡列表
+    function wcRenderFamilyCardList() {
+        const container = document.getElementById('wcFamilyCardListContent');
+        if (!container) return;
+
+        if (!wcWalletData.familyCards || wcWalletData.familyCards.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding: 40px 0; color: #8e8e93; font-size: 14px;">暂无绑定的亲属卡</div>';
+            return;
+        }
+
+        let html = '<div class="wc-ws-group" style="background: transparent; box-shadow: none;">';
+        wcWalletData.familyCards.forEach((card) => {
+            html += `
+                <div class="wc-apple-card wc-family-card" style="background: ${card.bg}; margin-bottom: 16px; width: 100%; max-width: 100%; aspect-ratio: 1.586 / 1; border-radius: 18px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;">
+                    <div class="wc-card-logo" style="color: ${card.logoColor}; display: flex; align-items: center; gap: 6px; font-size: 18px; font-weight: 700;">
+                        <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: ${card.logoColor};"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        亲属卡
+                    </div>
+                    <div class="wc-card-balance-area" style="text-align: center; color: ${card.logoColor};">
+                        <div class="wc-card-balance-label" style="font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #BCC4CE;">本月可用额度</div>
+                        <div class="wc-card-balance-amount" style="font-size: 38px; font-weight: 600; letter-spacing: -1px;">¥ 3,000.00</div>
+                    </div>
+                    <div class="wc-card-bottom" style="display: flex; justify-content: space-between; align-items: flex-end; color: #BCC4CE;">
+                        <div class="wc-card-number" style="font-size: 15px; font-family: monospace; letter-spacing: 2px;">赠予: ${card.name.replace('亲属卡 (', '').replace(')', '')}</div>
+                        <div class="wc-card-network" style="font-size: 14px; font-weight: 700; font-style: italic; color: #7B8AA0;">${card.type}</div>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    }
 
     // 打开支付设置页面
     function wcOpenWalletSettings() {
@@ -8269,23 +8522,6 @@
         }
     }
     window.wcChangePaymentPassword = wcChangePaymentPassword;
-
-    // 绑定/解绑亲属卡测试开关
-    function wcToggleFamilyCard() {
-        if (wcWalletData.familyCards && wcWalletData.familyCards.length > 0) {
-            wcWalletData.familyCards = [];
-            if(typeof showToast === 'function') showToast('已解绑亲属卡');
-        } else {
-            wcWalletData.familyCards = [
-                { id: 'family1', name: '亲属卡 (妈妈)', number: '1004', type: 'AMERICAN EXPRESS', bg: 'linear-gradient(135deg, #3D4D6B 0%, #101C37 40%, #7B8AA0 60%, #101C37 100%)', logo: 'F', logoColor: '#E4E8EB' },
-                { id: 'family2', name: '亲属卡 (爸爸)', number: '8888', type: 'MasterCard', bg: 'linear-gradient(135deg, #7B8AA0 0%, #101C37 50%, #3D4D6B 100%)', logo: 'F', logoColor: '#BCC4CE' }
-            ];
-            if(typeof showToast === 'function') showToast('已绑定亲属卡');
-        }
-        wcSaveWalletData();
-        wcRenderWallet();
-    }
-    window.wcToggleFamilyCard = wcToggleFamilyCard;
 
     // 充值逻辑
     function wcHandleRecharge() {
@@ -8854,6 +9090,199 @@
         // 移除关闭弹窗的代码，让用户手动点击 X 关闭
     }
 
+    window.wcHandleFamilyCardClick = function(msgId, isSent) {
+        const messages = wcChatMessagesByContact[wcCurrentChatContactId];
+        const msg = messages.find(m => m.id === msgId);
+        if (!msg) return;
+
+        let fcState = 'pending';
+        if (msg.text.startsWith('[已领取亲属卡]')) fcState = 'received';
+        else if (msg.text.startsWith('[已拒绝亲属卡]')) fcState = 'rejected';
+        else if (msg.text.startsWith('[索要亲属卡]')) fcState = 'request';
+
+        const amountMatch = msg.text.match(/¥([\d.]+)/);
+        const amount = amountMatch ? amountMatch[1] : (fcState === 'request' ? '' : '3000.00');
+        
+        const noteMatch = msg.text.match(/\((.*?)\)/);
+        const note = noteMatch ? noteMatch[1] : '';
+
+        let overlay = document.getElementById('wcTransferDetailOverlay');
+        if (!overlay) {
+            const overlayHtml = `<div class="wc-transfer-detail-overlay" id="wcTransferDetailOverlay" onclick="if(event.target === this) this.classList.remove('show')"></div>`;
+            document.getElementById('wechatAppUI').insertAdjacentHTML('beforeend', overlayHtml);
+            overlay = document.getElementById('wcTransferDetailOverlay');
+        }
+
+        let iconHtml = '<svg viewBox="0 0 24 24" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>';
+        let iconBg = '#FF9500';
+        let statusText = '';
+        let showActions = false;
+        let actionType = '';
+
+        if (fcState === 'pending') {
+            statusText = isSent ? '等待对方领取' : '待领取';
+            showActions = !isSent; // 只有对方发给我的，我才能领取/拒绝
+            actionType = 'receive_fc';
+        } else if (fcState === 'received') {
+            iconBg = '#07C160';
+            statusText = isSent ? '对方已领取' : '你已领取';
+        } else if (fcState === 'rejected') {
+            iconBg = '#FF3B30';
+            iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g fill="none" fill-rule="nonzero"><path d="M16 0v16H0V0zM8.395999999999999 15.505333333333333l-0.008 0.0013333333333333333 -0.047333333333333324 0.023333333333333334 -0.013333333333333332 0.0026666666666666666 -0.009333333333333332 -0.0026666666666666666 -0.047333333333333324 -0.023999999999999997c-0.006666666666666666 -0.002 -0.012666666666666666 0 -0.016 0.004l-0.0026666666666666666 0.006666666666666666 -0.011333333333333334 0.2853333333333333 0.003333333333333333 0.013333333333333332 0.006666666666666666 0.008666666666666666 0.06933333333333333 0.049333333333333326 0.009999999999999998 0.0026666666666666666 0.008 -0.0026666666666666666 0.06933333333333333 -0.049333333333333326 0.008 -0.010666666666666666 0.0026666666666666666 -0.011333333333333334 -0.011333333333333334 -0.2846666666666666c-0.0013333333333333333 -0.006666666666666666 -0.005999999999999999 -0.011333333333333334 -0.010666666666666666 -0.011999999999999999m0.176 -0.07533333333333334 -0.009333333333333332 0.0013333333333333333 -0.12266666666666666 0.062 -0.006666666666666666 0.006666666666666666 -0.002 0.007333333333333332 0.011999999999999999 0.2866666666666666 0.003333333333333333 0.008 0.005333333333333333 0.005333333333333333 0.134 0.06133333333333333c0.008 0.0026666666666666666 0.015333333333333332 0 0.019333333333333334 -0.005333333333333333l0.0026666666666666666 -0.009333333333333332 -0.02266666666666667 -0.4093333333333333c-0.002 -0.008 -0.006666666666666666 -0.013333333333333332 -0.013333333333333332 -0.014666666666666665m-0.4766666666666666 0.0013333333333333333a0.015333333333333332 0.015333333333333332 0 0 0 -0.018 0.004l-0.004 0.009333333333333332 -0.02266666666666667 0.4093333333333333c0 0.008 0.004666666666666666 0.013333333333333332 0.011333333333333334 0.016l0.009999999999999998 -0.0013333333333333333 0.134 -0.062 0.006666666666666666 -0.005333333333333333 0.002 -0.007333333333333332 0.011999999999999999 -0.2866666666666666 -0.002 -0.008 -0.006666666666666666 -0.006666666666666666z" stroke-width="0.6667"></path><path fill="#ffffff" d="M14.44 6.274666666666667c0.952 3.5559999999999996 -1.158 7.212 -4.714666666666666 8.164666666666665 -3.0653333333333332 0.8213333333333332 -6.2026666666666666 -0.6333333333333333 -7.622 -3.3266666666666667a0.6666666666666666 0.6666666666666666 0 0 1 1.18 -0.6213333333333333 5.333333333333333 5.333333333333333 0 1 0 -0.30133333333333334 -4.299333333333333l0.7046666666666666 -0.15666666666666665c0.7906666666666666 -0.17666666666666667 1.2413333333333334 0.8706666666666667 0.5693333333333332 1.3233333333333333L2.4739999999999998 8.559999999999999c-0.47866666666666663 0.32199999999999995 -1.1466666666666665 -0.010666666666666666 -1.142 -0.612a6.668666666666667 6.668666666666667 0 0 1 4.942666666666666 -6.386666666666667C9.830666666666666 0.6066666666666667 13.486666666666666 2.717333333333333 14.439333333333332 6.273333333333333M10.399999999999999 4.8a0.6666666666666666 0.6666666666666666 0 0 1 0.13333333333333333 0.9333333333333332L9.333333333333332 7.333333333333333h0.6666666666666666a0.6666666666666666 0.6666666666666666 0 0 1 0 1.3333333333333333h-1.3333333333333333v0.6666666666666666h1.3333333333333333a0.6666666666666666 0.6666666666666666 0 0 1 0 1.3333333333333333h-1.3333333333333333v0.6666666666666666a0.6666666666666666 0.6666666666666666 0 0 1 -1.3333333333333333 0v-0.6666666666666666H6a0.6666666666666666 0.6666666666666666 0 0 1 0 -1.3333333333333333h1.3333333333333333v-0.6666666666666666H6a0.6666666666666666 0.6666666666666666 0 0 1 0 -1.3333333333333333h0.6666666666666666L5.466666666666666 5.7333333333333325a0.6666666666666666 0.6666666666666666 0 1 1 1.0666666666666667 -0.7999999999999999l1.4666666666666668 1.9553333333333331L9.466666666666665 4.933333333333334a0.6666666666666666 0.6666666666666666 0 0 1 0.9333333333333332 -0.13333333333333333" stroke-width="0.6667"></path></g></svg>`;
+        } else if (fcState === 'request') {
+            statusText = isSent ? '等待对方赠送' : '对方请求你赠送亲属卡';
+            showActions = !isSent; // 只有对方索要，我才能赠送/拒绝
+            actionType = 'send_fc';
+        }
+
+        overlay.innerHTML = `
+            <div class="wc-td-card" onclick="event.stopPropagation()">
+                <div class="wc-td-header">
+                    <div class="wc-td-close" onclick="document.getElementById('wcTransferDetailOverlay').classList.remove('show')">
+                        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </div>
+                </div>
+                <div class="wc-td-content">
+                    <div class="wc-td-icon" id="wc-td-icon-box" style="background-color: ${iconBg};">
+                        ${iconHtml}
+                    </div>
+                    <div class="wc-td-status" id="wc-td-status-text">${statusText}</div>
+                    <div class="wc-td-amount">${fcState === 'request' ? '亲属卡' : `<span>¥</span>${amount}`}</div>
+                    ${note ? `<div class="wc-td-note">${note}</div>` : ''}
+                    
+                    ${showActions ? `
+                    <div class="wc-td-actions" id="wc-td-actions">
+                        <button class="wc-td-btn primary" onclick="wcProcessFamilyCard('${msgId}', '${actionType}')">${actionType === 'receive_fc' ? '领取' : '赠送'}</button>
+                        <button class="wc-td-btn reject" onclick="wcProcessFamilyCard('${msgId}', 'reject_fc')">拒绝</button>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+        
+        overlay.classList.add('show');
+    }
+
+    window.wcProcessFamilyCard = function(msgId, action) {
+        const messages = wcChatMessagesByContact[wcCurrentChatContactId];
+        const msg = messages.find(m => m.id === msgId);
+        if (msg) {
+            if (action === 'receive_fc') {
+                msg.text = msg.text.replace('[赠送亲属卡]', '[已领取亲属卡]');
+                
+                // 添加到钱包
+                const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
+                wcWalletData.familyCards.push({
+                    id: 'fc_' + Date.now(),
+                    name: `亲属卡 (${contact ? contact.name : '对方'})`,
+                    number: '1004',
+                    type: 'AMERICAN EXPRESS',
+                    bg: 'linear-gradient(135deg, #3D4D6B 0%, #101C37 40%, #7B8AA0 60%, #101C37 100%)',
+                    logo: 'F',
+                    logoColor: '#E4E8EB'
+                });
+                wcSaveWalletData();
+
+                document.getElementById('wcTransferDetailOverlay').classList.remove('show');
+                if (typeof showToast === 'function') showToast('已领取亲属卡');
+            } else if (action === 'reject_fc') {
+                if (msg.text.startsWith('[赠送亲属卡]')) {
+                    msg.text = msg.text.replace('[赠送亲属卡]', '[已拒绝亲属卡]');
+                } else if (msg.text.startsWith('[索要亲属卡]')) {
+                    msg.text = msg.text.replace('[索要亲属卡]', '[已拒绝亲属卡]');
+                }
+                document.getElementById('wcTransferDetailOverlay').classList.remove('show');
+                if (typeof showToast === 'function') showToast('已拒绝');
+            } else if (action === 'send_fc') {
+                document.getElementById('wcTransferDetailOverlay').classList.remove('show');
+                
+                if (typeof showCustomPrompt === 'function') {
+                    showCustomPrompt('赠送亲属卡', [{ placeholder: '请输入额度 (如 3000)' }, { placeholder: '添加备注 (选填)' }], '确定').then(vals => {
+                        if (vals && vals[0] && !isNaN(vals[0]) && Number(vals[0]) > 0) {
+                            const amount = Number(vals[0]);
+                            const note = vals[1] ? vals[1].trim() : '';
+                            const text = note ? `[赠送亲属卡] 额度：¥${amount.toFixed(2)} (${note})` : `[赠送亲属卡] 额度：¥${amount.toFixed(2)}`;
+                            wcAppendChatMessage(text, 'sent', wcCurrentChatContactId, null, null, false);
+                            if (typeof showToast === 'function') showToast('已发送亲属卡');
+                        }
+                    });
+                }
+            }
+            wcSaveChatData();
+            wcRenderChatMessages(wcCurrentChatContactId);
+        }
+    }
+
+    let wcFcCurrentAction = 'send'; // 'send' or 'request'
+
+    function wcOpenFamilyCardPrompt() {
+        wcCloseFunctionPanel();
+        const modal = document.getElementById('wcFamilyCardModalOverlay');
+        if (modal) {
+            // 重置输入框
+            document.getElementById('wcFcAmountInput').value = '';
+            document.getElementById('wcFcNoteInput').value = '';
+            wcSwitchFcTab(0, '赠送'); // 默认选中赠送
+            
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+    }
+    window.wcOpenFamilyCardPrompt = wcOpenFamilyCardPrompt;
+
+    function wcCloseFamilyCardModal(event) {
+        if (event && event.target !== document.getElementById('wcFamilyCardModalOverlay')) return;
+        const modal = document.getElementById('wcFamilyCardModalOverlay');
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+    }
+    window.wcCloseFamilyCardModal = wcCloseFamilyCardModal;
+
+    function wcSwitchFcTab(index, text) {
+        wcFcCurrentAction = index === 0 ? 'send' : 'request';
+        
+        // 移动滑块
+        const slider = document.getElementById('wcFcSegmentSlider');
+        if (slider) slider.style.transform = `translateX(${index * 100}%)`;
+
+        // 切换按钮 active 状态
+        const btns = document.querySelectorAll('#wechatAppUI .wc-fc-segment-btn');
+        btns.forEach((btn, i) => {
+            if (i === index) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+
+        // 更改底部确认按钮文字
+        const confirmBtn = document.getElementById('wcFcConfirmBtn');
+        if (confirmBtn) confirmBtn.innerText = text;
+    }
+    window.wcSwitchFcTab = wcSwitchFcTab;
+
+    function wcConfirmFamilyCard() {
+        const amountInput = document.getElementById('wcFcAmountInput').value;
+        const noteInput = document.getElementById('wcFcNoteInput').value.trim();
+        
+        if (!amountInput || isNaN(amountInput) || Number(amountInput) <= 0) {
+            if (typeof showToast === 'function') showToast('请输入有效金额');
+            return;
+        }
+
+        const amount = Number(amountInput);
+        let text = '';
+
+        if (wcFcCurrentAction === 'send') {
+            text = noteInput ? `[赠送亲属卡] 额度：¥${amount.toFixed(2)} (${noteInput})` : `[赠送亲属卡] 额度：¥${amount.toFixed(2)}`;
+        } else {
+            text = noteInput ? `[索要亲属卡] (${noteInput})` : `[索要亲属卡]`;
+        }
+
+        wcAppendChatMessage(text, 'sent', wcCurrentChatContactId, null, null, false);
+        wcCloseFamilyCardModal();
+    }
+    window.wcConfirmFamilyCard = wcConfirmFamilyCard;
+
     // ==========================================
     // 图片底部抽屉弹窗逻辑
     // ==========================================
@@ -8918,10 +9347,10 @@
                             const msg = messages.find(m => m.id === wcImageSheetCurrentMsgId);
                             if (!msg) return;
                             
-                            const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
-                            const prompt = wcBuildImageIntentPrompt(msg.text, contact) || msg.text;
+                            const prompt = msg.text;
                             
-                            const imageUrl = await window.generateChatImage(prompt);
+                            // 传入 wcCurrentChatContactId，明确这是角色在生图
+                            const imageUrl = await window.generateChatImage(prompt, wcCurrentChatContactId);
                             if (imageUrl) {
                                 msg.imageUrl = imageUrl;
                                 wcSaveChatData();
