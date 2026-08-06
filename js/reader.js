@@ -28,6 +28,8 @@
     let readerToolbarTimer = null;
     let selectionMenuTimer = null;
     let readerPageFallbackIndex = 0;
+    let readerTouchStart = null;
+    let lastReaderTouchHandledAt = 0;
     let suppressReaderChromeTapUntil = 0;
     let activeSelectionContext = null;
     let searchMatches = [];
@@ -63,6 +65,28 @@
     function truncateBookDescription(value) {
         const text = String(value || '').trim();
         return text.length > 30 ? `${text.slice(0, 30)}...` : text;
+    }
+
+    function getReadableParagraphs(content) {
+        const normalized = String(content || '').replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').trim();
+        if (!normalized) return [];
+        const directParagraphs = normalized.split(/\n+/).map(line => line.trim()).filter(Boolean);
+        if (directParagraphs.length > 1) return directParagraphs;
+        const compact = directParagraphs[0] || normalized;
+        const sentenceChunks = compact.match(/[^。！？!?；;]{1,240}[。！？!?；;]?/g) || [compact];
+        const paragraphs = [];
+        let buffer = '';
+        sentenceChunks.forEach(chunk => {
+            const next = (buffer + chunk).trim();
+            if (next.length >= 520) {
+                paragraphs.push(next);
+                buffer = '';
+            } else {
+                buffer = next;
+            }
+        });
+        if (buffer) paragraphs.push(buffer);
+        return paragraphs.length ? paragraphs : [compact];
     }
 
     function openDatabase() {
@@ -109,7 +133,7 @@
         const chapters = [];
         const pattern = /^(第[零一二三四五六七八九十百千万\d]+[章节回卷集篇]|chapter\s*\d+)/i;
         let paragraphIndex = 0;
-        content.split(/\r?\n/).forEach(line => {
+        getReadableParagraphs(content).forEach(line => {
             const trimmed = line.trim();
             if (!trimmed) return;
             if (pattern.test(trimmed)) chapters.push({ title: trimmed.slice(0, 72), paragraphIndex });
@@ -238,8 +262,9 @@
         root.querySelector('#raLibrarySearchInput').addEventListener('input', () => renderBooks());
         root.querySelector('#raReaderBody').addEventListener('scroll', saveReaderProgress, { passive: true });
         root.querySelector('#raReaderBody').addEventListener('click', toggleReaderChromeFromContent);
+        root.querySelector('#raReaderBody').addEventListener('touchstart', trackReaderTouchStart, { passive: true });
+        root.querySelector('#raReaderBody').addEventListener('touchend', handleReaderTouchEnd, { passive: false });
         root.querySelector('#raReaderBody').addEventListener('mouseup', queueSelectionMenu);
-        root.querySelector('#raReaderBody').addEventListener('touchend', queueSelectionMenu, { passive: true });
         root.querySelector('#raReaderBody').addEventListener('pointerdown', hideSelectionMenu, { passive: true });
         root.querySelector('#raReaderProgressSlider').addEventListener('input', seekReaderProgress);
         root.querySelector('#raSearchInput').addEventListener('input', updateSearch);
@@ -457,6 +482,7 @@
     }
 
     function toggleReaderChromeFromContent(event) {
+        if (event?.type === 'click' && Date.now() - lastReaderTouchHandledAt < 450) return;
         if (Date.now() < suppressReaderChromeTapUntil || window.getSelection()?.toString().trim()) return;
         const readerBody = event.currentTarget;
         const rect = readerBody.getBoundingClientRect();
@@ -470,6 +496,29 @@
             return;
         }
         setReaderChromeVisible(!readerChromeVisible);
+    }
+
+    function trackReaderTouchStart(event) {
+        const touch = event.changedTouches && event.changedTouches[0];
+        if (!touch) return;
+        readerTouchStart = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+    }
+
+    function handleReaderTouchEnd(event) {
+        if (window.getSelection()?.toString().trim()) {
+            queueSelectionMenu();
+            return;
+        }
+        const touch = event.changedTouches && event.changedTouches[0];
+        if (!touch || !readerTouchStart) return;
+        const deltaX = Math.abs(touch.clientX - readerTouchStart.x);
+        const deltaY = Math.abs(touch.clientY - readerTouchStart.y);
+        const elapsed = Date.now() - readerTouchStart.time;
+        readerTouchStart = null;
+        if (deltaX > 18 || deltaY > 18 || elapsed > 650) return;
+        event.preventDefault();
+        lastReaderTouchHandledAt = Date.now();
+        toggleReaderChromeFromContent({ currentTarget: event.currentTarget, clientX: touch.clientX, type: 'touchend' });
     }
 
     function applyReaderPreferences() {
@@ -503,7 +552,7 @@
             records.push(annotation);
             annotationsByParagraph.set(index, records);
         });
-        root.querySelector('#raReaderBody').innerHTML = book.content.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map((paragraph, index) => {
+        root.querySelector('#raReaderBody').innerHTML = getReadableParagraphs(book.content).map((paragraph, index) => {
             const notes = notesByParagraph.get(index) || [];
             const annotations = annotationsByParagraph.get(index) || [];
             const annotationMarkup = annotations.map(annotation => `<aside class="ra-reader-annotation"><b>${annotation.characterAvatar ? `<img src="${escapeHtml(annotation.characterAvatar)}" alt="">` : ''}${escapeHtml(annotation.characterName || '角色批注')}</b><span>${escapeHtml(annotation.content || '')}</span></aside>`).join('');

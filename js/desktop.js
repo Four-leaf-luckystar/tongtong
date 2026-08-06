@@ -23,14 +23,14 @@
                 const styleLink = stylesheet || document.createElement('link');
                 if (!stylesheet) {
                     styleLink.rel = 'stylesheet';
-                    styleLink.href = 'css/reader.css?v=20260806-reader-interactions-v3';
+                    styleLink.href = 'css/reader.css?v=20260806-reader-mobile-txt-v1';
                     styleLink.dataset.readerAppStyle = 'true';
                     document.head.appendChild(styleLink);
                 }
 
                 const readerScript = script || document.createElement('script');
                 if (!script) {
-                    readerScript.src = 'js/reader.js?v=20260806-reader-interactions-v3';
+                    readerScript.src = 'js/reader.js?v=20260806-reader-mobile-txt-v1';
                     readerScript.dataset.readerAppScript = 'true';
                     readerScript.addEventListener('load', () => {
                         readerScript.dataset.loaded = 'true';
