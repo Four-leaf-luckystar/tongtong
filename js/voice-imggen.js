@@ -65,6 +65,16 @@
         if (!ui) return;
         ui.style.display = 'flex';
         renderVoiceList();
+        
+        const toggleBtn = document.getElementById('autoVoiceToggle');
+        if (toggleBtn) {
+            if (typeof appSettings !== 'undefined' && appSettings.auto_generate_voice) {
+                toggleBtn.classList.remove('off');
+            } else {
+                toggleBtn.classList.add('off');
+            }
+        }
+        
         setTimeout(function () { ui.classList.add('show'); }, 10);
     }
     function closeVoiceApp() {
@@ -298,6 +308,16 @@
         ui.style.display = 'flex';
         renderImageGenList();
         renderImageGenSettings();
+        
+        const toggleBtn = document.getElementById('autoImageToggle');
+        if (toggleBtn) {
+            if (typeof appSettings !== 'undefined' && appSettings.auto_generate_image) {
+                toggleBtn.classList.remove('off');
+            } else {
+                toggleBtn.classList.add('off');
+            }
+        }
+        
         setTimeout(function () { ui.classList.add('show'); }, 10);
     }
     function closeImageGenApp() {
@@ -731,7 +751,8 @@
         return preset && _vigTrimSlash(preset.url) && preset.key ? preset : null;
     }
 
-    async function generateChatImage(prompt) {
+    // 增加 contactId 参数
+    async function generateChatImage(prompt, contactId) {
         const preset = _vigChatImagePreset();
         const positive = String(prompt || '').trim();
         if (!preset || !positive) return null;
@@ -740,11 +761,20 @@
         const base = _vigTrimSlash(preset.url);
         const model = preset.model || '';
 
+        // 结合角色独立的外貌设定 (仅在传入 contactId 时生效，避免测试时读取)
+        let finalPrompt = positive;
+        if (contactId && typeof wcContactsList !== 'undefined') {
+            const contact = wcContactsList.find(c => c.id === contactId);
+            if (contact && contact.appearance) {
+                finalPrompt = contact.appearance + "。 画面描述：" + positive;
+            }
+        }
+
         if (preset.provider === 'openai') {
             const isDalle = /dall-e|dalle/i.test(model || 'gpt-image-1');
             const body = {
                 model: model || 'gpt-image-1',
-                prompt: positive,
+                prompt: finalPrompt,
                 n: parseInt(settings.n, 10) || 1,
                 size: settings.size || '1024x1024',
                 quality: settings.quality || 'auto'
@@ -777,7 +807,7 @@
                 method: 'POST',
                 headers: { Authorization: 'Bearer ' + preset.key, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    input: positive,
+                    input: finalPrompt,
                     model: model || 'nai-diffusion-3',
                     action: 'generate',
                     parameters: {
@@ -813,7 +843,7 @@
             flags.push(settings.mode === 'relax' ? '--relax' : settings.mode === 'turbo' ? '--turbo' : '--fast');
 
             const headers = { 'Content-Type': 'application/json', 'mj-api-key': preset.key, Authorization: 'Bearer ' + preset.key };
-            const body = JSON.stringify({ botType: 'MID_JOURNEY', prompt: positive + ' ' + flags.join(' ') });
+            const body = JSON.stringify({ botType: 'MID_JOURNEY', prompt: finalPrompt + ' ' + flags.join(' ') });
             let response = await fetch(base + '/mj/submit/imagine', { method: 'POST', headers: headers, body: body });
             let path = '/mj';
             if (response.status === 404) {
@@ -866,6 +896,40 @@
     window.deleteImageGenDrawer = deleteImageGenDrawer;
     window.generateImage = generateImage;
     window.generateChatImage = generateChatImage;
+
+    window.toggleAutoVoice = function() {
+        const toggleBtn = document.getElementById('autoVoiceToggle');
+        let isEnabled = typeof appSettings !== 'undefined' && appSettings.auto_generate_voice;
+        isEnabled = !isEnabled;
+        if (isEnabled) {
+            toggleBtn.classList.remove('off');
+            if(typeof showToast === 'function') showToast("真实语音已开启");
+        } else {
+            toggleBtn.classList.add('off');
+            if(typeof showToast === 'function') showToast("真实语音已关闭");
+        }
+        if (typeof appSettings !== 'undefined') {
+            appSettings.auto_generate_voice = isEnabled;
+            if (typeof saveAppSettings === 'function') saveAppSettings();
+        }
+    };
+
+    window.toggleAutoImage = function() {
+        const toggleBtn = document.getElementById('autoImageToggle');
+        let isEnabled = typeof appSettings !== 'undefined' && appSettings.auto_generate_image;
+        isEnabled = !isEnabled;
+        if (isEnabled) {
+            toggleBtn.classList.remove('off');
+            if(typeof showToast === 'function') showToast("真实图片生成已开启");
+        } else {
+            toggleBtn.classList.add('off');
+            if(typeof showToast === 'function') showToast("真实图片生成已关闭");
+        }
+        if (typeof appSettings !== 'undefined') {
+            appSettings.auto_generate_image = isEnabled;
+            if (typeof saveAppSettings === 'function') saveAppSettings();
+        }
+    };
 
     // 页面加载时预绑定服务商选择段
     document.addEventListener('DOMContentLoaded', function () {
@@ -1327,7 +1391,8 @@
         return ({ mp3: 'audio/mpeg', wav: 'audio/wav', flac: 'audio/flac', ogg: 'audio/ogg', aac: 'audio/aac', pcm: 'audio/pcm' })[format] || 'audio/mpeg';
     }
 
-    async function synthesizeConnectedVoice(text) {
+    // 增加 contactId 参数
+    async function synthesizeConnectedVoice(text, contactId) {
         var preset = connectedVoicePreset();
         if (!preset || !String(text || '').trim()) return null;
 
@@ -1336,10 +1401,42 @@
         var base = trimSlash(preset.url);
         var response;
 
+        // 结合角色独立的语音设定 (仅在传入 contactId 时生效，避免测试时读取)
+        var specificVoiceId = preset.voiceId;
+        var sovitsPromptText = params.promptText || '';
+        var sovitsPromptLang = params.promptLang || 'zh';
+        var sovitsTextLang = params.textLang || 'zh';
+
+        if (contactId && typeof wcContactsList !== 'undefined') {
+            var contact = wcContactsList.find(function(c) { return c.id === contactId; });
+            if (contact && contact.voice) {
+                // 如果角色指定了不同的服务商，尝试寻找该服务商的配置
+                if (contact.voice.provider && contact.voice.provider !== provider) {
+                    var charPreset = (typeof voiceDataList !== 'undefined' ? voiceDataList : []).find(function(p) { return p.provider === contact.voice.provider; });
+                    if (charPreset) {
+                        preset = charPreset;
+                        provider = preset.provider;
+                        params = preset.params || {};
+                        base = trimSlash(preset.url);
+                        specificVoiceId = preset.voiceId;
+                    }
+                }
+
+                if (provider === 'minimax' && contact.voice.minimaxVoiceId) specificVoiceId = contact.voice.minimaxVoiceId;
+                if (provider === 'elevenlabs' && contact.voice.elevenlabsVoiceId) specificVoiceId = contact.voice.elevenlabsVoiceId;
+                if (provider === 'sovits' && contact.voice.sovitsPath) {
+                    specificVoiceId = contact.voice.sovitsPath;
+                    sovitsPromptText = contact.voice.sovitsPromptText || '';
+                    sovitsPromptLang = contact.voice.sovitsPromptLanguage || 'zh';
+                    sovitsTextLang = contact.voice.sovitsTextLanguage || 'zh';
+                }
+            }
+        }
+
         if (provider === 'minimax') {
             var audioFormat = params.audioFormat || 'mp3';
             var voiceSetting = {
-                voice_id: preset.voiceId || 'male-qn-qingse',
+                voice_id: specificVoiceId || 'male-qn-qingse',
                 speed: params.speed == null ? 1 : params.speed,
                 vol: params.vol == null ? 1 : params.vol,
                 pitch: params.pitch == null ? 0 : params.pitch
@@ -1365,7 +1462,7 @@
         }
 
         if (provider === 'elevenlabs') {
-            response = await fetch(base + '/v1/text-to-speech/' + encodeURIComponent(preset.voiceId), {
+            response = await fetch(base + '/v1/text-to-speech/' + encodeURIComponent(specificVoiceId || preset.voiceId), {
                 method: 'POST',
                 headers: { 'xi-api-key': preset.key, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
                 body: JSON.stringify({
@@ -1392,9 +1489,9 @@
             body: JSON.stringify({
                 text: String(text).trim(),
                 text_lang: params.textLang || 'zh',
-                ref_audio_path: preset.voiceId,
-                prompt_text: params.promptText || '',
-                prompt_lang: params.promptLang || 'zh',
+                ref_audio_path: specificVoiceId || preset.voiceId,
+                prompt_text: sovitsPromptText,
+                prompt_lang: sovitsPromptLang,
                 text_split_method: params.textSplitMethod || 'cut5',
                 top_p: params.topP == null ? 1 : params.topP,
                 temperature: params.temperature == null ? 1 : params.temperature,
