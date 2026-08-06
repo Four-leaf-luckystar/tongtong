@@ -1556,13 +1556,41 @@
 
     function wcSendVoiceMessage() {
         wcCloseFunctionPanel();
-        showCustomPrompt('发送语音', { placeholder: '请输入语音转换的文字内容' }, '发送').then(text => {
-            if (text && text.trim()) {
-                wcAppendChatMessage(text.trim(), 'sent', wcCurrentChatContactId, null, wcCurrentReplyMsgId, true);
-                wcCloseReplyPreview();
-            }
-        });
+        const overlay = document.getElementById('wcVoiceMsgOverlay');
+        const textarea = document.getElementById('wcVoiceMsgTextarea');
+        if (overlay && textarea) {
+            textarea.value = '';
+            overlay.style.display = 'flex';
+            overlay.offsetHeight; // 触发重绘
+            overlay.classList.add('show');
+            setTimeout(() => textarea.focus(), 300);
+        }
     }
+    window.wcSendVoiceMessage = wcSendVoiceMessage;
+
+    function wcCloseVoiceMsgModal() {
+        const overlay = document.getElementById('wcVoiceMsgOverlay');
+        if (overlay) {
+            overlay.classList.remove('show');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
+        }
+    }
+    window.wcCloseVoiceMsgModal = wcCloseVoiceMsgModal;
+
+    function wcConfirmSendVoiceMsg() {
+        const textarea = document.getElementById('wcVoiceMsgTextarea');
+        const text = textarea ? textarea.value.trim() : '';
+        if (text) {
+            wcAppendChatMessage(text, 'sent', wcCurrentChatContactId, null, wcCurrentReplyMsgId, true);
+            wcCloseReplyPreview();
+            wcCloseVoiceMsgModal();
+        } else {
+            if (typeof showToast === 'function') showToast('请输入语音转换的文字内容');
+        }
+    }
+    window.wcConfirmSendVoiceMsg = wcConfirmSendVoiceMsg;
 
     function wcSimulateSendImage() {
         wcCloseFunctionPanel();
@@ -5662,8 +5690,8 @@
         
         menuContainer.style.top = containerTop + 'px';
         
-        // 左右对齐逻辑：胶囊宽度固定为 310px
-        let containerLeft = rect.right - 310; 
+        // 左右对齐逻辑：胶囊宽度固定为 260px
+        let containerLeft = rect.right - 260; 
         if (containerLeft < 10) containerLeft = 10;
         menuContainer.style.left = containerLeft + 'px';
     }
@@ -5778,22 +5806,66 @@
         } else if (action === 'favorite') {
             if (typeof showToast === 'function') showToast('收藏功能开发中');
         } else if (action === 'edit') {
-            if (msg.type === 'sent') {
-                const input = document.getElementById('wc-chat-input');
-                if (input) {
-                    input.value = msg.text;
-                    input.focus();
-                }
-                if (typeof showToast === 'function') showToast('已填入输入框');
-            } else {
-                if (typeof showToast === 'function') showToast('只能编辑自己发送的消息');
-            }
+            // 呼出编辑弹窗，允许编辑双方的消息
+            wcOpenEditMsgModal(msg.id, msg.text);
         } else if (action === 'multiselect') {
             wcEnterChatMultiSelectMode();
         }
         
         wcCloseBubbleMenu();
     }
+
+    let wcEditingMsgId = null;
+
+    function wcOpenEditMsgModal(msgId, text) {
+        wcEditingMsgId = msgId;
+        const overlay = document.getElementById('wcEditMsgOverlay');
+        const textarea = document.getElementById('wcEditMsgTextarea');
+        if (overlay && textarea) {
+            textarea.value = text || '';
+            overlay.style.display = 'flex';
+            overlay.offsetHeight; // 触发重绘
+            overlay.classList.add('show');
+            setTimeout(() => textarea.focus(), 300);
+        }
+    }
+    window.wcOpenEditMsgModal = wcOpenEditMsgModal;
+
+    function wcCloseEditMsgModal() {
+        const overlay = document.getElementById('wcEditMsgOverlay');
+        if (overlay) {
+            overlay.classList.remove('show');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                wcEditingMsgId = null;
+            }, 300);
+        }
+    }
+    window.wcCloseEditMsgModal = wcCloseEditMsgModal;
+
+    function wcSaveEditedMsg() {
+        if (!wcEditingMsgId || !wcCurrentChatContactId) return;
+        const textarea = document.getElementById('wcEditMsgTextarea');
+        const newText = textarea ? textarea.value.trim() : '';
+        
+        if (!newText) {
+            if (typeof showToast === 'function') showToast('消息内容不能为空');
+            return;
+        }
+
+        const messages = wcChatMessagesByContact[wcCurrentChatContactId];
+        if (messages) {
+            const msg = messages.find(m => m.id === wcEditingMsgId);
+            if (msg) {
+                msg.text = newText;
+                wcSaveChatData();
+                wcRenderChatMessages(wcCurrentChatContactId);
+                if (typeof showToast === 'function') showToast('修改成功');
+            }
+        }
+        wcCloseEditMsgModal();
+    }
+    window.wcSaveEditedMsg = wcSaveEditedMsg;
 
     let wcIsChatMultiSelectMode = false;
     let wcSelectedChatMsgIds = new Set();

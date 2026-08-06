@@ -233,7 +233,7 @@
         }
         const placeholder = document.createElement('span');
         placeholder.className = 'ct-avatar-placeholder';
-        placeholder.textContent = fallback || '角色';
+        placeholder.textContent = '';
         return placeholder;
     }
 
