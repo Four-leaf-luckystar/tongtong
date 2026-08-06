@@ -158,8 +158,8 @@
 #readerAppUI .ra-reader-body { padding: calc(20px + var(--top-safe-area, 0px)) var(--ra-padding-x, 24px) calc(24px + var(--bottom-safe-area, 0px)); background: var(--ra-custom-background, #fff); }
 #readerAppUI .ra-reader-body p { margin-bottom: calc(var(--ra-paragraph-spacing, 1.05) * 1em); color: var(--ra-custom-text, #171717); font-family: var(--ra-font-family, system-ui, sans-serif); }
 
-#readerAppUI .ra-reader-toolbar { position: absolute; right: 0; bottom: 0; left: 0; z-index: 7; display: block; min-height: 214px; padding: 18px 22px calc(18px + var(--bottom-safe-area, 0px)); border: 1px solid #e6e6e8; border-bottom: 0; border-radius: 20px 20px 0 0; background: #fff; box-shadow: 0 -3px 14px rgba(0, 0, 0, 0.09); opacity: 0; pointer-events: none; transform: translateY(105%); transition: opacity 0.2s ease, transform 0.24s ease; }
-#readerAppUI .ra-reader.is-chrome-visible .ra-reader-toolbar { opacity: 1; pointer-events: auto; transform: translateY(0); }
+#readerAppUI .ra-reader-toolbar { position: absolute; right: 0; bottom: 0; left: 0; z-index: 7; display: block; min-height: 214px; padding: 18px 22px calc(18px + var(--bottom-safe-area, 0px)); border: 1px solid #e6e6e8; border-bottom: 0; border-radius: 20px 20px 0 0; background: #fff; box-shadow: 0 -3px 14px rgba(0, 0, 0, 0.09); opacity: 0; pointer-events: none; transform: translateY(105%); visibility: hidden; transition: opacity 0.2s ease, transform 0.24s ease, visibility 0.24s ease; }
+#readerAppUI .ra-reader.is-chrome-visible .ra-reader-toolbar, #readerAppUI .ra-reader-toolbar.is-visible { opacity: 1; pointer-events: auto; transform: translateY(0); visibility: visible; }
 #readerAppUI .ra-reader-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
 #readerAppUI .ra-reader-stats span { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: 5px; text-align: center; }
 #readerAppUI .ra-reader-stats b { overflow: hidden; max-width: 100%; color: #171717; font-size: 12px; font-weight: 700; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }

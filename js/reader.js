@@ -162,9 +162,9 @@
         root.querySelector('.ra-reader-toolbar').innerHTML = `
             <div class="ra-reader-stats" aria-label="阅读统计"><span><b id="raReaderDuration">0 秒</b><small>阅读时长</small></span><span><b id="raReaderProgress">0.0 %</b><small>阅读进度</small></span><span><b id="raReaderSpeed">0 字/分钟</b><small>阅读速度</small></span><span><b id="raReaderNotes">0 条</b><small>笔记</small></span></div>
             <div class="ra-reader-page-controls">
-                <button class="ra-reader-page-button" type="button" data-reader-action="chapter-prev" aria-label="上一章"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"></path></svg></button>
+                <button class="ra-reader-page-button" type="button" data-reader-action="page-prev" aria-label="上一页"><svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"></path></svg></button>
                 <input id="raReaderProgressSlider" class="ra-reader-progress-slider" type="range" min="0" max="100" value="0" step="0.1" aria-label="阅读进度">
-                <button class="ra-reader-page-button" type="button" data-reader-action="chapter-next" aria-label="下一章"><svg viewBox="0 0 24 24"><path d="m10 6 6 6-6 6"></path></svg></button>
+                <button class="ra-reader-page-button" type="button" data-reader-action="page-next" aria-label="下一页"><svg viewBox="0 0 24 24"><path d="m10 6 6 6-6 6"></path></svg></button>
             </div>
             <div class="ra-reader-tools">
                 <button type="button" data-reader-action="toc"><svg viewBox="0 0 24 24"><path d="M8 6h12"></path><path d="M8 12h12"></path><path d="M8 18h12"></path><circle cx="4" cy="6" r="1"></circle><circle cx="4" cy="12" r="1"></circle><circle cx="4" cy="18" r="1"></circle></svg><span>目录</span></button>
@@ -268,8 +268,8 @@
         else if (action === 'selection-annotate') openReaderCharacterPicker();
         else if (action === 'notes-export') exportNotes();
         else if (action === 'bookmarks') openBookmarks();
-        else if (action === 'chapter-prev') switchReaderChapter(-1);
-        else if (action === 'chapter-next') switchReaderChapter(1);
+        else if (action === 'page-prev') turnReaderPage(-1);
+        else if (action === 'page-next') turnReaderPage(1);
         else if (action === 'book-options') openBookOptions(trigger.dataset.readerBookId);
         else if (action === 'book-move-group') moveBookToGroup(trigger.dataset.readerBookId);
         else if (action === 'sort-books') chooseBookSort();
@@ -444,7 +444,17 @@
 
     function setReaderChromeVisible(visible) {
         readerChromeVisible = Boolean(visible);
-        root?.querySelector('.ra-reader')?.classList.toggle('is-chrome-visible', readerChromeVisible);
+        const reader = root?.querySelector('.ra-reader');
+        const toolbar = root?.querySelector('.ra-reader-toolbar');
+        reader?.classList.toggle('is-chrome-visible', readerChromeVisible);
+        if (toolbar) {
+            toolbar.classList.toggle('is-visible', readerChromeVisible);
+            toolbar.setAttribute('aria-hidden', String(!readerChromeVisible));
+            toolbar.style.opacity = readerChromeVisible ? '1' : '0';
+            toolbar.style.pointerEvents = readerChromeVisible ? 'auto' : 'none';
+            toolbar.style.transform = readerChromeVisible ? 'translateY(0)' : 'translateY(105%)';
+            toolbar.style.visibility = readerChromeVisible ? 'visible' : 'hidden';
+        }
         if (readerChromeVisible) updateReaderToolbar();
     }
 
@@ -768,7 +778,8 @@
         const pageHeight = Math.max(1, Math.floor(readerBody.clientHeight * 0.9));
         const maxScroll = Math.max(0, readerBody.scrollHeight - readerBody.clientHeight);
         const nextTop = Math.max(0, Math.min(maxScroll, readerBody.scrollTop + pageHeight * direction));
-        readerBody.scrollTo({ top: nextTop, behavior: 'smooth' });
+        if (typeof readerBody.scrollTo === 'function') readerBody.scrollTo({ top: nextTop, behavior: 'smooth' });
+        readerBody.scrollTop = nextTop;
         window.setTimeout(saveReaderProgress, 260);
     }
 
