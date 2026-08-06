@@ -27,6 +27,7 @@
     let readerChromeVisible = false;
     let readerToolbarTimer = null;
     let selectionMenuTimer = null;
+    let readerPageFallbackIndex = 0;
     let suppressReaderChromeTapUntil = 0;
     let activeSelectionContext = null;
     let searchMatches = [];
@@ -435,6 +436,7 @@
         const readerBody = root.querySelector('#raReaderBody');
         applyReaderPreferences();
         renderReaderContent(book);
+        readerPageFallbackIndex = 0;
         requestAnimationFrame(() => restoreReaderProgress(book));
         sessionStartedAt = Date.now();
         clearInterval(readerToolbarTimer);
@@ -450,10 +452,6 @@
         if (toolbar) {
             toolbar.classList.toggle('is-visible', readerChromeVisible);
             toolbar.setAttribute('aria-hidden', String(!readerChromeVisible));
-            toolbar.style.opacity = readerChromeVisible ? '1' : '0';
-            toolbar.style.pointerEvents = readerChromeVisible ? 'auto' : 'none';
-            toolbar.style.transform = readerChromeVisible ? 'translateY(0)' : 'translateY(105%)';
-            toolbar.style.visibility = readerChromeVisible ? 'visible' : 'hidden';
         }
         if (readerChromeVisible) updateReaderToolbar();
     }
@@ -511,6 +509,7 @@
             const annotationMarkup = annotations.map(annotation => `<aside class="ra-reader-annotation"><b>${annotation.characterAvatar ? `<img src="${escapeHtml(annotation.characterAvatar)}" alt="">` : ''}${escapeHtml(annotation.characterName || '角色批注')}</b><span>${escapeHtml(annotation.content || '')}</span></aside>`).join('');
             return `<p class="${notes.length ? 'has-reader-note' : ''}" data-reader-paragraph="${index}">${renderMarkedParagraph(paragraph, notes)}</p>${annotationMarkup}`;
         }).join('');
+        readerPageFallbackIndex = 0;
     }
 
     function renderMarkedParagraph(text, notes) {
@@ -777,9 +776,25 @@
         if (!readerBody) return;
         const pageHeight = Math.max(1, Math.floor(readerBody.clientHeight * 0.9));
         const maxScroll = Math.max(0, readerBody.scrollHeight - readerBody.clientHeight);
+        if (maxScroll <= 1) {
+            turnReaderParagraphFallback(direction);
+            return;
+        }
         const nextTop = Math.max(0, Math.min(maxScroll, readerBody.scrollTop + pageHeight * direction));
         if (typeof readerBody.scrollTo === 'function') readerBody.scrollTo({ top: nextTop, behavior: 'smooth' });
         readerBody.scrollTop = nextTop;
+        window.setTimeout(saveReaderProgress, 260);
+    }
+
+    function turnReaderParagraphFallback(direction) {
+        const readerBody = root.querySelector('#raReaderBody');
+        const paragraphs = Array.from(readerBody?.querySelectorAll('[data-reader-paragraph]') || []);
+        if (!readerBody || paragraphs.length <= 1) return;
+        const currentIndex = Math.max(0, Math.min(paragraphs.length - 1, getCurrentParagraphIndex()));
+        const baseIndex = Math.max(readerPageFallbackIndex, currentIndex);
+        readerPageFallbackIndex = Math.max(0, Math.min(paragraphs.length - 1, baseIndex + (direction > 0 ? 1 : -1)));
+        const target = paragraphs[readerPageFallbackIndex];
+        if (target && typeof target.scrollIntoView === 'function') target.scrollIntoView({ block: 'start', behavior: 'smooth' });
         window.setTimeout(saveReaderProgress, 260);
     }
 
