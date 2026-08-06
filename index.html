@@ -2287,9 +2287,15 @@
         <div class="univ-sel-frame" onclick="event.stopPropagation()">
             <!-- 模仿网页窗口控制点 -->
             <div class="univ-sel-window-header">
-                <div class="univ-sel-dot red" onclick="closeUniversalSelect()"></div>
-                <div class="univ-sel-dot yellow"></div>
-                <div class="univ-sel-dot green"></div>
+                <div class="univ-sel-star s1" onclick="closeUniversalSelect()">
+                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+                <div class="univ-sel-star s2">
+                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+                <div class="univ-sel-star s3">
+                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
             </div>
             <!-- 顶部搜索栏 -->
             <div class="univ-sel-search-wrap" id="univSelSearchWrap">
@@ -3926,6 +3932,39 @@ fill="currentColor" viewBox="0 0 24 24" >
             </div>
         </div>
 
+        <!-- 消息编辑弹窗 -->
+        <div class="wc-edit-msg-overlay" id="wcEditMsgOverlay" onclick="wcCloseEditMsgModal()">
+            <div class="wc-edit-msg-panel" onclick="event.stopPropagation()">
+                <div class="wc-edit-msg-header">编辑消息</div>
+                <textarea id="wcEditMsgTextarea" placeholder="请输入消息内容..."></textarea>
+                <div class="wc-edit-msg-actions">
+                    <button class="wc-edit-msg-btn cancel" onclick="wcCloseEditMsgModal()">取消</button>
+                    <button class="wc-edit-msg-btn save" onclick="wcSaveEditedMsg()">保存</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 语音发送弹窗 -->
+        <div class="wc-voice-msg-overlay" id="wcVoiceMsgOverlay" onclick="wcCloseVoiceMsgModal()">
+            <div class="wc-voice-msg-panel" onclick="event.stopPropagation()">
+                <div class="wc-voice-msg-header">发送语音</div>
+                <div class="wc-voice-wave-container">
+                    <div class="wc-spectrum-bars">
+                        <div class="wc-spectrum-bar"></div>
+                        <div class="wc-spectrum-bar"></div>
+                        <div class="wc-spectrum-bar"></div>
+                        <div class="wc-spectrum-bar"></div>
+                        <div class="wc-spectrum-bar"></div>
+                    </div>
+                </div>
+                <textarea id="wcVoiceMsgTextarea" placeholder="请输入语音转换的文字内容..."></textarea>
+                <div class="wc-voice-msg-actions">
+                    <button class="wc-voice-msg-btn cancel" onclick="wcCloseVoiceMsgModal()">取消</button>
+                    <button class="wc-voice-msg-btn save" onclick="wcConfirmSendVoiceMsg()">发送</button>
+                </div>
+            </div>
+        </div>
+
         <div class="wechat-home-indicator" onclick="closeWechatApp()"></div>
     </div>
 
@@ -4020,29 +4059,28 @@ fill="currentColor" viewBox="0 0 24 24" >
         </div>
 
         <div class="ct-page" data-page="contact-editor">
-            <header class="ct-header" style="justify-content: space-between; align-items: center;">
-                <button class="ct-nav-circle-btn" type="button" data-action="back-main" aria-label="返回">
-                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                </button>
-                <div class="ct-title" id="ctContactEditorTitle" style="display: none;">新建角色</div>
-                <button class="ct-nav-capsule-btn" type="button" data-action="save-contact">完成</button>
-            </header>
-            <main class="ct-scroll ct-editor-scroll">
-                <div class="ct-profile-editor">
-                    <button class="ct-avatar ct-avatar-large" type="button" data-action="pick-contact-avatar" aria-label="选择头像">
-                        <span id="ctContactAvatarPreview">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M20.37 21.25C20.37 21.4489 20.291 21.6397 20.1503 21.7803C20.0097 21.921 19.8189 22 19.62 22H4.38C4.18109 22 3.99032 21.921 3.84967 21.7803C3.70902 21.6397 3.63 21.4489 3.63 21.25C3.63 17.15 8.13 13.97 12 13.97C15.87 13.97 20.37 17.15 20.37 21.25Z" fill="currentColor"/>
-                                <path d="M17.1 7.11002C17.098 8.11827 16.7972 9.1033 16.2356 9.94067C15.674 10.778 14.8768 11.4302 13.9448 11.8147C13.0127 12.1991 11.9876 12.2987 10.9989 12.1008C10.0103 11.9029 9.10249 11.4164 8.39024 10.7027C7.67799 9.98908 7.19327 9.08031 6.99729 8.09128C6.80132 7.10225 6.90289 6.07735 7.28919 5.14603C7.67549 4.21471 8.32917 3.41878 9.16764 2.85883C10.0061 2.29887 10.9918 2 12 2C13.3535 2.00265 14.6507 2.54219 15.6069 3.50021C16.563 4.45824 17.1 5.75649 17.1 7.11002Z" fill="currentColor"/>
-                            </svg>
-                        </span>
-                        <span class="ct-camera-badge">+</span>
-                    </button>
-                    <div class="ct-name-subtitle">CHARACTER · 角色</div>
-                    <input class="ct-name-input" id="ctContactName" type="text" maxlength="40" placeholder="输入角色名称">
-                </div>
+            <div class="ct-drawer-backdrop" data-action="back-main"></div>
+            <div class="ct-drawer-wrapper">
+                <div class="ct-drawer-bg-card"></div>
+                <div class="ct-drawer-main">
+                    <header class="ct-header" style="justify-content: space-between; align-items: center;">
+                        <button class="ct-nav-circle-btn" type="button" data-action="back-main" aria-label="返回">
+                            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </button>
+                        <div class="ct-title" id="ctContactEditorTitle" style="display: none;">新建角色</div>
+                        <button class="ct-nav-capsule-btn" type="button" data-action="save-contact">完成</button>
+                    </header>
+                    <main class="ct-scroll ct-editor-scroll">
+                        <div class="ct-profile-editor">
+                            <button class="ct-avatar ct-avatar-large" type="button" data-action="pick-contact-avatar" aria-label="选择头像">
+                                <span id="ctContactAvatarPreview"></span>
+                                <div class="ct-avatar-speech-bubble">Oㅈo：뭐?</div>
+                            </button>
+                            <div class="ct-name-subtitle"><span class="ct-highlight-text">CHARACTER · 角色</span></div>
+                            <input class="ct-name-input" id="ctContactName" type="text" maxlength="40" placeholder="输入角色名称">
+                        </div>
 
-                <div class="ct-action-tabs" role="tablist">
+                        <div class="ct-action-tabs" role="tablist">
                     <button class="ct-action-tab is-active" type="button" data-action="switch-section" data-section="persona">
                         <span class="ct-action-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="m4.16 21.633 -0.002 0.002 -0.79 0.741 1.076 0.12a7.785 7.785 0 0 0 2.691 -0.199c0.891 -0.234 1.828 -0.688 2.422 -1.532 0.786 0.154 1.604 0.235 2.443 0.235 6 0 11 -4.184 11 -9.5S18 2 12 2 1 6.184 1 11.5c0 3.236 1.866 6.065 4.668 7.77 -0.086 0.471 -0.377 0.994 -0.723 1.462a7.726 7.726 0 0 1 -0.773 0.89l-0.012 0.011Z"></path></svg></span><span>人设基础</span>
                     </button>
@@ -4074,7 +4112,7 @@ fill="currentColor" viewBox="0 0 24 24" >
                         </button>
                     </div>
                     <div class="ct-settings-card ct-textarea-card ct-persona-textarea">
-                        <div class="ct-section-label" style="margin: 12px 16px 8px; font-size: 14px; color: var(--ct-text); font-weight: 400;">Notes</div>
+                        <div class="ct-section-label" style="margin: 12px 16px 8px; font-size: 14px; color: var(--ct-text); font-weight: 400;"><span class="ct-highlight-text">About Me</span></div>
                         <textarea id="ctContactPersona" placeholder="点击此处输入角色人设、背景故事或性格设定..." style="padding-top: 0;"></textarea>
                     </div>
                 </section>
@@ -4122,6 +4160,8 @@ fill="currentColor" viewBox="0 0 24 24" >
 
                 <button class="ct-danger-card" id="ctDeleteContactButton" type="button" data-action="delete-contact">删除联系人</button>
             </main>
+                </div>
+            </div>
         </div>
 
         <div class="ct-page" data-page="voice">
@@ -4177,52 +4217,69 @@ fill="currentColor" viewBox="0 0 24 24" >
         </div>
 
         <div class="ct-page" data-page="npc-editor">
-            <header class="ct-header" style="justify-content: space-between; align-items: center;">
-                <button class="ct-nav-circle-btn" type="button" data-action="cancel-npc" aria-label="返回">
-                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                </button>
-                <div class="ct-title" id="ctNpcEditorTitle" style="display: none;">新建 NPC</div>
-                <button class="ct-nav-capsule-btn" type="button" data-action="save-npc">完成</button>
-            </header>
-            <main class="ct-scroll ct-editor-scroll">
-                <div class="ct-profile-editor">
-                    <div class="ct-avatar ct-avatar-large"><span class="ct-avatar-placeholder">NPC</span></div>
-                    <div class="ct-name-subtitle">FRIEND · NPC</div>
-                    <input class="ct-name-input" id="ctNpcName" type="text" maxlength="40" placeholder="输入 NPC 名称">
-                </div>
-                <div class="ct-settings-card ct-form-card">
-                    <label><span>身份/关系</span><input id="ctNpcRole" type="text" maxlength="80" placeholder="例如：店员、朋友、敌人..."></label>
-                </div>
-                <div class="ct-settings-card ct-textarea-card ct-tall-textarea">
-                    <div class="ct-section-label" style="margin: 12px 16px 8px; font-size: 14px; color: var(--ct-text); font-weight: 400;">Notes</div>
-                    <textarea id="ctNpcPersona" placeholder="输入该 NPC 的性格、背景、行为逻辑等..." style="padding-top: 0;"></textarea>
-                </div>
+            <div class="ct-drawer-backdrop" data-action="cancel-npc"></div>
+            <div class="ct-drawer-wrapper">
+                <div class="ct-drawer-bg-card"></div>
+                <div class="ct-drawer-main">
+                    <header class="ct-header" style="justify-content: space-between; align-items: center;">
+                        <button class="ct-nav-circle-btn" type="button" data-action="cancel-npc" aria-label="返回">
+                            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </button>
+                        <div class="ct-title" id="ctNpcEditorTitle" style="display: none;">新建 NPC</div>
+                        <button class="ct-nav-capsule-btn" type="button" data-action="save-npc">完成</button>
+                    </header>
+                    <main class="ct-scroll ct-editor-scroll">
+                        <div class="ct-profile-editor">
+                            <div class="ct-avatar ct-avatar-large">
+                                <span class="ct-avatar-placeholder"></span>
+                                <div class="ct-avatar-speech-bubble">Oㅈo：뭐?</div>
+                            </div>
+                            <div class="ct-name-subtitle"><span class="ct-highlight-text">FRIEND · NPC</span></div>
+                            <input class="ct-name-input" id="ctNpcName" type="text" maxlength="40" placeholder="输入 NPC 名称">
+                        </div>
+                        <div class="ct-settings-card ct-form-card">
+                            <label><span>身份/关系</span><input id="ctNpcRole" type="text" maxlength="80" placeholder="例如：店员、朋友、敌人..."></label>
+                        </div>
+                        <div class="ct-settings-card ct-textarea-card ct-tall-textarea">
+                            <div class="ct-section-label" style="margin: 12px 16px 8px; font-size: 14px; color: var(--ct-text); font-weight: 400;"><span class="ct-highlight-text">About Me</span></div>
+                            <textarea id="ctNpcPersona" placeholder="输入该 NPC 的性格、背景、行为逻辑等..." style="padding-top: 0;"></textarea>
+                        </div>
                 <button class="ct-danger-card" id="ctDeleteNpcButton" type="button" data-action="delete-npc" style="width: calc(100% - 32px);">删除 NPC</button>
             </main>
+                </div>
+            </div>
         </div>
 
         <div class="ct-page" data-page="user-editor">
-            <header class="ct-header" style="justify-content: space-between; align-items: center;">
-                <button class="ct-nav-circle-btn" type="button" data-action="back-main" aria-label="返回">
-                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                </button>
-                <div class="ct-title" id="ctUserEditorTitle" style="display: none;">新建 User</div>
-                <button class="ct-nav-capsule-btn" type="button" data-action="save-user">完成</button>
-            </header>
-            <main class="ct-scroll ct-editor-scroll">
-                <div class="ct-profile-editor">
-                    <button class="ct-avatar ct-avatar-large" type="button" data-action="pick-user-avatar" aria-label="选择头像">
-                        <span id="ctUserAvatarPreview"></span><span class="ct-camera-badge">+</span>
-                    </button>
-                    <div class="ct-name-subtitle">MASK · 面具</div>
-                    <input class="ct-name-input" id="ctUserName" type="text" maxlength="40" placeholder="输入 User 名称">
-                </div>
-                <div class="ct-settings-card ct-textarea-card ct-tall-textarea">
-                    <div class="ct-section-label" style="margin: 12px 16px 8px; font-size: 14px; color: var(--ct-text); font-weight: 400;">Notes</div>
-                    <textarea id="ctUserPersona" placeholder="输入该身份的背景、性格与表达习惯..." style="padding-top: 0;"></textarea>
-                </div>
+            <div class="ct-drawer-backdrop" data-action="back-main"></div>
+            <div class="ct-drawer-wrapper">
+                <div class="ct-drawer-bg-card"></div>
+                <div class="ct-drawer-main">
+                    <header class="ct-header" style="justify-content: space-between; align-items: center;">
+                        <button class="ct-nav-circle-btn" type="button" data-action="back-main" aria-label="返回">
+                            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </button>
+                        <div class="ct-title" id="ctUserEditorTitle" style="display: none;">新建 User</div>
+                        <button class="ct-nav-capsule-btn" type="button" data-action="save-user">完成</button>
+                    </header>
+                    <main class="ct-scroll ct-editor-scroll">
+                        <div class="ct-profile-editor">
+                            <button class="ct-avatar ct-avatar-large" type="button" data-action="pick-user-avatar" aria-label="选择头像">
+                                <span id="ctUserAvatarPreview"></span>
+                                <div class="ct-avatar-speech-bubble">Oㅈo：뭐?</div>
+                            </button>
+                            <div class="ct-name-subtitle"><span class="ct-highlight-text">MASK · 面具</span></div>
+                            <input class="ct-name-input" id="ctUserName" type="text" maxlength="40" placeholder="输入 User 名称">
+                        </div>
+                        <div class="ct-settings-card ct-textarea-card ct-tall-textarea">
+                            <div class="ct-section-label" style="margin: 12px 16px 8px; font-size: 14px; color: var(--ct-text); font-weight: 400;"><span class="ct-highlight-text">About Me</span></div>
+                            <textarea id="ctUserPersona" placeholder="输入该身份的背景、性格与表达习惯..." style="padding-top: 0;"></textarea>
+                        </div>
+
                 <button class="ct-danger-card" id="ctDeleteUserButton" type="button" data-action="delete-user" style="width: calc(100% - 32px);">删除 User</button>
             </main>
+                </div>
+            </div>
         </div>
 
         <div class="ct-picker-overlay" id="ctPickerOverlay" aria-hidden="true">
