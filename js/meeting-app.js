@@ -149,20 +149,19 @@
             }
             .header-right-circle svg { display: none !important; }
             .header-right-circle::after { content: '\\2022\\2022\\2022'; font-size: 20px; letter-spacing: 0; }
-            .meeting-search {
-                height: 58px;
+            .search {
                 margin: 30px 25px 25px;
-                padding: 0 25px;
+                height: 58px;
                 border: 1px solid #eee;
                 border-radius: 30px;
                 display: flex;
                 align-items: center;
-                gap: 15px;
+                padding: 0 25px;
                 color: #aaa;
                 font-size: 15px;
                 flex-shrink: 0;
             }
-            .meeting-search-icon { font-size: 22px; line-height: 1; }
+            .search span { margin-right: 15px; font-size: 22px; }
             .chat-container {
                 padding: 0 25px 112px !important;
                 gap: 0 !important;
@@ -189,9 +188,8 @@
         if (header && chatBox && !documentInFrame.getElementById('meetingSearchBar')) {
             const search = documentInFrame.createElement('div');
             search.id = 'meetingSearchBar';
-            search.className = 'meeting-search';
-            search.setAttribute('role', 'search');
-            search.innerHTML = '<span class="meeting-search-icon">&#8995;</span><span>&#22312;&#36825;&#37324;&#36755;&#20837;&#20320;&#24819;&#35828;&#30340;&#35805;...</span>';
+            search.className = 'search';
+            search.innerHTML = '<span>&#8981;</span>&#22312;&#36825;&#37324;&#36755;&#20837;&#20320;&#24819;&#35828;&#30340;&#35805;...';
             header.insertAdjacentElement('afterend', search);
         }
     }
