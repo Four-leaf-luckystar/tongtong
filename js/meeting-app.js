@@ -150,7 +150,7 @@
             .header-right-circle svg { display: none !important; }
             .header-right-circle::after { content: '\\2022\\2022\\2022'; font-size: 20px; letter-spacing: 0; }
             .search {
-                margin: 30px 25px 25px;
+                margin: 18px 25px 25px;
                 height: 58px;
                 border: 1px solid #eee;
                 border-radius: 30px;
@@ -159,9 +159,10 @@
                 padding: 0 25px;
                 color: #aaa;
                 font-size: 15px;
+                line-height: 1;
                 flex-shrink: 0;
             }
-            .search span { margin-right: 15px; font-size: 22px; }
+            .search span { display: inline-flex; align-items: center; margin-right: 15px; font-size: 22px; line-height: 1; }
             .chat-container {
                 padding: 0 25px 112px !important;
                 gap: 0 !important;
