@@ -148,7 +148,7 @@
                 font-size: 0 !important;
             }
             .header-right-circle svg { display: none !important; }
-            .header-right-circle::after { content: '\\2022\\2022\\2022'; font-size: 22px; letter-spacing: 2px; }
+            .header-right-circle::after { content: '\\2022\\2022\\2022'; font-size: 20px; letter-spacing: 0; }
             .meeting-search {
                 height: 58px;
                 margin: 30px 25px 25px;
@@ -181,40 +181,6 @@
             .story-card .card-name { font-size: 14px !important; font-weight: 400 !important; color: #777 !important; }
             .story-card .card-body { font-size: 16px !important; line-height: 1.9 !important; color: #333 !important; }
             .story-card .card-more-btn { top: 14px !important; right: 14px !important; opacity: .55; }
-            .footer-container {
-                position: fixed !important;
-                left: 50% !important;
-                bottom: 20px !important;
-                transform: translateX(-50%) !important;
-                width: min(380px, 90%) !important;
-                padding: 0 !important;
-                z-index: 30 !important;
-            }
-            .model-capsule, .left-icons { display: none !important; }
-            .right-icons { display: flex !important; padding: 0 !important; }
-            .input-area {
-                min-height: 55px !important;
-                height: 55px !important;
-                padding: 7px 7px 7px 22px !important;
-                align-items: center !important;
-                gap: 0 !important;
-                background: #fff !important;
-                border: 1px solid #eee !important;
-                border-radius: 30px !important;
-                box-shadow: 0 5px 20px rgba(0,0,0,.05) !important;
-            }
-            .input-wrapper { background: transparent !important; padding: 0 !important; }
-            .input-wrapper textarea { font-size: 16px !important; color: #333 !important; }
-            #sendBtn {
-                display: flex !important;
-                width: 42px !important;
-                height: 42px !important;
-                margin-left: 7px !important;
-                border-radius: 50% !important;
-                align-items: center !important;
-                justify-content: center !important;
-                color: #333 !important;
-            }
         `;
         documentInFrame.head.appendChild(theme);
 
