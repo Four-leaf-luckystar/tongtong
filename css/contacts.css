@@ -39,7 +39,7 @@
 }
 
 #contactsAppUI .ct-page.is-active { visibility: visible; opacity: 1; pointer-events: auto; transform: translateX(0); }
-#contactsAppUI .ct-page.is-behind { visibility: visible; opacity: 0.75; transform: translateX(-28%); }
+#contactsAppUI .ct-page.is-behind { visibility: hidden; opacity: 0; transform: scale(0.98); }
 
 #contactsAppUI .ct-header {
     position: relative;
@@ -49,9 +49,9 @@
     height: 60px;
     padding: calc(14px + var(--top-safe-area, 0px)) 16px 8px;
     flex: 0 0 auto;
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     z-index: 20;
 }
 
@@ -163,15 +163,15 @@
     border: none;
     border-radius: 16px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-    margin: 0 16px 16px;
+    margin: 0 8px 16px;
     overflow: hidden;
 }
 
 #contactsAppUI .ct-danger-card {
     display: none;
-    width: calc(100% - 32px); /* 修复：强制占满全宽 */
+    width: calc(100% - 16px); /* 修复：强制占满全宽 */
     min-height: 52px;
-    margin: 24px 16px 16px;
+    margin: 24px 8px 16px;
     color: var(--ct-red);
     font-weight: 400; /* 修复：iOS原生删除按钮字重 */
     font-size: 17px;
@@ -365,23 +365,119 @@
 }
 #contactsAppUI .ct-home-indicator { position: absolute; z-index: 35; left: 50%; bottom: calc(7px + env(safe-area-inset-bottom, 0px)); width: 112px; height: 5px; border-radius: 3px; background: rgba(0, 0, 0, 0.8); transform: translateX(-50%); }
 
-#contactsAppUI .ct-section-label { margin: 20px 16px 8px; color: var(--ct-subtext); font-size: 12px; font-weight: 600; }
+#contactsAppUI .ct-section-label { margin: 20px 12px 8px; color: var(--ct-subtext); font-size: 12px; font-weight: 600; }
 #contactsAppUI .ct-user-row { min-height: 58px; }
 #contactsAppUI .ct-user-row .ct-avatar, #contactsAppUI .ct-npc-row .ct-avatar { width: 38px; height: 38px; overflow: hidden; margin-right: 12px; }
 #contactsAppUI .ct-user-main, #contactsAppUI .ct-npc-main { display: flex; align-items: center; min-width: 0; }
 #contactsAppUI .ct-user-card { margin-bottom: 12px; overflow: hidden; }
 
 #contactsAppUI .ct-profile-editor { display: flex; flex-direction: column; align-items: center; padding: 10px 16px 24px; }
-#contactsAppUI .ct-avatar-large { width: 100px; height: 100px; overflow: visible; border-radius: 50%; background: linear-gradient(180deg, #D1D1D6 0%, #A3A8B0 100%); color: #FFFFFF; box-shadow: inset 0 1px 3px rgba(255,255,255,0.4), 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 16px; }
+#contactsAppUI .ct-avatar-large { width: 100px; height: 100px; overflow: visible; border-radius: 50%; background: #D1D1D6; color: #FFFFFF; box-shadow: inset 0 1px 3px rgba(255,255,255,0.4), 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 16px; }
 #contactsAppUI .ct-avatar-large > span:first-child { width: 100%; height: 100%; overflow: hidden; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-#contactsAppUI .ct-avatar-large svg { width: 56px; height: 56px; fill: currentColor; margin-top: 4px; }
-#contactsAppUI .ct-camera-badge { position: absolute; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; width: 27px; height: 27px; color: #fff; background: var(--ct-blue); border: 3px solid var(--ct-bg); border-radius: 50%; font-size: 18px; font-weight: 400; }
+#contactsAppUI .ct-avatar-large svg { display: none; }
+
+#contactsAppUI .ct-avatar-speech-bubble {
+    position: absolute;
+    top: -2px;
+    left: -35px;
+    background: #ffffff;
+    color: #5c6b7f;
+    padding: 6px 12px;
+    border-radius: 18px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    z-index: 100;
+    pointer-events: none;
+    letter-spacing: 0.5px;
+}
+#contactsAppUI .ct-avatar-speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    right: 14px;
+    width: 10px;
+    height: 10px;
+    background: inherit;
+    border-bottom-right-radius: 3px;
+    transform: rotate(45deg);
+    z-index: -1;
+}
+
+/* Drawer 样式覆盖 */
+#contactsAppUI .ct-page[data-page="contact-editor"],
+#contactsAppUI .ct-page[data-page="user-editor"],
+#contactsAppUI .ct-page[data-page="npc-editor"] {
+    background: transparent;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s ease;
+    justify-content: flex-end;
+}
+
+#contactsAppUI .ct-page[data-page="contact-editor"].is-active,
+#contactsAppUI .ct-page[data-page="user-editor"].is-active,
+#contactsAppUI .ct-page[data-page="npc-editor"].is-active {
+    transform: translateY(0);
+}
+
+#contactsAppUI .ct-drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+#contactsAppUI .ct-page.is-active .ct-drawer-backdrop {
+    opacity: 1;
+}
+
+#contactsAppUI .ct-drawer-wrapper {
+    position: relative;
+    width: 100%;
+    height: 92vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#contactsAppUI .ct-drawer-bg-card {
+    position: absolute;
+    top: 0;
+    width: 90%;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 20px 20px 0 0;
+    transform: translateY(0);
+    opacity: 0.8;
+}
+
+#contactsAppUI .ct-drawer-main {
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    height: calc(100% - 10px);
+    background: var(--ct-bg);
+    border-radius: 24px 24px 0 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+}
+
 #contactsAppUI .ct-name-subtitle { font-size: 12px; color: var(--ct-subtext); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-weight: 500; }
+#contactsAppUI .ct-highlight-text {
+    display: inline-block;
+    background: linear-gradient(transparent 55%, #e2eaf4 55%, #e2eaf4 95%, transparent 95%);
+    color: var(--ct-text);
+    font-weight: 700;
+    padding: 0 2px;
+}
 #contactsAppUI .ct-name-input { width: min(90%, 310px); margin-top: 0; padding: 5px; border: 0; outline: 0; background: transparent; text-align: center; color: var(--ct-text); font-size: 28px; font-weight: 400; letter-spacing: 0.3px; }
 #contactsAppUI .ct-name-input::placeholder { color: #b8b8bd; }
 #contactsAppUI .ct-compact-profile { padding-bottom: 28px; }
 
-#contactsAppUI .ct-action-tabs { display: flex; justify-content: space-between; gap: 6px; margin: 0 16px 24px; }
+#contactsAppUI .ct-action-tabs { display: flex; justify-content: space-between; gap: 6px; margin: 0 8px 24px; }
 #contactsAppUI .ct-action-tab { flex: 1; background-color: var(--btn-bg); border-radius: 12px; padding: 10px 2px; display: flex; flex-direction: column; align-items: center; gap: 6px; border: none; cursor: pointer; transition: all 0.2s; color: var(--ct-text); box-shadow: 0 1px 3px rgba(0,0,0,0.04); min-width: 0; }
 #contactsAppUI .ct-action-tab.is-active { background-color: var(--btn-active-bg); color: white; }
 #contactsAppUI .ct-action-tab:active { transform: scale(0.94); }
@@ -434,9 +530,9 @@
 #contactsAppUI .ct-qr-download { min-height: 40px; padding: 0 18px; border-radius: 7px; color: #fff; background: var(--ct-blue); font-size: 14px; font-weight: 650; }
 #contactsAppUI .ct-danger-card {
     display: none;
-    width: calc(100% - 32px);
+    width: calc(100% - 16px);
     min-height: 52px;
-    margin: 24px 16px 16px;
+    margin: 24px 8px 16px;
     color: var(--ct-red);
     font-weight: 600;
     font-size: 17px;
