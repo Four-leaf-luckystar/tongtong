@@ -261,48 +261,36 @@
 
         /* 桌面根据可用高度显示 6 或 7 行 */
         .desktop-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            grid-template-rows: repeat(var(--desktop-rows), 80px);
-            gap: 15px 10px;
-            padding: 25px 20px;
+            display: flex;
+            flex-wrap: nowrap;
+            padding: 0;
             margin-top: 30px;
             height: calc(100% - 180px);
             position: relative;
             z-index: 5;
             touch-action: none;
-        }
-
-        .desktop-grid.is-swiping {
-            transform: translate3d(var(--desktop-swipe-offset, 0px), 0, 0);
-            transition: none;
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
             will-change: transform;
         }
 
+        .desktop-grid.is-swiping {
+            transition: none;
+        }
+
         .desktop-page {
-            display: contents;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-rows: repeat(var(--desktop-rows), 80px);
+            gap: 15px 10px;
+            padding: 25px 20px;
+            flex: 0 0 100%;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
         }
 
         .desktop-page[hidden] {
             display: none;
-        }
-
-        .desktop-grid.page-enter-left {
-            animation: desktopPageEnterLeft 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-
-        .desktop-grid.page-enter-right {
-            animation: desktopPageEnterRight 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-
-        @keyframes desktopPageEnterLeft {
-            from { opacity: 0.45; transform: translate3d(-34px, 0, 0); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        @keyframes desktopPageEnterRight {
-            from { opacity: 0.45; transform: translate3d(34px, 0, 0); }
-            to { opacity: 1; transform: translateX(0); }
         }
 
         .desktop-drag-ghost {
@@ -613,3 +601,136 @@
         .app-item.is-widget:not(.jiggling) .widget-edit-hotzone { display: flex; }
         .app-item.is-widget.jiggling .widget-edit-hotzone { display: none !important; }
         .app-item.is-widget.jiggling .app-icon .widget-render-frame { pointer-events: none !important; }
+
+        /* 全新小组件添加抽屉样式 */
+        .widget-picker-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .widget-picker-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .widget-picker-sheet {
+            width: 100%;
+            height: 85vh;
+            background: #f5f5f7;
+            border-radius: 32px 32px 0 0;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .widget-picker-overlay.show .widget-picker-sheet {
+            transform: translateY(0);
+        }
+        .widget-picker-handle {
+            width: 36px; height: 5px;
+            background: #d1d1d6;
+            border-radius: 3px;
+            margin: 12px auto 20px;
+        }
+        .widget-picker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            margin-bottom: 20px;
+        }
+        .widget-picker-cancel {
+            font-size: 16px;
+            color: #8e8e93;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .widget-picker-header h2 {
+            font-size: 18px; font-weight: 700; color: #1c1c1e; margin: 0;
+        }
+        .widget-picker-tabs-container {
+            padding: 0 20px; margin-bottom: 20px;
+        }
+        .widget-picker-tabs {
+            display: flex;
+            background: #e3e3e8;
+            border-radius: 20px; /* 增加交互栏的圆角 */
+            padding: 4px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .widget-picker-tabs::-webkit-scrollbar { display: none; }
+        .widget-picker-tab {
+            flex: 1; min-width: 70px;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 14px; font-weight: 900; color: #1c1c1e; /* 字体调大到14px，字重拉满到900 */
+            border-radius: 16px; /* 增加内部 Tab 的圆角 */
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .widget-picker-tab.active {
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .widget-picker-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .widget-picker-card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        }
+        .widget-picker-preview-box {
+            background: #f2f2f7;
+            border-radius: 16px;
+            height: 180px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .widget-picker-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .widget-picker-text h3 {
+            font-size: 16px; font-weight: 700; color: #1c1c1e; margin-bottom: 4px;
+        }
+        .widget-picker-badge {
+            display: inline-block;
+            background: #f2f2f7;
+            color: #8e8e93;
+            font-size: 11px; font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+        .widget-picker-add-btn {
+            background: #1c1c1e;
+            color: #ffffff;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-size: 14px; font-weight: 600;
+            cursor: pointer;
+        }
+        .widget-picker-add-btn:active {
+            transform: scale(0.96);
+        }
