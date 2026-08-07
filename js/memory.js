@@ -1318,8 +1318,40 @@
 
     function closeSummarySettings() {
         if (!root) return;
+        closeMemorySyncProviderDialog();
         root.classList.remove('is-configuring-summary');
         root.querySelector('[data-memory-summary-settings]').setAttribute('aria-hidden', 'true');
+    }
+
+    function openMemorySyncProviderDialog() {
+        const dialog = root && root.querySelector('[data-memory-sync-provider-dialog]');
+        if (!dialog) return;
+        dialog.setAttribute('aria-hidden', 'false');
+        dialog.classList.add('is-visible');
+    }
+
+    function closeMemorySyncProviderDialog() {
+        const dialog = root && root.querySelector('[data-memory-sync-provider-dialog]');
+        if (!dialog) return;
+        dialog.setAttribute('aria-hidden', 'true');
+        dialog.classList.remove('is-visible');
+    }
+
+    function selectMemorySyncProvider(provider) {
+        const section = root && root.querySelector('.memory-external-section');
+        if (!section) return;
+        const input = section.querySelector('[data-memory-sync-provider]');
+        const label = section.querySelector('[data-memory-sync-provider-label]');
+        const option = root.querySelector('[data-memory-sync-provider-option="' + provider + '"]');
+        if (!input || !label || !option) return;
+        input.value = provider;
+        label.textContent = option.dataset.label;
+        root.querySelectorAll('[data-memory-sync-provider-option]').forEach((item) => {
+            const selected = item === option;
+            item.classList.toggle('is-selected', selected);
+            item.setAttribute('aria-checked', String(selected));
+        });
+        closeMemorySyncProviderDialog();
     }
 
     function getSemanticModelState() {
@@ -1878,7 +1910,7 @@
             + '<p class="memory-summary-settings-copy">每累计多少条新消息，更新一次近期摘要</p>'
             + '<label class="memory-summary-settings-input"><input type="number" inputmode="numeric" min="1" max="500" step="1" data-memory-summary-interval><span>条新消息</span></label>'
             + '<section class="memory-settings-section"><h3>向量模型</h3><p class="memory-semantic-settings-copy">下载到本机后，聊天内容不会上传。</p><label class="memory-semantic-settings-input"><span>自定义清单</span><input type="url" data-semantic-model-url placeholder="可选：manifest 地址"></label><button class="memory-model-download" type="button" data-memory-action="download-semantic-model">下载向量模型</button><progress class="memory-semantic-model-progress" data-semantic-model-progress max="1" value="0" hidden></progress><p class="memory-semantic-model-status" data-semantic-model-status>模型未下载</p><button class="memory-semantic-remove" type="button" data-memory-action="remove-semantic-model" hidden>删除本地模型</button></section>'
-            + '<section class="memory-settings-section memory-external-section"><h3>外接记忆库</h3><p class="memory-semantic-settings-copy">本地 IndexedDB 是主数据源；数据只会以明文上传到你配置的用户云端，凭据仅保存在本机。</p><label class="memory-semantic-settings-input"><span>服务</span><select data-memory-sync-provider><option value="http">通用 HTTP / Cloudflare Worker</option><option value="mem0">Mem0 Platform</option><option value="zep">Zep</option><option value="supabase">Supabase</option></select></label><label class="memory-semantic-settings-input"><span>地址</span><input type="url" data-memory-sync-url placeholder="用户自己的服务地址；Mem0/Zep 可留空"></label><label class="memory-semantic-settings-input"><span>API Key</span><input type="password" data-memory-sync-key autocomplete="off"></label><label class="memory-semantic-settings-input"><span>访问令牌</span><input type="password" data-memory-sync-token autocomplete="off" placeholder="Supabase/HTTP 可选"></label><label class="memory-semantic-settings-input"><span>Supabase 表</span><input type="text" data-memory-sync-table placeholder="tonghuaji_memories"></label><label class="memory-semantic-settings-input"><span>命名空间</span><input type="text" data-memory-sync-namespace placeholder="用于隔离角色数据"></label><label class="memory-summary-settings-input"><input type="checkbox" data-memory-sync-auto checked><span>自动同步（后台静默执行）</span></label><fieldset class="memory-sync-scope"><legend>上传范围</legend><label><input type="checkbox" data-memory-sync-tier="L1"> L1 确认记忆</label><label><input type="checkbox" data-memory-sync-tier="L2"> L2 摘要</label><label><input type="checkbox" data-memory-sync-tier="L3"> L3 片段</label><label><input type="checkbox" data-memory-sync-chat> 聊天记录</label><label><input type="checkbox" data-memory-sync-archived> 包含归档</label><label><input type="radio" name="memory-sync-roles" value="current" checked> 当前角色</label><label><input type="radio" name="memory-sync-roles" value="all"> 全部角色</label></fieldset><div class="memory-sync-actions"><button type="button" data-memory-action="test-memory-sync">测试连接</button><button type="button" data-memory-action="save-memory-sync">保存同步设置</button><button type="button" data-memory-action="sync-memory-now">立即同步</button><button type="button" data-memory-action="restore-memory-sync">下载恢复</button><a href="cloud-memory/README.md" target="_blank" rel="noopener">部署说明</a></div><p class="memory-composer-error" data-memory-sync-status aria-live="polite"></p></section><p class="memory-composer-error" data-memory-summary-error aria-live="polite"></p></div>';
+            + '<section class="memory-settings-section memory-external-section"><h3>外接记忆库</h3><p class="memory-semantic-settings-copy">本地 IndexedDB 是主数据源；数据只会以明文上传到你配置的用户云端，凭据仅保存在本机。</p><div class="memory-external-fields"><label class="memory-semantic-settings-input memory-sync-provider-field"><span>服务</span><button type="button" class="memory-sync-provider-button" data-memory-action="choose-memory-sync-provider" aria-haspopup="dialog"><span data-memory-sync-provider-label>通用 HTTP / Cloudflare Worker</span><span class="memory-sync-chevron" aria-hidden="true">›</span></button><input type="hidden" data-memory-sync-provider value="http"></label><label class="memory-semantic-settings-input"><span>地址</span><input type="url" data-memory-sync-url placeholder="用户自己的服务地址；Mem0/Zep 可留空"></label><label class="memory-semantic-settings-input"><span>API Key</span><input type="password" data-memory-sync-key autocomplete="off"></label><label class="memory-semantic-settings-input"><span>访问令牌</span><input type="password" data-memory-sync-token autocomplete="off" placeholder="Supabase/HTTP 可选"></label><label class="memory-semantic-settings-input"><span>Supabase 表</span><input type="text" data-memory-sync-table placeholder="tonghuaji_memories"></label><label class="memory-semantic-settings-input"><span>命名空间</span><input type="text" data-memory-sync-namespace placeholder="用于隔离角色数据"></label></div><label class="memory-sync-toggle-row is-on"><span><strong>自动同步</strong><small>后台静默执行</small></span><input type="checkbox" data-memory-sync-auto checked><span class="memory-sync-switch" aria-hidden="true"></span></label><fieldset class="memory-sync-scope"><legend>上传范围</legend><label><input type="checkbox" data-memory-sync-tier="L1"> L1 确认记忆</label><label><input type="checkbox" data-memory-sync-tier="L2"> L2 摘要</label><label><input type="checkbox" data-memory-sync-tier="L3"> L3 片段</label><label><input type="checkbox" data-memory-sync-chat> 聊天记录</label><label><input type="checkbox" data-memory-sync-archived> 包含归档</label><label><input type="radio" name="memory-sync-roles" value="current" checked> 当前角色</label><label><input type="radio" name="memory-sync-roles" value="all"> 全部角色</label></fieldset><div class="memory-sync-actions"><button type="button" data-memory-action="test-memory-sync">测试连接</button><button type="button" data-memory-action="save-memory-sync">保存同步设置</button><button type="button" data-memory-action="sync-memory-now">立即同步</button><button type="button" data-memory-action="restore-memory-sync">下载恢复</button><a href="cloud-memory/README.md" target="_blank" rel="noopener">部署说明</a></div><p class="memory-composer-error" data-memory-sync-status aria-live="polite"></p></section><p class="memory-composer-error" data-memory-summary-error aria-live="polite"></p></div>';
         root.appendChild(settings);
         settings.querySelector('[data-memory-action="close-summary-settings"]').addEventListener('click', closeSummarySettings);
         settings.querySelector('[data-memory-action="save-summary-settings"]').addEventListener('click', saveSummarySettings);
@@ -1888,6 +1920,16 @@
         settings.querySelector('[data-memory-action="save-memory-sync"]').addEventListener('click', saveMemorySyncSettings);
         settings.querySelector('[data-memory-action="sync-memory-now"]').addEventListener('click', syncMemoryNow);
         settings.querySelector('[data-memory-action="restore-memory-sync"]').addEventListener('click', restoreMemorySync);
+        settings.querySelector('[data-memory-action="choose-memory-sync-provider"]').addEventListener('click', openMemorySyncProviderDialog);
+        settings.querySelector('[data-memory-sync-auto]').addEventListener('change', (event) => event.currentTarget.closest('.memory-sync-toggle-row').classList.toggle('is-on', event.currentTarget.checked));
+        const providerDialog = document.createElement('section');
+        providerDialog.className = 'memory-choice-dialog';
+        providerDialog.setAttribute('data-memory-sync-provider-dialog', '');
+        providerDialog.setAttribute('aria-hidden', 'true');
+        providerDialog.innerHTML = '<div class="memory-choice-backdrop" data-memory-action="close-memory-sync-provider"></div><div class="memory-choice-sheet" role="dialog" aria-modal="true" aria-labelledby="memorySyncProviderTitle"><div class="memory-composer-header"><button type="button" data-memory-action="close-memory-sync-provider">取消</button><h2 id="memorySyncProviderTitle">选择服务</h2><span></span></div><div class="memory-choice-list">' + [['http', '通用 HTTP / Cloudflare Worker'], ['mem0', 'Mem0 Platform'], ['zep', 'Zep'], ['supabase', 'Supabase']].map(([value, label]) => '<button type="button" class="memory-choice-option" data-memory-sync-provider-option="' + value + '" data-label="' + label + '" aria-checked="false"><span>' + label + '</span><span class="memory-choice-check" aria-hidden="true">✓</span></button>').join('') + '</div></div>';
+        settings.appendChild(providerDialog);
+        providerDialog.querySelectorAll('[data-memory-action="close-memory-sync-provider"]').forEach((button) => button.addEventListener('click', closeMemorySyncProviderDialog));
+        providerDialog.querySelectorAll('[data-memory-sync-provider-option]').forEach((button) => button.addEventListener('click', () => selectMemorySyncProvider(button.dataset.memorySyncProviderOption)));
         void loadMemorySyncSettings();
     }
 
@@ -1895,13 +1937,17 @@
         const config = await window.MemorySync?.init?.().then(() => window.MemorySync.getSettings()).catch(() => null);
         if (!config || !root) return;
         const section = root.querySelector('.memory-external-section'); if (!section) return;
-        section.querySelector('[data-memory-sync-provider]').value = config.provider || 'http';
+        const provider = config.provider || 'http';
+        section.querySelector('[data-memory-sync-provider]').value = provider;
+        const providerOption = root.querySelector('[data-memory-sync-provider-option="' + provider + '"]');
+        if (providerOption) selectMemorySyncProvider(provider);
         section.querySelector('[data-memory-sync-url]').value = config.baseUrl || '';
         section.querySelector('[data-memory-sync-namespace]').value = config.namespace || '';
         (config.scope?.tiers || ['L1']).forEach((tier) => { const input = section.querySelector('[data-memory-sync-tier="' + tier + '"]'); if (input) input.checked = true; });
         section.querySelector('[data-memory-sync-chat]').checked = config.scope?.includeChat === true;
         section.querySelector('[data-memory-sync-archived]').checked = config.scope?.includeArchived === true;
         section.querySelector('[data-memory-sync-auto]').checked = config.autoSync !== false;
+        section.querySelector('.memory-sync-toggle-row').classList.toggle('is-on', config.autoSync !== false);
         const role = section.querySelector('[name="memory-sync-roles"][value="' + (config.scope?.roles || 'current') + '"]'); if (role) role.checked = true;
         const syncState = window.MemorySync.getStatus();
         section.querySelector('[data-memory-sync-status]').textContent = syncState.error ? ('上次同步失败：' + syncState.error) : syncState.lastSyncAt ? ('上次同步：' + new Date(syncState.lastSyncAt).toLocaleString() + (syncState.conflicts ? '，本地优先合并 ' + syncState.conflicts + ' 个冲突' : '')) : '';
@@ -2282,7 +2328,28 @@
             .memory-summary-settings-sheet { border-radius: 18px 18px 0 0; background: #fff; }
             .memory-settings-section { margin-top: 26px; padding-top: 20px; border-top: 1px solid #e5e5ea; }
             .memory-settings-section h3 { margin: 0; color: #000; font-size: 17px; font-weight: 600; }
-            .memory-external-section select, .memory-external-section input[type="text"], .memory-external-section input[type="password"], .memory-external-section input[type="url"] { min-width: 0; border: 0; background: transparent; color: #111; text-align: right; font: 400 14px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+            .memory-external-fields { display: grid; gap: 10px; }
+            .memory-external-section input[type="text"], .memory-external-section input[type="password"], .memory-external-section input[type="url"] { min-width: 0; border: 0; background: transparent; color: #111; text-align: right; font: 400 14px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+            .memory-sync-provider-button { display: flex; min-width: 0; flex: 1; align-items: center; justify-content: flex-end; gap: 8px; border: 0; padding: 0; background: transparent; color: #111; font: 500 14px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; cursor: pointer; }
+            .memory-sync-provider-button span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .memory-sync-chevron { color: #8e8e93; font-size: 22px; line-height: 1; }
+            .memory-sync-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 10px; padding: 13px 14px; border-radius: 14px; background: #f2f2f7; cursor: pointer; }
+            .memory-sync-toggle-row > span:first-child { display: grid; gap: 2px; color: #1c1c1e; font-size: 15px; }
+            .memory-sync-toggle-row small { color: #8e8e93; font-size: 12px; }
+            .memory-sync-toggle-row input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+            .memory-sync-switch { position: relative; width: 51px; height: 31px; flex: 0 0 auto; border-radius: 16px; background: #d1d1d6; transition: background-color 180ms ease; }
+            .memory-sync-switch::after { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,.18); content: ""; transition: transform 180ms ease; }
+            .memory-sync-toggle-row.is-on .memory-sync-switch { background: #34c759; }
+            .memory-sync-toggle-row.is-on .memory-sync-switch::after { transform: translateX(20px); }
+            .memory-choice-dialog { position: absolute; inset: 0; z-index: 2; display: none; align-items: flex-end; background: rgba(0,0,0,.28); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+            .memory-choice-dialog.is-visible { display: flex; }
+            .memory-choice-backdrop { position: absolute; inset: 0; }
+            .memory-choice-sheet { position: relative; width: 100%; padding: 14px 20px calc(25px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0; background: rgba(255,255,255,.94); box-shadow: 0 -12px 28px rgba(0,0,0,.14); }
+            .memory-choice-list { display: grid; gap: 8px; margin-top: 14px; }
+            .memory-choice-option { display: flex; align-items: center; justify-content: space-between; min-height: 48px; border: 0; border-radius: 13px; padding: 0 14px; background: #f2f2f7; color: #1c1c1e; font: 500 15px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; text-align: left; cursor: pointer; }
+            .memory-choice-option:active { transform: scale(.985); }
+            .memory-choice-check { color: #007aff; opacity: 0; }
+            .memory-choice-option.is-selected .memory-choice-check { opacity: 1; }
             .memory-sync-scope { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 14px 0 0; padding: 12px; border: 1px solid #e5e5ea; border-radius: 10px; }
             .memory-sync-scope legend { padding: 0 5px; color: #6e6e73; font-size: 12px; }
             .memory-sync-scope label { color: #1c1c1e; font-size: 13px; line-height: 20px; }

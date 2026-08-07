@@ -1385,12 +1385,12 @@
             if (!document.getElementById('memorySyncScript')) {
                 const syncScript = document.createElement('script');
                 syncScript.id = 'memorySyncScript';
-                syncScript.src = 'js/memory-sync.js?v=20260808-user-cloud-v2';
+                syncScript.src = 'js/memory-sync.js?v=20260808-user-cloud-v3';
                 document.body.appendChild(syncScript);
             }
             const script = document.createElement('script');
             script.id = 'memoryAppScript';
-            script.src = 'js/memory.js?v=20260808-summary-sync-v2';
+            script.src = 'js/memory.js?v=20260808-summary-sync-v3';
             script.onload = resolve;
             script.onerror = () => {
                 script.remove();
