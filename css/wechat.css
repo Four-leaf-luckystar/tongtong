@@ -972,8 +972,9 @@
         #wechatAppUI .wc-wallet-nav-title { font-size: 17px; font-weight: 600; color: #000; opacity: 0; transition: opacity 0.3s; }
 
         #wechatAppUI .wc-wallet-cards-wrapper { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; padding-top: 10px; }
-        #wechatAppUI .wc-wallet-cards-scroll { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; width: 100%; padding: 10px max(20px, calc(50% - 167.5px)); gap: 16px; scrollbar-width: none; }
+        #wechatAppUI .wc-wallet-cards-scroll { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; width: 100%; padding: 10px 0; gap: 16px; scrollbar-width: none; }
         #wechatAppUI .wc-wallet-cards-scroll::-webkit-scrollbar { display: none; }
+        #wechatAppUI .wc-wallet-cards-scroll::before, #wechatAppUI .wc-wallet-cards-scroll::after { content: ''; flex: 0 0 max(4px, calc(50% - 167.5px - 8px)); }
         
         #wechatAppUI .wc-apple-card { 
             flex: 0 0 calc(100vw - 40px); 
@@ -1159,6 +1160,86 @@
         #wechatAppUI .message-bubble.transfer-bubble::before {
             display: none !important;
         }
+        
+        /* =========================================
+           亲属卡气泡排版 (极简排版，无光泽)
+           ========================================= */
+        #wechatAppUI .wc-family-card-bubble {
+            width: 240px;
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.1s;
+            background-color: #1C1C1E;
+            color: #ffffff;
+            border: 0.5px solid rgba(255,255,255,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: left;
+        }
+        #wechatAppUI .wc-family-card-bubble:active {
+            transform: scale(0.97);
+        }
+        #wechatAppUI .wc-family-card-bubble .pay-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        #wechatAppUI .wc-family-card-bubble .pay-icon {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #wechatAppUI .wc-family-card-bubble .pay-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: currentColor;
+        }
+        #wechatAppUI .wc-family-card-bubble .pay-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        #wechatAppUI .wc-family-card-bubble .pay-amount {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: baseline;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+        #wechatAppUI .wc-family-card-bubble .pay-amount span {
+            font-size: 18px;
+            margin-right: 2px;
+            font-weight: 500;
+        }
+        #wechatAppUI .wc-family-card-bubble .pay-status {
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.6);
+        }
+        #wechatAppUI .wc-family-card-bubble .pay-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.5);
+        }
+        #wechatAppUI .wc-family-card-bubble .pay-brand {
+            font-size: 14px;
+            font-weight: 800;
+            font-style: italic;
+            letter-spacing: 0.5px;
+        }
+
 /* ==========================================
    微信转账详情居中弹窗样式
    ========================================== */
