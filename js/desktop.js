@@ -92,13 +92,23 @@
             const COLUMN_GAP = 10;
             const ROW_HEIGHT = 80;
             const ROW_GAP = 15;
-            const grid = document.querySelector('.desktop-page') || document.getElementById('desktopGrid');
-            const gridStyle = grid ? window.getComputedStyle(grid) : null;
-            const horizontalPadding = gridStyle ? parseFloat(gridStyle.paddingLeft) + parseFloat(gridStyle.paddingRight) : 0;
-            const gridWidth = grid ? grid.clientWidth - horizontalPadding : 0;
+            
+            // 修复刷新时 DOM 未完全渲染导致获取宽度失败的问题
+            let containerWidth = 375; // 默认手机外壳宽度
+            const iphoneEl = document.querySelector('.iphone');
+            if (iphoneEl && iphoneEl.clientWidth > 0) {
+                containerWidth = iphoneEl.clientWidth;
+            } else if (window.innerWidth > 0) {
+                containerWidth = Math.min(window.innerWidth, 375);
+            }
+
+            // .desktop-page 的左右 padding 固定为 20px + 20px = 40px
+            const horizontalPadding = 40;
+            const gridWidth = containerWidth - horizontalPadding;
+            
             const columnWidth = gridWidth > 0
                 ? (gridWidth - COLUMN_GAP * (DESKTOP_COLUMNS - 1)) / DESKTOP_COLUMNS
-                : 80;
+                : 76.25;
 
             let columns = 1;
             let rows = 1;
