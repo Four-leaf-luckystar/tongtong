@@ -1081,7 +1081,7 @@
         window.customWidgets = customWidgets;
         let currentWidgets = officialWidgets;
 
-        let widgetViewMode = 'carousel';     // 'carousel' | 'list'
+        let widgetViewMode = localStorage.getItem('themeWidgetViewMode') || 'carousel';
         let isWidgetEditing = false;
         let currentProgress = 0, targetProgress = 0;
         let isDragging = false, startX = 0, startProgress = 0;
@@ -1839,11 +1839,16 @@
                 URL.revokeObjectURL(url);
                 if (typeof showToast === 'function') showToast("导出成功");
             }
+            else if (action === 'delete') {
+                // 复用已有的删除逻辑，传入一个空的 event 对象防止报错
+                deleteWidget(activeWidgetIndex, { stopPropagation: () => {} });
+            }
         }
         window.widgetCtxAction = widgetCtxAction;
 
         function toggleWidgetViewMode(forceMode) {
             widgetViewMode = forceMode ? forceMode : (widgetViewMode === 'carousel' ? 'list' : 'carousel');
+            localStorage.setItem('themeWidgetViewMode', widgetViewMode); // 保存用户的选择
             const iL = document.getElementById('widgetIconList');
             const iC = document.getElementById('widgetIconCard');
             if (iL) iL.style.display = widgetViewMode === 'carousel' ? 'block' : 'none';
@@ -1852,6 +1857,9 @@
             else { widgetContentArea.classList.remove('show-list'); updateWidgetCardsContinuous(); }
         }
         window.toggleWidgetViewMode = toggleWidgetViewMode;
+        
+        // 初始化时自动应用保存的视图模式
+        toggleWidgetViewMode(widgetViewMode);
 
         function enterWidgetEditMode() {
             closeWidgetMenus(); isWidgetEditing = true;
@@ -2193,7 +2201,25 @@
         bindWidgetTouchAction('.widget-add-action', handleAddWidget);
         bindWidgetTouchAction('.widget-editor-action:not(.widget-editor-save)', closeWidgetEditor);
         bindWidgetTouchAction('.widget-editor-save', saveWidgetEditor);
-        function renderWidgetViews() {
+        
+        let lastRenderedWidgetsType = null;
+        let lastRenderedWidgetsLength = -1;
+        let renderQueue = [];
+        let isRenderingQueue = false;
+
+        function renderWidgetViews(force = true) {
+            const currentType = currentWidgets === officialWidgets ? 'official' : 'custom';
+            
+            // 如果非强制刷新，且数据没变，直接复用 DOM，避免卡顿
+            if (!force && lastRenderedWidgetsType === currentType && lastRenderedWidgetsLength === currentWidgets.length) {
+                updateWidgetCardsContinuous();
+                return;
+            }
+            
+            lastRenderedWidgetsType = currentType;
+            lastRenderedWidgetsLength = currentWidgets.length;
+            renderQueue = []; // 清空之前的渲染队列
+            
             widgetTrack.innerHTML = ''; widgetPagination.innerHTML = ''; widgetListContainer.innerHTML = '';
             if (currentWidgets.length === 0) {
                 widgetEmptyState.style.display = 'block';
@@ -2203,46 +2229,72 @@
             widgetEmptyState.style.display = 'none';
             widgetContentArea.style.display = 'flex';
 
+            // 将所有组件推入渲染队列
             currentWidgets.forEach((widget, i) => {
-                const widgetContent = typeof window.normalizeStoredWidgetContent === 'function'
-                    ? window.normalizeStoredWidgetContent(widget.content)
-                    : (widget.content || '');
-                const card = document.createElement('div'); card.className = 'widget-card';
-                card.innerHTML = '<div class="widget-card-more-btn" onclick="openWidgetContextMenu(' + i + ', event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></div><div class="widget-card-preview">' + makeWidgetFrameHTML(widgetContent) + '</div><div class="widget-card-name">' + widget.name + '</div><div class="widget-card-size">' + formatWidgetSizeLabel(widget) + '</div>';
-                widgetTrack.appendChild(card);
-
-                const dot = document.createElement('div'); dot.className = 'widget-dot'; widgetPagination.appendChild(dot);
-
-                const listItem = document.createElement('div'); listItem.className = 'widget-list-item';
-                listItem.onclick = function () {
-                    if (isWidgetEditing) openWidgetEditor(i);
-                    else { targetProgress = i; currentProgress = i; toggleWidgetViewMode('carousel'); }
-                };
-                listItem.innerHTML = '<div class="widget-delete-btn-left" onclick="deleteWidget(' + i + ', event)"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg></div><div class="widget-list-item-icon"></div><div class="widget-list-item-info"><div class="widget-title-wrapper"><div class="widget-list-item-title">' + widget.name + '</div><svg class="widget-edit-pencil" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></div><div class="widget-list-item-sub">Widget</div></div><div class="widget-list-action-trigger" onclick="openWidgetContextMenu(' + i + ', event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="#c7c7cc" stroke="none"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg></div>';
-                const listPreviewHost = listItem.querySelector('.widget-list-item-icon');
-                const listPreviewFrame = document.createElement('iframe');
-                const listPreviewDims = getWidgetDimensions(widget);
-                const listPreviewScale = Math.min(48 / listPreviewDims.width, 48 / listPreviewDims.height);
-                listPreviewFrame.className = 'widget-list-preview-frame';
-                listPreviewFrame.setAttribute('sandbox', 'allow-scripts');
-                listPreviewFrame.setAttribute('title', (widget.name || '组件') + '预览');
-                listPreviewFrame.style.width = listPreviewDims.width + 'px';
-                listPreviewFrame.style.height = listPreviewDims.height + 'px';
-                listPreviewFrame.style.left = (48 - listPreviewDims.width * listPreviewScale) / 2 + 'px';
-                listPreviewFrame.style.top = (48 - listPreviewDims.height * listPreviewScale) / 2 + 'px';
-                listPreviewFrame.style.transform = 'scale(' + listPreviewScale + ')';
-                listPreviewFrame.addEventListener('load', function () {
-                    if (typeof window.syncGlobalFontToWidgetFrame === 'function') {
-                        window.syncGlobalFontToWidgetFrame(listPreviewFrame);
-                    }
-                });
-                listPreviewFrame.srcdoc = window.buildWidgetFrameSrcdoc
-                    ? window.buildWidgetFrameSrcdoc(widgetContent)
-                    : widgetContent;
-                listPreviewHost.appendChild(listPreviewFrame);
-                widgetListContainer.appendChild(listItem);
+                renderQueue.push({ widget, i });
             });
+
+            // 启动分帧渲染
+            if (!isRenderingQueue) {
+                isRenderingQueue = true;
+                processRenderQueue();
+            }
+        }
+
+        function processRenderQueue() {
+            if (renderQueue.length === 0) {
+                isRenderingQueue = false;
+                updateWidgetCardsContinuous();
+                return;
+            }
+
+            // 每一帧只渲染 1 个组件，避免阻塞主线程
+            const { widget, i } = renderQueue.shift();
+
+            const widgetContent = typeof window.normalizeStoredWidgetContent === 'function'
+                ? window.normalizeStoredWidgetContent(widget.content)
+                : (widget.content || '');
+                
+            const card = document.createElement('div'); card.className = 'widget-card';
+            card.innerHTML = '<div class="widget-card-more-btn" onclick="openWidgetContextMenu(' + i + ', event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></div><div class="widget-card-preview">' + makeWidgetFrameHTML(widgetContent) + '</div><div class="widget-card-name">' + widget.name + '</div><div class="widget-card-size">' + formatWidgetSizeLabel(widget) + '</div>';
+            widgetTrack.appendChild(card);
+
+            const dot = document.createElement('div'); dot.className = 'widget-dot'; widgetPagination.appendChild(dot);
+
+            const listItem = document.createElement('div'); listItem.className = 'widget-list-item';
+            listItem.onclick = function () {
+                if (isWidgetEditing) openWidgetEditor(i);
+                else { targetProgress = i; currentProgress = i; toggleWidgetViewMode('carousel'); }
+            };
+            listItem.innerHTML = '<div class="widget-delete-btn-left" onclick="deleteWidget(' + i + ', event)"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg></div><div class="widget-list-item-icon"></div><div class="widget-list-item-info"><div class="widget-title-wrapper"><div class="widget-list-item-title">' + widget.name + '</div><svg class="widget-edit-pencil" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></div><div class="widget-list-item-sub">Widget</div></div><div class="widget-list-action-trigger" onclick="openWidgetContextMenu(' + i + ', event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="#c7c7cc" stroke="none"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg></div>';
+            const listPreviewHost = listItem.querySelector('.widget-list-item-icon');
+            const listPreviewFrame = document.createElement('iframe');
+            const listPreviewDims = getWidgetDimensions(widget);
+            const listPreviewScale = Math.min(48 / listPreviewDims.width, 48 / listPreviewDims.height);
+            listPreviewFrame.className = 'widget-list-preview-frame';
+            listPreviewFrame.setAttribute('sandbox', 'allow-scripts');
+            listPreviewFrame.setAttribute('title', (widget.name || '组件') + '预览');
+            listPreviewFrame.setAttribute('loading', 'lazy'); // 增加懒加载
+            listPreviewFrame.style.width = listPreviewDims.width + 'px';
+            listPreviewFrame.style.height = listPreviewDims.height + 'px';
+            listPreviewFrame.style.left = (48 - listPreviewDims.width * listPreviewScale) / 2 + 'px';
+            listPreviewFrame.style.top = (48 - listPreviewDims.height * listPreviewScale) / 2 + 'px';
+            listPreviewFrame.style.transform = 'scale(' + listPreviewScale + ')';
+            listPreviewFrame.addEventListener('load', function () {
+                if (typeof window.syncGlobalFontToWidgetFrame === 'function') {
+                    window.syncGlobalFontToWidgetFrame(listPreviewFrame);
+                }
+            });
+            listPreviewFrame.srcdoc = window.buildWidgetFrameSrcdoc
+                ? window.buildWidgetFrameSrcdoc(widgetContent)
+                : widgetContent;
+            listPreviewHost.appendChild(listPreviewFrame);
+            widgetListContainer.appendChild(listItem);
+
             updateWidgetCardsContinuous();
+            
+            // 安排下一帧渲染下一个组件
+            requestAnimationFrame(processRenderQueue);
         }
 
 

@@ -431,7 +431,7 @@
             presetGrid.style.display = "none";
             if(fontGrid) fontGrid.style.display = "none";
             document.getElementById("widgetAppGrid").style.display = "flex";
-            if (typeof renderWidgetViews === "function") renderWidgetViews();
+            if (typeof renderWidgetViews === "function") renderWidgetViews(false);
         }
     }
 

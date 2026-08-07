@@ -92,7 +92,7 @@
             const COLUMN_GAP = 10;
             const ROW_HEIGHT = 80;
             const ROW_GAP = 15;
-            const grid = document.getElementById('desktopGrid');
+            const grid = document.querySelector('.desktop-page') || document.getElementById('desktopGrid');
             const gridStyle = grid ? window.getComputedStyle(grid) : null;
             const horizontalPadding = gridStyle ? parseFloat(gridStyle.paddingLeft) + parseFloat(gridStyle.paddingRight) : 0;
             const gridWidth = grid ? grid.clientWidth - horizontalPadding : 0;
@@ -474,7 +474,6 @@
             const page = document.createElement('div');
             page.className = 'desktop-page';
             page.dataset.pageIndex = String(pageIndex);
-            page.hidden = true;
             for (let i = 0; i < DESKTOP_SLOT_COUNT; i++) {
                 const slot = document.createElement('div');
                 slot.className = 'desktop-slot' + (isEditMode ? ' show-grid' : '');
@@ -502,9 +501,9 @@
             const activePage = ensureDesktopPageElement(pageIndex, desktopPages[pageIndex]);
             desktopGrid.querySelectorAll(':scope > .desktop-page').forEach(page => {
                 const isActive = page === activePage;
-                page.hidden = !isActive;
                 page.classList.toggle('active', isActive);
             });
+            desktopGrid.style.transform = `translate3d(-${pageIndex * 100}%, 0, 0)`;
             return activePage;
         }
 
@@ -558,14 +557,8 @@
         }
 
         function renderDesktopPage(pageData = [], direction = 0) {
-            const desktopGrid = document.getElementById('desktopGrid');
             ensureDesktopPageElement(currentDesktopPage, pageData);
             activateDesktopPage(currentDesktopPage);
-            if (direction) {
-                desktopGrid.classList.remove('page-enter-left', 'page-enter-right');
-                void desktopGrid.offsetWidth;
-                desktopGrid.classList.add(direction > 0 ? 'page-enter-right' : 'page-enter-left');
-            }
             renderDesktopPageControls();
         }
 
@@ -948,14 +941,18 @@
         if (!hasSettings && desktopPages[0].length > 0) {
             desktopPages[0][0].appId = 'settings';
         }
-        if (!hasTheme && dockData.length > 0) {
-            dockData[dockData.length - 1].appId = 'theme';
-        }
-        // ----------------------------------
+            if (!hasTheme && dockData.length > 0) {
+                dockData[dockData.length - 1].appId = 'theme';
+            }
+            // ----------------------------------
 
-        renderDesktopPage(desktopPages[currentDesktopPage]);
+            desktopPages.forEach((pageData, index) => {
+                ensureDesktopPageElement(index, pageData);
+            });
+            renderDesktopPage(desktopPages[currentDesktopPage]);
 
-        dockData.forEach(appData => {
+            dockData.forEach(appData => {
+
             dock.appendChild(createAppElement(appData.name, appData.icon, appData.appId));
         });
         if (repairedMemoryAppId || migratedMeetingApp) saveLayout();
@@ -1069,14 +1066,16 @@
         const desktopGrid = getDesktopGridElement();
         if (!desktopGrid) return;
         desktopGrid.classList.add('is-swiping');
-        desktopGrid.style.setProperty('--desktop-swipe-offset', `${getDesktopSwipeOffset(deltaX)}px`);
+        const baseOffset = -currentDesktopPage * desktopGrid.clientWidth;
+        const totalOffset = baseOffset + getDesktopSwipeOffset(deltaX);
+        desktopGrid.style.transform = `translate3d(${totalOffset}px, 0, 0)`;
     }
 
     function resetDesktopSwipeOffset() {
         const desktopGrid = getDesktopGridElement();
         if (!desktopGrid) return;
         desktopGrid.classList.remove('is-swiping');
-        desktopGrid.style.removeProperty('--desktop-swipe-offset');
+        desktopGrid.style.transform = `translate3d(-${currentDesktopPage * 100}%, 0, 0)`;
     }
 
     function updateDesktopSwipeGesture(swipe, clientX, clientY) {
@@ -1171,44 +1170,106 @@
     }
 
     editDone.addEventListener('click', exitEditMode);
-    editPlus.addEventListener('click', () => {
-        const modal = document.getElementById('widgetPickerModal');
+    
+    let currentWidgetPickerTab = 'all';
+
+    window.closeWidgetPicker = function() {
+        document.getElementById('widgetPickerOverlay').classList.remove('show');
+    };
+
+    window.switchWidgetPickerTab = function(tab, element) {
+        currentWidgetPickerTab = tab;
+        document.querySelectorAll('.widget-picker-tab').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+        renderWidgetPickerList();
+    };
+
+    function renderWidgetPickerList() {
         const list = document.getElementById('widgetPickerList');
         list.innerHTML = '';
         
-        const allWidgets = [...officialWidgets, ...customWidgets];
+        // 获取所有组件（官方 + 自定义）
+        const allWidgets = [...(window.officialWidgets || []), ...(window.customWidgets || [])];
         
-        if (allWidgets.length === 0) {
-            list.innerHTML = '<div style="color: white; text-align: center; margin-top: 40px;">暂无小组件</div>';
-        } else {
-            allWidgets.forEach((widget, index) => {
-                const item = document.createElement('div');
-                item.style.cssText = "background: rgba(255,255,255,0.8); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 16px; cursor: pointer; backdrop-filter: blur(10px);";
-                
-                const preview = createWidgetPickerPreview(widget);
-                
-                const name = document.createElement('div');
-                name.style.cssText = "flex: 1; font-weight: bold; color: black; font-size: 16px;";
-                name.innerText = widget.name || '未命名组件';
-                
-                const sizeLabel = document.createElement('div');
-                sizeLabel.style.cssText = "background: rgba(0,122,255,0.15); color: #007aff; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 12px;";
-                sizeLabel.innerText = formatWidgetSizeLabel(widget);
-                
-                item.appendChild(preview);
-                item.appendChild(name);
-                item.appendChild(sizeLabel);
-                
-                item.onclick = () => {
-                    modal.style.display = 'none';
-                    addDesktopWidget(widget, preview.querySelector('.widget-render-frame'));
-                };
-                
-                list.appendChild(item);
-            });
+        // 根据 Tab 过滤
+        const filteredWidgets = allWidgets.filter(widget => {
+            const size = widget.presetSize || '';
+            if (currentWidgetPickerTab === 'all') return true;
+            if (currentWidgetPickerTab === 'large') return size === '4x4' || size === '4x3'; // 4x3 算作大尺寸
+            if (currentWidgetPickerTab === 'medium') return size === '4x2';
+            if (currentWidgetPickerTab === 'small') return size === '2x2';
+            if (currentWidgetPickerTab === 'custom') return size !== '4x4' && size !== '4x3' && size !== '4x2' && size !== '2x2';
+            return true;
+        });
+
+        if (filteredWidgets.length === 0) {
+            list.innerHTML = '<div style="color: #8e8e93; text-align: center; margin-top: 40px; font-size: 14px;">该分类下暂无小组件</div>';
+            return;
         }
+
+        filteredWidgets.forEach(widget => {
+            const card = document.createElement('div');
+            card.className = 'widget-picker-card';
+            
+            // 预览区域
+            const previewBox = document.createElement('div');
+            previewBox.className = 'widget-picker-preview-box';
+            
+            // 生成 iframe 预览 (复用原有逻辑，但放大显示)
+            const widgetContent = window.normalizeStoredWidgetContent ? window.normalizeStoredWidgetContent(widget.content || '') : (widget.content || '');
+            const dims = window.getWidgetDimensions ? window.getWidgetDimensions(widget) : { width: 140, height: 140 };
+            
+            // 计算缩放比例，使其完美适应 180px 高度的预览框
+            const scale = Math.min(260 / dims.width, 160 / dims.height);
+            
+            const frame = document.createElement('iframe');
+            frame.className = 'widget-render-frame';
+            frame.setAttribute('sandbox', 'allow-scripts');
+            frame.style.cssText = `width: ${dims.width}px; height: ${dims.height}px; border: 0; background: transparent; transform-origin: center; pointer-events: none; transform: scale(${scale});`;
+            frame.srcdoc = window.buildWidgetFrameSrcdoc ? window.buildWidgetFrameSrcdoc(widgetContent) : widgetContent;
+            
+            previewBox.appendChild(frame);
+            
+            // 信息区域
+            const infoBox = document.createElement('div');
+            infoBox.className = 'widget-picker-info';
+            
+            const textBox = document.createElement('div');
+            textBox.className = 'widget-picker-text';
+            textBox.innerHTML = `
+                <h3>${widget.name || '未命名组件'}</h3>
+                <div class="widget-picker-badge">${window.formatWidgetSizeLabel ? window.formatWidgetSizeLabel(widget) : '自定义'}</div>
+            `;
+            
+            const addBtn = document.createElement('button');
+            addBtn.className = 'widget-picker-add-btn';
+            addBtn.innerText = '+ 添加';
+            addBtn.onclick = () => {
+                closeWidgetPicker();
+                // 延迟一点添加，等待抽屉收回动画
+                setTimeout(() => {
+                    addDesktopWidget(widget);
+                }, 300);
+            };
+            
+            infoBox.appendChild(textBox);
+            infoBox.appendChild(addBtn);
+            
+            card.appendChild(previewBox);
+            card.appendChild(infoBox);
+            list.appendChild(card);
+        });
+    }
+
+    editPlus.addEventListener('click', () => {
+        // 重置为全部 Tab
+        currentWidgetPickerTab = 'all';
+        document.querySelectorAll('.widget-picker-tab').forEach((el, index) => {
+            el.classList.toggle('active', index === 0);
+        });
         
-        modal.style.display = 'flex';
+        renderWidgetPickerList();
+        document.getElementById('widgetPickerOverlay').classList.add('show');
     });
 
     function forwardEditTouchTarget(event, control) {
@@ -1566,11 +1627,16 @@
 
     function scheduleDragEdgeNavigation(clientX, clientY) {
         const grid = document.getElementById('desktopGrid');
-        const rect = dragGridRect || grid.getBoundingClientRect();
-        const insideVerticalRange = clientY >= rect.top && clientY <= rect.bottom;
-        const direction = insideVerticalRange && clientX <= rect.left + 34
+        if (!grid) return;
+        
+        const shell = document.querySelector('.iphone') || document.body;
+        const shellRect = shell.getBoundingClientRect();
+        const gridRect = grid.getBoundingClientRect();
+        
+        const insideVerticalRange = clientY >= gridRect.top && clientY <= gridRect.bottom;
+        const direction = insideVerticalRange && clientX <= shellRect.left + 34
             ? -1
-            : insideVerticalRange && clientX >= rect.right - 34
+            : insideVerticalRange && clientX >= shellRect.right - 34
                 ? 1
                 : 0;
 
@@ -1585,15 +1651,20 @@
             dragEdgeTimer = null;
             if (!dragGhost || !draggedApp) return;
             detachDraggedAppFromDesktopPage();
+            
             if (direction > 0 && currentDesktopPage === desktopPages.length - 1) {
-                desktopPages.push([]);
+                const currentPageEl = getDesktopPageElement(currentDesktopPage);
+                const hasOtherApps = currentPageEl && Array.from(currentPageEl.querySelectorAll('.app-item')).some(app => app !== draggedApp);
+                if (hasOtherApps) {
+                    desktopPages.push([]);
+                    ensureDesktopPageElement(desktopPages.length - 1, []);
+                }
             }
+            
             const targetPage = currentDesktopPage + direction;
             if (targetPage >= 0 && targetPage < desktopPages.length) {
                 switchDesktopPage(targetPage, { skipCommit: true, skipSave: true });
                 requestAnimationFrame(() => {
-                    const nextGrid = document.getElementById('desktopGrid');
-                    dragGridRect = nextGrid ? nextGrid.getBoundingClientRect() : null;
                     if (dragGhost && dragPointerX !== null && dragPointerY !== null) {
                         scheduleDragEdgeNavigation(dragPointerX, dragPointerY);
                     }
