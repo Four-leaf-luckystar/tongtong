@@ -856,7 +856,8 @@
         const previewPageIndex = Math.max(0, Math.min(Number(preset.currentPage) || 0, previewPages.length - 1));
         
         previewPages.forEach((page, pageIndex) => {
-            let desktopHTML = '<div class="desktop-grid" style="height: calc(100% - 180px);">';
+            // 补上缺失的 .desktop-page 容器，恢复网格布局
+            let desktopHTML = '<div class="desktop-grid" style="height: calc(100% - 180px);"><div class="desktop-page" style="display: grid; width: 100%; height: 100%;">';
             for (let i = 0; i < 28; i++) {
                 const appData = page.find(d => d.index === i);
                 if (appData) {
@@ -896,7 +897,8 @@
                     desktopHTML += `<div class="desktop-slot"></div>`;
                 }
             }
-            desktopHTML += '</div>';
+            // 多闭合一个 div，对应上面新增的 .desktop-page
+            desktopHTML += '</div></div>';
 
             if (previewPages.length > 1) {
                 desktopHTML += '<div class="desktop-page-dots" style="position:absolute;left:50%;bottom:125px;transform:translateX(-50%);">';
