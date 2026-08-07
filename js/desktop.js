@@ -1390,7 +1390,7 @@
             }
             const script = document.createElement('script');
             script.id = 'memoryAppScript';
-            script.src = 'js/memory.js?v=20260808-summary-sync-v4';
+            script.src = 'js/memory.js?v=20260808-summary-sync-v5';
             script.onload = resolve;
             script.onerror = () => {
                 script.remove();
