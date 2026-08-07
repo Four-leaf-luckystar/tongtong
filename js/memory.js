@@ -1354,6 +1354,93 @@
         closeMemorySyncProviderDialog();
     }
 
+    function makeMemorySettingsCollapsible(section, title) {
+        if (!section || section.classList.contains('memory-settings-collapsible')) return;
+        const heading = section.querySelector(':scope > h3');
+        if (!heading) return;
+        const body = document.createElement('div');
+        body.className = 'memory-settings-collapsible-body';
+        while (heading.nextSibling) body.appendChild(heading.nextSibling);
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'memory-settings-collapsible-header';
+        toggle.setAttribute('aria-expanded', 'true');
+        toggle.innerHTML = '<span>' + title + '</span><span class="memory-settings-chevron" aria-hidden="true">⌃</span>';
+        toggle.addEventListener('click', () => {
+            const expanded = section.classList.toggle('is-expanded');
+            toggle.setAttribute('aria-expanded', String(expanded));
+        });
+        section.classList.add('memory-settings-collapsible', 'is-expanded');
+        section.replaceChildren(toggle, body);
+    }
+
+    function buildRemoteVectorSection(settings) {
+        const section = document.createElement('section');
+        section.className = 'memory-settings-section memory-settings-collapsible memory-remote-vector-section is-expanded';
+        section.innerHTML = '<h3>其他向量模型</h3><div class="memory-settings-collapsible-body"><p class="memory-semantic-settings-copy">通过你的硅基流动 API 拉取远程 embedding 模型列表；密钥只保存在本机。</p><label class="memory-semantic-settings-input"><span>服务</span><strong>硅基流动</strong></label><label class="memory-semantic-settings-input"><span>地址</span><input type="url" data-memory-remote-url value="https://api.siliconflow.cn/v1" placeholder="https://api.siliconflow.cn/v1"></label><label class="memory-semantic-settings-input"><span>API Key</span><input type="password" data-memory-remote-key autocomplete="off" placeholder="用户自己的密钥"></label><label class="memory-semantic-settings-input"><span>模型</span><select data-memory-remote-model><option value="BAAI/bge-m3">BAAI/bge-m3</option></select></label><div class="memory-sync-actions"><button type="button" data-memory-action="pull-memory-remote-model">拉取模型</button><button type="button" data-memory-action="save-memory-remote-model">保存配置</button></div><p class="memory-composer-error" data-memory-remote-status aria-live="polite"></p></div>';
+        const heading = section.querySelector(':scope > h3');
+        const body = section.querySelector(':scope > .memory-settings-collapsible-body');
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'memory-settings-collapsible-header';
+        toggle.setAttribute('aria-expanded', 'true');
+        toggle.innerHTML = '<span>' + heading.textContent + '</span><span class="memory-settings-chevron" aria-hidden="true">⌃</span>';
+        toggle.addEventListener('click', () => {
+            const expanded = section.classList.toggle('is-expanded');
+            toggle.setAttribute('aria-expanded', String(expanded));
+        });
+        section.replaceChildren(toggle, body);
+        return section;
+    }
+
+    function remoteVectorConfigFromUi() {
+        const section = root.querySelector('.memory-remote-vector-section');
+        return {
+            provider: 'siliconflow',
+            baseUrl: section.querySelector('[data-memory-remote-url]').value.trim() || 'https://api.siliconflow.cn/v1',
+            ...(section.querySelector('[data-memory-remote-key]').value.trim() ? { apiKey: section.querySelector('[data-memory-remote-key]').value.trim() } : {}),
+            model: section.querySelector('[data-memory-remote-model]').value.trim()
+        };
+    }
+
+    function renderRemoteVectorConfig(config) {
+        const section = root.querySelector('.memory-remote-vector-section');
+        if (!section || !config) return;
+        section.querySelector('[data-memory-remote-url]').value = config.baseUrl || 'https://api.siliconflow.cn/v1';
+        if (config.apiKey !== 'configured') section.querySelector('[data-memory-remote-key]').value = config.apiKey || '';
+        const select = section.querySelector('[data-memory-remote-model]');
+        const models = Array.from(new Set([...(Array.isArray(config.models) ? config.models : []), config.model || 'BAAI/bge-m3'])).filter(Boolean);
+        select.replaceChildren(...models.map((model) => { const option = document.createElement('option'); option.value = model; option.textContent = model; return option; }));
+        select.value = config.model || models[0] || 'BAAI/bge-m3';
+        section.querySelector('[data-memory-remote-status]').textContent = config.status === 'error' ? (config.error || '模型拉取失败') : config.models?.length ? ('已保存 ' + config.models.length + ' 个模型') : '';
+    }
+
+    async function loadRemoteVectorSettings() {
+        const config = await window.SemanticMemory?.initRemote?.().catch(() => null);
+        if (config) renderRemoteVectorConfig(config);
+    }
+
+    async function pullRemoteVectorModels() {
+        const section = root.querySelector('.memory-remote-vector-section');
+        const status = section.querySelector('[data-memory-remote-status]');
+        status.textContent = '正在拉取模型列表…';
+        try {
+            const config = await window.SemanticMemory.pullRemoteModels(remoteVectorConfigFromUi());
+            renderRemoteVectorConfig(config);
+            status.textContent = '模型列表已更新，共 ' + (config.models?.length || 0) + ' 个。';
+        } catch (error) { status.textContent = '拉取失败：' + String(error.message || error); }
+    }
+
+    async function saveRemoteVectorSettings() {
+        const section = root.querySelector('.memory-remote-vector-section');
+        const status = section.querySelector('[data-memory-remote-status]');
+        try {
+            const config = await window.SemanticMemory.saveRemoteConfig(remoteVectorConfigFromUi());
+            renderRemoteVectorConfig(config);
+            status.textContent = '远程向量模型设置已保存。';
+        } catch (error) { status.textContent = '保存失败：' + String(error.message || error); }
+    }
+
     function getSemanticModelState() {
         return typeof window.SemanticMemory?.getState === 'function'
             ? window.SemanticMemory.getState()
@@ -1911,6 +1998,12 @@
             + '<label class="memory-summary-settings-input"><input type="number" inputmode="numeric" min="1" max="500" step="1" data-memory-summary-interval><span>条新消息</span></label>'
             + '<section class="memory-settings-section"><h3>向量模型</h3><p class="memory-semantic-settings-copy">下载到本机后，聊天内容不会上传。</p><label class="memory-semantic-settings-input"><span>自定义清单</span><input type="url" data-semantic-model-url placeholder="可选：manifest 地址"></label><button class="memory-model-download" type="button" data-memory-action="download-semantic-model">下载向量模型</button><progress class="memory-semantic-model-progress" data-semantic-model-progress max="1" value="0" hidden></progress><p class="memory-semantic-model-status" data-semantic-model-status>模型未下载</p><button class="memory-semantic-remove" type="button" data-memory-action="remove-semantic-model" hidden>删除本地模型</button></section>'
             + '<section class="memory-settings-section memory-external-section"><h3>外接记忆库</h3><p class="memory-semantic-settings-copy">本地 IndexedDB 是主数据源；数据只会以明文上传到你配置的用户云端，凭据仅保存在本机。</p><div class="memory-external-fields"><label class="memory-semantic-settings-input memory-sync-provider-field"><span>服务</span><button type="button" class="memory-sync-provider-button" data-memory-action="choose-memory-sync-provider" aria-haspopup="dialog"><span data-memory-sync-provider-label>通用 HTTP / Cloudflare Worker</span><span class="memory-sync-chevron" aria-hidden="true">›</span></button><input type="hidden" data-memory-sync-provider value="http"></label><label class="memory-semantic-settings-input"><span>地址</span><input type="url" data-memory-sync-url placeholder="用户自己的服务地址；Mem0/Zep 可留空"></label><label class="memory-semantic-settings-input"><span>API Key</span><input type="password" data-memory-sync-key autocomplete="off"></label><label class="memory-semantic-settings-input"><span>访问令牌</span><input type="password" data-memory-sync-token autocomplete="off" placeholder="Supabase/HTTP 可选"></label><label class="memory-semantic-settings-input"><span>Supabase 表</span><input type="text" data-memory-sync-table placeholder="tonghuaji_memories"></label><label class="memory-semantic-settings-input"><span>命名空间</span><input type="text" data-memory-sync-namespace placeholder="用于隔离角色数据"></label></div><label class="memory-sync-toggle-row is-on"><span><strong>自动同步</strong><small>后台静默执行</small></span><input type="checkbox" data-memory-sync-auto checked><span class="memory-sync-switch" aria-hidden="true"></span></label><fieldset class="memory-sync-scope"><legend>上传范围</legend><label><input type="checkbox" data-memory-sync-tier="L1"> L1 确认记忆</label><label><input type="checkbox" data-memory-sync-tier="L2"> L2 摘要</label><label><input type="checkbox" data-memory-sync-tier="L3"> L3 片段</label><label><input type="checkbox" data-memory-sync-chat> 聊天记录</label><label><input type="checkbox" data-memory-sync-archived> 包含归档</label><label><input type="radio" name="memory-sync-roles" value="current" checked> 当前角色</label><label><input type="radio" name="memory-sync-roles" value="all"> 全部角色</label></fieldset><div class="memory-sync-actions"><button type="button" data-memory-action="test-memory-sync">测试连接</button><button type="button" data-memory-action="save-memory-sync">保存同步设置</button><button type="button" data-memory-action="sync-memory-now">立即同步</button><button type="button" data-memory-action="restore-memory-sync">下载恢复</button><a href="cloud-memory/README.md" target="_blank" rel="noopener">部署说明</a></div><p class="memory-composer-error" data-memory-sync-status aria-live="polite"></p></section><p class="memory-composer-error" data-memory-summary-error aria-live="polite"></p></div>';
+        const localSection = settings.querySelector('.memory-settings-section:not(.memory-external-section)');
+        const externalSection = settings.querySelector('.memory-external-section');
+        makeMemorySettingsCollapsible(localSection, '本地向量模型');
+        const remoteSection = buildRemoteVectorSection(settings);
+        externalSection.parentNode.insertBefore(remoteSection, externalSection);
+        makeMemorySettingsCollapsible(externalSection, '外接记忆库');
         root.appendChild(settings);
         settings.querySelector('[data-memory-action="close-summary-settings"]').addEventListener('click', closeSummarySettings);
         settings.querySelector('[data-memory-action="save-summary-settings"]').addEventListener('click', saveSummarySettings);
@@ -1920,6 +2013,8 @@
         settings.querySelector('[data-memory-action="save-memory-sync"]').addEventListener('click', saveMemorySyncSettings);
         settings.querySelector('[data-memory-action="sync-memory-now"]').addEventListener('click', syncMemoryNow);
         settings.querySelector('[data-memory-action="restore-memory-sync"]').addEventListener('click', restoreMemorySync);
+        settings.querySelector('[data-memory-action="pull-memory-remote-model"]').addEventListener('click', pullRemoteVectorModels);
+        settings.querySelector('[data-memory-action="save-memory-remote-model"]').addEventListener('click', saveRemoteVectorSettings);
         settings.querySelector('[data-memory-action="choose-memory-sync-provider"]').addEventListener('click', openMemorySyncProviderDialog);
         settings.querySelector('[data-memory-sync-auto]').addEventListener('change', (event) => event.currentTarget.closest('.memory-sync-toggle-row').classList.toggle('is-on', event.currentTarget.checked));
         const providerDialog = document.createElement('section');
@@ -1931,6 +2026,7 @@
         providerDialog.querySelectorAll('[data-memory-action="close-memory-sync-provider"]').forEach((button) => button.addEventListener('click', closeMemorySyncProviderDialog));
         providerDialog.querySelectorAll('[data-memory-sync-provider-option]').forEach((button) => button.addEventListener('click', () => selectMemorySyncProvider(button.dataset.memorySyncProviderOption)));
         void loadMemorySyncSettings();
+        void loadRemoteVectorSettings();
     }
 
     async function loadMemorySyncSettings() {
@@ -2328,6 +2424,15 @@
             .memory-summary-settings-sheet { border-radius: 18px 18px 0 0; background: #fff; }
             .memory-settings-section { margin-top: 26px; padding-top: 20px; border-top: 1px solid #e5e5ea; }
             .memory-settings-section h3 { margin: 0; color: #000; font-size: 17px; font-weight: 600; }
+            .memory-settings-collapsible { overflow: hidden; }
+            .memory-settings-collapsible-header { display: flex; width: 100%; align-items: center; justify-content: space-between; border: 0; padding: 0 0 14px; background: transparent; color: #000; font: 600 17px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; text-align: left; cursor: pointer; }
+            .memory-settings-chevron { color: #8e8e93; font-size: 18px; line-height: 1; transition: transform 180ms ease; }
+            .memory-settings-collapsible:not(.is-expanded) .memory-settings-chevron { transform: rotate(180deg); }
+            .memory-settings-collapsible-body { display: grid; gap: 10px; }
+            .memory-settings-collapsible:not(.is-expanded) .memory-settings-collapsible-body { display: none; }
+            .memory-remote-vector-section strong { color: #1c1c1e; font-size: 14px; font-weight: 500; }
+            .memory-remote-vector-section .memory-sync-actions { margin-top: 2px; }
+            @media (prefers-reduced-motion: reduce) { .memory-settings-chevron, .memory-sync-switch, .memory-sync-switch::after { transition: none; } }
             .memory-external-fields { display: grid; gap: 10px; }
             .memory-external-section input[type="text"], .memory-external-section input[type="password"], .memory-external-section input[type="url"] { min-width: 0; border: 0; background: transparent; color: #111; text-align: right; font: 400 14px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
             .memory-sync-provider-button { display: flex; min-width: 0; flex: 1; align-items: center; justify-content: flex-end; gap: 8px; border: 0; padding: 0; background: transparent; color: #111; font: 500 14px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; cursor: pointer; }

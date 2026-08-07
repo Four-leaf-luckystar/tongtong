@@ -21,6 +21,16 @@
             { path: 'onnx/model_quantized.onnx', bytes: 24010842, sha256: '15b717c382bcb518ba457b93ea6850ede7f4f1cd8937454aa06972366cd19bcc' }
         ]
     };
+    const REMOTE_STATE_KEY = 'memorySemanticRemoteV1';
+    const DEFAULT_REMOTE_CONFIG = {
+        provider: 'siliconflow',
+        baseUrl: 'https://api.siliconflow.cn/v1',
+        apiKey: '',
+        model: 'BAAI/bge-m3',
+        models: [],
+        status: 'not-configured',
+        error: ''
+    };
     let state = {
         status: 'not-configured',
         manifestUrl: '',
@@ -29,6 +39,7 @@
         totalBytes: 0,
         error: ''
     };
+    let remoteConfig = { ...DEFAULT_REMOTE_CONFIG };
 
     function readState() {
         return new Promise((resolve) => {
@@ -92,6 +103,70 @@
 
     function emitStatus() {
         window.dispatchEvent(new CustomEvent('semanticmemory:status', { detail: { ...state } }));
+    }
+
+    function readRemoteConfig() {
+        return new Promise((resolve) => {
+            const request = indexedDB.open(DB_NAME);
+            request.onerror = () => resolve(null);
+            request.onsuccess = () => {
+                const database = request.result;
+                if (!database.objectStoreNames.contains(STORE_NAME)) { database.close(); resolve(null); return; }
+                const getRequest = database.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).get(REMOTE_STATE_KEY);
+                getRequest.onsuccess = () => { database.close(); resolve(getRequest.result || null); };
+                getRequest.onerror = () => { database.close(); resolve(null); };
+            };
+        });
+    }
+
+    function writeRemoteConfig() {
+        return new Promise((resolve) => {
+            const request = indexedDB.open(DB_NAME);
+            request.onerror = () => resolve(false);
+            request.onsuccess = () => {
+                const database = request.result;
+                if (!database.objectStoreNames.contains(STORE_NAME)) { database.close(); resolve(false); return; }
+                const transaction = database.transaction(STORE_NAME, 'readwrite');
+                transaction.objectStore(STORE_NAME).put({ id: REMOTE_STATE_KEY, schemaVersion: 1, ...remoteConfig, updatedAt: new Date().toISOString() });
+                transaction.oncomplete = () => { database.close(); resolve(true); };
+                transaction.onerror = () => { database.close(); resolve(false); };
+            };
+        });
+    }
+
+    async function initRemote() {
+        const saved = await readRemoteConfig();
+        if (saved) remoteConfig = { ...DEFAULT_REMOTE_CONFIG, ...saved, models: Array.isArray(saved.models) ? saved.models : [] };
+        return { ...remoteConfig, apiKey: remoteConfig.apiKey ? 'configured' : '' };
+    }
+
+    async function saveRemoteConfig(next) {
+        remoteConfig = { ...remoteConfig, ...(next || {}) };
+        if (Array.isArray(next?.models)) remoteConfig.models = next.models.slice(0, 200);
+        await writeRemoteConfig();
+        return { ...remoteConfig, apiKey: remoteConfig.apiKey ? 'configured' : '' };
+    }
+
+    async function pullRemoteModels(next) {
+        const config = { ...remoteConfig, ...(next || {}) };
+        const baseUrl = String(config.baseUrl || DEFAULT_REMOTE_CONFIG.baseUrl).replace(/\/+$/, '');
+        const apiKey = String(config.apiKey || remoteConfig.apiKey || '').trim();
+        if (!apiKey) throw new Error('请先填写硅基流动 API Key');
+        const response = await fetch(baseUrl + '/models', { headers: { Authorization: 'Bearer ' + apiKey, Accept: 'application/json' }, cache: 'no-store' });
+        if (!response.ok) throw new Error('模型列表拉取失败：HTTP ' + response.status);
+        const payload = await response.json();
+        const models = (Array.isArray(payload) ? payload : payload.data || [])
+            .map((item) => typeof item === 'string' ? { id: item, type: '' } : { id: item && (item.id || item.name), type: item && (item.type || item.task || '') })
+            .filter((item) => item.id && (/embed|embedding|bge|gte|e5|jina/i.test(String(item.id)) || /embed/i.test(String(item.type))))
+            .map((item) => String(item.id));
+        remoteConfig = { ...remoteConfig, ...config, models: Array.from(new Set(models)), status: 'ready', error: '' };
+        await writeRemoteConfig();
+        return { ...remoteConfig, apiKey: remoteConfig.apiKey ? 'configured' : '' };
+    }
+
+    async function testRemote(next) {
+        try { await pullRemoteModels(next); return true; }
+        catch (error) { remoteConfig = { ...remoteConfig, status: 'error', error: String(error.message || error) }; await writeRemoteConfig(); throw error; }
     }
 
     function setState(patch) {
@@ -215,7 +290,12 @@
         getState: () => ({ ...state }),
         download,
         remove,
-        getCachedFile
+        getCachedFile,
+        initRemote,
+        getRemoteConfig: () => ({ ...remoteConfig, apiKey: remoteConfig.apiKey ? 'configured' : '' }),
+        saveRemoteConfig,
+        pullRemoteModels,
+        testRemote
     };
 
     void init();
