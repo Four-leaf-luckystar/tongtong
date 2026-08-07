@@ -689,6 +689,7 @@
         <div class="widget-context-menu" id="widgetContextMenu">
             <div class="widget-ctx-item" onclick="widgetCtxAction('edit')"><svg viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg><span class="widget-ctx-text">编辑</span></div>
             <div class="widget-ctx-item" onclick="widgetCtxAction('export')"><svg viewBox="0 0 24 24" fill="none" stroke="#1d1d1f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg><span class="widget-ctx-text">导出</span></div>
+            <div class="widget-ctx-item" onclick="widgetCtxAction('delete')" style="color: #ff3b30;"><svg viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg><span class="widget-ctx-text">删除</span></div>
         </div>
         <div class="widget-editor-modal" id="widgetEditorModal">
             <div class="ios-top-bar" style="height:60px; padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); background:#f2f2f7; border-radius: 24px 24px 0 0;">
@@ -4421,15 +4422,27 @@ fill="currentColor" viewBox="0 0 24 24" >
 <script src="js/icity-enhancements.js?v=20260803-v2"></script>
 <script src="js/search.js"></script>
 <script src="js/universal-select.js?v=20260731-access-lock-v1"></script>
-    <!-- Widget Picker Modal -->
-    <div id="widgetPickerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 9999; flex-direction: column;">
-        <div style="padding: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-top: 50px;">
-            <div style="font-size: 18px; font-weight: bold; color: white;">添加小组件</div>
-            <div onclick="document.getElementById('widgetPickerModal').style.display='none';" style="width: 30px; height: 30px; background: rgba(255, 255, 255, 0.2); border-radius: 15px; display: flex; justify-content: center; align-items: center; cursor: pointer;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    <!-- 全新底部抽屉式 Widget Picker -->
+    <div class="widget-picker-overlay" id="widgetPickerOverlay" onclick="closeWidgetPicker()">
+        <div class="widget-picker-sheet" onclick="event.stopPropagation()">
+            <div class="widget-picker-handle"></div>
+            <div class="widget-picker-header">
+                <div class="widget-picker-cancel" onclick="closeWidgetPicker()">取消</div>
+                <h2>添加小组件</h2>
+                <div style="width: 40px;"></div> <!-- 占位，保持标题居中 -->
             </div>
-        </div>
-        <div id="widgetPickerList" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; padding-bottom: 50px;">
+            <div class="widget-picker-tabs-container">
+                <div class="widget-picker-tabs">
+                    <div class="widget-picker-tab active" onclick="switchWidgetPickerTab('all', this)">全部</div>
+                    <div class="widget-picker-tab" onclick="switchWidgetPickerTab('large', this)">大尺寸</div>
+                    <div class="widget-picker-tab" onclick="switchWidgetPickerTab('medium', this)">中尺寸</div>
+                    <div class="widget-picker-tab" onclick="switchWidgetPickerTab('small', this)">小尺寸</div>
+                    <div class="widget-picker-tab" onclick="switchWidgetPickerTab('custom', this)">自定义</div>
+                </div>
+            </div>
+            <div class="widget-picker-list" id="widgetPickerList">
+                <!-- 动态渲染卡片 -->
+            </div>
         </div>
     </div>
 </body>
