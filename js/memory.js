@@ -1377,7 +1377,7 @@
     function buildRemoteVectorSection(settings) {
         const section = document.createElement('section');
         section.className = 'memory-settings-section memory-remote-vector-section';
-        section.innerHTML = '<h3>其他向量模型</h3><div class="memory-settings-collapsible-body"><p class="memory-semantic-settings-copy">连接第三方向量服务，模型列表和密钥只保存在本机。</p><label class="memory-semantic-settings-input"><span>API Key</span><input type="password" data-memory-remote-key autocomplete="off" placeholder="用户自己的密钥"></label><label class="memory-semantic-settings-input"><span>模型</span><button type="button" class="memory-remote-model-button" data-memory-action="choose-memory-remote-model" aria-haspopup="dialog"><span data-memory-remote-model-label>未配置</span><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button><input type="hidden" data-memory-remote-model value="BAAI/bge-m3"></label><div class="memory-sync-actions"><button type="button" data-memory-action="pull-memory-remote-model">拉取模型</button><button type="button" data-memory-action="save-memory-remote-model">保存配置</button></div><p class="memory-composer-error" data-memory-remote-status aria-live="polite"></p></div>';
+        section.innerHTML = '<h3>其他向量模型</h3><div class="memory-settings-collapsible-body"><p class="memory-semantic-settings-copy">连接第三方向量服务，模型列表和密钥只保存在本机。</p><label class="memory-semantic-settings-input"><span>服务地址</span><input type="url" data-memory-remote-url placeholder="https://api.example.com/v1"></label><label class="memory-semantic-settings-input"><span>API Key</span><input type="password" data-memory-remote-key autocomplete="off" placeholder="用户自己的密钥"></label><label class="memory-semantic-settings-input"><span>模型</span><button type="button" class="memory-remote-model-button" data-memory-action="choose-memory-remote-model" aria-haspopup="dialog"><span data-memory-remote-model-label>未配置</span><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></button><input type="hidden" data-memory-remote-model value="BAAI/bge-m3"></label><div class="memory-sync-actions"><button type="button" data-memory-action="pull-memory-remote-model">拉取模型</button><button type="button" data-memory-action="save-memory-remote-model">保存配置</button></div><p class="memory-composer-error" data-memory-remote-status aria-live="polite"></p></div>';
         return section;
     }
 
@@ -1385,6 +1385,7 @@
         const section = root.querySelector('.memory-remote-vector-section');
         return {
             provider: 'siliconflow',
+            baseUrl: section.querySelector('[data-memory-remote-url]').value.trim(),
             ...(section.querySelector('[data-memory-remote-key]').value.trim() ? { apiKey: section.querySelector('[data-memory-remote-key]').value.trim() } : {}),
             model: section.querySelector('[data-memory-remote-model]').value.trim()
         };
@@ -1393,6 +1394,7 @@
     function renderRemoteVectorConfig(config) {
         const section = root.querySelector('.memory-remote-vector-section');
         if (!section || !config) return;
+        section.querySelector('[data-memory-remote-url]').value = config.baseUrl || '';
         if (config.apiKey !== 'configured') section.querySelector('[data-memory-remote-key]').value = config.apiKey || '';
         const models = Array.from(new Set([...(Array.isArray(config.models) ? config.models : []), config.model || 'BAAI/bge-m3'])).filter(Boolean);
         const input = section.querySelector('[data-memory-remote-model]');
@@ -2502,8 +2504,10 @@
             .memory-settings-privacy { display: flex; align-items: center; gap: 8px; margin: 18px 0 6px; padding: 11px 12px; border-radius: 11px; background: rgba(142,142,147,.12); color: #8e8e93; font: 12px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
             .memory-settings-privacy svg { width: 16px; height: 16px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
             @media (prefers-reduced-motion: reduce) { .memory-settings-chevron, .memory-sync-switch, .memory-sync-switch::after { transition: none; } }
-            .memory-external-fields { display: grid; gap: 10px; }
-            .memory-external-section input[type="text"], .memory-external-section input[type="password"], .memory-external-section input[type="url"] { min-width: 0; border: 0; background: transparent; color: #111; text-align: right; font: 400 14px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+            .memory-external-fields { display: grid; min-width: 0; gap: 10px; }
+            .memory-external-section .memory-semantic-settings-input { min-width: 0; overflow: hidden; }
+            .memory-external-section input[type="text"], .memory-external-section input[type="password"], .memory-external-section input[type="url"] { width: 100%; min-width: 0; border: 0; padding: 0; box-sizing: border-box; background: transparent; color: #111; text-align: right; font: 400 14px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+            .memory-external-section input::placeholder { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
             .memory-sync-provider-button { display: flex; min-width: 0; flex: 1; align-items: center; justify-content: flex-end; gap: 8px; border: 0; padding: 0; background: transparent; color: #111; font: 500 14px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; cursor: pointer; }
             .memory-sync-provider-button span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
             .memory-sync-chevron { color: #8e8e93; font-size: 22px; line-height: 1; }
