@@ -5353,22 +5353,15 @@
             const noteMatch = text.match(/\((.*?)\)/);
             const note = noteMatch ? noteMatch[1] : '';
 
-            const cardClass = `wc-transfer-card ${fcState === 'received' ? 'received' : (fcState === 'rejected' ? 'rejected' : 'pending')} v1`;
-            
-            let iconHtml = '';
             let descText = '';
             
             if (fcState === 'pending') {
-                iconHtml = `<svg class="wc-cny-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>`;
                 descText = isSent ? '赠送亲属卡给对方' : '赠送你一张亲属卡';
             } else if (fcState === 'received') {
-                iconHtml = `<svg class="wc-check-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
                 descText = isSent ? '对方已领取' : '你已领取';
             } else if (fcState === 'rejected') {
-                iconHtml = `<svg class="wc-return-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v.5"/></svg>`;
                 descText = isSent ? '对方已拒绝' : '已拒绝';
             } else if (fcState === 'request') {
-                iconHtml = `<svg class="wc-cny-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>`;
                 descText = isSent ? '向对方索要亲属卡' : '向你索要亲属卡';
             }
             
@@ -5382,25 +5375,27 @@
             bubble.classList.add('transfer-bubble');
 
             const fcHtml = `
-                <div class="${cardClass}">
-                    <div class="wc-transfer-top">
-                        <div class="wc-transfer-icon-box" style="color: #FF9500;">
-                            ${iconHtml}
+                <div class="wc-family-card-bubble">
+                    <div class="pay-top">
+                        <div class="pay-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+                              <path d="M14.03076875 1.96923125H1.96923125C0.9699875 1.9691875 0.16 2.77921875 0.16 3.7784625v8.443075c0 0.9992125 0.81001875 1.80923125 1.80923125 1.80923125h12.0615375c0.9992125 0 1.80923125 -0.81001875 1.80923125 -1.80923125V3.7784625c0 -0.9992125 -0.81001875 -1.80923125 -1.80923125 -1.80923125Zm-4.2215375 5.42769375c0 1.39274375 -1.50769375 2.2632125 -2.71384375 1.5668375 -0.55978125 -0.3231875 -0.90461875 -0.9204625 -0.90461875 -1.5668375 0 -0.3330625 -0.27001875 -0.6030625 -0.603075 -0.60308125H1.36615625V5.58769375h13.2676875v1.20615h-4.2215375c-0.33308125 -0.0000125 -0.603075 0.27 -0.603075 0.60308125Zm-7.84 -4.2215375h12.0615375c0.3330625 0.0000125 0.603075 0.2700125 0.603075 0.603075v0.603075H1.36615625v-0.603075c0 -0.33308125 0.26999375 -0.60309375 0.603075 -0.603075Z"></path>
+                            </svg>
                         </div>
-                        <div class="wc-transfer-info">
-                            <div class="wc-transfer-amount">${fcState === 'request' ? '亲属卡' : `¥${amount}`}</div>
-                            <div class="wc-transfer-desc">${descText}</div>
+                        <div class="pay-info">
+                            <div class="pay-amount">${fcState === 'request' ? '亲属卡' : `<span>¥</span>${amount}`}</div>
+                            <div class="pay-status">${descText}</div>
                         </div>
                     </div>
-                    <div class="wc-transfer-bottom">
-                        <span>Wechat Pay</span>
-                        <svg class="wc-wp-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 20.947c6.075 0 11 -4.241 11 -9.473a8.363 8.363 0 0 0 -1.048 -4.04l-12.434 7.09a1.045 1.045 0 0 1 -1.457 -0.452L5.545 8.93l3.883 1.854 11.28 -5.1C18.696 3.444 15.544 2 12 2 5.925 2 1 6.242 1 11.474c0 2.806 1.416 5.326 3.667 7.061L4.143 22l4.009 -1.649c1.197 0.386 2.494 0.596 3.848 0.596Z"/></svg>
+                    <div class="pay-bottom">
+                        <div>亲属卡</div>
+                        <div class="pay-brand">Family</div>
                     </div>
                 </div>
             `;
             bubble.innerHTML = fcHtml;
 
-            bubble.querySelector('.wc-transfer-card').addEventListener('click', (e) => {
+            bubble.querySelector('.wc-family-card-bubble').addEventListener('click', (e) => {
                 e.stopPropagation();
                 wcHandleFamilyCardClick(message.id, isSent);
             });
@@ -7015,6 +7010,8 @@
                         const targetMsg = wcChatMessagesByContact[chatContactId]?.slice().reverse().find(m => m.type === 'sent' && m.text.startsWith('[赠送亲属卡]'));
                         if (targetMsg) {
                             targetMsg.text = targetMsg.text.replace('[赠送亲属卡]', '[已领取亲属卡]');
+                            const amountMatch = targetMsg.text.match(/¥([\d.]+)/);
+                            const amount = amountMatch ? parseFloat(amountMatch[1]) : 3000.00;
                             // 钱包逻辑：添加亲属卡记录
                             const contact = wcContactsList.find(c => c.id === chatContactId);
                             wcWalletData.familyCards.push({
@@ -7024,7 +7021,8 @@
                                 type: 'MasterCard',
                                 bg: 'linear-gradient(135deg, #7B8AA0 0%, #101C37 50%, #3D4D6B 100%)',
                                 logo: 'F',
-                                logoColor: '#BCC4CE'
+                                logoColor: '#BCC4CE',
+                                amount: amount
                             });
                             wcSaveWalletData();
                             hasFamilyCardUpdate = true;
@@ -8313,7 +8311,7 @@
                             </div>
                             <div class="wc-card-balance-area">
                                 <div class="wc-card-balance-label">本月可用额度</div>
-                                <div class="wc-card-balance-amount">¥ 3,000.00</div>
+                                <div class="wc-card-balance-amount">¥ ${card.amount ? card.amount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '3,000.00'}</div>
                             </div>
                             <div class="wc-card-bottom">
                                 <div class="wc-card-number">赠予: ${card.name.replace('亲属卡 (', '').replace(')', '')}</div>
@@ -8449,7 +8447,7 @@
                     </div>
                     <div class="wc-card-balance-area" style="text-align: center; color: ${card.logoColor};">
                         <div class="wc-card-balance-label" style="font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #BCC4CE;">本月可用额度</div>
-                        <div class="wc-card-balance-amount" style="font-size: 38px; font-weight: 600; letter-spacing: -1px;">¥ 3,000.00</div>
+                        <div class="wc-card-balance-amount" style="font-size: 38px; font-weight: 600; letter-spacing: -1px;">¥ ${card.amount ? card.amount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '3,000.00'}</div>
                     </div>
                     <div class="wc-card-bottom" style="display: flex; justify-content: space-between; align-items: flex-end; color: #BCC4CE;">
                         <div class="wc-card-number" style="font-size: 15px; font-family: monospace; letter-spacing: 2px;">赠予: ${card.name.replace('亲属卡 (', '').replace(')', '')}</div>
@@ -8713,11 +8711,16 @@
         wcApActiveCardIndex = 0;
 
         // 基础零钱卡
-        wcApActiveCards = [{ id: 'cash', name: '零钱卡', number: '3022', type: 'VISA', bg: 'linear-gradient(135deg, #2c2c2e 0%, #1c1c1e 100%)', logo: 'Z', logoColor: '#fff' }];
+        wcApActiveCards = [{ id: 'cash', name: '零钱卡', number: '3022', type: 'VISA', bg: 'linear-gradient(135deg, #2c2c2e 0%, #1c1c1e 100%)', logo: 'Z', logoColor: '#fff', balance: wcWalletData.balance }];
         
         // 如果钱包数据中有亲属卡，追加进去
         if (wcWalletData.familyCards && wcWalletData.familyCards.length > 0) {
-            wcApActiveCards = wcApActiveCards.concat(wcWalletData.familyCards);
+            wcWalletData.familyCards.forEach(fc => {
+                wcApActiveCards.push({
+                    ...fc,
+                    balance: fc.amount || 3000
+                });
+            });
         }
 
         wcApActiveCards.forEach((card, index) => {
@@ -8799,11 +8802,6 @@
         const val = document.getElementById('wcTransferAmountInput').value;
         wcTransferAmount = parseFloat(val);
         
-        if (wcTransferAmount > wcWalletData.balance) {
-            if (typeof showToast === 'function') showToast('零钱余额不足');
-            return;
-        }
-
         const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
         document.getElementById('wcApPayeeName').innerText = `Pay ${contact ? contact.name : '对方'}`;
         document.getElementById('wcApAmountDisplay').innerText = '¥' + wcTransferAmount.toFixed(2);
@@ -8829,6 +8827,12 @@
 
     // 点击底部确认按钮
     function wcHandleApConfirmClick() {
+        const currentCard = wcApActiveCards[wcApActiveCardIndex];
+        if (wcTransferAmount > currentCard.balance) {
+            if (typeof showToast === 'function') showToast(`${currentCard.name}余额不足`);
+            return;
+        }
+
         // 读取真实的免密支付状态
         const isNoPwd = wcWalletData.isNoPwd;
         
@@ -8868,7 +8872,16 @@
         // 执行扣款和发送消息逻辑
         setTimeout(() => {
             // 1. 扣除余额并记录交易
-            wcWalletData.balance -= wcTransferAmount;
+            const currentCard = wcApActiveCards[wcApActiveCardIndex];
+            if (currentCard.id === 'cash') {
+                wcWalletData.balance -= wcTransferAmount;
+            } else {
+                const fc = wcWalletData.familyCards.find(c => c.id === currentCard.id);
+                if (fc) {
+                    fc.amount -= wcTransferAmount;
+                }
+            }
+
             const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
             wcWalletData.transactions.unshift({
                 id: Date.now(),
@@ -9169,6 +9182,8 @@
         if (msg) {
             if (action === 'receive_fc') {
                 msg.text = msg.text.replace('[赠送亲属卡]', '[已领取亲属卡]');
+                const amountMatch = msg.text.match(/¥([\d.]+)/);
+                const amount = amountMatch ? parseFloat(amountMatch[1]) : 3000.00;
                 
                 // 添加到钱包
                 const contact = wcContactsList.find(c => c.id === wcCurrentChatContactId);
@@ -9179,7 +9194,8 @@
                     type: 'AMERICAN EXPRESS',
                     bg: 'linear-gradient(135deg, #3D4D6B 0%, #101C37 40%, #7B8AA0 60%, #101C37 100%)',
                     logo: 'F',
-                    logoColor: '#E4E8EB'
+                    logoColor: '#E4E8EB',
+                    amount: amount
                 });
                 wcSaveWalletData();
 
