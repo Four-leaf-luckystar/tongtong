@@ -1,0 +1,10 @@
+name = "tonghuaji-memory"
+main = "cloudflare-worker.js"
+compatibility_date = "2026-08-08"
+
+[[d1_databases]]
+binding = "MEMORY_DB"
+database_name = "tonghuaji-memory"
+database_id = "替换为用户自己的 D1 database_id"
+
+# 使用 `wrangler secret put SYNC_TOKEN` 设置用户自己的同步令牌。

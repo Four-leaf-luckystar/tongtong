@@ -362,6 +362,24 @@
             .slice(0, 900);
     }
 
+    function writeSyncedMemoryState(items, summaries, conversations) {
+        return new Promise((resolve) => {
+            const request = indexedDB.open(DB_NAME);
+            request.onerror = () => resolve(false);
+            request.onsuccess = () => {
+                const database = request.result;
+                if (!database.objectStoreNames.contains(STORE_NAME)) { database.close(); resolve(false); return; }
+                const transaction = database.transaction(STORE_NAME, 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                store.put({ id: MEMORY_ITEMS_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items });
+                store.put({ id: MEMORY_SUMMARIES_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items: summaries });
+                store.put({ id: CHATS_KEY, conversations });
+                transaction.oncomplete = () => { database.close(); resolve(true); };
+                transaction.onerror = () => { database.close(); resolve(false); };
+            };
+        });
+    }
+
     function getSummaryOverview(bindingId, messages = []) {
         const sourceMessages = (Array.isArray(messages) ? messages : [])
             .filter((message) => message && message.id && (message.type === 'sent' || message.type === 'received') && normalizeMemoryText(message.text))
@@ -715,7 +733,7 @@
         });
         if (scope.includeChat === true) Object.entries(cachedConversations || {}).forEach(([contactId, messages]) => {
             if (bindingId && contactId !== bindingId) return;
-            (Array.isArray(messages) ? messages : []).slice(-200).forEach((message) => records.push({ id: 'chat_' + contactId + '_' + String(message.id), bindingId: contactId, kind: 'chat', tier: 'L3', status: 'active', content: String(message.text || ''), sourceMessageId: message.id, updatedAt: message.timestamp || new Date().toISOString(), recordType: 'chat' }));
+            (Array.isArray(messages) ? messages : []).slice(-200).forEach((message) => records.push({ ...message, id: 'chat_' + contactId + '_' + String(message.id), localMessageId: String(message.id), bindingId: contactId, kind: 'chat', tier: 'L3', status: 'active', content: String(message.text || ''), sourceMessageId: message.id, updatedAt: message.updatedAt || message.createdAt || message.timestamp || new Date().toISOString(), recordType: 'chat' }));
         });
         return records.filter((record) => record.content);
     }
@@ -724,14 +742,37 @@
         const incoming = Array.isArray(records) ? records : [];
         if (!incoming.length) return 0;
         const nextItems = [...cachedMemoryItems];
-        incoming.filter((record) => record.recordType !== 'summary' && record.kind !== 'chat').forEach((record) => {
+        const nextSummaries = [...cachedSummaries];
+        const nextConversations = Object.fromEntries(Object.entries(cachedConversations || {}).map(([key, value]) => [key, Array.isArray(value) ? [...value] : []]));
+        incoming.filter((record) => record.recordType !== 'summary' && record.kind !== 'summary' && record.recordType !== 'chat' && record.kind !== 'chat').forEach((record) => {
             const index = nextItems.findIndex((item) => item.id === record.id || item.externalId === record.id);
             const normalized = { ...record, id: index >= 0 ? nextItems[index].id : String(record.id), externalId: String(record.id), authority: record.authority || 'user_quote', visibility: record.visibility || 'current_binding', schemaVersion: MEMORY_SCHEMA_VERSION, revision: Math.max(1, Number(record.revision) || 1) };
             if (index >= 0) nextItems[index] = { ...nextItems[index], ...normalized };
             else nextItems.push(normalized);
         });
-        const saved = await writeRecord({ id: MEMORY_ITEMS_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items: nextItems });
-        if (saved) { cachedMemoryItems = nextItems; render(); }
+        incoming.filter((record) => record.recordType === 'summary' || record.kind === 'summary').forEach((record) => {
+            const index = nextSummaries.findIndex((summary) => summary.id === record.id);
+            const sections = Array.isArray(record.sections) && record.sections.length ? record.sections : [{ title: '近况', content: record.content, sourceMessageIds: [] }];
+            const normalized = { ...record, sections, tier: 'L2', status: record.status || 'active', revision: Math.max(1, Number(record.revision) || 1) };
+            if (index >= 0) nextSummaries[index] = { ...nextSummaries[index], ...normalized };
+            else nextSummaries.push(normalized);
+        });
+        incoming.filter((record) => record.recordType === 'chat' || record.kind === 'chat').forEach((record) => {
+            if (!record.bindingId) return;
+            const messages = nextConversations[record.bindingId] || (nextConversations[record.bindingId] = []);
+            const messageId = String(record.localMessageId || record.sourceMessageId || record.id).replace(/^chat_[^_]+_/, '');
+            if (record.status === 'archived') {
+                nextConversations[record.bindingId] = messages.filter((message) => String(message.id) !== messageId);
+                return;
+            }
+            const normalized = { ...record, id: messageId, text: record.text || record.content, type: record.type === 'sent' ? 'sent' : 'received' };
+            delete normalized.kind; delete normalized.tier; delete normalized.status; delete normalized.recordType; delete normalized.bindingId; delete normalized.content;
+            const index = messages.findIndex((message) => String(message.id) === messageId);
+            if (index >= 0) messages[index] = { ...messages[index], ...normalized };
+            else messages.push(normalized);
+        });
+        const saved = await writeSyncedMemoryState(nextItems, nextSummaries, nextConversations);
+        if (saved) { cachedMemoryItems = nextItems; cachedSummaries = nextSummaries; cachedConversations = nextConversations; render(); }
         return saved ? incoming.length : 0;
     }
 
@@ -1837,7 +1878,7 @@
             + '<p class="memory-summary-settings-copy">每累计多少条新消息，更新一次近期摘要</p>'
             + '<label class="memory-summary-settings-input"><input type="number" inputmode="numeric" min="1" max="500" step="1" data-memory-summary-interval><span>条新消息</span></label>'
             + '<section class="memory-settings-section"><h3>向量模型</h3><p class="memory-semantic-settings-copy">下载到本机后，聊天内容不会上传。</p><label class="memory-semantic-settings-input"><span>自定义清单</span><input type="url" data-semantic-model-url placeholder="可选：manifest 地址"></label><button class="memory-model-download" type="button" data-memory-action="download-semantic-model">下载向量模型</button><progress class="memory-semantic-model-progress" data-semantic-model-progress max="1" value="0" hidden></progress><p class="memory-semantic-model-status" data-semantic-model-status>模型未下载</p><button class="memory-semantic-remove" type="button" data-memory-action="remove-semantic-model" hidden>删除本地模型</button></section>'
-            + '<section class="memory-settings-section memory-external-section"><h3>外接记忆库</h3><p class="memory-semantic-settings-copy">本地 IndexedDB 是主数据源；数据只会以明文上传到你配置的用户云端，凭据仅保存在本机。</p><label class="memory-semantic-settings-input"><span>服务</span><select data-memory-sync-provider><option value="http">通用 HTTP / Cloudflare Worker</option><option value="mem0">Mem0 Platform</option><option value="zep">Zep</option><option value="supabase">Supabase</option></select></label><label class="memory-semantic-settings-input"><span>地址</span><input type="url" data-memory-sync-url placeholder="用户自己的服务地址；Mem0/Zep 可留空"></label><label class="memory-semantic-settings-input"><span>API Key</span><input type="password" data-memory-sync-key autocomplete="off"></label><label class="memory-semantic-settings-input"><span>访问令牌</span><input type="password" data-memory-sync-token autocomplete="off" placeholder="Supabase/HTTP 可选"></label><label class="memory-semantic-settings-input"><span>Supabase 表</span><input type="text" data-memory-sync-table placeholder="tonghuaji_memories"></label><label class="memory-semantic-settings-input"><span>命名空间</span><input type="text" data-memory-sync-namespace placeholder="用于隔离角色数据"></label><label class="memory-summary-settings-input"><input type="checkbox" data-memory-sync-auto checked><span>自动同步（后台静默执行）</span></label><fieldset class="memory-sync-scope"><legend>上传范围</legend><label><input type="checkbox" data-memory-sync-tier="L1"> L1 确认记忆</label><label><input type="checkbox" data-memory-sync-tier="L2"> L2 摘要</label><label><input type="checkbox" data-memory-sync-tier="L3"> L3 片段</label><label><input type="checkbox" data-memory-sync-chat> 聊天记录</label><label><input type="checkbox" data-memory-sync-archived> 包含归档</label><label><input type="radio" name="memory-sync-roles" value="current" checked> 当前角色</label><label><input type="radio" name="memory-sync-roles" value="all"> 全部角色</label></fieldset><div class="memory-sync-actions"><button type="button" data-memory-action="test-memory-sync">测试连接</button><button type="button" data-memory-action="save-memory-sync">保存同步设置</button><button type="button" data-memory-action="sync-memory-now">立即同步</button><button type="button" data-memory-action="restore-memory-sync">下载恢复</button></div><p class="memory-composer-error" data-memory-sync-status aria-live="polite"></p></section><p class="memory-composer-error" data-memory-summary-error aria-live="polite"></p></div>';
+            + '<section class="memory-settings-section memory-external-section"><h3>外接记忆库</h3><p class="memory-semantic-settings-copy">本地 IndexedDB 是主数据源；数据只会以明文上传到你配置的用户云端，凭据仅保存在本机。</p><label class="memory-semantic-settings-input"><span>服务</span><select data-memory-sync-provider><option value="http">通用 HTTP / Cloudflare Worker</option><option value="mem0">Mem0 Platform</option><option value="zep">Zep</option><option value="supabase">Supabase</option></select></label><label class="memory-semantic-settings-input"><span>地址</span><input type="url" data-memory-sync-url placeholder="用户自己的服务地址；Mem0/Zep 可留空"></label><label class="memory-semantic-settings-input"><span>API Key</span><input type="password" data-memory-sync-key autocomplete="off"></label><label class="memory-semantic-settings-input"><span>访问令牌</span><input type="password" data-memory-sync-token autocomplete="off" placeholder="Supabase/HTTP 可选"></label><label class="memory-semantic-settings-input"><span>Supabase 表</span><input type="text" data-memory-sync-table placeholder="tonghuaji_memories"></label><label class="memory-semantic-settings-input"><span>命名空间</span><input type="text" data-memory-sync-namespace placeholder="用于隔离角色数据"></label><label class="memory-summary-settings-input"><input type="checkbox" data-memory-sync-auto checked><span>自动同步（后台静默执行）</span></label><fieldset class="memory-sync-scope"><legend>上传范围</legend><label><input type="checkbox" data-memory-sync-tier="L1"> L1 确认记忆</label><label><input type="checkbox" data-memory-sync-tier="L2"> L2 摘要</label><label><input type="checkbox" data-memory-sync-tier="L3"> L3 片段</label><label><input type="checkbox" data-memory-sync-chat> 聊天记录</label><label><input type="checkbox" data-memory-sync-archived> 包含归档</label><label><input type="radio" name="memory-sync-roles" value="current" checked> 当前角色</label><label><input type="radio" name="memory-sync-roles" value="all"> 全部角色</label></fieldset><div class="memory-sync-actions"><button type="button" data-memory-action="test-memory-sync">测试连接</button><button type="button" data-memory-action="save-memory-sync">保存同步设置</button><button type="button" data-memory-action="sync-memory-now">立即同步</button><button type="button" data-memory-action="restore-memory-sync">下载恢复</button><a href="cloud-memory/README.md" target="_blank" rel="noopener">部署说明</a></div><p class="memory-composer-error" data-memory-sync-status aria-live="polite"></p></section><p class="memory-composer-error" data-memory-summary-error aria-live="polite"></p></div>';
         root.appendChild(settings);
         settings.querySelector('[data-memory-action="close-summary-settings"]').addEventListener('click', closeSummarySettings);
         settings.querySelector('[data-memory-action="save-summary-settings"]').addEventListener('click', saveSummarySettings);
@@ -2246,7 +2287,7 @@
             .memory-sync-scope legend { padding: 0 5px; color: #6e6e73; font-size: 12px; }
             .memory-sync-scope label { color: #1c1c1e; font-size: 13px; line-height: 20px; }
             .memory-sync-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
-            .memory-sync-actions button { min-height: 40px; border: 0; border-radius: 10px; background: #e9f2ff; color: #007aff; font: 500 13px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; cursor: pointer; }
+            .memory-sync-actions button, .memory-sync-actions a { display: flex; align-items: center; justify-content: center; min-height: 40px; border: 0; border-radius: 10px; background: #e9f2ff; color: #007aff; text-decoration: none; font: 500 13px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; cursor: pointer; }
             .memory-model-download { width: 100%; height: 42px; margin-top: 14px; border: 0; border-radius: 10px; background: #007aff; color: #fff; font: 500 15px/42px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; cursor: pointer; }
             .memory-semantic-model-progress { width: 100%; margin-top: 12px; }
             @media (prefers-reduced-transparency: reduce) { .memory-composer, .memory-summary-panel, .memory-summary-settings, .memory-semantic-settings { background: rgba(0,0,0,.52); backdrop-filter: none; -webkit-backdrop-filter: none; } }
