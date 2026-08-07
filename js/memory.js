@@ -362,6 +362,73 @@
             .slice(0, 900);
     }
 
+    function getSummaryOverview(bindingId, messages = []) {
+        const sourceMessages = (Array.isArray(messages) ? messages : [])
+            .filter((message) => message && message.id && (message.type === 'sent' || message.type === 'received') && normalizeMemoryText(message.text))
+            .map((message) => ({
+                id: String(message.id),
+                type: message.type,
+                text: normalizeMemoryText(message.text),
+                timestamp: parseMessageTime(message)
+            }));
+        const summary = getActiveSummary(bindingId);
+        let newMessageCount = sourceMessages.length;
+        if (summary) {
+            const lastProcessedIndex = sourceMessages.findIndex((message) => message.id === String(summary.lastProcessedMessageId || ''));
+            if (lastProcessedIndex >= 0) {
+                newMessageCount = sourceMessages.length - lastProcessedIndex - 1;
+            } else {
+                const priorSourceIds = new Set((summary.sourceMessageIds || []).map(String));
+                newMessageCount = sourceMessages.filter((message) => !priorSourceIds.has(message.id)).length;
+            }
+        }
+        const citedIds = new Set((summary && Array.isArray(summary.sourceMessageIds) ? summary.sourceMessageIds : []).map(String));
+        return {
+            hasSummary: Boolean(summary),
+            summary,
+            text: summary ? getPromptSummary(bindingId) : '',
+            updatedAt: summary && summary.updatedAt || '',
+            revision: summary && Number(summary.revision) || 0,
+            totalMessageCount: sourceMessages.length,
+            newMessageCount,
+            interval: summaryIntervalMessages,
+            remainingMessageCount: Math.max(0, summaryIntervalMessages - newMessageCount),
+            progress: Math.min(1, newMessageCount / summaryIntervalMessages),
+            sourceMessages: sourceMessages.filter((message) => citedIds.has(message.id))
+        };
+    }
+
+    async function saveSummaryOverride(bindingId, value) {
+        const summary = getActiveSummary(bindingId);
+        const content = normalizeMemoryText(value);
+        if (!summary || !content || content.length > 120) return false;
+        const now = new Date().toISOString();
+        const priorHistory = [{
+            revision: summary.revision,
+            sections: summary.sections,
+            sourceMessageIds: summary.sourceMessageIds,
+            updatedAt: summary.updatedAt
+        }, ...(Array.isArray(summary.history) ? summary.history : [])].slice(0, 20);
+        const nextSummary = {
+            ...summary,
+            authority: 'user_confirmed',
+            revision: Math.max(1, Number(summary.revision) || 1) + 1,
+            sections: [{
+                ...(summary.sections[0] || {}),
+                title: normalizeMemoryText(summary.sections[0] && summary.sections[0].title).slice(0, 20) || '近况',
+                content,
+                sourceMessageIds: Array.isArray(summary.sourceMessageIds) ? summary.sourceMessageIds.slice() : []
+            }],
+            history: priorHistory,
+            updatedAt: now
+        };
+        const nextSummaries = cachedSummaries.map((item) => item && item.id === summary.id ? nextSummary : item);
+        const saved = await writeRecord({ id: MEMORY_SUMMARIES_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items: nextSummaries });
+        if (saved) cachedSummaries = nextSummaries;
+        if (saved) window.MemorySync?.schedule(bindingId);
+        return saved;
+    }
+
     function getRelevantFragmentMatches(bindingId, query, limit = 3, turnId = '') {
         const queryTerms = new Set(createTextTerms(query));
         const queryVector = createLocalMemoryVector(query);
@@ -457,6 +524,7 @@
         if (saved) {
             cachedMemoryItems = nextItems;
             render();
+            window.MemorySync?.schedule(selectedContactId);
         }
         return saved;
     }
@@ -492,11 +560,12 @@
         }
     }
 
-    function getSummaryJob(bindingId, messages) {
+    function getSummaryJob(bindingId, messages, options = {}) {
+        const force = options && options.force === true;
         const allSourceMessages = (Array.isArray(messages) ? messages : [])
             .filter((message) => message && message.id && (message.type === 'sent' || message.type === 'received') && normalizeMemoryText(message.text))
             .map((message) => ({ id: String(message.id), type: message.type, text: normalizeMemoryText(message.text).slice(0, 240) }));
-        if (allSourceMessages.length < summaryIntervalMessages) return null;
+        if (allSourceMessages.length === 0 || (!force && allSourceMessages.length < summaryIntervalMessages)) return null;
 
         const previous = getActiveSummary(bindingId);
         let newMessageCount = allSourceMessages.length;
@@ -509,12 +578,12 @@
                 newMessageCount = allSourceMessages.filter((message) => !previousSourceIds.has(message.id)).length;
             }
         }
-        if (previous && newMessageCount < summaryIntervalMessages) return null;
+        if (!force && previous && newMessageCount < summaryIntervalMessages) return null;
 
         const sourceMessages = allSourceMessages.slice(-Math.min(MAX_SUMMARY_SOURCE_MESSAGES, Math.max(summaryIntervalMessages, 48)));
 
         return {
-            id: 'summary_job_' + bindingId + '_' + sourceMessages[sourceMessages.length - 1].id,
+            id: 'summary_job_' + bindingId + '_' + sourceMessages[sourceMessages.length - 1].id + (force ? '_manual_' + Date.now() : ''),
             bindingId,
             sourceMessages,
             lastProcessedMessageId: allSourceMessages[allSourceMessages.length - 1].id,
@@ -578,6 +647,7 @@
         const nextSummaries = [...cachedSummaries.filter((summary) => summary && summary.bindingId !== job.bindingId), nextSummary];
         const saved = await writeRecord({ id: MEMORY_SUMMARIES_KEY, schemaVersion: 1, items: nextSummaries });
         if (saved) cachedSummaries = nextSummaries;
+        if (saved) window.MemorySync?.schedule(job.bindingId);
         return saved;
     }
 
@@ -613,6 +683,7 @@
             cachedMemoryItems = nextItems;
             cachedSummaries = nextSummaries;
             cachedOutbox = nextOutbox;
+            window.MemorySync?.schedule(bindingId);
         }
         return saved;
     }
@@ -629,6 +700,39 @@
             .map((item) => normalizeMemoryText(item.content))
             .filter((content) => content && content.length <= 180)
             .slice(0, maxItems);
+    }
+
+    function getSyncSnapshot(bindingId, scope = {}) {
+        const tiers = Array.isArray(scope.tiers) && scope.tiers.length ? new Set(scope.tiers) : new Set(['L1']);
+        const includeArchived = scope.includeArchived === true;
+        const records = cachedMemoryItems
+            .filter((item) => item && (!bindingId || item.bindingId === bindingId))
+            .filter((item) => includeArchived || item.status === 'active' || item.archiveReason === 'user_deleted' || item.status === 'superseded')
+            .filter((item) => tiers.has(item.tier))
+            .map((item) => ({ ...item, recordType: 'memory' }));
+        cachedSummaries.filter((summary) => summary && (!bindingId || summary.bindingId === bindingId) && (includeArchived || summary.status === 'active') && tiers.has('L2')).forEach((summary) => {
+            records.push({ ...summary, id: summary.id, kind: 'summary', tier: 'L2', content: (summary.sections || []).map((section) => section.content).join('\n'), recordType: 'summary' });
+        });
+        if (scope.includeChat === true) Object.entries(cachedConversations || {}).forEach(([contactId, messages]) => {
+            if (bindingId && contactId !== bindingId) return;
+            (Array.isArray(messages) ? messages : []).slice(-200).forEach((message) => records.push({ id: 'chat_' + contactId + '_' + String(message.id), bindingId: contactId, kind: 'chat', tier: 'L3', status: 'active', content: String(message.text || ''), sourceMessageId: message.id, updatedAt: message.timestamp || new Date().toISOString(), recordType: 'chat' }));
+        });
+        return records.filter((record) => record.content);
+    }
+
+    async function mergeSyncRecords(records) {
+        const incoming = Array.isArray(records) ? records : [];
+        if (!incoming.length) return 0;
+        const nextItems = [...cachedMemoryItems];
+        incoming.filter((record) => record.recordType !== 'summary' && record.kind !== 'chat').forEach((record) => {
+            const index = nextItems.findIndex((item) => item.id === record.id || item.externalId === record.id);
+            const normalized = { ...record, id: index >= 0 ? nextItems[index].id : String(record.id), externalId: String(record.id), authority: record.authority || 'user_quote', visibility: record.visibility || 'current_binding', schemaVersion: MEMORY_SCHEMA_VERSION, revision: Math.max(1, Number(record.revision) || 1) };
+            if (index >= 0) nextItems[index] = { ...nextItems[index], ...normalized };
+            else nextItems.push(normalized);
+        });
+        const saved = await writeRecord({ id: MEMORY_ITEMS_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items: nextItems });
+        if (saved) { cachedMemoryItems = nextItems; render(); }
+        return saved ? incoming.length : 0;
     }
 
     async function preload() {
@@ -781,6 +885,7 @@
         if (!saved) return false;
         cachedMemoryItems = nextItems;
         cachedOutbox = nextOutbox;
+        window.MemorySync?.schedule(queuedTurn.bindingId);
         return true;
     }
 
@@ -1001,6 +1106,159 @@
         editingMemoryId = '';
     }
 
+    function formatSummaryTimestamp(value) {
+        const timestamp = Date.parse(value || '');
+        if (!Number.isFinite(timestamp)) return '尚未更新';
+        return new Intl.DateTimeFormat('zh-CN', {
+            month: 'numeric',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(new Date(timestamp));
+    }
+
+    function renderSummaryPanel(message = '') {
+        if (!root) return;
+        const contact = cachedContacts.find((item) => item.id === selectedContactId) || null;
+        const overview = getSummaryOverview(selectedContactId, contact ? getContactMessages(contact.id) : []);
+        const role = root.querySelector('[data-memory-summary-role]');
+        const text = root.querySelector('[data-memory-summary-text]');
+        const input = root.querySelector('[data-memory-summary-input]');
+        const meta = root.querySelector('[data-memory-summary-meta]');
+        const progress = root.querySelector('[data-memory-summary-progress]');
+        const progressCopy = root.querySelector('[data-memory-summary-progress-copy]');
+        const sourceCount = root.querySelector('[data-memory-summary-source-count]');
+        const sourceList = root.querySelector('[data-memory-summary-sources]');
+        const editButton = root.querySelector('[data-memory-action="edit-summary"]');
+        const refreshButton = root.querySelector('[data-memory-action="refresh-summary"]');
+        const status = root.querySelector('[data-memory-summary-status]');
+
+        role.textContent = contact ? contact.name || '未命名角色' : '尚未选择角色';
+        text.textContent = overview.text || '还没有近期摘要';
+        text.classList.toggle('is-empty', !overview.text);
+        input.value = overview.text;
+        meta.textContent = overview.hasSummary
+            ? '更新于 ' + formatSummaryTimestamp(overview.updatedAt) + ' · 第 ' + overview.revision + ' 版'
+            : '累计足够的对话后会自动生成';
+        progress.max = overview.interval;
+        progress.value = Math.min(overview.newMessageCount, overview.interval);
+        progressCopy.textContent = overview.totalMessageCount === 0
+            ? '还没有可用于摘要的对话'
+            : overview.hasSummary
+                ? '新增 ' + overview.newMessageCount + ' / ' + overview.interval + ' 条'
+                : '已积累 ' + Math.min(overview.newMessageCount, overview.interval) + ' / ' + overview.interval + ' 条';
+        sourceCount.textContent = overview.sourceMessages.length + ' 条';
+        sourceList.replaceChildren();
+        overview.sourceMessages.forEach((source) => {
+            const item = document.createElement('div');
+            item.className = 'memory-summary-source';
+            const label = document.createElement('span');
+            label.textContent = source.type === 'sent' ? '我' : (contact && contact.name || '角色');
+            const copy = document.createElement('p');
+            copy.textContent = source.text;
+            item.append(label, copy);
+            sourceList.appendChild(item);
+        });
+        if (!overview.sourceMessages.length) {
+            const empty = document.createElement('p');
+            empty.className = 'memory-summary-source-empty';
+            empty.textContent = overview.hasSummary ? '这版摘要没有可显示的来源消息' : '生成摘要后可在这里核对来源';
+            sourceList.appendChild(empty);
+        }
+        editButton.disabled = !overview.hasSummary;
+        refreshButton.disabled = !contact || overview.totalMessageCount === 0;
+        status.textContent = message;
+    }
+
+    async function openSummaryPanel() {
+        if (!root) return;
+        closeSummarySettings();
+        closeComposer();
+        await refresh();
+        root.classList.add('is-viewing-summary');
+        root.querySelector('[data-memory-summary-panel]').setAttribute('aria-hidden', 'false');
+        renderSummaryPanel();
+    }
+
+    function closeSummaryPanel() {
+        if (!root) return;
+        root.classList.remove('is-viewing-summary', 'is-editing-summary');
+        const panel = root.querySelector('[data-memory-summary-panel]');
+        if (panel) panel.setAttribute('aria-hidden', 'true');
+        const sources = root.querySelector('[data-memory-summary-sources]');
+        if (sources) sources.hidden = true;
+        const sourceToggle = root.querySelector('[data-memory-action="toggle-summary-sources"]');
+        if (sourceToggle) sourceToggle.textContent = '查看依据';
+    }
+
+    function toggleSummarySources() {
+        const sources = root && root.querySelector('[data-memory-summary-sources]');
+        const button = root && root.querySelector('[data-memory-action="toggle-summary-sources"]');
+        if (!sources || !button) return;
+        sources.hidden = !sources.hidden;
+        button.textContent = sources.hidden ? '查看依据' : '收起依据';
+    }
+
+    function startSummaryEdit() {
+        if (!root || !getActiveSummary(selectedContactId)) return;
+        root.classList.add('is-editing-summary');
+        const input = root.querySelector('[data-memory-summary-input]');
+        input.value = getPromptSummary(selectedContactId);
+        root.querySelector('[data-memory-summary-status]').textContent = '';
+        requestAnimationFrame(() => input.focus());
+    }
+
+    function cancelSummaryEdit() {
+        if (!root) return;
+        root.classList.remove('is-editing-summary');
+        renderSummaryPanel();
+    }
+
+    async function saveEditedSummary() {
+        const input = root && root.querySelector('[data-memory-summary-input]');
+        const status = root && root.querySelector('[data-memory-summary-status]');
+        const value = normalizeMemoryText(input && input.value);
+        if (!value) {
+            if (status) status.textContent = '摘要不能为空。';
+            return;
+        }
+        if (value.length > 120) {
+            if (status) status.textContent = '摘要不能超过 120 字。';
+            return;
+        }
+        const saved = await saveSummaryOverride(selectedContactId, value);
+        if (!saved) {
+            if (status) status.textContent = '摘要保存失败，请稍后重试。';
+            return;
+        }
+        root.classList.remove('is-editing-summary');
+        renderSummaryPanel('已保存人工修正。');
+        renderReferenceDocument();
+    }
+
+    async function refreshSummaryNow() {
+        const button = root && root.querySelector('[data-memory-action="refresh-summary"]');
+        const status = root && root.querySelector('[data-memory-summary-status]');
+        if (!button || !status || typeof window.wcRegenerateMemorySummary !== 'function') {
+            if (status) status.textContent = '当前聊天模块暂不支持立即更新。';
+            return;
+        }
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+        status.textContent = '正在更新摘要...';
+        try {
+            await window.wcRegenerateMemorySummary(selectedContactId);
+            await refresh();
+            renderSummaryPanel('摘要已更新。');
+            renderReferenceDocument();
+        } catch (error) {
+            renderSummaryPanel(error && error.message ? error.message : '摘要更新失败，请稍后重试。');
+        } finally {
+            button.removeAttribute('aria-busy');
+            button.disabled = false;
+        }
+    }
+
     function openSummarySettings() {
         if (!root) return;
         const sheet = root.querySelector('[data-memory-summary-settings]');
@@ -1166,6 +1424,7 @@
         if (nextSummaries) cachedSummaries = nextSummaries;
         closeComposer();
         render();
+        window.MemorySync?.schedule(selectedContactId);
     }
 
     async function archiveMemory(itemId) {
@@ -1187,6 +1446,7 @@
         cachedMemoryItems = nextItems;
         cachedSummaries = nextSummaries;
         render();
+        window.MemorySync?.schedule(selectedContactId);
         return true;
     }
 
@@ -1205,6 +1465,7 @@
         if (saved) {
             cachedMemoryItems = nextItems;
             render();
+            window.MemorySync?.schedule(selectedContactId);
         }
         return saved;
     }
@@ -1474,7 +1735,7 @@
             renderReferenceDocument();
         });
         const actions = documentRef.querySelectorAll('.icon-action-btn');
-        actions[0]?.addEventListener('click', openSummarySettings, true);
+        actions[0]?.addEventListener('click', openSummaryPanel, true);
         if (actions[1]) {
             actions[1].onclick = (event) => {
                 event.preventDefault();
@@ -1541,6 +1802,31 @@
         overlay.classList.add('is-visible');
     }
 
+    function buildReferenceSummaryPanel() {
+        const panel = document.createElement('section');
+        panel.className = 'memory-summary-panel';
+        panel.setAttribute('data-memory-summary-panel', '');
+        panel.setAttribute('aria-hidden', 'true');
+        panel.innerHTML = '<div class="memory-summary-panel-sheet" role="dialog" aria-modal="true" aria-labelledby="memorySummaryPanelTitle">'
+            + '<div class="memory-composer-header"><button type="button" data-memory-action="close-summary-panel">完成</button><h2 id="memorySummaryPanelTitle">近期摘要</h2><button type="button" data-memory-action="refresh-summary">立即更新</button></div>'
+            + '<div class="memory-summary-panel-scroll">'
+            + '<p class="memory-summary-role" data-memory-summary-role></p>'
+            + '<section class="memory-summary-current"><div class="memory-summary-section-header"><h3>当前摘要</h3><button type="button" data-memory-action="edit-summary">编辑</button></div><p class="memory-summary-text" data-memory-summary-text></p><textarea data-memory-summary-input maxlength="120" aria-label="修改当前摘要"></textarea><div class="memory-summary-edit-actions"><button type="button" data-memory-action="cancel-summary-edit">取消</button><button type="button" data-memory-action="save-summary-edit">保存修正</button></div><p class="memory-summary-meta" data-memory-summary-meta></p></section>'
+            + '<section class="memory-summary-progress-section"><div class="memory-summary-section-header"><h3>自动更新进度</h3><span data-memory-summary-progress-copy></span></div><progress data-memory-summary-progress max="200" value="0"></progress></section>'
+            + '<section class="memory-summary-source-section"><div class="memory-summary-section-header"><h3>摘要依据</h3><div><span data-memory-summary-source-count>0 条</span><button type="button" data-memory-action="toggle-summary-sources">查看依据</button></div></div><div class="memory-summary-sources" data-memory-summary-sources hidden></div></section>'
+            + '<p class="memory-summary-status" data-memory-summary-status aria-live="polite"></p>'
+            + '</div></div>';
+        root.appendChild(panel);
+        panel.querySelector('[data-memory-action="close-summary-panel"]').addEventListener('click', closeSummaryPanel);
+        panel.querySelector('[data-memory-action="refresh-summary"]').addEventListener('click', refreshSummaryNow);
+        panel.querySelector('[data-memory-action="edit-summary"]').addEventListener('click', startSummaryEdit);
+        panel.querySelector('[data-memory-action="cancel-summary-edit"]').addEventListener('click', cancelSummaryEdit);
+        panel.querySelector('[data-memory-action="save-summary-edit"]').addEventListener('click', saveEditedSummary);
+        panel.querySelector('[data-memory-action="toggle-summary-sources"]').addEventListener('click', toggleSummarySources);
+        panel.addEventListener('click', (event) => { if (event.target === panel) closeSummaryPanel(); });
+        panel.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeSummaryPanel(); });
+    }
+
     function buildReferenceSettings() {
         const settings = document.createElement('section');
         settings.className = 'memory-summary-settings';
@@ -1551,13 +1837,39 @@
             + '<p class="memory-summary-settings-copy">每累计多少条新消息，更新一次近期摘要</p>'
             + '<label class="memory-summary-settings-input"><input type="number" inputmode="numeric" min="1" max="500" step="1" data-memory-summary-interval><span>条新消息</span></label>'
             + '<section class="memory-settings-section"><h3>向量模型</h3><p class="memory-semantic-settings-copy">下载到本机后，聊天内容不会上传。</p><label class="memory-semantic-settings-input"><span>自定义清单</span><input type="url" data-semantic-model-url placeholder="可选：manifest 地址"></label><button class="memory-model-download" type="button" data-memory-action="download-semantic-model">下载向量模型</button><progress class="memory-semantic-model-progress" data-semantic-model-progress max="1" value="0" hidden></progress><p class="memory-semantic-model-status" data-semantic-model-status>模型未下载</p><button class="memory-semantic-remove" type="button" data-memory-action="remove-semantic-model" hidden>删除本地模型</button></section>'
-            + '<p class="memory-composer-error" data-memory-summary-error aria-live="polite"></p></div>';
+            + '<section class="memory-settings-section memory-external-section"><h3>外接记忆库</h3><p class="memory-semantic-settings-copy">本地 IndexedDB 是主数据源；数据只会以明文上传到你配置的用户云端，凭据仅保存在本机。</p><label class="memory-semantic-settings-input"><span>服务</span><select data-memory-sync-provider><option value="http">通用 HTTP / Cloudflare Worker</option><option value="mem0">Mem0 Platform</option><option value="zep">Zep</option><option value="supabase">Supabase</option></select></label><label class="memory-semantic-settings-input"><span>地址</span><input type="url" data-memory-sync-url placeholder="用户自己的服务地址；Mem0/Zep 可留空"></label><label class="memory-semantic-settings-input"><span>API Key</span><input type="password" data-memory-sync-key autocomplete="off"></label><label class="memory-semantic-settings-input"><span>访问令牌</span><input type="password" data-memory-sync-token autocomplete="off" placeholder="Supabase/HTTP 可选"></label><label class="memory-semantic-settings-input"><span>Supabase 表</span><input type="text" data-memory-sync-table placeholder="tonghuaji_memories"></label><label class="memory-semantic-settings-input"><span>命名空间</span><input type="text" data-memory-sync-namespace placeholder="用于隔离角色数据"></label><label class="memory-summary-settings-input"><input type="checkbox" data-memory-sync-auto checked><span>自动同步（后台静默执行）</span></label><fieldset class="memory-sync-scope"><legend>上传范围</legend><label><input type="checkbox" data-memory-sync-tier="L1"> L1 确认记忆</label><label><input type="checkbox" data-memory-sync-tier="L2"> L2 摘要</label><label><input type="checkbox" data-memory-sync-tier="L3"> L3 片段</label><label><input type="checkbox" data-memory-sync-chat> 聊天记录</label><label><input type="checkbox" data-memory-sync-archived> 包含归档</label><label><input type="radio" name="memory-sync-roles" value="current" checked> 当前角色</label><label><input type="radio" name="memory-sync-roles" value="all"> 全部角色</label></fieldset><div class="memory-sync-actions"><button type="button" data-memory-action="test-memory-sync">测试连接</button><button type="button" data-memory-action="save-memory-sync">保存同步设置</button><button type="button" data-memory-action="sync-memory-now">立即同步</button><button type="button" data-memory-action="restore-memory-sync">下载恢复</button></div><p class="memory-composer-error" data-memory-sync-status aria-live="polite"></p></section><p class="memory-composer-error" data-memory-summary-error aria-live="polite"></p></div>';
         root.appendChild(settings);
         settings.querySelector('[data-memory-action="close-summary-settings"]').addEventListener('click', closeSummarySettings);
         settings.querySelector('[data-memory-action="save-summary-settings"]').addEventListener('click', saveSummarySettings);
         settings.querySelector('[data-memory-action="download-semantic-model"]').addEventListener('click', downloadSemanticModel);
         settings.querySelector('[data-memory-action="remove-semantic-model"]').addEventListener('click', removeSemanticModel);
+        settings.querySelector('[data-memory-action="test-memory-sync"]').addEventListener('click', testMemorySync);
+        settings.querySelector('[data-memory-action="save-memory-sync"]').addEventListener('click', saveMemorySyncSettings);
+        settings.querySelector('[data-memory-action="sync-memory-now"]').addEventListener('click', syncMemoryNow);
+        settings.querySelector('[data-memory-action="restore-memory-sync"]').addEventListener('click', restoreMemorySync);
+        void loadMemorySyncSettings();
     }
+
+    async function loadMemorySyncSettings() {
+        const config = await window.MemorySync?.init?.().then(() => window.MemorySync.getSettings()).catch(() => null);
+        if (!config || !root) return;
+        const section = root.querySelector('.memory-external-section'); if (!section) return;
+        section.querySelector('[data-memory-sync-provider]').value = config.provider || 'http';
+        section.querySelector('[data-memory-sync-url]').value = config.baseUrl || '';
+        section.querySelector('[data-memory-sync-namespace]').value = config.namespace || '';
+        (config.scope?.tiers || ['L1']).forEach((tier) => { const input = section.querySelector('[data-memory-sync-tier="' + tier + '"]'); if (input) input.checked = true; });
+        section.querySelector('[data-memory-sync-chat]').checked = config.scope?.includeChat === true;
+        section.querySelector('[data-memory-sync-archived]').checked = config.scope?.includeArchived === true;
+        section.querySelector('[data-memory-sync-auto]').checked = config.autoSync !== false;
+        const role = section.querySelector('[name="memory-sync-roles"][value="' + (config.scope?.roles || 'current') + '"]'); if (role) role.checked = true;
+        const syncState = window.MemorySync.getStatus();
+        section.querySelector('[data-memory-sync-status]').textContent = syncState.error ? ('上次同步失败：' + syncState.error) : syncState.lastSyncAt ? ('上次同步：' + new Date(syncState.lastSyncAt).toLocaleString() + (syncState.conflicts ? '，本地优先合并 ' + syncState.conflicts + ' 个冲突' : '')) : '';
+    }
+    function memorySyncConfigFromUi() { const section = root.querySelector('.memory-external-section'); const provider = section.querySelector('[data-memory-sync-provider]').value; const enteredUrl = section.querySelector('[data-memory-sync-url]').value.trim(); const baseUrl = enteredUrl || (provider === 'mem0' ? 'https://api.mem0.ai' : provider === 'zep' ? 'https://api.getzep.com/api/v2' : ''); return { enabled: Boolean(baseUrl), autoSync: section.querySelector('[data-memory-sync-auto]').checked, provider, baseUrl, namespace: section.querySelector('[data-memory-sync-namespace]').value.trim(), scope: { roles: section.querySelector('[name="memory-sync-roles"]:checked')?.value || 'current', tiers: Array.from(section.querySelectorAll('[data-memory-sync-tier]:checked')).map((input) => input.getAttribute('data-memory-sync-tier')), includeChat: section.querySelector('[data-memory-sync-chat]').checked, includeArchived: section.querySelector('[data-memory-sync-archived]').checked } }; }
+    async function saveMemorySyncSettings() { const section = root.querySelector('.memory-external-section'); const status = section.querySelector('[data-memory-sync-status]'); const apiKey = section.querySelector('[data-memory-sync-key]').value.trim(); const token = section.querySelector('[data-memory-sync-token]').value.trim(); const table = section.querySelector('[data-memory-sync-table]').value.trim(); await window.MemorySync.saveConfig(memorySyncConfigFromUi(), { ...(apiKey ? { apiKey } : {}), ...(token ? { token } : {}), ...(table ? { table } : {}) }); status.textContent = '同步设置已保存。'; }
+    async function testMemorySync() { const section = root.querySelector('.memory-external-section'); const status = section.querySelector('[data-memory-sync-status]'); try { await saveMemorySyncSettings(); await window.MemorySync.testConnection(); status.textContent = '连接成功。'; } catch (error) { status.textContent = '连接失败：' + String(error.message || error); } }
+    async function syncMemoryNow() { const status = root.querySelector('[data-memory-sync-status]'); try { const result = await window.MemorySync.syncNow(selectedContactId); status.textContent = '同步完成：上传 ' + (result.uploaded || 0) + ' 条，恢复 ' + (result.restored || 0) + ' 条' + (result.conflicts ? '，本地优先合并 ' + result.conflicts + ' 个冲突' : '') + '。'; await preload(); render(); } catch (error) { status.textContent = '同步失败：' + String(error.message || error); } }
+    async function restoreMemorySync() { const status = root.querySelector('[data-memory-sync-status]'); try { const result = await window.MemorySync.restoreNow(selectedContactId); status.textContent = '下载恢复完成：恢复 ' + (result.restored || 0) + ' 条。'; await preload(); render(); } catch (error) { status.textContent = '恢复失败：' + String(error.message || error); } }
 
     function buildReferenceComposer() {
         const composer = document.createElement('section');
@@ -1583,6 +1895,7 @@
         const referenceFrame = getReferenceFrame();
         const referenceHost = document.querySelector('.iphone') || document.body;
         referenceHost.appendChild(root);
+        buildReferenceSummaryPanel();
         buildReferenceSettings();
         buildReferenceComposer();
         decodeReferenceDocument().then((documentText) => {
@@ -1842,9 +2155,35 @@
             .memory-composer textarea { display: block; width: 100%; min-height: 142px; resize: none; border: 0; border-radius: 14px; padding: 14px; box-sizing: border-box; outline: 0; background: #f2f2f7; color: #1c1c1e; font: 16px/1.6 "Noto Serif SC", "STSong", "SimSun", serif; }
             .memory-composer textarea::placeholder { color: #8e8e93; }
             .memory-composer-error { min-height: 18px; margin: 7px 0 0; color: #ff3b30; font-size: 12px; }
+            .memory-summary-panel { position: absolute; inset: 0; z-index: 7203; display: none; align-items: flex-end; background: rgba(0,0,0,.28); }
+            .memory-app-container.is-viewing-summary .memory-summary-panel { display: flex; }
+            .memory-summary-panel-sheet { display: flex; width: 100%; max-height: min(82vh, 720px); flex-direction: column; overflow: hidden; border-radius: 18px 18px 0 0; padding: 14px 20px calc(22px + env(safe-area-inset-bottom)); box-sizing: border-box; background: #fff; box-shadow: 0 -12px 28px rgba(0,0,0,.14); }
+            .memory-summary-panel-scroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+            .memory-summary-role { margin: 18px 0 4px; color: #8e8e93; font-size: 13px; font-weight: 500; }
+            .memory-summary-current, .memory-summary-progress-section, .memory-summary-source-section { padding: 18px 0; border-bottom: 1px solid #e5e5ea; }
+            .memory-summary-section-header { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; }
+            .memory-summary-section-header h3 { margin: 0; color: #000; font-size: 17px; font-weight: 600; letter-spacing: 0; }
+            .memory-summary-section-header > span, .memory-summary-section-header > div { color: #8e8e93; font-size: 12px; }
+            .memory-summary-section-header > div { display: flex; align-items: center; gap: 12px; }
+            .memory-summary-section-header button, .memory-summary-edit-actions button { border: 0; padding: 0; background: transparent; color: #007aff; font: 500 14px/20px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; cursor: pointer; }
+            .memory-summary-section-header button:disabled { color: #c7c7cc; cursor: default; }
+            .memory-summary-text { margin: 13px 0 0; color: #000; font-size: 17px; line-height: 1.6; overflow-wrap: anywhere; }
+            .memory-summary-text.is-empty { color: #8e8e93; }
+            .memory-summary-panel textarea { display: none; width: 100%; min-height: 92px; margin-top: 12px; resize: vertical; border: 0; border-radius: 10px; padding: 12px; box-sizing: border-box; outline: 0; background: #f2f2f7; color: #000; font: 16px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+            .memory-summary-edit-actions { display: none; justify-content: flex-end; gap: 20px; margin-top: 10px; }
+            .memory-app-container.is-editing-summary .memory-summary-text { display: none; }
+            .memory-app-container.is-editing-summary .memory-summary-panel textarea { display: block; }
+            .memory-app-container.is-editing-summary .memory-summary-edit-actions { display: flex; }
+            .memory-summary-meta { margin: 9px 0 0; color: #8e8e93; font-size: 12px; line-height: 1.4; }
+            .memory-summary-progress-section progress { display: block; width: 100%; height: 6px; margin-top: 14px; border: 0; border-radius: 3px; overflow: hidden; accent-color: #007aff; }
+            .memory-summary-sources { display: grid; gap: 10px; margin-top: 14px; }
+            .memory-summary-source { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 9px; align-items: start; }
+            .memory-summary-source span { color: #8e8e93; font-size: 12px; line-height: 1.5; }
+            .memory-summary-source p, .memory-summary-source-empty { margin: 0; color: #3c3c43; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+            .memory-summary-status { min-height: 18px; margin: 12px 0 0; color: #8e8e93; font-size: 12px; line-height: 1.5; }
             .memory-summary-settings { position: absolute; inset: 0; z-index: 5; display: none; align-items: flex-end; background: rgba(0,0,0,.28); }
             .memory-app-container.is-configuring-summary .memory-summary-settings { display: flex; }
-            .memory-summary-settings-sheet { width: 100%; padding: 14px 20px calc(25px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0; box-sizing: border-box; background: var(--memory-card); box-shadow: 0 -12px 28px rgba(0,0,0,.12); }
+            .memory-summary-settings-sheet { width: 100%; max-height: 92%; overflow-y: auto; padding: 14px 20px calc(25px + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0; box-sizing: border-box; background: var(--memory-card); box-shadow: 0 -12px 28px rgba(0,0,0,.12); }
             .memory-summary-settings-copy { margin: 24px 0 12px; color: #1c1c1e; font-size: 16px; line-height: 1.6; }
             .memory-summary-settings-input { display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 14px; border-radius: 14px; box-sizing: border-box; background: #f2f2f7; color: var(--memory-secondary); font-size: 15px; }
             .memory-summary-settings-input input { width: 78px; border: 0; padding: 0; outline: 0; background: transparent; color: #1c1c1e; font: 24px/1.2 Georgia, "Noto Serif SC", "STSong", "SimSun", serif; }
@@ -1898,12 +2237,19 @@
             .memory-entry .memory-entry-provenance { color: #8e8e93; font-size: 11px; }
             .memory-empty-state { min-height: 180px; padding: 25px 12px; }
             .memory-empty-state h2 { font-size: 21px; }
-            .memory-composer, .memory-summary-settings, .memory-semantic-settings { background: rgba(0,0,0,.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+            .memory-composer, .memory-summary-panel, .memory-summary-settings, .memory-semantic-settings { background: rgba(0,0,0,.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
             .memory-summary-settings-sheet { border-radius: 18px 18px 0 0; background: #fff; }
             .memory-settings-section { margin-top: 26px; padding-top: 20px; border-top: 1px solid #e5e5ea; }
             .memory-settings-section h3 { margin: 0; color: #000; font-size: 17px; font-weight: 600; }
+            .memory-external-section select, .memory-external-section input[type="text"], .memory-external-section input[type="password"], .memory-external-section input[type="url"] { min-width: 0; border: 0; background: transparent; color: #111; text-align: right; font: 400 14px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+            .memory-sync-scope { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 14px 0 0; padding: 12px; border: 1px solid #e5e5ea; border-radius: 10px; }
+            .memory-sync-scope legend { padding: 0 5px; color: #6e6e73; font-size: 12px; }
+            .memory-sync-scope label { color: #1c1c1e; font-size: 13px; line-height: 20px; }
+            .memory-sync-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+            .memory-sync-actions button { min-height: 40px; border: 0; border-radius: 10px; background: #e9f2ff; color: #007aff; font: 500 13px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; cursor: pointer; }
             .memory-model-download { width: 100%; height: 42px; margin-top: 14px; border: 0; border-radius: 10px; background: #007aff; color: #fff; font: 500 15px/42px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; cursor: pointer; }
             .memory-semantic-model-progress { width: 100%; margin-top: 12px; }
+            @media (prefers-reduced-transparency: reduce) { .memory-composer, .memory-summary-panel, .memory-summary-settings, .memory-semantic-settings { background: rgba(0,0,0,.52); backdrop-filter: none; -webkit-backdrop-filter: none; } }
             @media (max-width: 360px) { .memory-app-scroll, .memory-role-picker { padding-right: 15px; padding-left: 15px; } .memory-profile-section { padding-top: 18px; } .memory-avatar-shell { width: 78px; height: 78px; } .memory-heading { margin-left: 14px; } .memory-profile-stat { gap: 5px; font-size: 11px !important; } }
         `;
         document.head.appendChild(style);
@@ -1939,19 +2285,20 @@
         if (!root) init();
         root.setAttribute('aria-hidden', 'false');
         root.classList.add('is-open');
-        refresh();
+        void refresh().then(() => window.MemorySync?.schedule(selectedContactId));
     }
 
     function close() {
         if (!root) return;
+        closeSummaryPanel();
+        closeComposer();
+        closeSummarySettings();
+        closeSemanticSettings();
         if (getReferenceFrame()) {
             root.classList.remove('is-open');
             root.setAttribute('aria-hidden', 'true');
             return;
         }
-        closeComposer();
-        closeSummarySettings();
-        closeSemanticSettings();
         root.classList.remove('is-picking-role');
         root.querySelector('[data-memory-role-picker]').setAttribute('aria-hidden', 'true');
         root.classList.remove('is-open');
@@ -1970,13 +2317,18 @@
         completeChatTurn,
         markChatTurnFailed,
         getPromptSummary,
+        getSummaryOverview,
+        saveSummaryOverride,
         getRelevantFragments,
         runRetrievalEvaluation,
         getSummaryJob,
         completeSummary,
-        invalidateSources
+        invalidateSources,
+        getSyncSnapshot,
+        mergeSyncRecords
     };
 
     // The chat path reads this in-memory cache only. IndexedDB is warmed in the background.
     void preload();
+    void window.MemorySync?.init?.();
 })();

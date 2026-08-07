@@ -1378,17 +1378,23 @@
             const existingScript = document.getElementById('memoryAppScript');
             if (existingScript) {
                 existingScript.addEventListener('load', resolve, { once: true });
-                existingScript.addEventListener('error', () => reject(new Error('记忆脚本加载失败')), { once: true });
+                existingScript.addEventListener('error', () => reject(new Error('记忆加载失败')), { once: true });
                 return;
             }
 
+            if (!document.getElementById('memorySyncScript')) {
+                const syncScript = document.createElement('script');
+                syncScript.id = 'memorySyncScript';
+                syncScript.src = 'js/memory-sync.js?v=20260808-user-cloud-v1';
+                document.body.appendChild(syncScript);
+            }
             const script = document.createElement('script');
             script.id = 'memoryAppScript';
-            script.src = 'js/memory.js?v=20260731-memory-profile-v1';
+            script.src = 'js/memory.js?v=20260808-summary-sync-v1';
             script.onload = resolve;
             script.onerror = () => {
                 script.remove();
-                reject(new Error('记忆脚本加载失败'));
+                reject(new Error('记忆加载失败'));
             };
             document.body.appendChild(script);
         });
