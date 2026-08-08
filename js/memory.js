@@ -29,6 +29,10 @@
     const VECTOR_MIN_SIMILARITY = 0.12;
     const SEMANTIC_RETRIEVAL_TIMEOUT_MS = 180;
     const SEMANTIC_MIN_SIMILARITY = 0.28;
+    const REFERENCE_DOCUMENT_SOURCE = (() => {
+        const template = document.getElementById('memoryReferenceDocumentTemplate');
+        return template ? template.content.textContent : '';
+    })();
 
     let root = null;
     let selectedContactId = '';
@@ -1923,8 +1927,7 @@
     }
 
     async function decodeReferenceDocument() {
-        const template = document.getElementById('memoryReferenceDocumentTemplate');
-        return template ? template.content.textContent : '';
+        return REFERENCE_DOCUMENT_SOURCE;
     }
 
     function getReferenceFrame() {
