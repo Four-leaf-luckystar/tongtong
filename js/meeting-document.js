@@ -1,5 +1,10 @@
 (function () {
     'use strict';
-    const template = document.getElementById('meetingAppDocumentTemplate');
-    window.MEETING_APP_DOCUMENT = template ? template.content.textContent : '';
+    Object.defineProperty(window, 'MEETING_APP_DOCUMENT', {
+        configurable: true,
+        get() {
+            const template = document.getElementById('meetingAppDocumentTemplate');
+            return template ? template.content.textContent : '';
+        }
+    });
 })();
