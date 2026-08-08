@@ -2224,6 +2224,8 @@
             const userLocationInput = document.getElementById('wc-user-weather-location');
             if (userLocationInput) userLocationInput.value = appSettings.wc_user_weather_location || '';
         }
+        
+        wcUpdateLocationStatusText();
     }
 
     function wcCloseSettingsModal() {
@@ -2257,6 +2259,7 @@
             appSettings.wc_user_weather_location = userLocation;
             if (typeof saveAppSettings === 'function') saveAppSettings();
         }
+        wcUpdateLocationStatusText();
     }
     window.wcSaveWeatherLocations = wcSaveWeatherLocations;
 
@@ -2296,6 +2299,9 @@
             if (resultEl) {
                 resultEl.style.color = success ? '#34c759' : '#ff3b30';
                 resultEl.textContent = results.join('；');
+            }
+            if (success) {
+                wcUpdateLocationStatusText('已连接');
             }
         } catch (error) {
             if (resultEl) {
@@ -2345,6 +2351,41 @@
     function wcToggleSwitch(element) {
         element.classList.toggle('active');
     }
+
+    function wcUpdateLocationStatusText(status) {
+        const statusEl = document.getElementById('wc-real-location-status');
+        if (statusEl) {
+            if (status) {
+                statusEl.innerText = status;
+            } else {
+                const charLoc = document.getElementById('wc-char-weather-location')?.value.trim();
+                const userLoc = document.getElementById('wc-user-weather-location')?.value.trim();
+                if (charLoc || userLoc) {
+                    statusEl.innerText = '已设置';
+                } else {
+                    statusEl.innerText = '未设置';
+                }
+            }
+        }
+    }
+
+    function wcOpenRealLocationSheet() {
+        const overlay = document.getElementById('wc-location-drawer-view');
+        if (overlay) {
+            overlay.style.display = 'flex';
+            setTimeout(() => overlay.classList.add('show'), 10);
+        }
+    }
+    window.wcOpenRealLocationSheet = wcOpenRealLocationSheet;
+
+    function wcCloseRealLocationSheet(event) {
+        if (event && event.target !== document.getElementById('wc-location-drawer-view')) return;
+        const overlay = document.getElementById('wc-location-drawer-view');
+        if (!overlay) return;
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.style.display = 'none', 300);
+    }
+    window.wcCloseRealLocationSheet = wcCloseRealLocationSheet;
 
     function wcShowMainSettings() {
         const mainView = document.getElementById('wc-main-settings-view');

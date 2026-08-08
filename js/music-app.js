@@ -47,13 +47,13 @@ function applemusicSwitchView(viewId, element) {
 }
 
 // 打开 App
-function openMusicApp() {
+window.openMusicApp = function() {
     const appUI = document.getElementById('musicAppUI');
     if (appUI) {
         appUI.style.display = 'block';
         applemusicSwitchView('home');
     }
-}
+};
 
 // 关闭 App 的统一函数 (兼容 HTML 中可能存在的两种写法)
 function closeAppleMusicApp() {

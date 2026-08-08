@@ -941,6 +941,12 @@
                 if (app.name === 'Contacts' || (app.icon && app.icon.includes('1390642a446f8db21a89e22b6cc5dc97'))) {
                     app.appId = 'contacts';
                 }
+                if (app.name === 'icity' || (app.icon && app.icon.includes('1b49764d130e8005ea149180a1d764db'))) {
+                    app.appId = 'placeholder-icity';
+                }
+                if (app.name === '音乐' || (app.icon && app.icon.includes('44b1b063945538f0ebf2e1670a156958'))) {
+                    app.appId = 'placeholder-music';
+                }
             }
         };
 
@@ -1727,25 +1733,28 @@
             const app = e.target.closest('.app-item');
             if (app) {
                 const appId = app.getAttribute('data-app-id');
-                if (appId === 'theme') {
+                const appNameEl = app.querySelector('.app-name');
+                const appName = appNameEl ? appNameEl.innerText : '';
+                
+                if (appId === 'theme' || appName === '主题') {
                     openThemeApp();
-                } else if (appId === 'settings') {
+                } else if (appId === 'settings' || appName === '设置') {
                     openSettingsApp();
-                } else if (appId === 'worldbook') {
+                } else if (appId === 'worldbook' || appName === '世界书') {
                     openWorldbookApp();
-                } else if (appId === 'wechat') {
+                } else if (appId === 'wechat' || appName === 'wechat' || appName === '微信') {
                     openWechatApp();
-                } else if (appId === 'contacts') {
+                } else if (appId === 'contacts' || appName === 'Contacts') {
                     openContactsApp();
-                } else if (appId === 'memory' || appId === 'placeholder-bedtime-book') {
+                } else if (appId === 'memory' || appId === 'placeholder-bedtime-book' || appName === '记忆') {
                     openMemoryApp();
-                } else if (appId === 'placeholder-icity') {
+                } else if (appId === 'placeholder-icity' || appName === 'icity') {
                     openICityApp();
-                } else if (appId === 'meeting') {
+                } else if (appId === 'meeting' || appName === '见面') {
                     openMeetingApp();
-                } else if (appId === 'placeholder-music') {
+                } else if (appId === 'placeholder-music' || appName === '音乐') {
                     openMusicApp();
-                } else if (appId === 'placeholder-reading') {
+                } else if (appId === 'placeholder-reading' || appName === '阅读') {
                     if (typeof window.openReaderApp === 'function') {
                         window.openReaderApp();
                     } else {

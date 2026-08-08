@@ -101,6 +101,10 @@
 
     // 数据迁移逻辑 (将旧版独立的 iCityDB 数据自动迁移到全局 layoutStore)
     function migrateOldICityDB() {
+        if (!window.db) {
+            setTimeout(migrateOldICityDB, 100);
+            return;
+        }
         const req = indexedDB.open('iCityDB', 2);
         req.onsuccess = (e) => {
             const oldDb = e.target.result;

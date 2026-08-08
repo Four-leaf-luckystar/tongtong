@@ -103,6 +103,7 @@
         
         request.onupgradeneeded = (e) => {
             db = e.target.result;
+            window.db = db;
             if (!db.objectStoreNames.contains(storeName)) {
                 db.createObjectStore(storeName, { keyPath: "id" });
             }
@@ -110,6 +111,7 @@
 
         request.onsuccess = (e) => {
             db = e.target.result;
+            window.db = db;
             // show three-dots button; click to expand vertical capsule menu
             if (!db.objectStoreNames.contains(storeName)) {
                 const currentVersion = db.version;
@@ -117,12 +119,14 @@
                 const upgradeRequest = indexedDB.open(dbName, currentVersion + 1);
                 upgradeRequest.onupgradeneeded = (e2) => {
                     const db2 = e2.target.result;
+                    window.db = db2;
                     if (!db2.objectStoreNames.contains(storeName)) {
                         db2.createObjectStore(storeName, { keyPath: "id" });
                     }
                 };
                 upgradeRequest.onsuccess = (e2) => {
                     db = e2.target.result;
+                    window.db = db;
                     loadLayout();
                     initializeGithubBackupSchedule();
                 };
