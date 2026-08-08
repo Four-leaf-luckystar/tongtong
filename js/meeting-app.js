@@ -153,18 +153,17 @@
                 color: #999 !important;
                 font-size: 0 !important;
             }
-            .header-right-circle svg { display: none !important; }
-            .header-right-circle::after { content: '\\2022\\2022\\2022'; font-size: 20px; letter-spacing: 0; }
+            .header-right-circle svg { width: 24px !important; height: 24px !important; display: block !important; margin: 0 auto; }
             .search {
                 margin: 18px 25px 25px;
-                height: 58px;
+                height: 40px;
                 border: 1px solid #eee;
-                border-radius: 30px;
+                border-radius: 20px;
                 display: flex;
                 align-items: center;
-                padding: 0 25px;
+                padding: 0 20px;
                 color: #aaa;
-                font-size: 15px;
+                font-size: 14px;
                 line-height: 1;
                 flex-shrink: 0;
             }
@@ -198,6 +197,11 @@
             search.className = 'search';
             search.innerHTML = '<span>&#8981;</span>&#22312;&#36825;&#37324;&#36755;&#20837;&#20320;&#24819;&#35828;&#30340;&#35805;...';
             header.insertAdjacentElement('afterend', search);
+            
+            const rightCircle = header.querySelector('.header-right-circle');
+            if (rightCircle) {
+                rightCircle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2.5"></circle><circle cx="12" cy="12" r="2.5"></circle><circle cx="19" cy="12" r="2.5"></circle></svg>';
+            }
         }
     }
 

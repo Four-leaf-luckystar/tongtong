@@ -1289,7 +1289,8 @@
     function closeComposer() {
         if (!root) return;
         root.classList.remove('is-composing');
-        root.querySelector('[data-memory-composer]').setAttribute('aria-hidden', 'true');
+        const composer = root.querySelector('[data-memory-composer]');
+        if (composer) composer.setAttribute('aria-hidden', 'true');
         editingMemoryId = '';
     }
 
@@ -1678,7 +1679,8 @@
     function closeSemanticSettings() {
         if (!root) return;
         root.classList.remove('is-configuring-semantic');
-        root.querySelector('[data-memory-semantic-settings]').setAttribute('aria-hidden', 'true');
+        const semanticSettings = root.querySelector('[data-memory-semantic-settings]');
+        if (semanticSettings) semanticSettings.setAttribute('aria-hidden', 'true');
     }
 
     async function downloadSemanticModel() {

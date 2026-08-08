@@ -1362,10 +1362,27 @@
     }
     window.loadContactsApp = loadContactsApp;
 
+    function showContactsLaunchCover() {
+        const shell = document.querySelector('.iphone') || document.body;
+        const existing = document.getElementById('contactsAppLaunchCover');
+        if (existing) return existing;
+        const cover = document.createElement('div');
+        cover.id = 'contactsAppLaunchCover';
+        cover.setAttribute('aria-hidden', 'true');
+        cover.style.cssText = 'position:absolute;inset:0;z-index:7199;background:#F2F2F7;pointer-events:auto;';
+        shell.appendChild(cover);
+        return cover;
+    }
+
     function openContactsApp() {
+        const launchCover = showContactsLaunchCover();
         loadContactsApp()
-            .then(app => app.open())
+            .then(app => {
+                app.open();
+                requestAnimationFrame(() => launchCover.remove());
+            })
             .catch(error => {
+                launchCover.remove();
                 console.error('Contacts app could not be opened:', error);
                 if (typeof showCustomAlert === 'function') {
                     showCustomAlert('加载失败', '联系人页面暂时无法打开，请稍后重试。');

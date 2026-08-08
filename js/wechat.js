@@ -2665,6 +2665,7 @@
                 await contactsApp.open();
                 contactsApp.openContactExternal(contact.linkedContactId, async () => {
                     // 当从角色库返回时，重新同步数据并刷新聊天室
+                    await new Promise(resolve => setTimeout(resolve, 300)); // 增加延迟等待数据库写入完成
                     await wcReloadContactsFromStorage();
                     const contactRecord = await wcReadLayoutRecord('contactsAppData');
                     const contacts = Array.isArray(contactRecord?.data?.contacts) ? contactRecord.data.contacts : [];
@@ -2677,7 +2678,7 @@
                         wcRenderContactList();
                         wcRenderChatList();
                         wcOpenChatRoom(wcCurrentChatContactId);
-                        if (document.getElementById('wc-settings-modal')?.classList.contains('show')) wcOpenSettingsModal();
+                        wcOpenSettingsModal(); // 无条件重新打开并刷新设置面板
                     }
                 });
             } catch (error) {
@@ -2703,6 +2704,7 @@
                 await contactsApp.open();
                 contactsApp.openUserExternal(userId, async () => {
                     // 当从角色库返回时，重新同步 User 数据
+                    await new Promise(resolve => setTimeout(resolve, 300)); // 增加延迟等待数据库写入完成
                     const contactRecord = await wcReadLayoutRecord('contactsAppData');
                     const users = Array.isArray(contactRecord?.data?.users) ? contactRecord.data.users : [];
                     const sourceUser = users.find(u => u.id === userId);
@@ -2721,6 +2723,7 @@
                         }
                         // 刷新聊天室（因为自己发的消息头像可能变了）
                         wcRenderChatMessages(wcCurrentChatContactId);
+                        wcOpenSettingsModal(); // 无条件重新打开并刷新设置面板
                     }
                 });
             } catch (error) {
