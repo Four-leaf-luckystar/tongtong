@@ -803,6 +803,27 @@
     let wcCurrentContactTabId = 'g_member';
     let wcCurrentMoveContactId = null;
     let wcCurrentChatContactId = null;
+    let wcChatViewportTimer = null;
+
+    function wcSyncChatViewport() {
+        const wechatUI = document.getElementById('wechatAppUI');
+        if (!wechatUI) return;
+        const viewportHeight = Math.round(window.visualViewport?.height || window.innerHeight || 0);
+        if (viewportHeight > 0) {
+            const height = viewportHeight + 'px';
+            wechatUI.style.setProperty('--wc-viewport-height', height);
+        }
+    }
+
+    function wcScheduleChatViewportSync() {
+        clearTimeout(wcChatViewportTimer);
+        wcSyncChatViewport();
+        wcChatViewportTimer = setTimeout(() => {
+            wcSyncChatViewport();
+            const chatRoom = document.getElementById('page-chat-room');
+            if (chatRoom?.classList.contains('active')) wcScrollToBottom();
+        }, 180);
+    }
 
     function wcRenderContactTabs() {
         const container = document.getElementById('wcTopTabsContainer');
@@ -1452,6 +1473,7 @@
         document.querySelector('#wechatAppUI #page-chat-room').classList.add('active');
         const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
         if (bottomNav) bottomNav.style.display = 'none';
+        wcScheduleChatViewportSync();
         wcUpdateMessageGroupings(); wcScrollToBottom();
     }
 
@@ -1488,7 +1510,16 @@
         const bottomNav = document.querySelector('#wechatAppUI .bottom-nav-wrapper');
         if (bottomNav) bottomNav.style.display = 'none';
 
-        wcRenderChatMessages(contactId);
+        wcScheduleChatViewportSync();
+        try {
+            wcRenderChatMessages(contactId);
+            requestAnimationFrame(wcScheduleChatViewportSync);
+        } catch (error) {
+            console.error('聊天页面渲染失败：', error);
+            const chatArea = document.getElementById('wc-chat-area');
+            if (chatArea) chatArea.replaceChildren();
+            wcScheduleChatViewportSync();
+        }
     }
 
     function wcCloseChat() {
@@ -5559,6 +5590,9 @@
         }, true);
     }
     wcInitChatInput();
+    window.addEventListener('resize', wcScheduleChatViewportSync, { passive: true });
+    window.addEventListener('orientationchange', wcScheduleChatViewportSync, { passive: true });
+    window.visualViewport?.addEventListener('resize', wcScheduleChatViewportSync, { passive: true });
     
     // iMessage 顶底栏状态初始化已移至 initWcFontSettings 中统一处理
 
@@ -7297,7 +7331,10 @@
         }
     }
 
-    function wcScrollToBottom() { const chatArea = document.getElementById('wc-chat-area'); chatArea.scrollTop = chatArea.scrollHeight; }
+    function wcScrollToBottom() {
+        const chatArea = document.getElementById('wc-chat-area');
+        if (chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+    }
     function wcUpdateMessageGroupings() {
         const rows = document.querySelectorAll('#wc-chat-area .message-row');
         rows.forEach((row, index) => {

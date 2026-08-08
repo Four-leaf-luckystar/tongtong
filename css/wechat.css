@@ -1,7 +1,7 @@
 
         #wechatAppUI.show { transform: translateX(0); }
         #wechatAppUI * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        #wechatAppUI .page { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: var(--bg-color); animation: wcFadeIn 0.3s ease; }
+        #wechatAppUI .page { display: none; width: 100%; height: 100%; min-height: 0; position: absolute; top: 0; left: 0; background-color: var(--bg-color); animation: wcFadeIn 0.3s ease; }
         #wechatAppUI .page.active { display: flex; flex-direction: column; }
         @keyframes wcFadeIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
         
@@ -65,7 +65,7 @@
         #wechatAppUI .menu-item:active { background-color: #F1F1F4; }
         #wechatAppUI .menu-item svg { width: 22px; height: 22px; stroke: #000; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
         #wechatAppUI .menu-item span { font-size: 16px; font-weight: 600; color: #000; }
-        #wechatAppUI .chat-area { flex: 1; overflow-y: auto; padding: 0 16px; padding-top: 100px; padding-bottom: 100px; display: flex; flex-direction: column; } /* 修复顶部重合 */
+        #wechatAppUI .chat-area { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 16px; padding-top: 100px; padding-bottom: 100px; display: flex; flex-direction: column; } /* 修复顶部重合 */
         #wechatAppUI .sys-badge { background-color: rgba(0, 0, 0, 0.15); color: #ffffff; font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 14px; align-self: center; margin-bottom: 20px; }
         #wechatAppUI .wc-center-timestamp { text-align: center; font-size: 12px; color: #8e8e93; margin: 16px 0; font-weight: 500; align-self: center; }
         #wechatAppUI .message-row { display: flex; align-items: flex-start; margin-bottom: 14px; max-width: 100%; position: relative; } 
