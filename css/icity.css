@@ -1,1 +1,2233 @@
-.icity-app-container{position:fixed;inset:0;z-index:1800;display:none;background:#f4f2f2;color:#111;font-family:Arial,sans-serif}.icity-app-container.is-open{display:block}.icity-app{position:relative;width:min(100%,620px);height:100%;margin:auto;overflow:hidden;background:#f4f2f2}.icity-topbar{height:calc(68px + env(safe-area-inset-top));box-sizing:border-box;padding:env(safe-area-inset-top) 18px 0;display:grid;grid-template-columns:46px 1fr 86px;align-items:center;background:#f8f6f6;border-bottom:1px solid #d8d8d8}.icity-topbar h1{margin:0;text-align:center;font-size:25px;font-weight:800}.icity-back-button,.icity-top-actions button{border:0;background:transparent;color:#888;font-size:41px;line-height:1;cursor:pointer}.icity-top-actions{display:flex;justify-content:flex-end;gap:12px}.icity-top-actions button{font-size:27px}.icity-main{height:calc(100% - 142px);overflow:hidden}.icity-view{display:none;height:100%;overflow:auto}.icity-view.is-active{display:block}.icity-composer-prompt{height:188px;box-sizing:border-box;margin:0 10px 10px;padding:14px 26px;display:flex;gap:16px;align-items:flex-start;background:#fff;color:#999;font-size:28px;cursor:pointer}.icity-composer-prompt span{width:58px;height:58px;display:grid;place-items:center;flex:0 0 auto;border-radius:50%;background:#fff59b;color:#ed4d96;font-size:24px;font-weight:800}.icity-composer-prompt strong{padding-top:11px}.icity-month-summary{margin:0 10px 20px;padding:12px 14px;display:flex;gap:10px;align-items:center;background:#fff;color:#c9c9c9;font-size:18px}.icity-month-summary b{padding:3px 6px;border-radius:4px;background:#ffcb72;color:#fff;font-size:15px}.icity-month-summary i{margin-left:auto;font-size:30px;font-style:normal}.icity-feed{padding:0 10px 20px}.icity-entry{margin-bottom:10px;padding:16px 26px 12px;background:#fff}.icity-entry-head{display:flex;align-items:center;gap:12px}.icity-avatar,.icity-profile-avatar{width:58px;height:58px;display:grid;place-items:center;overflow:hidden;border-radius:50%;background:#fff49d;color:#ed4d96;font-size:21px;font-weight:800}.icity-avatar img,.icity-profile-avatar img,.icity-message-avatar img{width:100%;height:100%;object-fit:cover}.icity-entry-head strong{display:block;font-size:20px}.icity-entry-head small,.icity-entry-head time{display:block;color:#c5c5c5;font-size:16px}.icity-entry-head time{margin-left:auto;align-self:flex-start}.icity-entry h2{margin:21px 0 9px;font-size:24px;line-height:1.35}.icity-entry p{margin:0;white-space:pre-wrap;word-break:break-word;font-size:21px;line-height:1.55}.icity-entry footer{display:flex;align-items:center;gap:17px;margin-top:30px;padding-top:13px;border-top:1px solid #ededed;color:#cecece;font-size:17px}.icity-entry footer span{margin-right:auto}.icity-entry footer i{font-style:normal;font-size:22px}.icity-entry footer button{border:0;background:transparent;color:#c7c7c7;font-size:24px;cursor:pointer}.icity-empty{padding:110px 30px;text-align:center;color:#999;font-size:17px}.icity-empty b{display:block;color:#f3a335;font-size:75px;font-weight:400}.icity-empty strong{display:block;margin:13px 0;color:#5593d1;font-size:25px}.icity-segmented{display:flex;justify-content:center;padding:12px;background:#f7f5f5;border-bottom:1px solid #d7d7d7}.icity-segmented button{border:0;border-right:1px solid #d2d2d2;background:transparent;padding:6px 15px;color:#777;font-size:19px;font-weight:800}.icity-segmented button.is-active{border-radius:6px;background:#fff;color:#111;box-shadow:0 0 0 1px #d8d8d8}.icity-friend-banner{margin:0 10px 10px;padding:24px;display:flex;gap:18px;background:#4a5a91;color:#fff}.icity-friend-banner>span{font-size:78px;line-height:1}.icity-friend-banner strong,.icity-friend-banner small{display:block}.icity-friend-banner strong{font-size:24px}.icity-friend-banner small{margin:5px 0 12px;font-size:16px}.icity-friend-banner button{border:0;border-radius:7px;background:#00bd1b;color:#fff;padding:9px 14px;font-size:16px;font-weight:800}.icity-profile-head{min-height:125px;padding:22px 35px;box-sizing:border-box;display:flex;gap:15px;align-items:center;background:#fff}.icity-profile-avatar{width:72px;height:72px}.icity-profile-head strong{display:block;font-size:25px}.icity-profile-head span{color:#bbb;font-size:17px}.icity-message-view{position:relative;background:#fff}.icity-chat-day{padding:20px;text-align:center;color:#aaa;font-size:17px}.icity-messages{height:calc(100% - 72px);box-sizing:border-box;overflow:auto;padding:0 16px 15px}.icity-message{display:flex;gap:10px;margin:18px 0;align-items:flex-end}.icity-message.is-user{flex-direction:row-reverse}.icity-message-avatar{width:46px;height:46px;display:grid;place-items:center;flex:0 0 auto;overflow:hidden;border-radius:50%;background:#ffe276;color:#e94e94;font-weight:800}.icity-bubble{max-width:74%;padding:14px 16px;border:1px solid #d7d7d7;border-radius:7px;background:#fafafa;font-size:19px;line-height:1.45}.icity-message.is-user .icity-bubble{background:#dceaff;border-color:#b5cce9}.icity-message-compose{position:absolute;bottom:0;left:0;right:0;display:flex;gap:10px;padding:10px;background:#f1eeee;border-top:1px solid #ddd}.icity-message-compose input{min-width:0;flex:1;border:1px solid #d7d7d7;border-radius:3px;padding:0 10px;font-size:18px}.icity-message-compose button{border:0;border-radius:8px;background:#45c55a;color:#fff;padding:11px 15px;font-size:18px;font-weight:800}.icity-bottom-nav{height:calc(74px + env(safe-area-inset-bottom));padding:0 20px env(safe-area-inset-bottom);box-sizing:border-box;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;background:#fafafa;border-top:1px solid #e0e0e0}.icity-bottom-nav button{border:0;background:transparent;color:#9c9c9c;font-size:12px;cursor:pointer}.icity-bottom-nav span{display:block;font-size:32px;line-height:30px}.icity-bottom-nav button.is-active{color:#5f9ff0}.icity-bottom-nav .icity-nav-write{width:88px;height:57px;justify-self:center;border-radius:30px;background:#fff;color:#82a9df;box-shadow:0 5px 16px #d9d9d9;font-size:36px}.icity-compose-sheet{display:none;position:absolute;inset:0;z-index:2}.icity-compose-sheet.is-open{display:block}.icity-compose-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.28)}.icity-compose-panel{position:absolute;bottom:0;left:0;right:0;display:grid;gap:12px;padding:11px 20px calc(20px + env(safe-area-inset-bottom));border-radius:16px 16px 0 0;background:#fff}.icity-sheet-handle{width:34px;height:4px;justify-self:center;border-radius:3px;background:#d4d4d4}.icity-sheet-header{display:flex;justify-content:space-between;font-size:18px}.icity-sheet-header button{border:0;background:transparent;color:#999;font-size:26px}.icity-compose-panel label{font-size:13px;color:#888}.icity-compose-panel select,.icity-compose-panel input,.icity-compose-panel textarea{width:100%;box-sizing:border-box;border:0;border-radius:6px;background:#f1f2f4;padding:11px;font:inherit}.icity-compose-panel textarea{height:145px;resize:none}.icity-compose-footer{display:flex;justify-content:space-between;align-items:center;color:#aaa}.icity-publish-button{border:0;border-radius:6px;background:#4cbe5d;color:#fff;padding:10px 20px;font-weight:800;font-size:15px}@media(min-width:700px){.icity-app-container{padding:26px;box-sizing:border-box;background:rgba(30,30,30,.35);backdrop-filter:blur(8px)}.icity-app{height:min(850px,100%);box-shadow:0 18px 55px rgba(0,0,0,.25)}}
+/* ================= 基础变量与重置 ================= */
+.icity-new-app-wrapper {
+    /* 精准色值 */
+    --bg-main: #F1EFEF; 
+    --card-header-bg: #FAFAFA; 
+    --white: #FFFFFF;
+    
+    /* 文本与主题色 */
+    --text-main: #111111;
+    --text-sub: #888888;
+    --text-light: #C7C7CC;
+    --border-color: #E0E0E0; 
+    --theme-blue: #4A90E2;
+    --theme-blue-light: #E8F0FE;
+    --theme-green: #34C759;
+    --tag-orange: #FFB340;
+
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.icity-new-app-wrapper * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* 手机容器 */
+.icity-new-app-wrapper .icity-app-inner-container {
+    width: 100%;
+    max-width: 430px;
+    height: 100%;
+    margin: 0 auto;
+    background-color: var(--bg-main); 
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+/* 视图切换控制 */
+.icity-new-app-wrapper .view-container {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+.icity-new-app-wrapper .view-container.active {
+    display: flex;
+}
+
+/* ================= 通用样式 ================= */
+.icity-new-app-wrapper .content-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 100px; 
+}
+
+.icity-new-app-wrapper #view-world .content-scroll,
+.icity-new-app-wrapper #view-message .content-scroll {
+    padding-top: 8px;
+}
+
+/* 统一的卡片样式 (左右6px间距，1px圆角) */
+.icity-new-app-wrapper .card-box {
+    margin: 0 6px 8px 6px; 
+    border-radius: 1px; 
+    overflow: hidden;
+    background-color: var(--white);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 0.5px solid rgba(0,0,0,0.02);
+}
+
+.icity-new-app-wrapper .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #FFF0F5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.icity-new-app-wrapper .user-info {
+    margin-left: 10px;
+    flex: 1;
+}
+
+.icity-new-app-wrapper .name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.icity-new-app-wrapper .username {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 2px;
+}
+
+.icity-new-app-wrapper .entry-item {
+    padding: 16px;
+    border-bottom: 0.5px solid var(--border-color);
+    background-color: var(--white);
+}
+
+.icity-new-app-wrapper .entry-item:last-child {
+    border-bottom: none;
+}
+
+.icity-new-app-wrapper .entry-content {
+    font-size: 16px;
+    color: var(--text-main);
+    line-height: 1.6;
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+.icity-new-app-wrapper .entry-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.icity-new-app-wrapper .entry-location {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.icity-new-app-wrapper .entry-location svg {
+    width: 14px;
+    height: 14px;
+}
+
+.icity-new-app-wrapper .entry-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: var(--text-light);
+}
+
+.icity-new-app-wrapper .entry-actions svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+
+.icity-new-app-wrapper .entry-time {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+}
+
+/* ================= 顶部导航通用 (世界 & 通讯录) ================= */
+.icity-new-app-wrapper .top-tabs-wrapper {
+    background-color: var(--bg-main);
+    height: 74px; 
+    padding: 16px 20px 0; 
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03); 
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+}
+
+.icity-new-app-wrapper .segmented-control {
+    display: inline-flex; 
+    background-color: #E3E1E1; 
+    border-radius: 6px;
+    padding: 2px;
+    align-items: center;
+}
+
+.icity-new-app-wrapper .segment-btn {
+    text-align: center;
+    padding: 4px 12px; 
+    font-size: 15px; 
+    color: var(--text-sub);
+    border-radius: 4px;
+    font-weight: 500;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+    cursor: pointer;
+}
+
+.icity-new-app-wrapper .segment-btn.active {
+    background-color: var(--white);
+    color: var(--text-main);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.icity-new-app-wrapper .segment-btn + .segment-btn::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 25%;
+    height: 50%;
+    width: 1px;
+    background-color: #C4C4C6; 
+    transition: opacity 0.2s;
+}
+
+.icity-new-app-wrapper .segment-btn.active::before,
+.icity-new-app-wrapper .segment-btn.active + .segment-btn::before {
+    opacity: 0;
+}
+/* ================= 主页特有样式 ================= */
+.icity-new-app-wrapper .header-home {
+    background-color: var(--bg-main);
+    height: 74px; 
+    padding: 16px 20px 0; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 0.5px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03); 
+}
+
+.icity-new-app-wrapper .header-title {
+    font-size: 28px; 
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.5px;
+}
+
+.icity-new-app-wrapper .header-icons {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    color: var(--text-sub);
+}
+
+.icity-new-app-wrapper .header-icons svg {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* ================= 写点什么 展开交互样式 ================= */
+.icity-new-app-wrapper .write-prompt {
+    margin-top: 0; 
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top: none;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100px; 
+    transition: height 0.3s ease, padding 0.3s ease;
+    cursor: text;
+    position: relative;
+}
+
+/* 默认折叠状态 */
+.icity-new-app-wrapper .write-prompt .collapsed-view {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    height: 100%;
+}
+.icity-new-app-wrapper .write-prompt .collapsed-view .avatar {
+    width: 30px; height: 30px; font-size: 16px;
+}
+.icity-new-app-wrapper .write-prompt .collapsed-view .write-text {
+    font-size: 15px; color: var(--text-sub); font-weight: 500; line-height: 30px;
+}
+
+/* 展开状态 */
+.icity-new-app-wrapper .write-prompt.expanded {
+    height: 220px;
+    padding: 12px 16px;
+    cursor: default;
+}
+.icity-new-app-wrapper .write-prompt.expanded .collapsed-view {
+    display: none;
+}
+.icity-new-app-wrapper .write-prompt .expanded-view {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+.icity-new-app-wrapper .write-prompt.expanded .expanded-view {
+    display: flex;
+}
+
+/* 展开后的内部元素 */
+.icity-new-app-wrapper .editor-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+}
+.icity-new-app-wrapper .editor-header .avatar {
+    width: 24px; height: 24px; font-size: 14px;
+}
+.icity-new-app-wrapper .editor-header .expand-icon {
+    width: 16px; height: 16px; color: var(--text-light); cursor: pointer;
+}
+.icity-new-app-wrapper .editor-textarea {
+    flex: 1; border: none; outline: none; resize: none; font-size: 15px; color: var(--text-main);
+    font-family: inherit; padding: 4px 0;
+}
+
+/* 底部工具栏 */
+.icity-new-app-wrapper .editor-footer {
+    display: flex; justify-content: space-between; align-items: center; border-top: 1px solid transparent;
+}
+.icity-new-app-wrapper .editor-tools {
+    display: flex; gap: 16px; color: #8AB4F8; /* 浅蓝色 */
+}
+.icity-new-app-wrapper .editor-tools svg {
+    width: 22px; height: 22px; cursor: pointer;
+}
+.icity-new-app-wrapper .editor-actions {
+    display: flex; align-items: center; gap: 12px;
+}
+.icity-new-app-wrapper .public-status {
+    display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-light);
+}
+.icity-new-app-wrapper .public-status svg { width: 16px; height: 16px; }
+.icity-new-app-wrapper .send-btn {
+    background-color: #34C759; color: white; border: none; border-radius: 4px;
+    padding: 6px 16px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer;
+}
+.icity-new-app-wrapper .send-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+/* ================= 居中弹窗样式 ================= */
+.icity-new-app-wrapper .modal-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); z-index: 200;
+    display: none; justify-content: center; align-items: center;
+    opacity: 0; transition: opacity 0.2s ease;
+}
+.icity-new-app-wrapper .modal-overlay.active {
+    display: flex; opacity: 1;
+}
+.icity-new-app-wrapper .modal-content {
+    width: 90%; max-width: 360px; height: 380px;
+    background-color: var(--white); border-radius: 8px;
+    display: flex; flex-direction: column; padding: 16px;
+    transform: scale(0.95); transition: transform 0.2s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+.icity-new-app-wrapper .modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+.icity-new-app-wrapper .modal-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+}
+.icity-new-app-wrapper .modal-title-area {
+    display: flex; align-items: center; gap: 8px; flex: 1;
+}
+.icity-new-app-wrapper .modal-title-area .avatar {
+    width: 24px; height: 24px; font-size: 14px;
+}
+.icity-new-app-wrapper .modal-title-input {
+    border: none; outline: none; font-size: 14px; color: var(--text-main); flex: 1;
+}
+.icity-new-app-wrapper .modal-title-input::placeholder { color: var(--text-light); }
+.icity-new-app-wrapper .modal-close {
+    color: var(--text-light); 
+    cursor: pointer; 
+    padding: 4px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateX(-15px); /* 强制向左平移 8px，数值你可以根据视觉效果继续改大或改小 */
+}
+
+.icity-new-app-wrapper .modal-close svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; }
+
+/* 弹窗内部复用 editor 样式 */
+.icity-new-app-wrapper .modal-content .editor-textarea { margin-bottom: 16px; }
+.icity-new-app-wrapper .modal-content .editor-footer { margin-top: auto; }
+
+.icity-new-app-wrapper .monthly-record {
+    padding: 10px 16px; 
+    display: flex;
+    align-items: center;
+    font-size: 13px; 
+}
+
+.icity-new-app-wrapper .record-tag {
+    background-color: var(--tag-orange);
+    color: var(--white);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 11px; 
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.icity-new-app-wrapper .record-text {
+    color: var(--text-light);
+    flex: 1;
+}
+
+.icity-new-app-wrapper .record-arrow {
+    color: var(--text-light);
+    width: 14px;
+    height: 14px;
+}
+
+.icity-new-app-wrapper .feed-header-home {
+    background-color: var(--card-header-bg); 
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    border-bottom: 0.5px solid var(--border-color);
+}
+
+.icity-new-app-wrapper .feed-date {
+    text-align: right;
+    font-size: 12px;
+    color: var(--text-sub);
+    line-height: 1.4;
+}
+
+/* ================= 世界特有样式 ================= */
+.icity-new-app-wrapper .entry-user-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.icity-new-app-wrapper .entry-user-header .avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+}
+
+/* ================= 通讯录特有样式 ================= */
+.icity-new-app-wrapper .header-right-icon {
+    position: absolute;
+    right: 20px;
+    color: var(--text-sub);
+    display: flex;
+    align-items: center;
+}
+.icity-new-app-wrapper .header-right-icon svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+}
+
+.icity-new-app-wrapper .diary-books-scroll {
+    display: flex;
+    gap: 12px;
+    padding: 0 6px 8px 6px; 
+    overflow-x: auto;
+    scrollbar-width: none; 
+}
+.icity-new-app-wrapper .diary-books-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.icity-new-app-wrapper .diary-book-card {
+    min-width: 100px;
+    height: 130px;
+    border-radius: 4px 14px 14px 4px; 
+    background-color: var(--white);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.icity-new-app-wrapper .diary-new {
+    border: 1px solid var(--border-color);
+}
+.icity-new-app-wrapper .diary-new .plus-icon {
+    width: 32px;
+    height: 32px;
+    background-color: var(--theme-green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    font-weight: 300;
+    margin-bottom: 8px;
+}
+.icity-new-app-wrapper .diary-new .text {
+    font-size: 13px;
+    color: var(--text-sub);
+    text-align: center;
+    line-height: 1.4;
+    font-weight: 500;
+}
+
+.icity-new-app-wrapper .diary-blue {
+    background: linear-gradient(135deg, #5AB1D8, #3A90C2);
+    color: white;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 12px;
+}
+.icity-new-app-wrapper .diary-blue .title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 30px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+.icity-new-app-wrapper .diary-blue .stamp {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background-color: rgba(255,255,255,0.9);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3A90C2;
+    transform: rotate(10deg);
+}
+.icity-new-app-wrapper .diary-blue .bottom-info {
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.icity-new-app-wrapper .qa-section {
+    padding: 16px;
+}
+.icity-new-app-wrapper .qa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 16px;
+}
+.icity-new-app-wrapper .qa-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-main);
+}
+.icity-new-app-wrapper .qa-percent {
+    font-size: 14px;
+    color: var(--text-light);
+    font-weight: 600;
+}
+.icity-new-app-wrapper .qa-icons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.icity-new-app-wrapper .qa-icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.icity-new-app-wrapper .qa-subtitle {
+    font-size: 12px;
+    color: var(--text-sub);
+    margin-bottom: 16px;
+}
+.icity-new-app-wrapper .divider {
+    height: 0.5px;
+    background-color: var(--border-color);
+    margin: 0 -16px 16px -16px;
+}
+.icity-new-app-wrapper .similar-interests {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.icity-new-app-wrapper .similar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+.icity-new-app-wrapper .similar-left .icon {
+    color: #4A90E2;
+    display: flex;
+    align-items: center;
+}
+.icity-new-app-wrapper .svg-arrow {
+    width: 16px;
+    height: 16px;
+    color: var(--text-light);
+}
+/* ================= 个人主页特有样式 ================= */
+.icity-new-app-wrapper .profile-header-bg {
+    height: 180px;
+    background-color: #555555; 
+    position: relative;
+}
+
+.icity-new-app-wrapper .top-nav-transparent {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    color: var(--white); 
+    z-index: 10;
+}
+
+.icity-new-app-wrapper .top-nav-transparent svg {
+    width: 26px;
+    height: 26px;
+}
+
+.icity-new-app-wrapper .top-right-icons {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.icity-new-app-wrapper .crown-icon {
+    font-size: 22px;
+}
+
+.icity-new-app-wrapper .profile-info-section {
+    background-color: var(--bg-main); 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.icity-new-app-wrapper .avatar-wrapper {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 3px solid var(--white);
+    margin-top: -48px; 
+    background: #999; 
+    background-image: linear-gradient(to bottom right, #888, #ccc);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    z-index: 5;
+}
+
+.icity-new-app-wrapper .user-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-top: 12px;
+    letter-spacing: 0.5px;
+}
+
+.icity-new-app-wrapper .user-handle {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-top: 4px;
+}
+
+.icity-new-app-wrapper .user-tags {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.icity-new-app-wrapper .tag-pill {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2px 10px;
+    font-size: 12px;
+    color: var(--text-sub);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.icity-new-app-wrapper .user-location {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-sub);
+    margin-top: 12px;
+}
+
+.icity-new-app-wrapper .user-location svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+.icity-new-app-wrapper .action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 0 20px;
+    width: 100%;
+    justify-content: center;
+}
+
+.icity-new-app-wrapper .btn-action {
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-sub);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.icity-new-app-wrapper .btn-action svg {
+    width: 16px;
+    height: 16px;
+}
+
+.icity-new-app-wrapper .btn-action.icon-only {
+    padding: 8px 10px;
+}
+
+.icity-new-app-wrapper .stats-row {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 16px;
+    width: 100%;
+    margin-top: 24px;
+    padding: 16px 0 8px 0; 
+    border-top: 0.5px solid var(--border-color);
+    border-bottom: none; 
+}
+
+.icity-new-app-wrapper .stat-item {
+    font-size: 13px;
+    color: var(--text-light);
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.icity-new-app-wrapper .stat-num {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--theme-blue);
+}
+
+.icity-new-app-wrapper .profile-feed {
+    background-color: transparent; 
+    padding-top: 0; 
+}
+
+/* ================= 分离式悬浮底栏 ================= */
+.icity-new-app-wrapper .floating-nav-wrapper {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    gap: 12px; 
+}
+
+.icity-new-app-wrapper .nav-left-pill {
+    flex: 1;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.65); 
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 32px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 6px;
+}
+
+.icity-new-app-wrapper .nav-right-circle {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.65); 
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 50%;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--theme-blue);
+    cursor: pointer;
+}
+
+.icity-new-app-wrapper .nav-right-circle svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    fill: none;
+}
+
+.icity-new-app-wrapper .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 56px; 
+    height: 48px; 
+    border-radius: 24px; 
+    color: var(--text-sub);
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.icity-new-app-wrapper .nav-item svg {
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    transition: fill 0.2s, stroke 0.2s;
+}
+
+.icity-new-app-wrapper .nav-item.active {
+    color: var(--theme-blue);
+    background-color: rgba(0, 0, 0, 0.06); 
+}
+.icity-new-app-wrapper .nav-item.active svg {
+    fill: var(--theme-blue);
+    stroke: none;
+}
+
+.icity-new-app-wrapper .nav-item .icon-active { display: none; }
+.icity-new-app-wrapper .nav-item .icon-inactive { display: block; }
+.icity-new-app-wrapper .nav-item.active .icon-active { display: block; }
+.icity-new-app-wrapper .nav-item.active .icon-inactive { display: none; }
+
+.icity-new-app-wrapper .nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: 4px; 
+    width: 4px;
+    height: 4px;
+    background-color: var(--theme-blue);
+    border-radius: 50%;
+}
+
+.icity-new-app-wrapper .nav-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-image: linear-gradient(to bottom right, #888, #ccc); 
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: border 0.2s ease; 
+}
+
+.icity-new-app-wrapper .nav-item.active .nav-avatar {
+    border: 2px solid var(--theme-blue);
+}
+
+/* ================= 新建日记本弹窗专属样式 ================= */
+.icity-new-app-wrapper .create-diary-content {
+    width: 92%;
+    height: 65%; 
+    background-color: #F1EFEF; 
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    transform: scale(0.95); transition: transform 0.2s ease;
+}
+.icity-new-app-wrapper .modal-overlay.active .create-diary-content {
+    transform: scale(1);
+}
+.icity-new-app-wrapper .create-diary-header {
+    display: flex; justify-content: space-between; align-items: center;
+    height: 44px; padding: 0 16px; background-color: #F1EFEF; 
+    flex-shrink: 0; position: relative; z-index: 10; 
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.icity-new-app-wrapper .create-diary-header .back-btn {
+    color: #888; font-size: 22px; cursor: pointer; width: 60px; display: flex; align-items: center;
+}
+.icity-new-app-wrapper .create-diary-header .modal-title {
+    font-size: 16px; font-weight: 600; color: #111;
+}
+.icity-new-app-wrapper .create-diary-header .header-done-btn {
+    background-color: #25C85A; color: white; border: none; border-radius: 4px;
+    padding: 6px 12px; font-size: 13px; font-weight: 600; display: flex; align-items: center;
+    gap: 4px; cursor: pointer; width: auto; justify-content: center; white-space: nowrap; 
+}
+.icity-new-app-wrapper .create-diary-body {
+    flex: 1; overflow-y: auto; padding: 4px; position: relative;
+}
+.icity-new-app-wrapper .create-diary-body::-webkit-scrollbar { display: none; }
+.icity-new-app-wrapper .create-diary-inner-card {
+    background-color: #FFFFFF; border-radius: 2px; padding: 0 16px 16px 16px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.icity-new-app-wrapper .create-diary-input-group {
+    display: flex; align-items: center; padding: 16px 0; border-bottom: 1px solid #F0F0F0; gap: 12px;
+}
+.icity-new-app-wrapper .create-diary-input-icon {
+    color: #C7C7CC; width: 20px; display: flex; justify-content: center; align-items: center;
+}
+.icity-new-app-wrapper .create-diary-input-group input {
+    flex: 1; border: none; outline: none; font-size: 15px; color: #111; background: transparent;
+}
+.icity-new-app-wrapper .create-diary-input-group input::placeholder { color: #C7C7CC; }
+.icity-new-app-wrapper .create-diary-section-title {
+    display: flex; align-items: center; gap: 12px; padding: 20px 0 16px 0; color: #888; font-size: 15px; font-weight: 500;
+}
+.icity-new-app-wrapper .create-diary-section-title svg { color: #C7C7CC; }
+.icity-new-app-wrapper .create-diary-cover-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;
+}
+.icity-new-app-wrapper .create-diary-cover-item {
+    aspect-ratio: 3 / 4; border-radius: 2px 10px 10px 2px; background-color: #EEE; overflow: hidden; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.icity-new-app-wrapper .create-diary-cover-item:nth-child(2) { background: linear-gradient(to bottom, #5AB1D8, #3A90C2); }
+.icity-new-app-wrapper .create-diary-cover-item:nth-child(3) { background-color: #78909C; }
+.icity-new-app-wrapper .create-diary-cover-item:nth-child(4) { background-color: #A16B47; }
+.icity-new-app-wrapper .create-diary-cover-item:nth-child(5) { background-color: #FF8A9F; }
+.icity-new-app-wrapper .create-diary-cover-item:nth-child(6) { background-color: #4DB6AC; }
+.icity-new-app-wrapper .create-diary-cover-item:nth-child(7) { background-color: #333333; }
+.icity-new-app-wrapper .create-diary-cover-item:nth-child(8) { background-color: #D84315; }
+.icity-new-app-wrapper .create-diary-cover-item:nth-child(9) { background-color: #558B2F; }
+.icity-new-app-wrapper .create-diary-cover-item:nth-child(10) { background-color: #FFB74D; }
+.icity-new-app-wrapper .create-diary-cover-item:nth-child(11) { background-color: #1E88E5; }
+.icity-new-app-wrapper .create-diary-cover-item:nth-child(12) { background-color: #283593; }
+.icity-new-app-wrapper .create-diary-custom-cover {
+    background-color: #FFFFFF; border: 1px solid #E0E0E0; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #C7C7CC; box-shadow: none;
+}
+.icity-new-app-wrapper .create-diary-custom-cover .plus { font-size: 32px; font-weight: 300; margin-bottom: 4px; }
+.icity-new-app-wrapper .create-diary-custom-cover .text { font-size: 11px; }
+.icity-new-app-wrapper .create-diary-visibility {
+    display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-top: 1px solid #F0F0F0; margin-top: 10px;
+}
+.icity-new-app-wrapper .create-diary-visibility-left { display: flex; align-items: center; gap: 8px; color: #888; font-size: 15px; }
+.icity-new-app-wrapper .create-diary-visibility-left svg { color: #C7C7CC; }
+.icity-new-app-wrapper .create-diary-visibility-right { display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; }
+.icity-new-app-wrapper .create-diary-visibility-text { color: #4A90E2; }
+.icity-new-app-wrapper .create-diary-visibility-arrow { color: #C7C7CC; }
+.icity-new-app-wrapper .create-diary-hint {
+    background-color: #F9F9F9; padding: 12px; border-radius: 6px; font-size: 12px; color: #888; line-height: 1.5; margin-top: 8px; margin-bottom: 20px; 
+}
+.icity-new-app-wrapper .create-diary-footer {
+    position: relative; padding: 12px 20px 20px 20px; background-color: #F1EFEF; flex-shrink: 0; z-index: 10; box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.04);
+}
+.icity-new-app-wrapper .create-diary-footer::before {
+    content: ''; position: absolute; top: -24px; left: 0; right: 0; height: 24px; background: linear-gradient(to bottom, rgba(241, 239, 239, 0), #F1EFEF); pointer-events: none; 
+}
+.icity-new-app-wrapper .create-diary-bottom-btn {
+    width: 100%; background-color: #25C85A; color: white; border: none; border-radius: 24px; padding: 14px 0; font-size: 16px; font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; position: relative; z-index: 2;
+}
+
+.icity-new-app-wrapper .create-diary-cover-item.selected {
+    border: 2px solid #4A90E2;
+    transform: scale(0.95);
+    transition: transform 0.1s, border 0.1s;
+}
+
+.icity-new-app-wrapper .create-diary-cover-item.selected::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    background-color: #4A90E2;
+    border-radius: 50%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+    background-size: 14px 14px;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 2;
+}
+
+/* ================= 日记本详情页专属样式 ================= */
+.icity-new-app-wrapper .header-diary-detail {
+    background-color: var(--bg-main);
+    height: 60px;
+    padding: 0 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); 
+}
+.icity-new-app-wrapper .header-diary-detail .back-btn {
+    color: var(--text-sub);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    width: 40px;
+}
+.icity-new-app-wrapper .header-diary-detail .title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+.icity-new-app-wrapper .header-diary-detail .right-icon {
+    width: 40px;
+    display: flex;
+    justify-content: flex-end;
+    color: var(--text-sub);
+}
+.icity-new-app-wrapper .diary-detail-top-card {
+    display: flex;
+    padding: 16px;
+    gap: 16px;
+    background-color: var(--white);
+    position: relative; 
+    z-index: 99; 
+    overflow: visible; 
+}
+.icity-new-app-wrapper .diary-detail-cover {
+    width: 72px;
+    height: 96px;
+    border-radius: 2px 8px 8px 2px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.icity-new-app-wrapper .diary-detail-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.icity-new-app-wrapper .diary-detail-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.icity-new-app-wrapper .diary-detail-title-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+.icity-new-app-wrapper .diary-detail-more {
+    color: var(--text-light);
+}
+.icity-new-app-wrapper .diary-detail-stats {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-light);
+    align-items: center;
+}
+.icity-new-app-wrapper .diary-detail-stats span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.icity-new-app-wrapper .diary-detail-stats svg {
+    width: 12px;
+    height: 12px;
+}
+
+/* ================= 个人设置页专属样式 ================= */
+.icity-new-app-wrapper .header-settings {
+    height: 60px; 
+    background-color: var(--bg-main);
+    display: flex;
+    align-items: flex-end; 
+    justify-content: space-between;
+    padding: 0 16px 10px 16px; 
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+.icity-new-app-wrapper .header-settings .back-btn {
+    color: var(--text-sub);
+    width: 60px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+.icity-new-app-wrapper .header-settings .title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111;
+    position: absolute;
+    left: 50%;
+    bottom: 10px; 
+    transform: translateX(-50%);
+}
+.icity-new-app-wrapper .header-settings .done-btn {
+    background-color: var(--theme-green);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+.icity-new-app-wrapper .media-edit-section {
+    display: flex;
+    padding: 8px 16px 16px 16px; 
+    gap: 12px;
+}
+.icity-new-app-wrapper .media-box {
+    flex: 1;
+    background-color: var(--white);
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.icity-new-app-wrapper .media-preview {
+    aspect-ratio: 1;
+    margin: 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+}
+.icity-new-app-wrapper .avatar-preview { background-color: #F0F4C3; }
+.icity-new-app-wrapper .bg-preview { background: linear-gradient(to bottom, #E1BEE7, #F3E5F5, #FFF); }
+.icity-new-app-wrapper .media-label {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-main);
+    padding: 4px 0 12px 0;
+    font-weight: 500;
+}
+.icity-new-app-wrapper .settings-group {
+    background-color: var(--white);
+    margin-bottom: 12px;
+    border-top: 0.5px solid var(--border-color);
+    border-bottom: 0.5px solid var(--border-color);
+}
+.icity-new-app-wrapper .settings-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 0.5px solid var(--border-color);
+    font-size: 14px;
+    color: var(--text-main);
+    min-height: 48px;
+}
+.icity-new-app-wrapper .settings-item:last-child { border-bottom: none; }
+.icity-new-app-wrapper .settings-item .item-label {
+    width: 110px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.icity-new-app-wrapper .settings-item .item-value {
+    flex: 1;
+    color: var(--text-sub);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+}
+.icity-new-app-wrapper .settings-item .item-value.right-align { justify-content: flex-end; }
+.icity-new-app-wrapper .settings-item .text-blue { color: var(--theme-blue); }
+.icity-new-app-wrapper .settings-item .text-light { color: var(--text-light); }
+.icity-new-app-wrapper .settings-item .pill-btn {
+    border: 1px solid var(--theme-blue);
+    color: var(--theme-blue);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 8px;
+    white-space: nowrap;
+}
+.icity-new-app-wrapper .settings-item .pro-tag {
+    background-color: var(--tag-orange);
+    color: white;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 8px;
+    font-weight: bold;
+    transform: scale(0.9);
+}
+.icity-new-app-wrapper .settings-item .arrow-icon {
+    color: var(--text-light);
+    width: 16px;
+    height: 16px;
+    margin-left: 4px;
+}
+/* ================= 发布弹窗新增功能专属样式 ================= */
+.icity-new-app-wrapper .image-preview-area { display: none; margin-bottom: 12px; position: relative; width: 100px; height: 100px; }
+.icity-new-app-wrapper .image-preview-area img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+.icity-new-app-wrapper .remove-img-btn { position: absolute; top: -6px; right: -6px; background: rgba(0,0,0,0.6); color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; }
+
+.icity-new-app-wrapper .selected-location-display {
+    display: none; align-items: center; gap: 4px; font-size: 12px; color: var(--text-sub);
+    margin-bottom: 12px; padding: 4px 8px; background: #F8F8F8; border-radius: 4px; width: fit-content;
+}
+.icity-new-app-wrapper .selected-location-display svg { width: 14px; height: 14px; fill: currentColor; }
+.icity-new-app-wrapper .clear-loc-btn { margin-left: 6px; cursor: pointer; color: var(--text-light); font-size: 14px; }
+
+.icity-new-app-wrapper .tool-icon { cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-sub); }
+.icity-new-app-wrapper .tool-icon svg { width: 24px; height: 24px; color: #8AB4F8; }
+.icity-new-app-wrapper .tool-icon.active { color: var(--theme-blue); }
+.icity-new-app-wrapper .tool-icon.active svg { color: var(--theme-blue); }
+
+/* ================= 位置与日记本弹窗专属样式 ================= */
+.icity-new-app-wrapper #modal-location .modal-content, 
+.icity-new-app-wrapper #modal-diary .modal-content {
+    height: 75% !important; max-height: 520px; width: 90%; max-width: 360px; border-radius: 12px; padding: 0 !important; overflow: hidden;
+}
+.icity-new-app-wrapper #modal-diary .modal-content { height: 60% !important; max-height: 480px; }
+
+/* 统一修复弹窗顶栏错乱 */
+.icity-new-app-wrapper #modal-location .modal-header, 
+.icity-new-app-wrapper #modal-diary .modal-header {
+    background: var(--bg-main);
+    padding: 12px 16px;
+    margin-bottom: 0; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+    position: relative;
+    flex-shrink: 0; 
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.icity-new-app-wrapper #modal-location .back-btn, 
+.icity-new-app-wrapper #modal-diary .back-btn {
+    display: flex; align-items: center; gap: 2px; color: var(--text-sub); font-size: 15px; cursor: pointer; width: 60px; 
+}
+.icity-new-app-wrapper #modal-location .title, 
+.icity-new-app-wrapper #modal-diary .title {
+    font-size: 16px; font-weight: 600; color: var(--text-main); flex: 1; text-align: center;
+}
+.icity-new-app-wrapper #modal-location .right-placeholder, 
+.icity-new-app-wrapper #modal-diary .right-placeholder { width: 60px; }
+
+/* 地图区域修复 */
+.icity-new-app-wrapper .map-area { height: 240px; width: 100%; position: relative; flex-shrink: 0; background: #EAE6DF; z-index: 1; }
+.icity-new-app-wrapper #real-map { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+
+/* 搜索框修复 */
+.icity-new-app-wrapper .search-bar-wrapper { position: absolute; bottom: 12px; left: 16px; right: 16px; background: var(--white); border-radius: 8px; z-index: 400; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.icity-new-app-wrapper .search-bar { background: transparent; border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; color: var(--text-light); }
+.icity-new-app-wrapper .search-bar input { border: none; background: transparent; outline: none; font-size: 14px; width: 100%; color: var(--text-main); }
+.icity-new-app-wrapper .location-list { flex: 1; overflow-y: auto; background: var(--white); position: relative; z-index: 1; }
+.icity-new-app-wrapper .loc-item { padding: 12px 16px; border-bottom: 0.5px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.icity-new-app-wrapper .loc-item:active { background-color: #F9F9F9; }
+.icity-new-app-wrapper .loc-info { display: flex; flex-direction: column; gap: 4px; }
+.icity-new-app-wrapper .loc-title { font-size: 15px; color: var(--text-main); font-weight: 500; }
+.icity-new-app-wrapper .loc-subtitle { font-size: 12px; color: var(--text-sub); }
+.icity-new-app-wrapper .loading-text { padding: 16px; text-align: center; color: var(--text-light); font-size: 13px; }
+
+/* ================= 日记本弹窗专属样式 ================= */
+.icity-new-app-wrapper .diary-modal-body { flex: 1; background: var(--bg-main); padding: 0; display: flex; flex-direction: column; overflow-y: auto; position: relative; z-index: 1; }
+.icity-new-app-wrapper .diary-status-card { background: var(--white); border-radius: 0; padding: 12px 16px; font-size: 13px; color: var(--text-light); border-bottom: 0.5px solid var(--border-color); flex-shrink: 0; }
+.icity-new-app-wrapper .diary-list-card { background: var(--white); border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); margin: 4px 4px 16px 4px; flex-shrink: 0; }
+.icity-new-app-wrapper .diary-scroll-area { display: flex; gap: 16px; padding: 16px; overflow-x: auto; }
+.icity-new-app-wrapper .diary-scroll-area::-webkit-scrollbar { display: none; }
+.icity-new-app-wrapper .diary-item-wrapper { display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer; }
+.icity-new-app-wrapper .diary-book { width: 90px; height: 120px; border-radius: 4px 12px 12px 4px; display: flex; flex-direction: column; position: relative; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+.icity-new-app-wrapper .diary-new { background: var(--white); border: 1px dashed var(--border-color); align-items: center; justify-content: center; box-shadow: none; }
+.icity-new-app-wrapper .diary-new .plus-circle { width: 32px; height: 32px; background: var(--theme-green); border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 8px; }
+.icity-new-app-wrapper .diary-new .text { font-size: 12px; color: var(--text-sub); text-align: center; }
+.icity-new-app-wrapper .diary-blue { background: linear-gradient(135deg, #5AB1D8, #3A90C2); color: white; padding: 10px; }
+.icity-new-app-wrapper .diary-blue .title { font-size: 13px; font-weight: 600; margin-top: 16px; }
+.icity-new-app-wrapper .diary-blue .stamp { position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; color: #3A90C2; transform: rotate(10deg); border-radius: 2px; }
+.icity-new-app-wrapper .diary-blue .bottom-info { position: absolute; bottom: 6px; left: 10px; right: 10px; display: flex; justify-content: space-between; font-size: 11px; }
+.icity-new-app-wrapper .radio-circle { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--white); display: flex; align-items: center; justify-content: center; }
+.icity-new-app-wrapper .diary-item-wrapper.selected .radio-circle { border-color: var(--theme-green); background: var(--theme-green); }
+.icity-new-app-wrapper .diary-item-wrapper.selected .radio-circle::after { content: ''; width: 8px; height: 8px; background: white; border-radius: 50%; }
+.icity-new-app-wrapper .diary-modal-footer { padding: 12px 16px 16px 16px; background: var(--bg-main); margin-top: auto; flex-shrink: 0; }
+.icity-new-app-wrapper .btn-done-large { width: 100%; background: var(--theme-green); color: white; border: none; border-radius: 24px; padding: 12px; font-size: 15px; font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 6px; cursor: pointer; }
+
+/* ================= 视图 7：单篇日记详情页 ================= */
+.icity-new-app-wrapper .header-single-post {
+    background-color: var(--bg-main);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+.icity-new-app-wrapper .header-single-post .back-btn {
+    color: var(--text-main);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    width: 40px;
+}
+.icity-new-app-wrapper .header-single-post .title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+    flex: 1;
+    text-align: center;
+}
+.icity-new-app-wrapper .header-single-post .right-placeholder {
+    width: 40px;
+}
+
+.icity-new-app-wrapper .single-post-card {
+    background-color: var(--white);
+    padding: 16px 16px 6px 16px;
+    margin: 8px 6px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 0.5px solid rgba(0,0,0,0.02);
+}
+.icity-new-app-wrapper .single-post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.icity-new-app-wrapper .single-post-header .avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+.icity-new-app-wrapper .single-post-content {
+    font-size: 18px;
+    color: var(--text-main);
+    line-height: 1.6;
+    margin-bottom: 16px;
+    font-weight: 500;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+.icity-new-app-wrapper .single-post-meta {
+    font-size: 12px;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 16px;
+}
+.icity-new-app-wrapper .single-post-meta svg {
+    width: 14px;
+    height: 14px;
+}
+.icity-new-app-wrapper .single-post-actions {
+    display: flex;
+    border-top: 0.5px solid var(--border-color);
+    padding: 12px 0 4px 0; 
+    align-items: center;
+}
+.icity-new-app-wrapper .single-action-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px; 
+    color: #B3B3B3; 
+    position: relative;
+}
+.icity-new-app-wrapper .single-action-btn.btn-like { flex: 2.2; }
+.icity-new-app-wrapper .single-action-btn.btn-note { flex: 2.6; }
+.icity-new-app-wrapper .single-action-btn.btn-save { flex: 3.2; }
+.icity-new-app-wrapper .single-action-btn.btn-more { flex: 1; }
+.icity-new-app-wrapper .single-action-btn:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 14px; 
+    width: 1px;
+    background-color: #E0E0E0; 
+}
+.icity-new-app-wrapper .single-action-btn svg {
+    width: 22px; 
+    height: 22px;
+}
+.icity-new-app-wrapper .single-action-btn.btn-like svg {
+    width: 19px;
+    height: 19px;
+}
+
+.icity-new-app-wrapper .single-post-comment-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #F9F9F9;
+    border-top: 0.5px solid var(--border-color);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 10;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+.icity-new-app-wrapper .single-post-comment-input {
+    flex: 1;
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 14px;
+    outline: none;
+}
+.icity-new-app-wrapper .single-post-comment-send {
+    background-color: var(--theme-green);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+.icity-new-app-wrapper .single-post-comment-send svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+/* ================= 详情页更多操作气泡菜单 ================= */
+.icity-new-app-wrapper .popover-menu {
+    position: absolute;
+    right: 100%; 
+    top: 50%;
+    transform: translateY(-50%);
+    margin-right: 14px; 
+    background: rgba(240, 240, 245, 0.75); 
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 6px; 
+    padding: 6px; 
+    width: 240px;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+    display: flex;
+    flex-direction: column;
+    gap: 6px; 
+    z-index: 100;
+}
+
+.icity-new-app-wrapper .popover-menu::after {
+    content: '';
+    position: absolute;
+    right: -10px; 
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 8px 0 8px 10px; 
+    border-style: solid;
+    border-color: transparent transparent transparent rgba(240, 240, 245, 0.95);
+}
+
+.icity-new-app-wrapper .menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 90;
+}
+
+.icity-new-app-wrapper .popover-menu .menu-row {
+    display: flex;
+    gap: 6px; 
+    width: 100%;
+}
+
+.icity-new-app-wrapper .popover-menu .menu-item {
+    background: #FFFFFF; 
+    border-radius: 4px; 
+    padding: 12px 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600; 
+    color: #333333;
+    cursor: pointer;
+    gap: 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03); 
+    transition: background-color 0.2s;
+}
+
+.icity-new-app-wrapper .popover-menu .menu-item:active {
+    background-color: #F2F2F7;
+}
+
+.icity-new-app-wrapper .popover-menu .text-red { color: #FF3B30; }
+.icity-new-app-wrapper .popover-menu .menu-item svg { width: 16px; height: 16px; }
+.icity-new-app-wrapper .popover-menu .icon-red { color: #FF3B30; }
+.icity-new-app-wrapper .popover-menu .icon-gray { color: #8E8E93; }
+.icity-new-app-wrapper .popover-menu .icon-yellow { color: #FF9500; }
+.icity-new-app-wrapper .popover-menu .icon-green { color: #34C759; }
+.icity-new-app-wrapper .popover-menu .icon-blue { color: #007AFF; }
+
+.icity-new-app-wrapper #diary-detail-menu::after {
+    top: -10px;
+    right: 10px;
+    transform: none;
+    border-width: 0 8px 10px 8px;
+    border-color: transparent transparent rgba(240, 240, 245, 0.95) transparent;
+}
+
+/* ================= 小纸条全屏弹窗 ================= */
+.icity-new-app-wrapper #modal-note {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--white);
+    z-index: 300;
+    display: none;
+    flex-direction: column;
+}
+.icity-new-app-wrapper #modal-note.active {
+    display: flex;
+}
+.icity-new-app-wrapper .note-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 0.5px solid var(--border-color);
+}
+.icity-new-app-wrapper .note-title-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    color: var(--text-light);
+}
+.icity-new-app-wrapper .note-title-area svg {
+    width: 24px;
+    height: 24px;
+}
+.icity-new-app-wrapper .note-title-input {
+    border: none;
+    outline: none;
+    font-size: 15px;
+    color: var(--text-main);
+    flex: 1;
+}
+.icity-new-app-wrapper .note-title-input::placeholder {
+    color: var(--text-light);
+}
+.icity-new-app-wrapper .note-close {
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 4px;
+}
+.icity-new-app-wrapper .note-close svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    stroke-width: 1.5;
+}
+.icity-new-app-wrapper .note-body {
+    flex: 1;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+.icity-new-app-wrapper .note-textarea {
+    flex: 1;
+    border: none;
+    outline: none;
+    resize: none;
+    font-size: 16px;
+    color: var(--text-main);
+    font-family: inherit;
+}
+.icity-new-app-wrapper .note-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-top: 0.5px solid var(--border-color);
+    background-color: #F9F9F9;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+.icity-new-app-wrapper .note-tools {
+    display: flex;
+    gap: 16px;
+}
+.icity-new-app-wrapper .note-tools .tool-icon svg {
+    width: 24px;
+    height: 24px;
+    color: #8AB4F8;
+}
+.icity-new-app-wrapper .note-send-btn {
+    background-color: #34C759;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+.icity-new-app-wrapper .note-send-btn svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+/* ================= 小票虚线分割线与小纸条样式 ================= */
+.icity-new-app-wrapper .ticket-divider {
+    position: relative;
+    height: 16px;
+    margin: 4px 0; 
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+.icity-new-app-wrapper .ticket-divider.has-notch {
+    margin: 4px -16px; 
+}
+.icity-new-app-wrapper .ticket-divider::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 4px; 
+    background-image: radial-gradient(circle at center, #E8E6E6 1.2px, transparent 1.6px);
+    background-size: 7px 4px; 
+    background-repeat: space no-repeat;
+    transform: translateY(-50%);
+    filter: drop-shadow(0px 1px 0px rgba(255,255,255,1)) drop-shadow(0px -1px 0px rgba(0,0,0,0.08));
+}
+.icity-new-app-wrapper .ticket-divider.has-notch::before {
+    left: 12px; 
+    right: 12px;
+}
+.icity-new-app-wrapper .ticket-divider.has-notch::after,
+.icity-new-app-wrapper .ticket-divider.has-notch .ticket-divider-left {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 8px; 
+    height: 8px;
+    background-color: #F1EFEF; 
+    border-radius: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    box-shadow: inset 1px 0 2px rgba(0,0,0,0.06); 
+}
+.icity-new-app-wrapper .ticket-divider.has-notch .ticket-divider-left {
+    left: -4px; 
+}
+.icity-new-app-wrapper .ticket-divider.has-notch::after {
+    right: -4px; 
+    box-shadow: inset -1px 0 2px rgba(0,0,0,0.06);
+}
+
+.icity-new-app-wrapper .single-post-note-item {
+    padding: 0; 
+}
+.icity-new-app-wrapper .single-post-note-text {
+    font-size: 15px;
+    color: var(--text-main);
+    line-height: 1.5;
+    margin-bottom: 8px;
+    font-weight: 500;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+.icity-new-app-wrapper .single-post-note-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-light);
+}
+.icity-new-app-wrapper .single-post-note-meta-left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.icity-new-app-wrapper .single-post-note-meta-left svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ================= 评论区样式 ================= */
+.icity-new-app-wrapper .single-post-comments-section {
+    margin-top: 16px;
+    border-top: 0.5px solid var(--border-color);
+    padding-top: 16px;
+    display: none; 
+}
+.icity-new-app-wrapper .comments-header {
+    font-size: 13px;
+    color: var(--text-sub);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+.icity-new-app-wrapper .comment-item {
+    display: flex;
+    padding: 12px 0;
+    border-bottom: 0.5px solid var(--border-color);
+}
+.icity-new-app-wrapper .comment-item:last-child {
+    border-bottom: none;
+}
+.icity-new-app-wrapper .comment-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: #FFF0F5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-right: 8px;
+    overflow: hidden;
+}
+.icity-new-app-wrapper .comment-main {
+    flex: 1;
+}
+.icity-new-app-wrapper .comment-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+.icity-new-app-wrapper .comment-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+.icity-new-app-wrapper .comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-light);
+    font-size: 12px;
+}
+.icity-new-app-wrapper .comment-actions .more-btn {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+.icity-new-app-wrapper .comment-content {
+    font-size: 14px;
+    color: var(--text-main);
+    line-height: 1.5;
+}
+.icity-new-app-wrapper .comments-header .toggle-icon {
+    transition: transform 0.3s ease; 
+}
+
+/* ================= iOS 风格 Switch 开关 ================= */
+.icity-new-app-wrapper .switch {
+    position: relative;
+    display: inline-block;
+    width: 51px;
+    height: 31px;
+    margin-left: 8px;
+}
+.icity-new-app-wrapper .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.icity-new-app-wrapper .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #E9E9EA;
+    transition: .3s;
+    border-radius: 31px;
+}
+.icity-new-app-wrapper .slider:before {
+    position: absolute;
+    content: "";
+    height: 27px;
+    width: 27px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.icity-new-app-wrapper input:checked + .slider {
+    background-color: #34C759;
+}
+.icity-new-app-wrapper input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* ================= Q&A 页面专属样式 ================= */
+.icity-new-app-wrapper .qa-title-pill {
+    background-color: #8AB4F8;
+    color: white;
+    border-radius: 12px;
+    padding: 2px 12px;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 1px;
+    display: inline-block;
+}
+.icity-new-app-wrapper .qa-page-subheader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 16px 12px 16px;
+}
+.icity-new-app-wrapper .qa-page-subheader .left {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-main);
+}
+.icity-new-app-wrapper .qa-page-subheader .right {
+    font-size: 12px;
+    color: var(--text-light);
+}
+.icity-new-app-wrapper .qa-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 0 16px;
+}
+.icity-new-app-wrapper .qa-category-card {
+    background-color: var(--white);
+    border-radius: 4px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+.icity-new-app-wrapper .qa-cat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+.icity-new-app-wrapper .qa-cat-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.icity-new-app-wrapper .qa-cat-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.icity-new-app-wrapper .qa-cat-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-main);
+}
+.icity-new-app-wrapper .qa-cat-percent {
+    font-size: 12px;
+    color: var(--text-light);
+}
+.icity-new-app-wrapper .qa-progress-track {
+    width: 100%;
+    height: 4px;
+    background-color: #EFEFF4;
+    border-radius: 2px;
+    overflow: hidden;
+}
+.icity-new-app-wrapper .qa-progress-fill {
+    height: 100%;
+    background-color: #34C759;
+    border-radius: 2px;
+}
+.icity-new-app-wrapper .qa-bottom-setting {
+    background-color: var(--white);
+    margin: 16px;
+    padding: 16px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+.icity-new-app-wrapper .qa-bottom-setting .left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-main);
+}
+.icity-new-app-wrapper .qa-bottom-setting .right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    color: var(--text-light);
+}
+
+/* ================= 个人主页新模块样式 ================= */
+.icity-new-app-wrapper .profile-more-btn {
+    padding: 12px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-sub);
+    border-top: 0.5px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    background-color: var(--white);
+}
+.icity-new-app-wrapper .profile-more-btn svg {
+    width: 12px;
+    height: 12px;
+}
+
+.icity-new-app-wrapper .profile-diary-books-area {
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.icity-new-app-wrapper .profile-diary-books-area::-webkit-scrollbar {
+    display: none;
+}
+
+.icity-new-app-wrapper .profile-list-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background-color: var(--white);
+    border-bottom: 0.5px solid var(--border-color);
+    cursor: pointer;
+}
+.icity-new-app-wrapper .profile-list-item:last-child {
+    border-bottom: none;
+}
+.icity-new-app-wrapper .profile-list-item .icon-wrapper {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 12px;
+}
+.icity-new-app-wrapper .profile-list-item .icon-wrapper svg {
+    width: 16px;
+    height: 16px;
+    fill: white;
+}
+.icity-new-app-wrapper .profile-list-item .text {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+.icity-new-app-wrapper .profile-list-item .arrow {
+    color: var(--text-light);
+}
+.icity-new-app-wrapper .profile-list-item .arrow svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* ================= 日记列表/封存页专属样式 ================= */
+.icity-new-app-wrapper .header-diary-list {
+    background-color: var(--bg-main);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+.icity-new-app-wrapper .header-diary-list .back-btn {
+    color: var(--text-main);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    width: 40px;
+}
+.icity-new-app-wrapper .header-diary-list .title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+    flex: 1;
+    text-align: center;
+}
+.icity-new-app-wrapper .header-diary-list .right-placeholder {
+    width: 40px;
+}
+.icity-new-app-wrapper .diary-filter-tabs {
+    display: flex;
+    overflow-x: auto;
+    background-color: var(--white);
+    padding: 12px 16px;
+    gap: 20px;
+    scrollbar-width: none;
+    position: sticky;
+    top: 60px;
+    z-index: 10;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.icity-new-app-wrapper .diary-filter-tabs::-webkit-scrollbar { display: none; }
+.icity-new-app-wrapper .filter-tab {
+    font-size: 15px;
+    color: var(--text-light);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    padding: 4px 12px;
+    border-radius: 16px;
+    transition: all 0.2s;
+}
+.icity-new-app-wrapper .filter-tab.active {
+    color: var(--white);
+    background-color: #8AB4F8;
+}
+.icity-new-app-wrapper .empty-state-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 80px;
+}
+.icity-new-app-wrapper .empty-state-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #4A90E2;
+    margin-top: 16px;
+    margin-bottom: 8px;
+}
+.icity-new-app-wrapper .empty-state-sub {
+    font-size: 13px;
+    color: var(--text-light);
+}
+
+/* ================= 日历页专属样式 ================= */
+.icity-new-app-wrapper .calendar-year-switcher {
+    background-color: var(--white);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    padding: 12px 20px;
+    border-bottom: 0.5px solid var(--border-color);
+    position: sticky;
+    top: 60px; 
+    z-index: 15;
+}
+.icity-new-app-wrapper .calendar-year-switcher .year-text {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+.icity-new-app-wrapper .calendar-year-switcher .arrow-btn {
+    color: var(--text-sub);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+}
+.icity-new-app-wrapper .calendar-year-switcher .arrow-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.icity-new-app-wrapper .calendar-month-block {
+    background-color: var(--white);
+    border-bottom: 0.5px solid var(--border-color);
+}
+.icity-new-app-wrapper .calendar-month-block:last-child {
+    border-bottom: none;
+}
+.icity-new-app-wrapper .calendar-month-header {
+    display: flex;
+    padding: 12px 16px;
+    align-items: center;
+    border-bottom: 0.5px solid var(--border-color);
+}
+.icity-new-app-wrapper .calendar-month-tag {
+    background-color: #E0E0E0;
+    color: var(--white);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 12px;
+}
+.icity-new-app-wrapper .calendar-month-desc {
+    font-size: 12px;
+    color: var(--text-light);
+    flex: 1;
+}
+.icity-new-app-wrapper .calendar-month-arrow {
+    color: var(--text-light);
+}
+.icity-new-app-wrapper .calendar-body {
+    display: flex;
+    padding: 0 16px 16px 16px;
+}
+.icity-new-app-wrapper .calendar-left-info {
+    width: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 16px;
+    padding-top: 8px;
+}
+.icity-new-app-wrapper .calendar-month-en {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-main);
+}
+.icity-new-app-wrapper .calendar-month-cn {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+.icity-new-app-wrapper .calendar-year-text {
+    font-size: 10px;
+    color: var(--text-light);
+    margin-top: 2px;
+}
+.icity-new-app-wrapper .calendar-diary-count {
+    font-size: 10px;
+    color: var(--text-light);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+.icity-new-app-wrapper .calendar-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+.icity-new-app-wrapper .calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-light);
+    background-color: #F5F5F5;
+    border-radius: 4px;
+}
+.icity-new-app-wrapper .calendar-day.has-diary {
+    background-color: #FF9500;
+    color: var(--white);
+}
+.icity-new-app-wrapper .calendar-day.is-today {
+    color: #FF9500;
+    font-weight: 800;
+    border: 1.5px solid #FF9500;
+    background-color: #FFF3E0;
+}
+.icity-new-app-wrapper .calendar-day.empty {
+    background-color: transparent;
+}
