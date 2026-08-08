@@ -107,7 +107,7 @@
         .wb-compose-btn svg { width: 22px; height: 22px; stroke: #000; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
         .wb-bottom-sheet-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 3000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .wb-bottom-sheet-overlay.show { opacity: 1; pointer-events: auto; }
-        .wb-bottom-sheet { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: #f2f2f7; border-radius: 20px 20px 0 0; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); display: flex; flex-direction: column; }
+        .wb-bottom-sheet { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: #ffffff; border-radius: 20px 20px 0 0; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); display: flex; flex-direction: column; }
         .wb-bottom-sheet-overlay.show .wb-bottom-sheet { transform: translateY(0); }
         .wb-sheet-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.5px solid #c6c6c8; }
         .wb-sheet-title { font-size: 17px; font-weight: 600; color: #000; }
