@@ -7,7 +7,7 @@ self.addEventListener('activate', e => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          return caches.delete(cacheName);
+          return cacheName.startsWith('tonghuaji-semantic-model-') ? Promise.resolve(false) : caches.delete(cacheName);
         })
       );
     }).then(() => self.clients.claim())

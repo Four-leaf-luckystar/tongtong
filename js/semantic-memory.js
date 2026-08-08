@@ -7,6 +7,7 @@
     const CACHE_PREFIX = 'tonghuaji-semantic-model-';
     const DEFAULT_MODEL_SOURCE = 'https://huggingface.co/Xenova/bge-small-zh-v1.5';
     const DEFAULT_MODEL_REVISION = '75c43b069aac4d136ba6bc1122f995fedcfd2781';
+    const SEMANTIC_VECTOR_VERSION = 'transformers-bge-small-zh-v1.5-v1';
     const DEFAULT_MODEL_MANIFEST = {
         version: 'bge-small-zh-v1.5-20260805',
         name: 'BGE Small 中文语义记忆模型',
@@ -37,9 +38,13 @@
         manifest: null,
         downloadedBytes: 0,
         totalBytes: 0,
-        error: ''
+        error: '',
+        runtimeStatus: 'idle',
+        runtimeError: ''
     };
     let remoteConfig = { ...DEFAULT_REMOTE_CONFIG };
+    let extractor = null;
+    let extractorPromise = null;
 
     function readState() {
         return new Promise((resolve) => {
@@ -87,6 +92,8 @@
                     downloadedBytes: snapshot.downloadedBytes,
                     totalBytes: snapshot.totalBytes,
                     error: snapshot.error,
+                    runtimeStatus: snapshot.runtimeStatus,
+                    runtimeError: snapshot.runtimeError,
                     updatedAt: new Date().toISOString()
                 });
                 transaction.oncomplete = () => {
@@ -261,7 +268,9 @@
 
     async function remove() {
         if (state.manifest) await caches.delete(CACHE_PREFIX + state.manifest.version);
-        setState({ status: 'not-configured', manifestUrl: state.manifestUrl, manifest: null, downloadedBytes: 0, totalBytes: 0, error: '' });
+        extractor = null;
+        extractorPromise = null;
+        setState({ status: 'not-configured', manifestUrl: state.manifestUrl, manifest: null, downloadedBytes: 0, totalBytes: 0, error: '', runtimeStatus: 'idle', runtimeError: '' });
     }
 
     async function getCachedFile(path) {
@@ -270,6 +279,63 @@
         if (!file) return null;
         const cache = await caches.open(CACHE_PREFIX + state.manifest.version);
         return cache.match(file.url);
+    }
+
+    function getModelRevision() {
+        if (state.manifestUrl) return 'main';
+        return DEFAULT_MODEL_REVISION;
+    }
+
+    async function createExtractor() {
+        if (extractor) return extractor;
+        if (extractorPromise) return extractorPromise;
+        if (state.status !== 'ready' || !state.manifest) {
+            throw new Error('本地语义模型尚未下载完成');
+        }
+        extractorPromise = (async () => {
+            setState({ runtimeStatus: 'loading', runtimeError: '' });
+            try {
+                const transformers = await import('./vendor/transformers.min.js');
+                const cache = await caches.open(CACHE_PREFIX + state.manifest.version);
+                transformers.env.allowLocalModels = false;
+                transformers.env.allowRemoteModels = false;
+                transformers.env.useBrowserCache = false;
+                transformers.env.useCustomCache = true;
+                transformers.env.customCache = {
+                    match: (request) => cache.match(request),
+                    put: (request, response) => cache.put(request, response)
+                };
+                transformers.env.backends.onnx.wasm.wasmPaths = './js/vendor/';
+                extractor = await transformers.pipeline('feature-extraction', state.manifest.modelId || DEFAULT_MODEL_MANIFEST.modelId, {
+                    revision: getModelRevision(),
+                    local_files_only: true
+                });
+                setState({ runtimeStatus: 'ready', runtimeError: '' });
+                return extractor;
+            } catch (error) {
+                extractor = null;
+                setState({ runtimeStatus: 'error', runtimeError: String(error && error.message || error) });
+                throw error;
+            } finally {
+                extractorPromise = null;
+            }
+        })();
+        return extractorPromise;
+    }
+
+    async function embed(value) {
+        const text = String(value || '').trim();
+        if (!text) return null;
+        const pipeline = await createExtractor();
+        const output = await pipeline(text.slice(0, 512), { pooling: 'mean', normalize: true });
+        const values = output && output.data ? Array.from(output.data, Number) : [];
+        if (!values.length || values.some((number) => !Number.isFinite(number))) throw new Error('语义模型没有返回有效向量');
+        return { version: SEMANTIC_VECTOR_VERSION, dimensions: values.length, values };
+    }
+
+    async function warmup() {
+        if (state.status !== 'ready') return false;
+        try { await createExtractor(); return true; } catch (_) { return false; }
     }
 
     async function init() {
@@ -288,7 +354,9 @@
             manifest: saved.manifest || null,
             downloadedBytes,
             totalBytes,
-            error: saved.error || ''
+            error: saved.error || '',
+            runtimeStatus: 'idle',
+            runtimeError: ''
         };
         emitStatus();
         return { ...state };
@@ -300,6 +368,9 @@
         download,
         remove,
         getCachedFile,
+        embed,
+        warmup,
+        getVectorVersion: () => SEMANTIC_VECTOR_VERSION,
         initRemote,
         getRemoteConfig: () => ({ ...remoteConfig, apiKey: remoteConfig.apiKey ? 'configured' : '' }),
         saveRemoteConfig,

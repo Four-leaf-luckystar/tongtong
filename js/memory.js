@@ -27,6 +27,8 @@
     const VECTOR_INDEX_VERSION = 'local-ngram-v1';
     const VECTOR_DIMENSIONS = 256;
     const VECTOR_MIN_SIMILARITY = 0.12;
+    const SEMANTIC_RETRIEVAL_TIMEOUT_MS = 180;
+    const SEMANTIC_MIN_SIMILARITY = 0.28;
     const REFERENCE_DOCUMENT_GZIP_BASE64 = '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';
     let root = null;
     let selectedContactId = '';
@@ -40,6 +42,7 @@
     let summaryIntervalMessages = DEFAULT_SUMMARY_INTERVAL;
     let summaryPromptMode = SUMMARY_PROMPT_MODE_BUILTIN;
     let customSummaryPrompt = '';
+    let semanticIndexScheduled = false;
     let memorySearchQuery = '';
     const invalidatedSourceIds = new Set();
 
@@ -349,6 +352,16 @@
         return values.length === VECTOR_DIMENSIONS ? values : null;
     }
 
+    function getSemanticVectorValues(vector) {
+        const values = vector && vector.values;
+        const expectedVersion = typeof window.SemanticMemory?.getVectorVersion === 'function'
+            ? window.SemanticMemory.getVectorVersion()
+            : '';
+        if (!expectedVersion || !vector || vector.version !== expectedVersion || !Number.isFinite(Number(vector.dimensions))) return null;
+        if (!Array.isArray(values) && !(values instanceof Float32Array)) return null;
+        return values.length === Number(vector.dimensions) && values.length > 0 ? values : null;
+    }
+
     function cosineSimilarity(leftVector, rightVector) {
         const left = getVectorValues(leftVector);
         const right = getVectorValues(rightVector);
@@ -358,12 +371,57 @@
         return Math.max(0, Math.min(1, score));
     }
 
+    function semanticCosineSimilarity(left, right) {
+        if (!left || !right || left.length !== right.length) return 0;
+        let score = 0;
+        for (let index = 0; index < left.length; index += 1) score += left[index] * right[index];
+        return Math.max(0, Math.min(1, score));
+    }
+
     function ensureLocalVector(item) {
         const existing = getVectorValues(item && item.vectorIndex);
         if (existing) return item.vectorIndex;
         const vectorIndex = createLocalMemoryVector(item && item.content);
         if (item) item.vectorIndex = vectorIndex;
         return vectorIndex;
+    }
+
+    function scheduleSemanticIndex() {
+        if (semanticIndexScheduled || typeof window.SemanticMemory?.embed !== 'function') return;
+        if (window.SemanticMemory.getState?.().status !== 'ready') return;
+        semanticIndexScheduled = true;
+        const schedule = typeof window.requestIdleCallback === 'function'
+            ? (callback) => window.requestIdleCallback(callback, { timeout: 3000 })
+            : (callback) => setTimeout(callback, 250);
+        schedule(() => void populateSemanticVectors());
+    }
+
+    async function populateSemanticVectors() {
+        semanticIndexScheduled = false;
+        if (typeof window.SemanticMemory?.embed !== 'function') return;
+        try {
+            if (!await window.SemanticMemory.warmup?.()) return;
+            const missing = cachedMemoryItems
+                .filter((item) => item && item.tier === 'L3' && item.kind === 'fragment' && item.status === 'active' && !getSemanticVectorValues(item.semanticVector))
+                .slice(0, 8);
+            if (!missing.length) return;
+            const nextById = new Map();
+            for (const item of missing) {
+                const semanticVector = await window.SemanticMemory.embed(item.content);
+                if (semanticVector) nextById.set(item.id, semanticVector);
+            }
+            if (!nextById.size) return;
+            const now = new Date().toISOString();
+            const nextItems = cachedMemoryItems.map((item) => {
+                const semanticVector = nextById.get(item && item.id);
+                return semanticVector ? { ...item, semanticVector } : item;
+            });
+            const saved = await writeRecord({ id: MEMORY_ITEMS_KEY, schemaVersion: MEMORY_SCHEMA_VERSION, items: nextItems });
+            if (saved) cachedMemoryItems = nextItems;
+            if (missing.length === 8) scheduleSemanticIndex();
+        } catch (error) {
+            console.debug('语义记忆索引暂不可用，已保留本地 n-gram 检索：', error);
+        }
     }
 
     function getActiveSummary(bindingId) {
@@ -548,6 +606,61 @@
 
     function getRelevantFragments(bindingId, query, limit = 3, turnId = '') {
         const matches = getRelevantFragmentMatches(bindingId, query, limit, turnId);
+        if (matches.length) recordFragmentInjection(matches, turnId);
+        return matches.map((match) => match.content);
+    }
+
+    async function getSemanticFragmentMatches(bindingId, query, limit = 3) {
+        const queryVector = getSemanticVectorValues(await window.SemanticMemory.embed(query));
+        if (!queryVector) return [];
+        const queryTerms = new Set(createTextTerms(query));
+        const maxItems = Math.max(1, Math.min(Number(limit) || 3, 4));
+        const now = Date.now();
+        return cachedMemoryItems
+            .filter((item) => item && item.bindingId === bindingId && item.tier === 'L3' && item.kind === 'fragment' && item.status === 'active')
+            .map((item) => {
+                const semanticSimilarity = semanticCosineSimilarity(queryVector, getSemanticVectorValues(item.semanticVector));
+                const terms = Array.isArray(item.keywords) ? item.keywords : createTextTerms(item.content);
+                const matchedTerms = terms.filter((term) => queryTerms.has(term));
+                const localSimilarity = cosineSimilarity(createLocalMemoryVector(query), ensureLocalVector(item));
+                const stats = item.retrievalStats || {};
+                const lastInjectedAt = Date.parse(stats.lastInjectedAt || '');
+                const ageDays = Math.max(0, (now - Date.parse(item.updatedAt || item.createdAt || now)) / 86400000);
+                const recencyScore = Math.max(0, 3 - Math.floor(ageDays / 21));
+                const authorityScore = item.authority === 'user_confirmed' ? 4 : 1;
+                const priorityScore = getRetrievalPriority(item);
+                const repeatPenalty = Math.min(4, Math.floor(getRetrievalCount(item) / 3));
+                const inCooldown = Number.isFinite(lastInjectedAt) && now - lastInjectedAt < RETRIEVAL_COOLDOWN_MS;
+                const semanticScore = semanticSimilarity >= SEMANTIC_MIN_SIMILARITY ? Math.round(semanticSimilarity * 22) : 0;
+                const localScore = localSimilarity >= VECTOR_MIN_SIMILARITY ? Math.round(localSimilarity * 6) : 0;
+                const score = semanticScore + localScore + matchedTerms.length * 8 + recencyScore + authorityScore + priorityScore - repeatPenalty;
+                const reasons = [
+                    semanticScore ? '语义相似 ' + Math.round(semanticSimilarity * 100) + '%' : '',
+                    matchedTerms.length ? '命中 ' + matchedTerms.slice(0, 3).join('、') : '',
+                    priorityScore === RETRIEVAL_PRIORITY.pinned ? '已置顶' : '',
+                    inCooldown ? '冷却中' : ''
+                ].filter(Boolean);
+                return { item, score, reasons, inCooldown, semanticSimilarity, vectorSimilarity: localSimilarity, hasSignal: semanticScore > 0 || matchedTerms.length > 0 };
+            })
+            .filter(({ score, inCooldown, hasSignal, item }) => score > 0 && hasSignal && !inCooldown && normalizeMemoryText(item.content).length <= 220)
+            .sort((left, right) => right.score - left.score || String(right.item.createdAt || '').localeCompare(String(left.item.createdAt || '')))
+            .slice(0, maxItems)
+            .map(({ item, score, reasons, semanticSimilarity, vectorSimilarity }) => ({ id: item.id, content: normalizeMemoryText(item.content), score, reasons, semanticSimilarity, vectorSimilarity }));
+    }
+
+    async function getRelevantFragmentsAsync(bindingId, query, limit = 3, turnId = '') {
+        const fallbackMatches = () => getRelevantFragmentMatches(bindingId, query, limit, turnId);
+        if (typeof window.SemanticMemory?.embed !== 'function' || window.SemanticMemory.getState?.().status !== 'ready') {
+            scheduleSemanticIndex();
+            const matches = fallbackMatches();
+            if (matches.length) recordFragmentInjection(matches, turnId);
+            return matches.map((match) => match.content);
+        }
+        const semanticMatches = await Promise.race([
+            getSemanticFragmentMatches(bindingId, query, limit).catch(() => []),
+            new Promise((resolve) => setTimeout(() => resolve([]), SEMANTIC_RETRIEVAL_TIMEOUT_MS))
+        ]);
+        const matches = Array.isArray(semanticMatches) && semanticMatches.length ? semanticMatches : fallbackMatches();
         if (matches.length) recordFragmentInjection(matches, turnId);
         return matches.map((match) => match.content);
     }
@@ -958,6 +1071,7 @@
         if (!saved) return false;
         cachedMemoryItems = nextItems;
         cachedOutbox = nextOutbox;
+        scheduleSemanticIndex();
         window.MemorySync?.schedule(queuedTurn.bindingId);
         return true;
     }
@@ -1528,19 +1642,21 @@
         const labels = {
             'not-configured': '本地语义模型未下载；当前检索使用本地 n-gram',
             downloading: '正在下载',
-            ready: '已下载，但尚未接入检索；当前仍使用本地 n-gram',
+            ready: state.runtimeStatus === 'ready' ? '语义模型已启用，聊天检索优先使用语义相似度' : (state.runtimeStatus === 'error' ? '语义模型初始化失败；当前检索使用本地 n-gram' : '模型已下载，正在后台初始化语义检索'),
             error: '下载失败',
             unavailable: '当前浏览器不支持'
         };
         const downloaded = Math.max(0, Number(state.downloadedBytes) || 0);
         const total = Math.max(0, Number(state.totalBytes) || 0);
-        status.textContent = state.error ? (labels[state.status] || '下载失败') + '：' + state.error : (labels[state.status] || '未配置模型');
+        status.textContent = state.error ? (labels[state.status] || '下载失败') + '：' + state.error : (state.runtimeError ? (labels[state.status] || '语义模型初始化失败') + '：' + state.runtimeError : (labels[state.status] || '未配置模型'));
         progress.max = total || 1;
         progress.value = Math.min(downloaded, progress.max);
         progress.hidden = state.status !== 'downloading' && state.status !== 'ready';
         removeButton.hidden = state.status !== 'ready';
         const sourceStatus = root.querySelector('.memory-settings-collapsible .memory-semantic-model-status')?.closest('.memory-settings-collapsible')?.querySelector('[data-memory-section-status]');
-        if (sourceStatus) sourceStatus.textContent = state.status === 'ready' ? '已下载，未启用' : 'n-gram 检索中';
+        if (sourceStatus) sourceStatus.textContent = state.status === 'ready'
+            ? (state.runtimeStatus === 'ready' ? '语义检索已启用' : (state.runtimeStatus === 'error' ? '已回退 n-gram' : '正在初始化'))
+            : 'n-gram 检索中';
     }
 
     function openSemanticSettings() {
@@ -2691,6 +2807,7 @@
         getSummaryOverview,
         saveSummaryOverride,
         getRelevantFragments,
+        getRelevantFragmentsAsync,
         runRetrievalEvaluation,
         getSummaryJob,
         completeSummary,
@@ -2700,6 +2817,9 @@
     };
 
     // The chat path reads this in-memory cache only. IndexedDB is warmed in the background.
-    void preload();
+    void preload().then(() => scheduleSemanticIndex());
+    window.addEventListener('semanticmemory:status', (event) => {
+        if (event.detail && event.detail.status === 'ready') scheduleSemanticIndex();
+    });
     void window.MemorySync?.init?.();
 })();
