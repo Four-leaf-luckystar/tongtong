@@ -1,6 +1,9 @@
 (function () {
     'use strict';
 
+    let meetingDocument = '';
+    let meetingFramePreloadStarted = false;
+
     function getElements() {
         return {
             container: document.getElementById('meetingAppUI'),
@@ -9,8 +12,11 @@
     }
 
     function decodeMeetingDocument() {
-        const bytes = Uint8Array.from(atob(window.MEETING_APP_DOCUMENT_BASE64), value => value.charCodeAt(0));
-        return new TextDecoder().decode(bytes);
+        if (!meetingDocument) {
+            const bytes = Uint8Array.from(atob(window.MEETING_APP_DOCUMENT_BASE64), value => value.charCodeAt(0));
+            meetingDocument = new TextDecoder().decode(bytes);
+        }
+        return meetingDocument;
     }
 
     function getApiCompletionUrl(url) {
@@ -213,16 +219,21 @@
         });
     }
 
+    function preloadMeetingFrame() {
+        if (meetingFramePreloadStarted) return;
+        const { frame } = getElements();
+        if (!frame || frame.srcdoc) return;
+        meetingFramePreloadStarted = true;
+        frame.addEventListener('load', () => bindReturnToDesktop(frame), { once: true });
+        frame.srcdoc = decodeMeetingDocument();
+    }
+
     window.openMeetingApp = function openMeetingApp() {
         const { container, frame } = getElements();
         if (!container || !frame) return;
 
-        if (!frame.srcdoc) {
-            frame.addEventListener('load', () => bindReturnToDesktop(frame), { once: true });
-            frame.srcdoc = decodeMeetingDocument();
-        } else {
-            bindReturnToDesktop(frame);
-        }
+        preloadMeetingFrame();
+        bindReturnToDesktop(frame);
 
         container.style.display = 'block';
         container.setAttribute('aria-hidden', 'false');
@@ -239,4 +250,7 @@
             if (typeof window.syncStatusBarAfterReturnHome === 'function') window.syncStatusBarAfterReturnHome();
         }, 220);
     };
+
+    const scheduleMeetingPreload = window.requestIdleCallback || ((callback) => setTimeout(callback, 250));
+    scheduleMeetingPreload(preloadMeetingFrame);
 })();

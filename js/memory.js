@@ -1625,6 +1625,8 @@
         toggle.closest('.memory-sync-toggle-row')?.classList.toggle('is-on', usesCustomPrompt);
         input.value = customSummaryPrompt;
         customSection.hidden = !usesCustomPrompt;
+        const sectionStatus = root.querySelector('.memory-summary-prompt-section [data-memory-section-status]');
+        if (sectionStatus) sectionStatus.textContent = usesCustomPrompt ? '自定义' : '内置';
     }
 
     function getSemanticModelState() {
@@ -2091,7 +2093,12 @@
         chromeOverride.textContent = 'html,body{width:100%;height:100%;background:#fff}body{display:block}.iphone-mockup{width:100%;height:100%;border-radius:0;box-shadow:none}.notch{display:none}.modal-card-avatar{background-size:cover;background-position:center;background-repeat:no-repeat}';
         documentRef.head.appendChild(chromeOverride);
         const tabs = ['memory', 'relationship', 'fragment', 'archive'];
-        documentRef.querySelector('.btn-circle').addEventListener('click', close);
+        const exitButton = documentRef.querySelector('.btn-circle');
+        exitButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            close();
+        }, true);
         documentRef.querySelector('.btn-capsule').addEventListener('click', openSummarySettings);
         documentRef.querySelector('.avatar-switch-badge').addEventListener('click', () => void showReferenceRolePicker(documentRef), true);
         documentRef.querySelectorAll('.segment-btn').forEach((button, index) => button.addEventListener('click', () => {
@@ -2213,6 +2220,7 @@
         summaryPromptSection.className = 'memory-settings-section memory-summary-prompt-section';
         summaryPromptSection.innerHTML = '<h3>摘要提示词</h3><p class="memory-semantic-settings-copy">内置提示词默认启用且不会显示。开启后使用你填写的自定义提示词。</p><label class="memory-sync-toggle-row"><span><strong>使用自定义提示词</strong><small>关闭时使用内置日记提示词</small></span><input type="checkbox" data-memory-summary-prompt-custom><span class="memory-sync-switch" aria-hidden="true"></span></label><label class="memory-summary-custom-prompt" data-memory-summary-custom-prompt-section hidden><span>自定义提示词</span><textarea data-memory-summary-custom-prompt maxlength="12000" placeholder="输入用于生成摘要的自定义提示词"></textarea></label>';
         localSection.parentNode.insertBefore(summaryPromptSection, localSection);
+        makeMemorySettingsCollapsible(summaryPromptSection, '摘要提示词', '选择内置提示词或填写自定义内容', '<svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"></path><path d="M8 9h8M8 13h5"></path></svg>', '内置');
         makeMemorySettingsCollapsible(localSection, '本地向量模型', '用于快速检索本地记忆', '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"></circle><path d="M12 5v14M5 12h14"></path></svg>');
         const remoteSection = buildRemoteVectorSection(settings);
         externalSection.parentNode.insertBefore(remoteSection, externalSection);
@@ -2718,6 +2726,8 @@
             .memory-sync-toggle-row.is-on .memory-sync-switch { background: #34c759; }
             .memory-sync-toggle-row.is-on .memory-sync-switch::after { transform: translateX(20px); }
             .memory-summary-custom-prompt { display: grid; gap: 8px; margin-top: 12px; color: #1c1c1e; font-size: 14px; }
+            .memory-summary-prompt-section .memory-sync-toggle-row { margin-top: 0; }
+            .memory-summary-custom-prompt > span { color: #6e6e73; font-size: 13px; }
             .memory-summary-custom-prompt textarea { width: 100%; min-height: 150px; box-sizing: border-box; resize: vertical; border: 0; border-radius: 12px; padding: 12px; background: #f2f2f7; color: #1c1c1e; font: 14px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; outline: 0; }
             .memory-choice-dialog { position: absolute; inset: 0; z-index: 2; display: none; align-items: flex-end; background: rgba(0,0,0,.28); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
             .memory-choice-dialog.is-visible { display: flex; }
