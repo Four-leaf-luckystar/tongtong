@@ -1004,7 +1004,6 @@
 
             // show three-dots button; click to expand vertical capsule menu
     async function updateRealStorage() {
-            // show three-dots button; click to expand vertical capsule menu
         if (navigator.storage && navigator.storage.estimate) {
             try {
                 const estimate = await navigator.storage.estimate();
@@ -1018,17 +1017,15 @@
             }
         }
         
-            // show three-dots button; click to expand vertical capsule menu
         if (navigator.storage && navigator.storage.persisted) {
             const isPersisted = await navigator.storage.persisted();
             const persistStatusEl = document.getElementById('ic-persist-status');
             if(persistStatusEl) {
                 persistStatusEl.innerHTML = `${isPersisted ? '已开启' : '未开启'} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
-                if(isPersisted) persistStatusEl.style.color = '#34c759'; // 开启显示绿色
+                if(isPersisted) persistStatusEl.style.color = '#34c759'; 
             }
         }
 
-            // show three-dots button; click to expand vertical capsule menu
         const getStoreSize = (key) => {
             return new Promise((resolve) => {
                 if (!db) { resolve(0); return; }
@@ -1048,25 +1045,71 @@
             });
         };
 
-        const formatMB = (bytes) => {
-            if (bytes === 0) return '0 MB';
+        // 专门用于读取独立数据库（如 AppleMusicDB）大小的函数
+        const getOtherDBSize = (dbName, storeNames) => {
+            return new Promise((resolve) => {
+                const req = indexedDB.open(dbName);
+                req.onsuccess = (e) => {
+                    const database = e.target.result;
+                    let totalSize = 0;
+                    const validStores = storeNames.filter(name => database.objectStoreNames.contains(name));
+                    if (validStores.length === 0) {
+                        database.close();
+                        return resolve(0);
+                    }
+                    const tx = database.transaction(validStores, 'readonly');
+                    let completed = 0;
+                    validStores.forEach(storeName => {
+                        const store = tx.objectStore(storeName);
+                        const getAllReq = store.getAll();
+                        getAllReq.onsuccess = (ev) => {
+                            const data = ev.target.result;
+                            if (data) totalSize += JSON.stringify(data).length;
+                            completed++;
+                            if (completed === validStores.length) {
+                                database.close();
+                                resolve(totalSize);
+                            }
+                        };
+                        getAllReq.onerror = () => {
+                            completed++;
+                            if (completed === validStores.length) {
+                                database.close();
+                                resolve(totalSize);
+                            }
+                        }
+                    });
+                };
+                req.onerror = () => resolve(0);
+            });
+        };
+
+        // 统一使用 formatSizeStr，确保小于 1MB 的数据精确显示为 KB，而不是 0 MB
+        const formatSizeStr = (bytes) => {
+            if (bytes === 0) return '0 KB';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
             return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
         };
 
-            // show three-dots button; click to expand vertical capsule menu
         const wallpaperSize = await getStoreSize("wallpaperData");
         const presetSize = await getStoreSize("presetData");
         const layoutSize = await getStoreSize("currentLayout");
         const fontSize = await getStoreSize("fontData");
         const profileSize = await getStoreSize("profileData");
         const apiSize = await getStoreSize("apiData");
-        const worldbookSize = await getStoreSize("worldbookData"); // 新增：获取世界书数据大小
+        
+        const worldbookSize = await getStoreSize("worldbookData"); 
+        const wechatSize = await getStoreSize("wechatChatData") + await getStoreSize("wechatMomentsData") + await getStoreSize("wechatContactsData") + await getStoreSize("wechatBgData") + await getStoreSize("wechatEmojiData") + await getStoreSize("wechatMomentsProfileData");
+        const contactsSize = await getStoreSize("wechatContactsData"); // 通讯录与微信共享数据
+        const musicSize = await getOtherDBSize("AppleMusicDB", ["searchHistory", "recentPlays", "favoriteSongs", "customPlaylists", "favoriteArtists"]); // 音乐APP独立数据库
+        const meetingSize = await getStoreSize("meetingData") + await getStoreSize("meeting_settings"); 
+        const memorySize = await getStoreSize("memoryItemsV1") + await getStoreSize("memoryOutboxV1") + await getStoreSize("memorySummariesV1") + await getStoreSize("memoryAppPreferencesV1");
+        const icitySize = await getStoreSize("icity_profile") + await getStoreSize("icity_feeds") + await getStoreSize("icity_diaries");
 
-            // show three-dots button; click to expand vertical capsule menu
-        const photoSize = wallpaperSize; // 壁纸归为照片
-        const appsSize = presetSize + layoutSize + worldbookSize; // 新增：世界书归为应用程序
+        const photoSize = wallpaperSize; 
+        const appsSize = presetSize + layoutSize + worldbookSize + wechatSize + contactsSize + musicSize + meetingSize + memorySize + icitySize; 
         const chatSize = await getStoreSize("wechatChatData");
-        const systemSize = fontSize + profileSize + apiSize; // 字体、配置等归为系统数据
+        const systemSize = fontSize + profileSize + apiSize; 
 
         const themeSize = presetSize + wallpaperSize + fontSize;
         const settingsSize = profileSize + apiSize + layoutSize;
@@ -1074,26 +1117,23 @@
         const totalBytes = photoSize + appsSize + chatSize + systemSize;
         const totalMB = totalBytes === 0 ? '0.00 MB' : (totalBytes / (1024 * 1024)).toFixed(2) + ' MB';
 
-            // show three-dots button; click to expand vertical capsule menu
-        const formatSizeStr = (bytes) => {
-            if (bytes === 0) return '0 MB';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-        };
+        const themeStr = formatSizeStr(themeSize);
+        const settingsStr = formatSizeStr(settingsSize);
+        const worldbookStr = formatSizeStr(worldbookSize); 
+        const wechatStr = formatSizeStr(wechatSize);
+        const contactsStr = formatSizeStr(contactsSize);
+        const musicStr = formatSizeStr(musicSize);
+        const meetingStr = formatSizeStr(meetingSize);
+        const memoryStr = formatSizeStr(memorySize);
+        const icityStr = formatSizeStr(icitySize);
+        const zeroStr = '0 KB';
 
-        const themeMB = formatMB(themeSize);
-        const settingsMB = formatMB(settingsSize);
-        const worldbookMB = formatMB(worldbookSize); // 新增：格式化世界书大小
-        const zeroMB = '0 MB';
-
-            // show three-dots button; click to expand vertical capsule menu
         const mainSizeEl = document.getElementById('ic-main-size');
         if(mainSizeEl) mainSizeEl.innerHTML = `${totalMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
         
         const detailSizeEl = document.getElementById('ic-detail-size');
         if(detailSizeEl) detailSizeEl.innerText = `已使用 ${totalMB}`;
 
-            // show three-dots button; click to expand vertical capsule menu
         const legendPhoto = document.getElementById('ic-legend-photo');
         if(legendPhoto) legendPhoto.innerText = `照片 ${formatSizeStr(photoSize)}`;
         
@@ -1106,7 +1146,6 @@
         const legendSystem = document.getElementById('ic-legend-system');
         if(legendSystem) legendSystem.innerText = `系统数据 ${formatSizeStr(systemSize)}`;
 
-            // show three-dots button; click to expand vertical capsule menu
         const getPercent = (part, total) => total === 0 ? 0 : (part / total * 100).toFixed(1);
         
         const segRed = document.getElementById('ic-seg-red');
@@ -1119,40 +1158,44 @@
         if(segGray) segGray.style.width = `${getPercent(chatSize, totalBytes)}%`;
         if(segLight) segLight.style.width = `${getPercent(systemSize, totalBytes)}%`;
 
-            // show three-dots button; click to expand vertical capsule menu
         const cloudTheme = document.getElementById('ic-cloud-theme-size');
-        if (cloudTheme) cloudTheme.innerText = themeMB;
+        if (cloudTheme) cloudTheme.innerText = themeStr;
         
         const cloudWorldBook = document.getElementById('ic-cloud-worldbook-size');
-        if (cloudWorldBook) cloudWorldBook.innerText = worldbookMB; // 替换为真实世界书大小
+        if (cloudWorldBook) cloudWorldBook.innerText = worldbookStr; 
 
         const cloudWechat = document.getElementById('ic-cloud-wechat-size');
-        if (cloudWechat) cloudWechat.innerText = zeroMB;
+        if (cloudWechat) cloudWechat.innerText = wechatStr;
 
         const cloudContacts = document.getElementById('ic-cloud-contacts-size');
-        if (cloudContacts) cloudContacts.innerText = zeroMB;
+        if (cloudContacts) cloudContacts.innerText = contactsStr;
 
-            // show three-dots button; click to expand vertical capsule menu
         const detailSettings = document.getElementById('ic-detail-settings-size');
-        if (detailSettings) detailSettings.innerHTML = `${settingsMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+        if (detailSettings) detailSettings.innerHTML = `${settingsStr} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
 
         const detailTheme = document.getElementById('ic-detail-theme-size');
-        if (detailTheme) detailTheme.innerHTML = `${themeMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+        if (detailTheme) detailTheme.innerHTML = `${themeStr} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
 
         const detailWorldBook = document.getElementById('ic-detail-worldbook-size');
-        if (detailWorldBook) detailWorldBook.innerHTML = `${worldbookMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`; // 替换为真实世界书大小
-
-        const detailContacts = document.getElementById('ic-detail-contacts-size');
-        if (detailContacts) detailContacts.innerHTML = `${zeroMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+        if (detailWorldBook) detailWorldBook.innerHTML = `${worldbookStr} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`; 
 
         const detailWechat = document.getElementById('ic-detail-wechat-size');
-        if (detailWechat) detailWechat.innerHTML = `${zeroMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+        if (detailWechat) detailWechat.innerHTML = `${wechatStr} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
 
-        const detailPhone = document.getElementById('ic-detail-phone-size');
-        if (detailPhone) detailPhone.innerHTML = `${zeroMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+        const detailContacts = document.getElementById('ic-detail-contacts-size');
+        if (detailContacts) detailContacts.innerHTML = `${contactsStr} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
 
-        const detailMessage = document.getElementById('ic-detail-message-size');
-        if (detailMessage) detailMessage.innerHTML = `${zeroMB} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+        const detailMusic = document.getElementById('ic-detail-music-size');
+        if (detailMusic) detailMusic.innerHTML = `${musicStr} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+
+        const detailMeeting = document.getElementById('ic-detail-meeting-size');
+        if (detailMeeting) detailMeeting.innerHTML = `${meetingStr} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+
+        const detailMemory = document.getElementById('ic-detail-memory-size');
+        if (detailMemory) detailMemory.innerHTML = `${memoryStr} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
+
+        const detailIcity = document.getElementById('ic-detail-icity-size');
+        if (detailIcity) detailIcity.innerHTML = `${icityStr} <svg class="ic-chevron" viewBox="0 0 8 13"><path d="M1.5 1.5L6.5 6.5L1.5 11.5"/></svg>`;
     }
 
     async function requestPersistentStorage() {
