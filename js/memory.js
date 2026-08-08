@@ -1651,6 +1651,9 @@
         const downloaded = Math.max(0, Number(state.downloadedBytes) || 0);
         const total = Math.max(0, Number(state.totalBytes) || 0);
         status.textContent = state.error ? (labels[state.status] || '下载失败') + '：' + state.error : (state.runtimeError ? (labels[state.status] || '语义模型初始化失败') + '：' + state.runtimeError : (labels[state.status] || '未配置模型'));
+        if (state.status === 'ready' && state.runtimeStatus === 'ready' && state.runtimeMode === 'single-thread') {
+            status.textContent = '语义模型已启用（单线程兼容模式）';
+        }
         progress.max = total || 1;
         progress.value = Math.min(downloaded, progress.max);
         progress.hidden = state.status !== 'downloading' && state.status !== 'ready';

@@ -40,50 +40,61 @@
         totalBytes: 0,
         error: '',
         runtimeStatus: 'idle',
-        runtimeError: ''
+        runtimeError: '',
+        runtimeMode: 'idle'
     };
     let remoteConfig = { ...DEFAULT_REMOTE_CONFIG };
     let extractor = null;
     let extractorPromise = null;
 
-    function readState() {
+    function openLayoutStore() {
         return new Promise((resolve) => {
             const request = indexedDB.open(DB_NAME);
             request.onerror = () => resolve(null);
             request.onsuccess = () => {
                 const database = request.result;
-                if (!database.objectStoreNames.contains(STORE_NAME)) {
-                    database.close();
-                    resolve(null);
+                if (database.objectStoreNames.contains(STORE_NAME)) {
+                    resolve(database);
                     return;
                 }
-                const transaction = database.transaction(STORE_NAME, 'readonly');
-                const getRequest = transaction.objectStore(STORE_NAME).get(STATE_KEY);
-                getRequest.onsuccess = () => {
-                    database.close();
-                    resolve(getRequest.result || null);
+                const nextVersion = database.version + 1;
+                database.close();
+                const upgradeRequest = indexedDB.open(DB_NAME, nextVersion);
+                upgradeRequest.onupgradeneeded = () => {
+                    const upgradedDatabase = upgradeRequest.result;
+                    if (!upgradedDatabase.objectStoreNames.contains(STORE_NAME)) {
+                        upgradedDatabase.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    }
                 };
-                getRequest.onerror = () => {
-                    database.close();
-                    resolve(null);
-                };
+                upgradeRequest.onsuccess = () => resolve(upgradeRequest.result);
+                upgradeRequest.onerror = upgradeRequest.onblocked = () => resolve(null);
             };
         });
     }
 
-    function writeState(snapshot = state) {
+    async function readState() {
+        const database = await openLayoutStore();
+        if (!database) return null;
         return new Promise((resolve) => {
-            const request = indexedDB.open(DB_NAME);
-            request.onerror = () => resolve(false);
-            request.onsuccess = () => {
-                const database = request.result;
-                if (!database.objectStoreNames.contains(STORE_NAME)) {
-                    database.close();
-                    resolve(false);
-                    return;
-                }
-                const transaction = database.transaction(STORE_NAME, 'readwrite');
-                transaction.objectStore(STORE_NAME).put({
+            const transaction = database.transaction(STORE_NAME, 'readonly');
+            const getRequest = transaction.objectStore(STORE_NAME).get(STATE_KEY);
+            getRequest.onsuccess = () => {
+                database.close();
+                resolve(getRequest.result || null);
+            };
+            getRequest.onerror = () => {
+                database.close();
+                resolve(null);
+            };
+        });
+    }
+
+    async function writeState(snapshot = state) {
+        const database = await openLayoutStore();
+        if (!database) return false;
+        return new Promise((resolve) => {
+            const transaction = database.transaction(STORE_NAME, 'readwrite');
+            transaction.objectStore(STORE_NAME).put({
                     id: STATE_KEY,
                     schemaVersion: 1,
                     status: snapshot.status,
@@ -94,16 +105,16 @@
                     error: snapshot.error,
                     runtimeStatus: snapshot.runtimeStatus,
                     runtimeError: snapshot.runtimeError,
+                    runtimeMode: snapshot.runtimeMode,
                     updatedAt: new Date().toISOString()
                 });
-                transaction.oncomplete = () => {
-                    database.close();
-                    resolve(true);
-                };
-                transaction.onerror = () => {
-                    database.close();
-                    resolve(false);
-                };
+            transaction.oncomplete = () => {
+                database.close();
+                resolve(true);
+            };
+            transaction.onerror = () => {
+                database.close();
+                resolve(false);
             };
         });
     }
@@ -270,7 +281,7 @@
         if (state.manifest) await caches.delete(CACHE_PREFIX + state.manifest.version);
         extractor = null;
         extractorPromise = null;
-        setState({ status: 'not-configured', manifestUrl: state.manifestUrl, manifest: null, downloadedBytes: 0, totalBytes: 0, error: '', runtimeStatus: 'idle', runtimeError: '' });
+        setState({ status: 'not-configured', manifestUrl: state.manifestUrl, manifest: null, downloadedBytes: 0, totalBytes: 0, error: '', runtimeStatus: 'idle', runtimeError: '', runtimeMode: 'idle' });
     }
 
     async function getCachedFile(path) {
@@ -286,6 +297,29 @@
         return DEFAULT_MODEL_REVISION;
     }
 
+    function canUseWasmThreads() {
+        return Boolean(
+            window.crossOriginIsolated
+            && window.SharedArrayBuffer
+            && typeof Worker === 'function'
+            && Number(navigator.hardwareConcurrency || 0) > 1
+        );
+    }
+
+    function getPreferredWasmThreadCount() {
+        return canUseWasmThreads() ? Math.min(2, Number(navigator.hardwareConcurrency) || 2) : 1;
+    }
+
+    async function createPipeline(transformers, threadCount) {
+        transformers.env.backends.onnx.wasm.wasmPaths = new URL('js/vendor/', document.baseURI).href;
+        transformers.env.backends.onnx.wasm.numThreads = threadCount;
+        transformers.env.backends.onnx.wasm.proxy = false;
+        return transformers.pipeline('feature-extraction', state.manifest.modelId || DEFAULT_MODEL_MANIFEST.modelId, {
+            revision: getModelRevision(),
+            local_files_only: true
+        });
+    }
+
     async function createExtractor() {
         if (extractor) return extractor;
         if (extractorPromise) return extractorPromise;
@@ -293,11 +327,11 @@
             throw new Error('本地语义模型尚未下载完成');
         }
         extractorPromise = (async () => {
-            setState({ runtimeStatus: 'loading', runtimeError: '' });
+            setState({ runtimeStatus: 'loading', runtimeError: '', runtimeMode: 'loading' });
             try {
                 const transformers = await import('./vendor/transformers.min.js');
                 const cache = await caches.open(CACHE_PREFIX + state.manifest.version);
-                transformers.env.allowLocalModels = false;
+                transformers.env.allowLocalModels = true;
                 transformers.env.allowRemoteModels = false;
                 transformers.env.useBrowserCache = false;
                 transformers.env.useCustomCache = true;
@@ -305,16 +339,24 @@
                     match: (request) => cache.match(request),
                     put: (request, response) => cache.put(request, response)
                 };
-                transformers.env.backends.onnx.wasm.wasmPaths = './js/vendor/';
-                extractor = await transformers.pipeline('feature-extraction', state.manifest.modelId || DEFAULT_MODEL_MANIFEST.modelId, {
-                    revision: getModelRevision(),
-                    local_files_only: true
+                const preferredThreadCount = getPreferredWasmThreadCount();
+                let activeThreadCount = preferredThreadCount;
+                try {
+                    extractor = await createPipeline(transformers, activeThreadCount);
+                } catch (error) {
+                    if (activeThreadCount === 1) throw error;
+                    activeThreadCount = 1;
+                    extractor = await createPipeline(transformers, activeThreadCount);
+                }
+                setState({
+                    runtimeStatus: 'ready',
+                    runtimeError: '',
+                    runtimeMode: activeThreadCount > 1 ? 'threaded' : 'single-thread'
                 });
-                setState({ runtimeStatus: 'ready', runtimeError: '' });
                 return extractor;
             } catch (error) {
                 extractor = null;
-                setState({ runtimeStatus: 'error', runtimeError: String(error && error.message || error) });
+                setState({ runtimeStatus: 'error', runtimeError: String(error && error.message || error), runtimeMode: 'fallback' });
                 throw error;
             } finally {
                 extractorPromise = null;
@@ -356,7 +398,8 @@
             totalBytes,
             error: saved.error || '',
             runtimeStatus: 'idle',
-            runtimeError: ''
+            runtimeError: '',
+            runtimeMode: 'idle'
         };
         emitStatus();
         return { ...state };
