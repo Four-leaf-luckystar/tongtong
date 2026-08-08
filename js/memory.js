@@ -1320,7 +1320,9 @@
         if (!root) return;
         closeMemorySyncProviderDialog();
         root.classList.remove('is-configuring-summary');
-        root.querySelector('[data-memory-summary-settings]').setAttribute('aria-hidden', 'true');
+        const sheet = root.querySelector('[data-memory-summary-settings]');
+        if (sheet) sheet.setAttribute('aria-hidden', 'true');
+        requestAnimationFrame(() => getReferenceFrame()?.contentDocument?.querySelector('.btn-capsule')?.focus());
     }
 
     function openMemorySyncProviderDialog() {
@@ -1522,6 +1524,7 @@
             await window.SemanticMemory.download(input.value.trim(), (downloaded, total) => {
                 renderSemanticModelState({ ...window.SemanticMemory.getState(), downloadedBytes: downloaded, totalBytes: total, status: 'downloading' });
             });
+            renderSemanticModelState(window.SemanticMemory.getState());
         } catch (error) {
             renderSemanticModelState();
         }
@@ -2033,7 +2036,13 @@
         makeMemorySettingsCollapsible(remoteSection, '其他向量模型', '连接第三方向量服务', '<svg viewBox="0 0 24 24"><circle cx="7" cy="12" r="2"></circle><circle cx="17" cy="7" r="2"></circle><circle cx="17" cy="17" r="2"></circle><path d="m9 11 6-3M9 13l6 3"></path></svg>');
         makeMemorySettingsCollapsible(externalSection, '外接记忆库', '连接自己的记忆服务器', '<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="5" rx="1"></rect><rect x="4" y="14" width="16" height="5" rx="1"></rect><path d="M8 7.5h.01M8 16.5h.01"></path></svg>', '未连接');
         root.appendChild(settings);
-        settings.querySelector('[data-memory-action="close-summary-settings"]').addEventListener('click', closeSummarySettings);
+        settings.querySelector('[data-memory-action="close-summary-settings"]').addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            closeSummarySettings();
+        });
+        settings.addEventListener('click', (event) => { if (event.target === settings) closeSummarySettings(); });
+        settings.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeSummarySettings(); });
         settings.querySelector('[data-memory-action="save-summary-settings"]').addEventListener('click', saveSummarySettings);
         settings.querySelector('[data-memory-action="decrease-summary-interval"]').addEventListener('click', () => adjustSummaryInterval(-1));
         settings.querySelector('[data-memory-action="increase-summary-interval"]').addEventListener('click', () => adjustSummaryInterval(1));
@@ -2121,6 +2130,7 @@
         buildReferenceSummaryPanel();
         buildReferenceSettings();
         buildReferenceComposer();
+        window.addEventListener('semanticmemory:status', (event) => renderSemanticModelState(event.detail));
         decodeReferenceDocument().then((documentText) => {
             referenceFrame.addEventListener('load', () => attachReferenceDocument(referenceFrame), { once: true });
             referenceFrame.srcdoc = documentText;

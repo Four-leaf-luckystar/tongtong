@@ -66,7 +66,7 @@
         });
     }
 
-    function writeState() {
+    function writeState(snapshot = state) {
         return new Promise((resolve) => {
             const request = indexedDB.open(DB_NAME);
             request.onerror = () => resolve(false);
@@ -81,12 +81,12 @@
                 transaction.objectStore(STORE_NAME).put({
                     id: STATE_KEY,
                     schemaVersion: 1,
-                    status: state.status,
-                    manifestUrl: state.manifestUrl,
-                    manifest: state.manifest,
-                    downloadedBytes: state.downloadedBytes,
-                    totalBytes: state.totalBytes,
-                    error: state.error,
+                    status: snapshot.status,
+                    manifestUrl: snapshot.manifestUrl,
+                    manifest: snapshot.manifest,
+                    downloadedBytes: snapshot.downloadedBytes,
+                    totalBytes: snapshot.totalBytes,
+                    error: snapshot.error,
                     updatedAt: new Date().toISOString()
                 });
                 transaction.oncomplete = () => {
@@ -169,10 +169,13 @@
         catch (error) { remoteConfig = { ...remoteConfig, status: 'error', error: String(error.message || error) }; await writeRemoteConfig(); throw error; }
     }
 
+    let stateWritePromise = Promise.resolve();
+
     function setState(patch) {
         state = { ...state, ...patch };
         emitStatus();
-        void writeState();
+        const snapshot = { ...state };
+        stateWritePromise = stateWritePromise.then(() => writeState(snapshot)).catch(() => false);
     }
 
     function normalizeManifest(raw, manifestUrl) {
@@ -272,13 +275,19 @@
     async function init() {
         const saved = await readState();
         if (!saved) return { ...state };
+        const downloadedBytes = Number(saved.downloadedBytes) || 0;
+        const totalBytes = Number(saved.totalBytes) || 0;
+        const completedBeforeStatusWasSaved = Boolean(saved.manifest)
+            && totalBytes > 0
+            && downloadedBytes >= totalBytes
+            && !saved.error;
         state = {
             ...state,
-            status: saved.status === 'ready' ? 'ready' : (saved.status || 'not-configured'),
+            status: saved.status === 'ready' || completedBeforeStatusWasSaved ? 'ready' : (saved.status || 'not-configured'),
             manifestUrl: saved.manifestUrl || '',
             manifest: saved.manifest || null,
-            downloadedBytes: Number(saved.downloadedBytes) || 0,
-            totalBytes: Number(saved.totalBytes) || 0,
+            downloadedBytes,
+            totalBytes,
             error: saved.error || ''
         };
         emitStatus();
