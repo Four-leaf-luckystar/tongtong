@@ -6116,13 +6116,23 @@
         const confirmedFacts = typeof window.MemoryApp?.getPromptMemories === 'function'
             ? window.MemoryApp.getPromptMemories(job.bindingId, 12)
             : [];
+        const summaryPromptConfig = typeof window.MemoryApp?.getSummaryPromptConfig === 'function'
+            ? window.MemoryApp.getSummaryPromptConfig()
+            : { mode: 'builtin', customPrompt: '' };
+        const summaryContact = wcContactsList.find((contact) => contact && contact.id === job.bindingId);
+        const summaryCharacterName = String(summaryContact?.name || '角色').trim() || '角色';
+        const builtinSummaryPrompt = '以{{char}}的日记形式写，时间线需严谨完整、简洁清晰，不少于500字。文风遵循晋江现代言情审美：流畅可读，重情感沉浸。使用长短句交替制造视觉呼吸感，忌大段文字。禁用比喻，以白描直述动作、微反应（如喉结滚动、指尖蜷缩）和日常空间（厨房、便利店、沙发）传递亲密，用洗衣液气味、热汤蒸汽等感官细节营造质感。对话自然口语，穿插动作控制节奏。叙事逻辑连贯，整体保持平淡温暖的生活流基调。';
+        const selectedSummaryPrompt = summaryPromptConfig.mode === 'custom' && String(summaryPromptConfig.customPrompt || '').trim()
+            ? String(summaryPromptConfig.customPrompt).trim()
+            : builtinSummaryPrompt;
+        const resolvedSummaryPrompt = selectedSummaryPrompt.replace(/{{\s*char\s*}}/gi, summaryCharacterName);
         const payload = {
             model: api.model,
             temperature: 0,
             messages: [
                 {
                     role: 'system',
-                    content: '你是谨慎的对话摘要器。只压缩给出的聊天记录和既有摘要，不添加猜测、未证实关系或角色设定。医疗健康、性、财务、住址、真实身份等敏感信息一律不写入。每个 section 都必须带实际使用的 sourceMessageIds；关系里程碑（恋人、分手、复合、同居、订婚、结婚、怀孕、患病、创伤）只有在已确认事实中出现时才能写。文风遵循晋江现代言情的日常生活流审美：流畅、温暖、重情感沉浸；只写 1–2 个长短交替的短句，制造呼吸感，绝不成段。禁用比喻，不煽情拔高。用白描直述已出现的动作、微反应、日常空间或感官细节；例如喉结滚动、指尖蜷缩、厨房、便利店、沙发、洗衣液气味、热汤蒸汽，但只有来源中明确出现时才能写，绝不凭空补充。对话保持自然口语，可穿插动作控制节奏，叙事前后连贯。只输出合法 JSON：{"sections":[{"title":"近况","content":"30字内摘要","sourceMessageIds":["消息id"]}]}；只能有 1 个 section，content 必须不超过 30 个字符。'
+                    content: resolvedSummaryPrompt + '\n\n只根据给出的聊天记录、既有摘要与已确认记忆写作，不添加猜测、未证实关系或角色设定；没有出现在来源中的细节不得编造。每个 section 必须带实际使用的 sourceMessageIds。只输出合法 JSON：{"sections":[{"title":"近况","content":"摘要正文","sourceMessageIds":["消息id"]}]}；只能有 1 个 section。内置提示词启用时，content 不少于 500 字。'
                 },
                 {
                     role: 'user',

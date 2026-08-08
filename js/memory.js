@@ -12,7 +12,12 @@
     const DEFAULT_SUMMARY_INTERVAL = 200;
     const MIN_SUMMARY_INTERVAL = 1;
     const MAX_SUMMARY_INTERVAL = 500;
-    const SUMMARY_PREFERENCES_VERSION = 2;
+    const SUMMARY_PREFERENCES_VERSION = 3;
+    const SUMMARY_PROMPT_MODE_BUILTIN = 'builtin';
+    const SUMMARY_PROMPT_MODE_CUSTOM = 'custom';
+    const MAX_SUMMARY_LENGTH = 12000;
+    const MAX_SUMMARY_PROMPT_LENGTH = 12000;
+    const MAX_SUMMARY_PROMPT_INJECTION_LENGTH = 6000;
     const MAX_SUMMARY_SOURCE_MESSAGES = 160;
     const MEMORY_SCHEMA_VERSION = 2;
     const OUTBOX_MAX_ATTEMPTS = 8;
@@ -33,6 +38,8 @@
     let cachedOutbox = [];
     let cachedSummaries = [];
     let summaryIntervalMessages = DEFAULT_SUMMARY_INTERVAL;
+    let summaryPromptMode = SUMMARY_PROMPT_MODE_BUILTIN;
+    let customSummaryPrompt = '';
     let memorySearchQuery = '';
     const invalidatedSourceIds = new Set();
 
@@ -127,6 +134,8 @@
             id: PREFERENCES_KEY,
             selectedContactId,
             summaryIntervalMessages,
+            summaryPromptMode,
+            customSummaryPrompt,
             summaryPreferencesVersion: SUMMARY_PREFERENCES_VERSION
         });
     }
@@ -138,10 +147,19 @@
     }
 
     function readSummaryInterval(preferences) {
-        if (!preferences || preferences.summaryPreferencesVersion !== SUMMARY_PREFERENCES_VERSION) {
+        if (!preferences) {
             return DEFAULT_SUMMARY_INTERVAL;
         }
         return normalizeSummaryInterval(preferences.summaryIntervalMessages);
+    }
+
+    function readSummaryPromptPreferences(preferences) {
+        return {
+            mode: preferences && preferences.summaryPromptMode === SUMMARY_PROMPT_MODE_CUSTOM
+                ? SUMMARY_PROMPT_MODE_CUSTOM
+                : SUMMARY_PROMPT_MODE_BUILTIN,
+            customPrompt: String(preferences && preferences.customSummaryPrompt || '').trim().slice(0, MAX_SUMMARY_PROMPT_LENGTH)
+        };
     }
 
     function getContactMessages(contactId) {
@@ -359,7 +377,14 @@
             .map((section) => normalizeMemoryText(section && section.content))
             .filter(Boolean)
             .join('\n')
-            .slice(0, 900);
+            .slice(0, MAX_SUMMARY_PROMPT_INJECTION_LENGTH);
+    }
+
+    function getSummaryPromptConfig() {
+        return {
+            mode: summaryPromptMode,
+            customPrompt: summaryPromptMode === SUMMARY_PROMPT_MODE_CUSTOM ? customSummaryPrompt : ''
+        };
     }
 
     function writeSyncedMemoryState(items, summaries, conversations) {
@@ -419,7 +444,7 @@
     async function saveSummaryOverride(bindingId, value) {
         const summary = getActiveSummary(bindingId);
         const content = normalizeMemoryText(value);
-        if (!summary || !content || content.length > 120) return false;
+        if (!summary || !content || content.length > MAX_SUMMARY_LENGTH) return false;
         const now = new Date().toISOString();
         const priorHistory = [{
             revision: summary.revision,
@@ -582,7 +607,12 @@
         const force = options && options.force === true;
         const allSourceMessages = (Array.isArray(messages) ? messages : [])
             .filter((message) => message && message.id && (message.type === 'sent' || message.type === 'received') && normalizeMemoryText(message.text))
-            .map((message) => ({ id: String(message.id), type: message.type, text: normalizeMemoryText(message.text).slice(0, 240) }));
+            .map((message) => ({
+                id: String(message.id),
+                type: message.type,
+                text: normalizeMemoryText(message.text).slice(0, 240),
+                time: message.timestamp || message.time || message.createdAt || message.date || ''
+            }));
         if (allSourceMessages.length === 0 || (!force && allSourceMessages.length < summaryIntervalMessages)) return null;
 
         const previous = getActiveSummary(bindingId);
@@ -609,7 +639,8 @@
                 id: previous.id,
                 text: getPromptSummary(bindingId),
                 sourceMessageIds: previous.sourceMessageIds || []
-            } : null
+            } : null,
+            minimumLength: summaryPromptMode === SUMMARY_PROMPT_MODE_BUILTIN ? 500 : 1
         };
     }
 
@@ -634,7 +665,7 @@
             const reportedSourceIds = (Array.isArray(section && section.sourceMessageIds) ? section.sourceMessageIds : []).map(String);
             if (reportedSourceIds.length === 0 || reportedSourceIds.some((id) => !validSourceIds.has(id))) return null;
             const sourceMessageIds = Array.from(new Set(reportedSourceIds));
-            if (!content || content.length > 30 || sourceMessageIds.length === 0 || isSensitiveAutomaticMemory(content) || !hasVerifiedMilestone(job.bindingId, content)) return null;
+            if (!content || content.length < (Number(job.minimumLength) || 1) || content.length > MAX_SUMMARY_LENGTH || sourceMessageIds.length === 0 || isSensitiveAutomaticMemory(content) || !hasVerifiedMilestone(job.bindingId, content)) return null;
             return { title: normalizeMemoryText(section && section.title).slice(0, 20) || '近况', content, sourceMessageIds };
         }).filter(Boolean);
         if (sections.length === 0) return false;
@@ -788,6 +819,7 @@
             ? records[MEMORY_SUMMARIES_KEY].items.filter((item) => item && item.id && item.bindingId && Array.isArray(item.sections))
             : [];
         summaryIntervalMessages = readSummaryInterval(records[PREFERENCES_KEY]);
+        ({ mode: summaryPromptMode, customPrompt: customSummaryPrompt } = readSummaryPromptPreferences(records[PREFERENCES_KEY]));
         return cachedMemoryItems;
     }
 
@@ -1263,8 +1295,8 @@
             if (status) status.textContent = '摘要不能为空。';
             return;
         }
-        if (value.length > 120) {
-            if (status) status.textContent = '摘要不能超过 120 字。';
+        if (value.length > MAX_SUMMARY_LENGTH) {
+            if (status) status.textContent = '摘要不能超过 ' + MAX_SUMMARY_LENGTH + ' 个字符。';
             return;
         }
         const saved = await saveSummaryOverride(selectedContactId, value);
@@ -1306,6 +1338,7 @@
         const input = root.querySelector('[data-memory-summary-interval]');
         const error = root.querySelector('[data-memory-summary-error]');
         input.value = String(summaryIntervalMessages);
+        renderSummaryPromptSettings();
         error.textContent = '';
         const semanticState = getSemanticModelState();
         const modelUrl = root.querySelector('[data-semantic-model-url]');
@@ -1467,6 +1500,19 @@
         input.value = String(Math.max(MIN_SUMMARY_INTERVAL, Math.min(MAX_SUMMARY_INTERVAL, current + delta)));
     }
 
+    function renderSummaryPromptSettings() {
+        if (!root) return;
+        const toggle = root.querySelector('[data-memory-summary-prompt-custom]');
+        const input = root.querySelector('[data-memory-summary-custom-prompt]');
+        const customSection = root.querySelector('[data-memory-summary-custom-prompt-section]');
+        if (!toggle || !input || !customSection) return;
+        const usesCustomPrompt = summaryPromptMode === SUMMARY_PROMPT_MODE_CUSTOM;
+        toggle.checked = usesCustomPrompt;
+        toggle.closest('.memory-sync-toggle-row')?.classList.toggle('is-on', usesCustomPrompt);
+        input.value = customSummaryPrompt;
+        customSection.hidden = !usesCustomPrompt;
+    }
+
     function getSemanticModelState() {
         return typeof window.SemanticMemory?.getState === 'function'
             ? window.SemanticMemory.getState()
@@ -1480,9 +1526,9 @@
         const removeButton = root.querySelector('[data-memory-action="remove-semantic-model"]');
         if (!status || !progress || !removeButton) return;
         const labels = {
-            'not-configured': '默认中文模型待下载',
+            'not-configured': '本地语义模型未下载；当前检索使用本地 n-gram',
             downloading: '正在下载',
-            ready: '已下载，等待语义运行时接入',
+            ready: '已下载，但尚未接入检索；当前仍使用本地 n-gram',
             error: '下载失败',
             unavailable: '当前浏览器不支持'
         };
@@ -1494,7 +1540,7 @@
         progress.hidden = state.status !== 'downloading' && state.status !== 'ready';
         removeButton.hidden = state.status !== 'ready';
         const sourceStatus = root.querySelector('.memory-settings-collapsible .memory-semantic-model-status')?.closest('.memory-settings-collapsible')?.querySelector('[data-memory-section-status]');
-        if (sourceStatus) sourceStatus.textContent = state.status === 'ready' ? '已配置' : '未配置';
+        if (sourceStatus) sourceStatus.textContent = state.status === 'ready' ? '已下载，未启用' : 'n-gram 检索中';
     }
 
     function openSemanticSettings() {
@@ -1545,7 +1591,23 @@
             input.focus();
             return;
         }
+        const customToggle = root.querySelector('[data-memory-summary-prompt-custom]');
+        const customPromptInput = root.querySelector('[data-memory-summary-custom-prompt]');
+        const nextPromptMode = customToggle && customToggle.checked ? SUMMARY_PROMPT_MODE_CUSTOM : SUMMARY_PROMPT_MODE_BUILTIN;
+        const nextCustomPrompt = String(customPromptInput && customPromptInput.value || '').trim();
+        if (nextPromptMode === SUMMARY_PROMPT_MODE_CUSTOM && !nextCustomPrompt) {
+            error.textContent = '启用自定义提示词前，请先填写提示词。';
+            customPromptInput.focus();
+            return;
+        }
+        if (nextCustomPrompt.length > MAX_SUMMARY_PROMPT_LENGTH) {
+            error.textContent = '自定义提示词不能超过 ' + MAX_SUMMARY_PROMPT_LENGTH + ' 个字符。';
+            customPromptInput.focus();
+            return;
+        }
         summaryIntervalMessages = normalizeSummaryInterval(rawValue);
+        summaryPromptMode = nextPromptMode;
+        customSummaryPrompt = nextCustomPrompt;
         const saved = await savePreferences();
         if (!saved) {
             error.textContent = '暂时无法保存，请稍后重试。';
@@ -1724,6 +1786,7 @@
             : [];
 
         summaryIntervalMessages = readSummaryInterval(records[PREFERENCES_KEY]);
+        ({ mode: summaryPromptMode, customPrompt: customSummaryPrompt } = readSummaryPromptPreferences(records[PREFERENCES_KEY]));
 
         const preferredId = records[PREFERENCES_KEY] && records[PREFERENCES_KEY].selectedContactId;
         if (cachedContacts.some((contact) => contact.id === selectedContactId)) {
@@ -2000,7 +2063,7 @@
             + '<div class="memory-composer-header"><button type="button" data-memory-action="close-summary-panel">完成</button><h2 id="memorySummaryPanelTitle">近期摘要</h2><button type="button" data-memory-action="refresh-summary">立即更新</button></div>'
             + '<div class="memory-summary-panel-scroll">'
             + '<p class="memory-summary-role" data-memory-summary-role></p>'
-            + '<section class="memory-summary-current"><div class="memory-summary-section-header"><h3>当前摘要</h3><button type="button" data-memory-action="edit-summary">编辑</button></div><p class="memory-summary-text" data-memory-summary-text></p><textarea data-memory-summary-input maxlength="120" aria-label="修改当前摘要"></textarea><div class="memory-summary-edit-actions"><button type="button" data-memory-action="cancel-summary-edit">取消</button><button type="button" data-memory-action="save-summary-edit">保存修正</button></div><p class="memory-summary-meta" data-memory-summary-meta></p></section>'
+            + '<section class="memory-summary-current"><div class="memory-summary-section-header"><h3>当前摘要</h3><button type="button" data-memory-action="edit-summary">编辑</button></div><p class="memory-summary-text" data-memory-summary-text></p><textarea data-memory-summary-input maxlength="12000" aria-label="修改当前摘要"></textarea><div class="memory-summary-edit-actions"><button type="button" data-memory-action="cancel-summary-edit">取消</button><button type="button" data-memory-action="save-summary-edit">保存修正</button></div><p class="memory-summary-meta" data-memory-summary-meta></p></section>'
             + '<section class="memory-summary-progress-section"><div class="memory-summary-section-header"><h3>自动更新进度</h3><span data-memory-summary-progress-copy></span></div><progress data-memory-summary-progress max="200" value="0"></progress></section>'
             + '<section class="memory-summary-source-section"><div class="memory-summary-section-header"><h3>摘要依据</h3><div><span data-memory-summary-source-count>0 条</span><button type="button" data-memory-action="toggle-summary-sources">查看依据</button></div></div><div class="memory-summary-sources" data-memory-summary-sources hidden></div></section>'
             + '<p class="memory-summary-status" data-memory-summary-status aria-live="polite"></p>'
@@ -2030,6 +2093,10 @@
             + '<section class="memory-settings-section memory-external-section"><h3>外接记忆库</h3><p class="memory-semantic-settings-copy">本地 IndexedDB 是主数据源；数据只会以明文上传到你配置的用户云端，凭据仅保存在本机。</p><div class="memory-external-fields"><label class="memory-semantic-settings-input memory-sync-provider-field"><span>服务</span><button type="button" class="memory-sync-provider-button" data-memory-action="choose-memory-sync-provider" aria-haspopup="dialog"><span data-memory-sync-provider-label>通用 HTTP / Cloudflare Worker</span><span class="memory-sync-chevron" aria-hidden="true">›</span></button><input type="hidden" data-memory-sync-provider value="http"></label><label class="memory-semantic-settings-input"><span>地址</span><input type="url" data-memory-sync-url placeholder="用户自己的服务地址；Mem0/Zep 可留空"></label><label class="memory-semantic-settings-input"><span>API Key</span><input type="password" data-memory-sync-key autocomplete="off"></label><label class="memory-semantic-settings-input"><span>访问令牌</span><input type="password" data-memory-sync-token autocomplete="off" placeholder="Supabase/HTTP 可选"></label><label class="memory-semantic-settings-input"><span>Supabase 表</span><input type="text" data-memory-sync-table placeholder="tonghuaji_memories"></label><label class="memory-semantic-settings-input"><span>命名空间</span><input type="text" data-memory-sync-namespace placeholder="用于隔离角色数据"></label></div><label class="memory-sync-toggle-row is-on"><span><strong>自动同步</strong><small>后台静默执行</small></span><input type="checkbox" data-memory-sync-auto checked><span class="memory-sync-switch" aria-hidden="true"></span></label><fieldset class="memory-sync-scope"><legend>上传范围</legend><label><input type="checkbox" data-memory-sync-tier="L1"> L1 确认记忆</label><label><input type="checkbox" data-memory-sync-tier="L2"> L2 摘要</label><label><input type="checkbox" data-memory-sync-tier="L3"> L3 片段</label><label><input type="checkbox" data-memory-sync-chat> 聊天记录</label><label><input type="checkbox" data-memory-sync-archived> 包含归档</label><label><input type="radio" name="memory-sync-roles" value="current" checked> 当前角色</label><label><input type="radio" name="memory-sync-roles" value="all"> 全部角色</label></fieldset><div class="memory-sync-actions"><button type="button" data-memory-action="test-memory-sync">测试连接</button><button type="button" data-memory-action="save-memory-sync">保存同步设置</button><button type="button" data-memory-action="sync-memory-now">立即同步</button><button type="button" data-memory-action="restore-memory-sync">下载恢复</button><a href="cloud-memory/README.md" target="_blank" rel="noopener">部署说明</a></div><p class="memory-composer-error" data-memory-sync-status aria-live="polite"></p></section><div class="memory-settings-privacy"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>你的记忆数据仅存储在你自己的设备或服务中</div><p class="memory-composer-error" data-memory-summary-error aria-live="polite"></p></div>';
         const localSection = settings.querySelector('.memory-settings-section:not(.memory-external-section)');
         const externalSection = settings.querySelector('.memory-external-section');
+        const summaryPromptSection = document.createElement('section');
+        summaryPromptSection.className = 'memory-settings-section memory-summary-prompt-section';
+        summaryPromptSection.innerHTML = '<h3>摘要提示词</h3><p class="memory-semantic-settings-copy">内置提示词默认启用且不会显示。开启后使用你填写的自定义提示词。</p><label class="memory-sync-toggle-row"><span><strong>使用自定义提示词</strong><small>关闭时使用内置日记提示词</small></span><input type="checkbox" data-memory-summary-prompt-custom><span class="memory-sync-switch" aria-hidden="true"></span></label><label class="memory-summary-custom-prompt" data-memory-summary-custom-prompt-section hidden><span>自定义提示词</span><textarea data-memory-summary-custom-prompt maxlength="12000" placeholder="输入用于生成摘要的自定义提示词"></textarea></label>';
+        localSection.parentNode.insertBefore(summaryPromptSection, localSection);
         makeMemorySettingsCollapsible(localSection, '本地向量模型', '用于快速检索本地记忆', '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"></circle><path d="M12 5v14M5 12h14"></path></svg>');
         const remoteSection = buildRemoteVectorSection(settings);
         externalSection.parentNode.insertBefore(remoteSection, externalSection);
@@ -2046,6 +2113,11 @@
         settings.querySelector('[data-memory-action="save-summary-settings"]').addEventListener('click', saveSummarySettings);
         settings.querySelector('[data-memory-action="decrease-summary-interval"]').addEventListener('click', () => adjustSummaryInterval(-1));
         settings.querySelector('[data-memory-action="increase-summary-interval"]').addEventListener('click', () => adjustSummaryInterval(1));
+        settings.querySelector('[data-memory-summary-prompt-custom]').addEventListener('change', (event) => {
+            const enabled = event.currentTarget.checked;
+            event.currentTarget.closest('.memory-sync-toggle-row')?.classList.toggle('is-on', enabled);
+            settings.querySelector('[data-memory-summary-custom-prompt-section]').hidden = !enabled;
+        });
         settings.querySelector('[data-memory-action="download-semantic-model"]').addEventListener('click', downloadSemanticModel);
         settings.querySelector('[data-memory-action="remove-semantic-model"]').addEventListener('click', removeSemanticModel);
         settings.querySelector('[data-memory-action="test-memory-sync"]').addEventListener('click', testMemorySync);
@@ -2529,6 +2601,8 @@
             .memory-sync-switch::after { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,.18); content: ""; transition: transform 180ms ease; }
             .memory-sync-toggle-row.is-on .memory-sync-switch { background: #34c759; }
             .memory-sync-toggle-row.is-on .memory-sync-switch::after { transform: translateX(20px); }
+            .memory-summary-custom-prompt { display: grid; gap: 8px; margin-top: 12px; color: #1c1c1e; font-size: 14px; }
+            .memory-summary-custom-prompt textarea { width: 100%; min-height: 150px; box-sizing: border-box; resize: vertical; border: 0; border-radius: 12px; padding: 12px; background: #f2f2f7; color: #1c1c1e; font: 14px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; outline: 0; }
             .memory-choice-dialog { position: absolute; inset: 0; z-index: 2; display: none; align-items: flex-end; background: rgba(0,0,0,.28); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
             .memory-choice-dialog.is-visible { display: flex; }
             .memory-choice-backdrop { position: absolute; inset: 0; }
@@ -2613,6 +2687,7 @@
         completeChatTurn,
         markChatTurnFailed,
         getPromptSummary,
+        getSummaryPromptConfig,
         getSummaryOverview,
         saveSummaryOverride,
         getRelevantFragments,
