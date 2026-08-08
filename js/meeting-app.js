@@ -13,8 +13,8 @@
 
     function decodeMeetingDocument() {
         if (!meetingDocument) {
-            const bytes = Uint8Array.from(atob(window.MEETING_APP_DOCUMENT_BASE64), value => value.charCodeAt(0));
-            meetingDocument = new TextDecoder().decode(bytes);
+            if (typeof window.MEETING_APP_DOCUMENT !== 'string') throw new Error('Meeting document source is unavailable.');
+            meetingDocument = window.MEETING_APP_DOCUMENT;
         }
         return meetingDocument;
     }
