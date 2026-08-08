@@ -1396,7 +1396,7 @@
             }
             const script = document.createElement('script');
             script.id = 'memoryAppScript';
-            script.src = 'js/memory.js?v=20260808-summary-sync-v6';
+            script.src = 'js/memory.js?v=20260808-memory-launch-v7';
             script.onload = resolve;
             script.onerror = () => {
                 script.remove();
@@ -1424,10 +1424,27 @@
     }
     window.loadMemoryApp = loadMemoryApp;
 
+    function showMemoryLaunchCover() {
+        const shell = document.querySelector('.iphone') || document.body;
+        const existing = document.getElementById('memoryAppLaunchCover');
+        if (existing) return existing;
+        const cover = document.createElement('div');
+        cover.id = 'memoryAppLaunchCover';
+        cover.setAttribute('aria-hidden', 'true');
+        cover.style.cssText = 'position:absolute;inset:0;z-index:7199;background:#fff;pointer-events:auto;';
+        shell.appendChild(cover);
+        return cover;
+    }
+
     function openMemoryApp() {
+        const launchCover = showMemoryLaunchCover();
         loadMemoryApp()
-            .then(app => app.open())
+            .then(app => {
+                app.open();
+                requestAnimationFrame(() => launchCover.remove());
+            })
             .catch(error => {
+                launchCover.remove();
                 console.error('Memory app could not be opened:', error);
                 if (typeof showCustomAlert === 'function') {
                     showCustomAlert('加载失败', '记忆页面暂时无法打开，请稍后重试。');

@@ -2590,6 +2590,8 @@
             .memory-summary-panel { position: absolute; inset: 0; z-index: 7203; display: none; align-items: flex-end; background: rgba(0,0,0,.28); }
             .memory-app-container.is-viewing-summary .memory-summary-panel { display: flex; }
             .memory-summary-panel-sheet { display: flex; width: 100%; max-height: min(82vh, 720px); flex-direction: column; overflow: hidden; border-radius: 18px 18px 0 0; padding: 14px 20px calc(22px + env(safe-area-inset-bottom)); box-sizing: border-box; background: #fff; box-shadow: 0 -12px 28px rgba(0,0,0,.14); }
+            .memory-summary-panel-sheet .memory-composer-header { grid-template-columns: 52px minmax(0, 1fr) max-content; column-gap: 8px; }
+            .memory-summary-panel-sheet .memory-composer-header button { white-space: nowrap; }
             .memory-summary-panel-scroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
             .memory-summary-role { margin: 18px 0 4px; color: #8e8e93; font-size: 13px; font-weight: 500; }
             .memory-summary-current, .memory-summary-progress-section, .memory-summary-source-section { padding: 18px 0; border-bottom: 1px solid #e5e5ea; }
@@ -2831,6 +2833,14 @@
 
     // The chat path reads this in-memory cache only. IndexedDB is warmed in the background.
     void preload().then(() => scheduleSemanticIndex());
+    const scheduleMemoryReferencePreload = () => {
+        const schedule = typeof window.requestIdleCallback === 'function'
+            ? (callback) => window.requestIdleCallback(callback, { timeout: 3000 })
+            : (callback) => setTimeout(callback, 900);
+        schedule(() => void init());
+    };
+    if (document.readyState === 'complete') scheduleMemoryReferencePreload();
+    else window.addEventListener('load', scheduleMemoryReferencePreload, { once: true });
     window.addEventListener('semanticmemory:status', (event) => {
         if (event.detail && event.detail.status === 'ready') scheduleSemanticIndex();
     });
