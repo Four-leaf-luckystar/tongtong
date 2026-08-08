@@ -48,6 +48,13 @@
     let wcEmojiGroups = [];
     let wbGroups = [];
     let wbEntries = [];
+    let musicAppData = {
+        searchHistory: [],
+        recentPlays: [],
+        favoriteSongs: [],
+        customPlaylists: [],
+        favoriteArtists: []
+    };
     window.getWorldbookGroups = function () {
         return Array.isArray(wbGroups)
             ? wbGroups.filter(group => group && group.id).map(group => ({ id: group.id, name: group.name }))
@@ -513,6 +520,18 @@
             }
         };
 
+        // --- 加载音乐 App 数据 ---
+        const musicRequest = store.get("musicAppData");
+        musicRequest.onsuccess = (e) => {
+            const mData = e.target.result;
+            if (mData && mData.data) {
+                musicAppData = mData.data;
+            }
+            if (typeof applemusicLoadAllData === 'function') {
+                applemusicLoadAllData();
+            }
+        };
+
         // --- 加载全局设置数据 ---
         const settingsRequest = store.get("appSettings");
         settingsRequest.onsuccess = (e) => {
@@ -750,6 +769,13 @@
         if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
     }
 
+    function saveMusicAppData() {
+        if (!db) return;
+        const transaction = db.transaction([storeName], "readwrite");
+        const store = transaction.objectStore(storeName);
+        store.put({ id: "musicAppData", data: musicAppData });
+        if (typeof triggerAutoLocalBackup === 'function') triggerAutoLocalBackup();
+    }
 
     async function getAllDataFromDB() {
         return new Promise((resolve) => {
